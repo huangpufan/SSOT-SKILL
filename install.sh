@@ -47,6 +47,7 @@ SOURCE_DIR="${SOURCE_DIR:-}"
 
 # Will be filled by detect_agents
 DETECTED_AGENTS=()
+ARG_QUICKSTART=0
 
 # Read VERSION as early as possible (best-effort; may be refreshed after ensure_source)
 read_version_file() {
@@ -121,6 +122,7 @@ t() {
       PREFLIGHT_TIP) echo "实质性工作前使用 \$ssot-preflight。" ;;
       CLOSEOUT_TIP) echo "final response / claim_done / commit 前使用 \$ssot-closeout。" ;;
       PROJECT_NOTE) echo "项目级安装仅在 Agent 在该项目根启动时生效。" ;;
+      ALSO_GLOBAL_HINT) echo "如需同时全局安装，重新跑命令并追加 --scope global。" ;;
       NO_AGENT_DETECTED) echo "未检测到已安装的 Agent" ;;
       SHOWING_ALL) echo "显示所有支持的目标" ;;
       NO_AGENT_SELECTED) echo "未选择任何 Agent" ;;
@@ -154,6 +156,7 @@ t() {
       PREFLIGHT_TIP) echo "Use \$ssot-preflight before substantive work." ;;
       CLOSEOUT_TIP) echo "Use \$ssot-closeout before final response, claim_done, or commit." ;;
       PROJECT_NOTE) echo "Project installs apply only when the Agent starts in this project root." ;;
+      ALSO_GLOBAL_HINT) echo "To also install globally, re-run with --scope global appended." ;;
       NO_AGENT_DETECTED) echo "No installed Agent detected" ;;
       SHOWING_ALL) echo "Showing all supported targets" ;;
       NO_AGENT_SELECTED) echo "No Agent selected" ;;
@@ -712,6 +715,42 @@ detect_agents() {
   done
 }
 
+# Quickstart helper: pick a single canonical agent key.
+# Priority: signature env vars → detect_agents fallback → empty (caller dies).
+autodetect_agent() {
+  # (i) skip — caller already merged $SSOT_AGENT into ARG_AGENT earlier.
+  # (ii) signature env detection (canonical keys, not aliases)
+  if [[ -n "${CLAUDECODE:-}" ]]; then echo "claude-code"; return; fi
+  local v
+  for v in $(compgen -e | grep -E '^CLAUDE_CODE_' || true); do
+    echo "claude-code"; return
+  done
+  if [[ -n "${CODEX_HOME:-}" ]]; then echo "codex"; return; fi
+  for v in $(compgen -e | grep -E '^CODEX_' || true); do
+    echo "codex"; return
+  done
+  if [[ -n "${CURSOR_TRACE_ID:-}" || "${TERM_PROGRAM:-}" == "cursor" ]]; then echo "cursor"; return; fi
+  for v in $(compgen -e | grep -E '^WINDSURF_' || true); do
+    echo "windsurf"; return
+  done
+  for v in $(compgen -e | grep -E '^GEMINI_CLI_' || true); do
+    echo "gemini-cli"; return
+  done
+  for v in $(compgen -e | grep -E '^GITHUB_COPILOT_' || true); do
+    echo "github-copilot"; return
+  done
+  for v in $(compgen -e | grep -E '^AIDER_' || true); do
+    echo "aider-desk"; return
+  done
+  # (iii) fs-based fallback via existing detect_agents
+  if [[ ${#DETECTED_AGENTS[@]} -gt 0 ]]; then
+    echo "${DETECTED_AGENTS[0]}"
+    return
+  fi
+  # (iv) empty → caller decides to die
+  echo ""
+}
+
 agent_base_for() {
   # echo the base path for agent+scope; may be "" for project-only agents at global scope
   local agent="$1" scope="$2"
@@ -802,8 +841,52 @@ ensure_source() {
   SOURCE_DIR="$(mktemp -d)"
   # shellcheck disable=SC2064
   trap "rm -rf '$SOURCE_DIR'; tput cnorm 2>/dev/null || true" EXIT INT TERM
-  git clone --depth 1 --branch "$REPO_BRANCH" "$REPO_URL" "$SOURCE_DIR" >/dev/null 2>&1 \
-    || die "git clone failed: $REPO_URL"
+
+  local -a mirrors=()
+  if [[ -n "${SSOT_SKILL_REPO_URL:-}" ]]; then
+    mirrors=("$SSOT_SKILL_REPO_URL")
+  else
+    mirrors=(
+      "https://github.com/huangpufan/SSOT-SKILL.git"
+      "https://gh-proxy.com/https://github.com/huangpufan/SSOT-SKILL.git"
+    )
+  fi
+
+  local url ok_clone=0 first=1
+  for url in "${mirrors[@]}"; do
+    if [[ $first -eq 0 ]]; then
+      warn "primary clone failed, retrying via $url" >&2
+    fi
+    first=0
+    if timeout 15 git clone --depth 1 --branch "$REPO_BRANCH" "$url" "$SOURCE_DIR" >/dev/null 2>&1; then
+      ok_clone=1
+      break
+    fi
+    # clone leaves a partial dir on failure
+    rm -rf "$SOURCE_DIR"
+    SOURCE_DIR="$(mktemp -d)"
+  done
+
+  if [[ $ok_clone -eq 0 && -z "${SSOT_SKILL_REPO_URL:-}" ]]; then
+    # tar.gz fallbacks
+    local -a tars=(
+      "https://github.com/huangpufan/SSOT-SKILL/archive/refs/heads/main.tar.gz"
+      "https://gh-proxy.com/https://github.com/huangpufan/SSOT-SKILL/archive/refs/heads/main.tar.gz"
+    )
+    local tar_url
+    for tar_url in "${tars[@]}"; do
+      warn "git clone failed for all mirrors, retrying via $tar_url" >&2
+      rm -rf "$SOURCE_DIR"
+      SOURCE_DIR="$(mktemp -d)"
+      if curl -fsSL --max-time 30 "$tar_url" | tar -xz -C "$SOURCE_DIR" --strip-components=1 2>/dev/null; then
+        ok_clone=1
+        break
+      fi
+    done
+  fi
+
+  [[ $ok_clone -eq 1 ]] || die "failed to fetch source from all mirrors (last tried: ${mirrors[-1]})"
+
   if [[ -f "$SOURCE_DIR/VERSION" ]]; then
     VERSION="$(tr -d '[:space:]' < "$SOURCE_DIR/VERSION")"
     [[ -z "$VERSION" ]] && VERSION="unknown"
@@ -985,6 +1068,7 @@ OPTIONS:
   --lang <en|zh>            Template language (default: en)
   --yes, -y                 Skip confirmation
   --non-interactive         Fail instead of prompting when args are missing
+  --quickstart              Non-interactive project-local install with autodetect
   --uninstall               Remove installed bundle (requires --agent, --scope)
   --upgrade                 Re-install over existing locations (auto-detects)
   --list-agents             Print supported agents (KEY / NAME / DETECT / PATH)
@@ -998,6 +1082,9 @@ ENVIRONMENT:
   SOURCE_DIR                Local source checkout (skip git clone)
 
 EXAMPLES:
+  # Quickstart (recommended for agents) — project-local, autodetected:
+  curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash -s -- --quickstart
+
   # Interactive (recommended): pick scope, agents, and language with arrow keys
   curl -fsSL <url>/install.sh | bash
   bash install.sh
@@ -1040,6 +1127,11 @@ parse_args() {
         ARG_YES=1; shift ;;
       --non-interactive)
         ARG_NONINTERACTIVE=1; shift ;;
+      --quickstart)
+        ARG_QUICKSTART=1
+        ARG_NONINTERACTIVE=1
+        ARG_YES=1
+        shift ;;
       --uninstall)
         MODE="uninstall"; shift ;;
       --upgrade)
@@ -1062,6 +1154,20 @@ parse_args() {
   [[ -z "$ARG_UI_LANG" && -n "${SSOT_UI_LANG:-}" ]] && ARG_UI_LANG="$SSOT_UI_LANG"
   [[ "${SSOT_YES:-0}" == "1" ]] && ARG_YES=1
   [[ "${SSOT_NONINTERACTIVE:-0}" == "1" ]] && ARG_NONINTERACTIVE=1
+
+  # Quickstart: fill defaults for fields the user did not pass.
+  # Must run AFTER env merge so SSOT_* env values take precedence over autodetect.
+  if [[ "$ARG_QUICKSTART" -eq 1 ]]; then
+    [[ -z "$ARG_SCOPE" ]] && ARG_SCOPE="project"
+    # Lang autodetect: respect LANG env when --lang not given
+    if [[ -z "$ARG_LANG" ]]; then
+      case "${LANG:-}" in
+        zh_CN*|zh_TW*|zh_HK*|zh_SG*) ARG_LANG="zh" ;;
+        *) ARG_LANG="en" ;;
+      esac
+    fi
+    # ARG_AGENT autodetect runs later in run_install (after parse_agent_registry).
+  fi
 
   # Upgrade implies non-interactive + yes
   if [[ "$MODE" == "upgrade" ]]; then
@@ -1126,11 +1232,23 @@ resolve_agent_list() {
 run_install() {
   detect_agents
 
+  # Quickstart: autodetect agent if user gave no --agent and none came via env.
+  if [[ "$ARG_QUICKSTART" -eq 1 && -z "$ARG_AGENT" ]]; then
+    local autodetected
+    autodetected="$(autodetect_agent)"
+    [[ -z "$autodetected" ]] && die "agent autodetect failed: re-run with --agent <key>; see --list-agents"
+    ARG_AGENT="$autodetected"
+    info "autodetected agent: ${autodetected}"
+  fi
+
   # Resolve scope
   local scope="$ARG_SCOPE"
   if [[ -z "$scope" ]]; then
     if [[ "$ARG_NONINTERACTIVE" -eq 1 ]]; then
       die "--scope required in non-interactive mode"
+    fi
+    if [[ "$PROMPT_FD" -eq 0 && ! -t 0 ]]; then
+      die "no tty available for interactive picker. Re-run with --quickstart, or pass --non-interactive --scope <global|project> --agent <key> --yes"
     fi
     # Project-first ordering — most users running `curl | bash` want the
     # bundle in the current repo, not their global skills dir.
@@ -1145,6 +1263,9 @@ run_install() {
     if [[ "$ARG_NONINTERACTIVE" -eq 1 ]]; then
       lang="en"
     else
+      if [[ "$PROMPT_FD" -eq 0 && ! -t 0 ]]; then
+        die "no tty available for interactive picker. Re-run with --quickstart, or pass --non-interactive --scope <global|project> --agent <key> --yes"
+      fi
       local lang_options=("$(t LANG_EN)" "$(t LANG_ZH)")
       select_one "$(t LANG_PROMPT)" "${lang_options[@]}"
       [[ $SELECTED_INDEX -eq 0 ]] && lang="en" || lang="zh"
@@ -1160,6 +1281,9 @@ run_install() {
     if [[ ${#DETECTED_AGENTS[@]} -eq 0 ]]; then
       warn "$(t NO_AGENT_DETECTED)"
       info "$(t SHOWING_ALL)"
+    fi
+    if [[ "$PROMPT_FD" -eq 0 && ! -t 0 ]]; then
+      die "no tty available for interactive picker. Re-run with --quickstart, or pass --non-interactive --scope <global|project> --agent <key> --yes"
     fi
     select_agents "$(t SELECT_AGENTS)" "$scope" "${ALL_AGENTS[@]}"
     [[ ${#SELECTED_AGENT_KEYS[@]} -gt 0 ]] || die "$(t NO_AGENT_SELECTED)"
@@ -1229,6 +1353,7 @@ run_install() {
   echo -e "  ${DIM}  $(t CLOSEOUT_TIP)${NC}"
   if [[ "$scope" == "project" ]]; then
     echo -e "  ${DIM}  $(t PROJECT_NOTE)${NC}"
+    echo -e "  ${DIM}  $(t ALSO_GLOBAL_HINT)${NC}"
   fi
   echo -e "  ${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
   echo ""

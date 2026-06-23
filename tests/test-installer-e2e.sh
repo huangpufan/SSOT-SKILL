@@ -182,6 +182,84 @@ else
   fail "scenario13: promptscript global install should fail"
 fi
 
+# Scenario 14: --quickstart with SSOT_AGENT env autodetect → project install
+SCENARIO14="$WORK_ROOT/scenario14"
+mkdir -p "$SCENARIO14/project"
+SCEN14_LOG="$(HOME="$SCENARIO14" SOURCE_DIR="$PROJECT_ROOT" SSOT_AGENT=claude-code \
+  bash -c "cd '$SCENARIO14/project' && bash '$INSTALLER' --quickstart" 2>&1)"
+SCEN14_RC=$?
+if [[ $SCEN14_RC -eq 0 ]]; then
+  pass "scenario14: --quickstart with SSOT_AGENT=claude-code exits 0"
+else
+  fail "scenario14: --quickstart exit code ($SCEN14_RC); log: $SCEN14_LOG"
+fi
+assert_file "scenario14: project install landed at .claude/skills" "$SCENARIO14/project/.claude/skills/ssot-preflight/SKILL.md"
+assert_file "scenario14: ssot-skill shim installed too" "$SCENARIO14/project/.claude/skills/ssot-skill/SKILL.md"
+if echo "$SCEN14_LOG" | grep -q "also install globally"; then
+  pass "scenario14: post-install prints global install hint"
+else
+  fail "scenario14: missing 'also install globally' hint"
+fi
+
+# Scenario 15: --quickstart with CLAUDECODE=1 signature env (no SSOT_AGENT)
+SCENARIO15="$WORK_ROOT/scenario15"
+mkdir -p "$SCENARIO15/project"
+SCEN15_LOG="$(HOME="$SCENARIO15" SOURCE_DIR="$PROJECT_ROOT" CLAUDECODE=1 \
+  bash -c "unset SSOT_AGENT; cd '$SCENARIO15/project' && bash '$INSTALLER' --quickstart" 2>&1)"
+SCEN15_RC=$?
+if [[ $SCEN15_RC -eq 0 ]]; then
+  pass "scenario15: --quickstart with CLAUDECODE=1 exits 0"
+else
+  fail "scenario15: --quickstart exit code ($SCEN15_RC); log: $SCEN15_LOG"
+fi
+assert_file "scenario15: project install landed at .claude/skills via CLAUDECODE=1" "$SCENARIO15/project/.claude/skills/ssot-preflight/SKILL.md"
+
+# Scenario 16: --quickstart --scope global → global install, no project hint
+SCENARIO16="$WORK_ROOT/scenario16"
+mkdir -p "$SCENARIO16"
+SCEN16_LOG="$(HOME="$SCENARIO16" SOURCE_DIR="$PROJECT_ROOT" SSOT_AGENT=claude-code \
+  bash "$INSTALLER" --quickstart --scope global 2>&1)"
+SCEN16_RC=$?
+if [[ $SCEN16_RC -eq 0 ]]; then
+  pass "scenario16: --quickstart --scope global exits 0"
+else
+  fail "scenario16: --quickstart --scope global exit code ($SCEN16_RC); log: $SCEN16_LOG"
+fi
+assert_file "scenario16: global install landed at \$HOME/.claude/skills" "$SCENARIO16/.claude/skills/ssot-preflight/SKILL.md"
+if echo "$SCEN16_LOG" | grep -q "also install globally"; then
+  fail "scenario16: global scope should NOT print 'also install globally' hint"
+else
+  pass "scenario16: global scope omits project-only hint"
+fi
+
+# Scenario 17: no tty + no flag → actionable die message
+SCENARIO17="$WORK_ROOT/scenario17"
+mkdir -p "$SCENARIO17/project"
+# Closing stdin (< /dev/null) AND running outside a tty simulates curl|bash without /dev/tty.
+SCEN17_LOG="$(HOME="$SCENARIO17" SOURCE_DIR="$PROJECT_ROOT" \
+  bash -c "cd '$SCENARIO17/project' && bash '$INSTALLER' < /dev/null" 2>&1)"
+SCEN17_RC=$?
+if [[ $SCEN17_RC -ne 0 ]]; then
+  pass "scenario17: no-tty no-flag invocation exits non-zero"
+else
+  fail "scenario17: should fail without flags + no tty"
+fi
+if echo "$SCEN17_LOG" | grep -q "no tty available"; then
+  pass "scenario17: error mentions 'no tty available'"
+else
+  fail "scenario17: missing 'no tty available' in error; log: $SCEN17_LOG"
+fi
+if echo "$SCEN17_LOG" | grep -q -- "--quickstart"; then
+  pass "scenario17: error suggests --quickstart"
+else
+  fail "scenario17: missing --quickstart suggestion; log: $SCEN17_LOG"
+fi
+if echo "$SCEN17_LOG" | grep -q -- "--agent"; then
+  pass "scenario17: error suggests --agent"
+else
+  fail "scenario17: missing --agent suggestion; log: $SCEN17_LOG"
+fi
+
 echo
 echo "=== RESULT: pass=$PASS fail=$FAIL ==="
 [[ $FAIL -eq 0 ]] && exit 0 || exit 1

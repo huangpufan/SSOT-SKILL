@@ -17,14 +17,27 @@ SSOT-SKILL is a lifecycle skill bundle for software repositories. It organizes l
 
 ## Install
 
-Interactive (recommended) — opens a picker for agent, scope, and template
-language:
+**Recommended — non-interactive, project-local, agent-friendly:**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash -s -- --quickstart
+```
+
+If the download is blocked or slow, use the mirror:
+
+```bash
+curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash -s -- --quickstart
+```
+
+`--quickstart` auto-detects your agent (via env signature, then filesystem scan) and template language, and installs **project-locally** by default. After installing, ask the user whether to also install globally (default no); if yes, re-run the same command with `--scope global` appended.
+
+Interactive picker (run from your repo if you want to choose scope/agent manually):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash
 ```
 
-To upgrade an existing install:
+To upgrade an existing install (auto-detects every location and reinstalls):
 
 ```bash
 bash install.sh --upgrade

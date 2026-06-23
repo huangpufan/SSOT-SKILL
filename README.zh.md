@@ -22,11 +22,20 @@ SSOT Skill 把仓库的长期事实——产品意图、架构边界、决策、
 
 ## 快速开始
 
-**有 Agent？把这段贴进你的仓库对话：**
+**告诉你的 Agent（把这段贴进仓库对话）：**
 
-> 把 `https://github.com/huangpufan/SSOT-SKILL` 的 SSOT Skill bundle 装到这个项目，使用 README 里的一行命令，然后读 `AGENTS.md`。
-
-Agent 会跑安装器、读 `AGENTS.md`，并为你 bootstrap `SSOT/`。
+> 把 SSOT Skill bundle 装到这个项目，跑：
+> ```bash
+> curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash -s -- --quickstart
+> ```
+> 如果下载慢或被阻塞，用镜像：
+> ```bash
+> curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash -s -- --quickstart
+> ```
+> 安装器会自动检测 Agent + 模板语言，**默认装到项目本地**。装完后**问我是否
+> 也装一份全局（默认否）**。如果是，把同一行命令在 `--quickstart` 后面追加
+> `--scope global` 再跑一次。
+> 最后读一下 `AGENTS.md` 并重启自己以加载 skill。
 
 **或自己跑交互式安装器：**
 
@@ -34,7 +43,7 @@ Agent 会跑安装器、读 `AGENTS.md`，并为你 bootstrap `SSOT/`。
 curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash
 ```
 
-安装器会用选择器确认 Agent、安装范围和模板语言。重启 Agent 会话后，在你的仓库里跑 `$ssot-bootstrap` 创建 `SSOT/` 并接好 adapter。
+交互式安装器用选择器确认 Agent、范围和模板语言。重启 Agent 会话后，在仓库里跑 `$ssot-bootstrap` 创建 `SSOT/` 并接好 adapter。
 
 ## 环境要求
 
@@ -44,12 +53,12 @@ curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.
 ## 卸载
 
 ```bash
-bash install.sh --uninstall <target>
+bash install.sh --uninstall --agent <key> --scope <global|project> --yes
 ```
 
-`<target>` 与安装时使用的 Agent 一致（例如 `claude-code`、`codex`）。安装器同时支持 `--upgrade` 和 `--version`。
+`<key>` 与安装时使用的 canonical Agent key 一致（例如 `claude-code`、`codex`、`cursor`）。安装器同时支持 `--upgrade`（扫描全部已安装位置并重装）和 `--version`。
 
-## 五个 lifecycle Skill
+## 六个 lifecycle Skill
 
 | Skill | 何时使用 |
 |---|---|
@@ -58,24 +67,29 @@ bash install.sh --uninstall <target>
 | `$ssot-closeout`  | 最终回复 / `claim_done` / commit 前——判断本批是否产生了需要吸收的持久事实 |
 | `$ssot-audit`     | 分段补齐 commit、session 或协议升级 |
 | `$ssot-doctor`    | 健康检查、停止审查、lint、CORE-REF / ADAPTER / CONSUMPTION 审计 |
+| `$ssot-skill`     | 兼容 shim；把调用路由到上面五个之一（保留给旧 prompt） |
 
 协议版本只在 [`skills/ssot-preflight/SKILL.md`](./skills/ssot-preflight/SKILL.md) 单点维护，并镜像到 [`VERSION`](./VERSION)。
 
 ## 三层结构
 
 ```
-┌─────────────────────────┐    install.sh    ┌──────────────────────────┐
-│  SSOT-SKILL（本仓库）   │ ───────────────▶ │  .claude/skills/...      │  ← Agent 启动时
-│  installer · 6 skills   │                  │  .codex/skills/...       │     加载这些副本
-│  protocol · templates   │                  │  .cursor/skills/...      │
-└─────────────────────────┘                  └────────────┬─────────────┘
-                                                          │ skills 在你的仓库里
-                                                          ▼
-                                             ┌──────────────────────────┐
-                                             │  your-repo/SSOT/         │  ← 仓库的长期记忆
-                                             │  product / architecture  │
-                                             │  testing / development   │
-                                             └──────────────────────────┘
+┌─────────────────────────┐    install.sh    ┌────────────────────────────────┐
+│  SSOT-SKILL（本仓库）   │ ───────────────▶ │  PROJECT 范围（默认）：        │  ← Agent 启动时
+│  installer · 6 skills   │                  │    .claude/skills/...          │     加载这些副本
+│  protocol · templates   │                  │    .agents/skills/...（Codex、 │
+│                         │                  │      Cursor、Gemini CLI、…）   │
+│                         │                  │  GLOBAL 范围（可选）：         │
+│                         │                  │    ~/.claude/skills/...        │
+│                         │                  │    ~/.codex/skills/...         │
+└─────────────────────────┘                  └──────────────┬─────────────────┘
+                                                            │ skills 在你的仓库里
+                                                            ▼
+                                              ┌────────────────────────────────┐
+                                              │  your-repo/SSOT/               │  ← 仓库的长期记忆
+                                              │  product / architecture        │
+                                              │  testing / development         │
+                                              └────────────────────────────────┘
 ```
 
 三层，一个目标：让 Agent 对仓库的记忆**可审查**、**可验证**、**跨工具可移植**。
