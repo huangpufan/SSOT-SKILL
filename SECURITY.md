@@ -15,7 +15,7 @@ up by re-running the installer.
 
 Please **do not** file public GitHub issues for security reports.
 
-Email: `<security-contact@example.com — replace with maintainer email>`
+Email: huangpufan.cn@gmail.com
 
 You can expect an acknowledgement within 48 hours. After triage we will
 coordinate a fix, a disclosure window, and (when appropriate) a CVE.

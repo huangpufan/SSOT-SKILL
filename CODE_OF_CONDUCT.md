@@ -20,7 +20,7 @@ representing the project in public spaces.
 Instances of abusive, harassing, or otherwise unacceptable behaviour may
 be reported to the project maintainers at:
 
-`<conduct-contact@example.com — replace>`
+huangpufan.cn@gmail.com
 
 All complaints will be reviewed and investigated promptly and fairly.
 Project maintainers are obligated to respect the privacy and security of
