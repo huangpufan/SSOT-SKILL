@@ -80,4 +80,3 @@ KISS is the permanent SSOT design principle: keep the reader's path short, keep 
 | `skills/ssot-doctor/assets/scripts/ssot-lint.sh` | Deterministic SSOT lint |
 | `tests/` | Bundle shape and installer e2e tests |
 | `.github/workflows/ci.yml` | CI pipeline |
-| `docs/` | Narrative companion (`what-is-ssot`, `glossary`, `how-it-works`, `quickstart`, `why-ssot`, `skills-reference`, `faq`, `contributing-overview`); read for context, not protocol authority |

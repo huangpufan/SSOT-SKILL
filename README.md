@@ -29,9 +29,6 @@ SSOT Skill turns your repository's long-lived facts — product intent, architec
 - **`skills/ssot-audit/`** — catches up on drifted waterlines in segments.
 - **`skills/ssot-doctor/`** — independent health check and stop-review.
 - **`skills/ssot-skill/`** — compatibility shim for legacy `$ssot-skill` calls.
-- **`docs/`** — narrative companion: rationale, glossary, lifecycle walkthrough, FAQ.
-
-For a guided tour, start with [`docs/what-is-ssot.md`](./docs/what-is-ssot.md).
 
 ## Quickstart
 
@@ -125,7 +122,6 @@ Aligned with the [vercel-labs/skills](https://github.com/vercel-labs/skills) reg
 
 ## Documentation
 
-- [`docs/`](./docs/) — narrative companion (start at [`docs/what-is-ssot.md`](./docs/what-is-ssot.md))
 - [`AGENTS.md`](./AGENTS.md) — full skill reference and routing rules
 - [`CONTRIBUTING.md`](./CONTRIBUTING.md) — contribution guide
 - [`CHANGELOG.md`](./CHANGELOG.md) — protocol history (Keep a Changelog)

@@ -29,9 +29,6 @@ SSOT Skill 把仓库的长期事实——产品意图、架构边界、决策、
 - **`skills/ssot-audit/`** — 分段补齐 commits / sessions / 协议版本漂移。
 - **`skills/ssot-doctor/`** — 独立健康检查与 stop-review。
 - **`skills/ssot-skill/`** — 兼容旧 `$ssot-skill` 调用的转发壳。
-- **`docs/`** — 叙事性补充：动机、术语表、生命周期走读、FAQ。
-
-想要快速了解整体设计，从 [`docs/what-is-ssot.md`](./docs/what-is-ssot.md) 开始。
 
 ## 快速开始
 
@@ -125,7 +122,6 @@ bash install.sh --uninstall --agent <key> --scope <global|project> --yes
 
 ## 文档
 
-- [`docs/`](./docs/) — 叙事性补充文档（推荐从 [`docs/what-is-ssot.md`](./docs/what-is-ssot.md) 开始）
 - [`AGENTS.md`](./AGENTS.md) — 完整 skill 参考和路由规则
 - [`CONTRIBUTING.md`](./CONTRIBUTING.md) — 贡献指南
 - [`CHANGELOG.md`](./CHANGELOG.md) — 协议历史（Keep a Changelog）
