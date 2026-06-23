@@ -20,16 +20,6 @@ SSOT Skill turns your repository's long-lived facts — product intent, architec
 
 > `SSOT/` is **agent long-term memory**, not a substitute for code. Code, schema, tests, and runtime behavior remain the source of truth for current implementation; SSOT records the durable conclusions around them.
 
-## What's in the bundle
-
-- **`install.sh`** — one installer, 70+ agents, project or global scope.
-- **`skills/ssot-preflight/`** — the gate read before every substantive task.
-- **`skills/ssot-bootstrap/`** — creates `SSOT/` from existing repo evidence.
-- **`skills/ssot-closeout/`** — reconciles a change batch before commit.
-- **`skills/ssot-audit/`** — catches up on drifted waterlines in segments.
-- **`skills/ssot-doctor/`** — independent health check and stop-review.
-- **`skills/ssot-skill/`** — compatibility shim for legacy `$ssot-skill` calls.
-
 ## Quickstart
 
 Paste this one line into your agent's chat (works for Claude Code, Codex, Cursor, Gemini CLI, …):

@@ -20,16 +20,6 @@ SSOT Skill 把仓库的长期事实——产品意图、架构边界、决策、
 
 > `SSOT/` 是 **Agent 长期记忆**，不是代码的替代品。代码、schema、测试和实际运行行为仍然是当前实现事实的证据来源；SSOT 记录围绕这些事实形成的持久结论。
 
-## 它包含什么
-
-- **`install.sh`** — 一个安装器，覆盖 70+ Agent，可项目本地或全局安装。
-- **`skills/ssot-preflight/`** — 每个实质性任务之前必走的入口闸。
-- **`skills/ssot-bootstrap/`** — 从已有代码与文档证据中创建 `SSOT/`。
-- **`skills/ssot-closeout/`** — 提交前对一批改动进行回收与对齐。
-- **`skills/ssot-audit/`** — 分段补齐 commits / sessions / 协议版本漂移。
-- **`skills/ssot-doctor/`** — 独立健康检查与 stop-review。
-- **`skills/ssot-skill/`** — 兼容旧 `$ssot-skill` 调用的转发壳。
-
 ## 快速开始
 
 把这一行粘进你的 Agent 对话（Claude Code、Codex、Cursor、Gemini CLI 等均可）：
