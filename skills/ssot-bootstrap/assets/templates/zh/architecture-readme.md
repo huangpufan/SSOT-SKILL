@@ -1,6 +1,9 @@
 # 架构
 
-> 行文风格：写给任何冷读者。详见 `ssot-bootstrap` §3.7。
+> 行文风格：写给任何冷读者。每节先散文后表格；表格是索引而非段落。
+> Walkthrough / Easily confused with / Out of scope / See also 是面向读者的结构槽位 ——
+> 要么填写，要么显式 `not_applicable: <原因>`。详见 `ssot-bootstrap` §3.7
+> 以及 `SKILL_STYLE.md` reader-scaffolds 章节。
 
 > 架构 root 是 Runtime Owner Map。它建立技术心智模型、核心不变量、跨 owner 视角路由、runtime owner domain 路由和证据方向。产品承诺、用户、路线图、非目标和验收语义归 `product/`；architecture 只链接这些 owner，并记录实现响应或实现 gap。
 
@@ -63,6 +66,11 @@ Mermaid fenced block 是权威图。导出的图片只是派生产物。Root 图
 |---|---|---|---|---|
 | `<ARCH-OWNER-MAP-CURRENT>` | current / target / stale | runtime owners and cross-owner edges | this file | |
 
+<!-- 图类型标注（v2.51）：本文件每个 Mermaid 块 SHOULD 携带
+     `<!-- diagram_type: component|sequence|state|flow -->` 注释，且一块一类
+     不混用。子系统页面 SHOULD 在第一屏（任何表格之前）出现 component 图。
+     Doctor 15U / 15V 检查这条。 -->
+
 ### Current Runtime Owner Map
 
 - **Diagram ID**: `<ARCH-OWNER-MAP-CURRENT>`
@@ -71,6 +79,7 @@ Mermaid fenced block 是权威图。导出的图片只是派生产物。Root 图
 - **证据**:
 
 ```mermaid
+<!-- diagram_type: component -->
 flowchart LR
   caller["<caller>"] --> ownerA["<runtime owner A>"]
   ownerA --> ownerB["<runtime owner B>"]
@@ -94,6 +103,23 @@ Root 只保留全局迁移姿态和 gap index 链接。详细 CTG 归相关 view
 - **覆盖深度**: `deep` / `sampled` / `inferred` / `unknown`
 - **覆盖范围**:
 - **停止审查**: `<reviewer>` 返回 `no-more-required-changes` / `needs-fix`。
+
+## 走查（Walkthrough）
+<!-- 用一段完整的散文描述本 owner 端到端的一次具体工作；不要用表格。
+     若 owner 本质是索引（如 SSOT/README.md 不是系统而是索引），显式写
+     `not_applicable: <原因>` 跳过。 -->
+
+## 容易混淆（Easily confused with）
+<!-- 1-3 个最容易被冷读者混淆的兄弟 owner；每条一行：
+     `**[兄弟 owner]** — [区分边界的一句话]`。 -->
+
+## 不回答（Out of scope）
+<!-- 一句话说明本 owner 不回答什么，指向回答它的 owner。
+     即便没有也必须显式写（如 `none — covers complete intent`）。 -->
+
+## 延伸阅读（See also）
+<!-- 3-7 条向外的链接花束；本节存在后，正文中不应再出现纯导航链接。
+     每条链接附一句话说明读者为什么要去那里。 -->
 
 ## Source Material Pointers
 

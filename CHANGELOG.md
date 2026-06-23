@@ -46,6 +46,83 @@ versions. This file only restates headline changes.
 - Obsolete `workflows/intent-recoverability-loop.workflow.js` (and the
   now-empty `workflows/` directory).
 
+## [2.51] - 2026-06-23
+
+`semantic_impact: medium` — adds the **reader-scaffolds floor**. The v2.47–v2.50
+floors all subtracted (cut shadow ledgers, table-only intent, language-drift
+H1s, missing directory maps); v2.51 adds the additive complement: four
+owner-template structural slots a cold agent uses to orient itself after
+routing — `## Walkthrough`, `## Easily confused with`, `## Out of scope`,
+`## See also` — plus a new `glossary-entry.md` per-term template,
+diagram-typing comments in architecture Mermaid blocks, and a KISS mini-card
+permitted form for first-mention canonical vocabulary that does not violate
+`15F [VOCAB-PROSE-FORK]`. Self-reviewable per `status-protocol.md §7.1`; no
+doctor stop-review required.
+
+### Added
+- **Owner-template structural slots** — every owner-archetype template in
+  `skills/ssot-bootstrap/assets/templates/{en,zh}/` (`ssot-readme.md`,
+  `architecture-readme.md`, `architecture-domain-readme.md`,
+  `product-readme.md`, `dir-readme-map.md`) now carries `## Walkthrough`,
+  `## Easily confused with`, `## Out of scope`, `## See also` H2 slots.
+- **`glossary-entry.md` template** (en + zh) — per-term glossary entry skeleton:
+  one-sentence positive definition, `Used in` inverse index,
+  `Not to be confused with` boundary list, source pin.
+- **`architecture-domain-readme.md`** gains a `### Walkthrough (canonical flow)`
+  H3 above the Runtime Flows table (required when the table is non-empty).
+- **`product-readme.md`** gains a `## Capabilities ↔ Journeys diagram`
+  mermaid block.
+- **Diagram-typing comments** — first mermaid block in each architecture
+  template carries `<!-- diagram_type: component -->`; templates surface the
+  one-type-per-block rule via an inline notice.
+- **KISS mini-card permitted form** (`SKILL_STYLE.md` reader-scaffolds section):
+  first-mention canonical vocabulary may appear inline as
+  `**Term** (def: <≤ 15-word clause> → [CORE-REF: glossary/<term>.md])`
+  without violating `15F [VOCAB-PROSE-FORK]`.
+- **Doctor rows** `15R [WALKTHROUGH]`, `15S [BOUNDARY-DISAMBIG]`,
+  `15T [OUT-OF-SCOPE-LINK]`, `15U [DIAGRAM-TYPE-TAG]`, `15V [DIAGRAM-FIRST]`
+  appended to `skills/ssot-doctor/references/doctor.md` §2.2. All five ship
+  WARN-only; `15R` graduates to FAIL next cycle.
+- **`ssot-lint.sh` checks 18–22** mirror the five new doctor rows
+  (structural grep only — heading presence, mermaid fence inspection,
+  first-screen line-count check). No NLP.
+- **Audit ledger entry** `### v2.51` added to
+  `skills/ssot-audit/references/current-upgrade.md` with the
+  semantic-impact-medium checklist.
+
+### Changed
+- **`VERSION`** -> `2.51`.
+- **`skills/ssot-preflight/SKILL.md`** `metadata.protocol_version` -> `2.51`.
+- **`skills/ssot-bootstrap/references/bootstrap.md`** §3.7: added
+  `**Reader scaffolds (v2.51).**` subsection (four slots, per-archetype
+  minimum scaffold set, additive-vs-subtractive framing).
+- **`skills/SKILL_STYLE.md`**: added `## Reader scaffolds (v2.51)` section
+  (six-slot summary, why no `archetype:` frontmatter, diagram typing,
+  KISS mini-card permitted form).
+- **`skills/ssot-preflight/references/area-model.md`** §2.0: required-answer
+  list extended from five questions to six (added "Where can I go next, and
+  what does this owner explicitly NOT answer").
+- **`skills/ssot-preflight/references/area-model.md`** §2.3: added
+  `**v2.51 entry template.**` note pointing new glossary entries at
+  `glossary-entry.md`; pre-v2.51 entries grandfather in until next touched.
+- **All five owner-archetype templates**: writing-style banner upgraded
+  from one-line `> Writing style: ...` to multi-line form that names the
+  reader-scaffold slots and links both `bootstrap.md §3.7` and
+  `SKILL_STYLE.md` reader-scaffolds section.
+- **`skills/ssot-bootstrap/references/templates-index.md`**: added
+  `glossary-entry.md` row.
+
+### Compatibility
+- `semantic_impact: medium` — self-reviewable; consumers bump
+  `tracked_skill_version` to `2.51` without an external reviewer.
+- All five new lint checks ship as WARN-only in this cycle so existing
+  converged SSOTs do not regress on the upgrade itself.
+- `15R [WALKTHROUGH]` graduates to FAIL in the next cycle's protocol entry;
+  the other four stay WARN until consumer-adoption signal justifies
+  promotion.
+- The KISS mini-card permitted form is opt-in; existing
+  `[CORE-REF: ...]` links remain valid.
+
 ## [2.50] - 2026-06
 
 `semantic_impact: medium` — adds the **information-architecture (IA)

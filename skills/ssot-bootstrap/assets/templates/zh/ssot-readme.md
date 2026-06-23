@@ -1,6 +1,9 @@
 # SSOT
 
-> 行文风格：写给任何冷读者。详见 `ssot-bootstrap` §3.7。
+> 行文风格：写给任何冷读者。每节先散文后表格；表格是索引而非段落。
+> Walkthrough / Easily confused with / Out of scope / See also 是面向读者的结构槽位 ——
+> 要么填写，要么显式 `not_applicable: <原因>`。详见 `ssot-bootstrap` §3.7
+> 以及 `SKILL_STYLE.md` reader-scaffolds 章节。
 
 > 仓库事实的单一事实来源。Agent 任务开始前先读此文件。
 
@@ -63,6 +66,23 @@ flowchart LR
 | 已知陷阱 | [gotchas/](./gotchas/README.md) | Reference | |
 | Bug 修复记录 | [bugs/](./bugs/README.md) | Reference | |
 | 技术债务 | [tech-debt/](./tech-debt/README.md) | Reference | |
+
+## 走查（Walkthrough）
+<!-- 用一段完整的散文描述本 owner 端到端的一次具体工作；不要用表格。
+     若 owner 本质是索引（如 SSOT/README.md 不是系统而是索引），显式写
+     `not_applicable: <原因>` 跳过。 -->
+
+## 容易混淆（Easily confused with）
+<!-- 1-3 个最容易被冷读者混淆的兄弟 owner；每条一行：
+     `**[兄弟 owner]** — [区分边界的一句话]`。 -->
+
+## 不回答（Out of scope）
+<!-- 一句话说明本 owner 不回答什么，指向回答它的 owner。
+     即便没有也必须显式写（如 `none — covers complete intent`）。 -->
+
+## 延伸阅读（See also）
+<!-- 3-7 条向外的链接花束；本节存在后，正文中不应再出现纯导航链接。
+     每条链接附一句话说明读者为什么要去那里。 -->
 
 ## 任务入口映射
 

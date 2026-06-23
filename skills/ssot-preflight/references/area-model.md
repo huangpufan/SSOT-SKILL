@@ -76,7 +76,7 @@ routing, comparison, status, or evidence lookup. A table-heavy owner that makes
 the reader reconstruct the story from cells should be fixed before it is
 marked `covered`.
 
-Every user-facing owner is also written as an agent action surface. After the opening explanation, a future agent should be able to answer five questions without reconstructing history from scattered evidence: **when should I read this**, **what current truth does this owner hold**, **where should I inspect first**, **what should I not do**, and **what minimal verification or evidence closes the loop**. Keep the answers compact; the point is orientation, not a second playbook. If a missing answer is caused by a protocol gap rather than one local document, fix the SSOT Skill protocol first, then update the consumer SSOT from that improved rule.
+Every user-facing owner is also written as an agent action surface. After the opening explanation, a future agent should be able to answer six questions without reconstructing history from scattered evidence: **when should I read this**, **what current truth does this owner hold**, **where should I inspect first**, **what should I not do**, **what minimal verification or evidence closes the loop**, and (v2.51) **where can I go next, and what does this owner explicitly NOT answer (with a pointer to the owner that does)**. Keep the answers compact; the point is orientation, not a second playbook. If a missing answer is caused by a protocol gap rather than one local document, fix the SSOT Skill protocol first, then update the consumer SSOT from that improved rule.
 
 ### 2.0.2 Core recovery manifest (v2.45 / v2.46)
 
@@ -619,6 +619,8 @@ category, owner-block-on-top, and 3-column-table shape so doctor `15A` /
 `15F` can find the rows mechanically.
 
 **Split signal**: When terms exceed 30 entries or span multiple distinct business domains, create sub-files by domain.
+
+**v2.51 entry template.** New glossary entries SHOULD render from [`ssot-bootstrap/assets/templates/{en,zh}/glossary-entry.md`](../../ssot-bootstrap/assets/templates/en/glossary-entry.md), which collapses the reader-scaffold slots into per-term form: one-sentence positive definition, `Used in` inverse index, `Not to be confused with` boundary list, and `Source pin`. Pre-v2.51 entries inside `glossary/README.md` may stay as table rows until next touched; touching an entry means migrating it to a `glossary/<term>.md` file rendered from the new template.
 
 ### 2.4 development/
 

@@ -1059,6 +1059,140 @@ if [[ "$DM_FAIL_COUNT" -eq 0 ]]; then
   add_pass "[DIR-MAP-MISSING] (15N) directory README first screens carry ASCII tree map"
 fi
 
+# ---------- check 18: [WALKTHROUGH] (15R) architecture domain README needs canonical-flow walkthrough ----------
+WT_WARN_COUNT=0
+if [[ -d "$SSOT_DIR/architecture" ]]; then
+  while IFS= read -r -d '' readme; do
+    # Only domain-level READMEs: $SSOT_DIR/architecture/<domain>/README.md.
+    parent_dir=$(dirname "$readme")
+    grand_dir=$(dirname "$parent_dir")
+    [[ "$grand_dir" != "$SSOT_DIR/architecture" ]] && continue
+    [[ "$(basename "$parent_dir")" == "views" ]] && continue
+    # Must carry intent_recovery: covered in frontmatter.
+    head -n 5 "$readme" | grep -q 'intent_recovery:[[:space:]]*covered' || continue
+    # Runtime Flows table present and non-empty? Use a heuristic: a heading
+    # whose first 6 words contain "Runtime Flows" followed within 25 lines by
+    # at least one pipe-table row that is not the header/divider line.
+    if awk '
+      /^##+ +Runtime [Ff]lows/ { in_section=1; line_count=0; next }
+      in_section {
+        line_count++
+        if (line_count > 25) { in_section=0; next }
+        # Skip header row and divider row.
+        if ($0 ~ /^\|[ -]+\|/) { next }
+        if ($0 ~ /^\| *Flow *\|/) { next }
+        # Real data row: starts with | and has at least one non-space cell.
+        if ($0 ~ /^\| *[^| ]/) { found=1; exit }
+      }
+      END { exit (found ? 0 : 1) }
+    ' "$readme"; then
+      # Must have an H3 walkthrough heading.
+      if ! grep -qE '^### +Walkthrough' "$readme"; then
+        add_warn "[WALKTHROUGH] (15R) domain README has Runtime Flows but no '### Walkthrough' H3: $readme"
+        WT_WARN_COUNT=$((WT_WARN_COUNT + 1))
+        [[ "$WT_WARN_COUNT" -ge 20 ]] && break
+      fi
+    fi
+  done < <(find "$SSOT_DIR/architecture" -name 'README.md' -type f -print0 2>/dev/null || true)
+fi
+if [[ "$WT_WARN_COUNT" -eq 0 ]]; then
+  add_pass "[WALKTHROUGH] (15R) architecture domain READMEs with non-empty Runtime Flows carry canonical-flow walkthrough"
+fi
+
+# ---------- check 19: [BOUNDARY-DISAMBIG] (15S) owner READMEs need 'Easily confused with' section ----------
+BD_WARN_COUNT=0
+while IFS= read -r -d '' readme; do
+  rel_path="${readme#"$SSOT_DIR/"}"
+  # Only check owner-archetype READMEs: top-level area READMEs + architecture domain READMEs.
+  # Skip leaf docs and meta files.
+  case "$rel_path" in
+    README.md|product/README.md|architecture/README.md|architecture/views/README.md|architecture/*/README.md|development/README.md|testing/README.md|release/README.md|deployment/README.md|decisions/README.md|gotchas/README.md|bugs/README.md|tech-debt/README.md|glossary/README.md|01-product/README.md|02-architecture/README.md|02-architecture/views/README.md|02-architecture/*/README.md|03-process/development/README.md|03-process/testing/README.md|03-process/release/README.md|03-process/deployment/README.md)
+      ;;
+    *) continue ;;
+  esac
+  if ! grep -qE '^## +Easily confused with' "$readme"; then
+    add_warn "[BOUNDARY-DISAMBIG] (15S) owner README missing '## Easily confused with' section: $readme"
+    BD_WARN_COUNT=$((BD_WARN_COUNT + 1))
+    [[ "$BD_WARN_COUNT" -ge 20 ]] && break
+  fi
+done < <(find "$SSOT_DIR" -name 'README.md' -type f -print0 2>/dev/null || true)
+if [[ "$BD_WARN_COUNT" -eq 0 ]]; then
+  add_pass "[BOUNDARY-DISAMBIG] (15S) owner READMEs carry 'Easily confused with' section"
+fi
+
+# ---------- check 20: [OUT-OF-SCOPE-LINK] (15T) owner READMEs need 'Out of scope' section ----------
+OOS_WARN_COUNT=0
+while IFS= read -r -d '' readme; do
+  rel_path="${readme#"$SSOT_DIR/"}"
+  case "$rel_path" in
+    README.md|product/README.md|architecture/README.md|architecture/views/README.md|architecture/*/README.md|development/README.md|testing/README.md|release/README.md|deployment/README.md|decisions/README.md|gotchas/README.md|bugs/README.md|tech-debt/README.md|glossary/README.md|01-product/README.md|02-architecture/README.md|02-architecture/views/README.md|02-architecture/*/README.md|03-process/development/README.md|03-process/testing/README.md|03-process/release/README.md|03-process/deployment/README.md)
+      ;;
+    *) continue ;;
+  esac
+  if ! grep -qE '^## +Out of scope' "$readme"; then
+    add_warn "[OUT-OF-SCOPE-LINK] (15T) owner README missing '## Out of scope' section: $readme"
+    OOS_WARN_COUNT=$((OOS_WARN_COUNT + 1))
+    [[ "$OOS_WARN_COUNT" -ge 20 ]] && break
+  fi
+done < <(find "$SSOT_DIR" -name 'README.md' -type f -print0 2>/dev/null || true)
+if [[ "$OOS_WARN_COUNT" -eq 0 ]]; then
+  add_pass "[OUT-OF-SCOPE-LINK] (15T) owner READMEs carry 'Out of scope' section"
+fi
+
+# ---------- check 21: [DIAGRAM-TYPE-TAG] (15U) Mermaid blocks need diagram_type comment ----------
+DT_WARN_COUNT=0
+if [[ -d "$SSOT_DIR/architecture" ]]; then
+  while IFS= read -r -d '' f; do
+    # awk pass: find every ```mermaid ... ``` block; if the next non-blank
+    # line inside the fence is not an HTML comment containing diagram_type:, warn.
+    awk -v file="$f" '
+      /^```mermaid[[:space:]]*$/ { infence=1; tagged=0; lineno=NR; next }
+      infence && /^```/ {
+        if (!tagged) { print "MISS|" file "|" lineno }
+        infence=0; next
+      }
+      infence {
+        # Skip blank lines while still expecting the tag.
+        if (!tagged && $0 ~ /^[[:space:]]*$/) { next }
+        if (!tagged) {
+          if ($0 ~ /<!--[[:space:]]*diagram_type:/) { tagged=1 }
+          else { tagged=2 }  # not-tagged-and-already-saw-real-content
+        }
+      }
+    ' "$f" | while IFS='|' read -r status filepath lineno; do
+      if [[ "$status" == "MISS" ]]; then
+        add_warn "[DIAGRAM-TYPE-TAG] (15U) Mermaid block missing 'diagram_type:' comment: $filepath (fence opened near line $lineno)"
+        DT_WARN_COUNT=$((DT_WARN_COUNT + 1))
+        [[ "$DT_WARN_COUNT" -ge 20 ]] && break
+      fi
+    done
+  done < <(find "$SSOT_DIR/architecture" -name '*.md' -type f -print0 2>/dev/null || true)
+fi
+if [[ "$DT_WARN_COUNT" -eq 0 ]]; then
+  add_pass "[DIAGRAM-TYPE-TAG] (15U) architecture Mermaid blocks carry diagram_type comment"
+fi
+
+# ---------- check 22: [DIAGRAM-FIRST] (15V) architecture domain README needs first-screen diagram ----------
+DF_WARN_COUNT=0
+if [[ -d "$SSOT_DIR/architecture" ]]; then
+  while IFS= read -r -d '' readme; do
+    parent_dir=$(dirname "$readme")
+    grand_dir=$(dirname "$parent_dir")
+    [[ "$grand_dir" != "$SSOT_DIR/architecture" ]] && continue
+    [[ "$(basename "$parent_dir")" == "views" ]] && continue
+    head -n 5 "$readme" | grep -q 'intent_recovery:[[:space:]]*covered' || continue
+    # First 60 lines must contain a ```mermaid fence opener.
+    if ! head -n 60 "$readme" | grep -qE '^```mermaid'; then
+      add_warn "[DIAGRAM-FIRST] (15V) architecture domain README missing first-screen Mermaid block: $readme"
+      DF_WARN_COUNT=$((DF_WARN_COUNT + 1))
+      [[ "$DF_WARN_COUNT" -ge 20 ]] && break
+    fi
+  done < <(find "$SSOT_DIR/architecture" -name 'README.md' -type f -print0 2>/dev/null || true)
+fi
+if [[ "$DF_WARN_COUNT" -eq 0 ]]; then
+  add_pass "[DIAGRAM-FIRST] (15V) architecture domain READMEs carry first-screen Mermaid block"
+fi
+
 fi  # end META_LEAKAGE_SKIP_OTHER_CHECKS guard (checks 13-17 also guarded)
 
 # ---------- output ----------

@@ -143,6 +143,70 @@ would make the consumer write paragraph-length reasoning inside cells, copy a
 checklist into `STATUS.md`, or produce a document that is easier for grep than
 for a cold reader, fix the reference or template first.
 
+## Reader scaffolds (v2.51)
+
+KISS is a *subtractive* discipline — it cuts what adds noise. The cold-reader
+problem has a second axis: any reader who lands on a page also needs scaffolds
+that *add* orientation — what concrete thing this owner does, which sibling
+owners it gets confused with, where the boundary stops, where to go next.
+"Reader scaffolds" is the additive complement. Both serve the same cold reader.
+
+Every owner-archetype template in `assets/templates/{en,zh}/` carries six
+reader-facing structural slots. Five are pre-existing (`Lead` opening, runtime
+diagram, owned facts, evidence pointer, source material). Four are new in v2.51
+and required on every owner README:
+
+- **Walkthrough** — one end-to-end concrete prose example of this owner doing
+  its job, not a table. Skipped with explicit `not_applicable: <reason>` only
+  for purely indexical owners (e.g. `SSOT/README.md`).
+- **Easily confused with** — one to three sibling owners that get confused
+  with this one, each with a one-line disambiguating boundary.
+- **Out of scope** — one-line statement of what this owner does NOT answer,
+  plus a pointer to the owner that does. Required even when "none" (write
+  `none — covers complete intent`).
+- **See also** — forward-link bouquet (three to seven outbound links), each
+  with a one-line hook. Once present, inline body must avoid navigation-only
+  links; this section owns them.
+
+These slots are *structural*. Doctor checks they exist (15R–15V). The
+prose-before-tables, positive-definition, and cell-is-not-a-paragraph
+guardrails still bind whatever fills them. A scaffold cannot smuggle in a
+shadow ledger.
+
+**Why not introduce an `archetype:` frontmatter field.** A consumer's SSOT is
+already partitioned by area (product, architecture, development, testing) and
+by owner role (trunk README, subsystem README, glossary entry, decision
+record). Adding a Diátaxis-style `archetype:` field would force the agent to
+make a third classification decision per file and would conflict with the
+area model (`ssot-preflight/references/area-model.md`). The same goal is
+reached by embedding scaffold slots into the existing per-archetype
+templates: when `bootstrap-readme.md` is rendered from `architecture-domain-
+readme.md`, the four slots are already there.
+
+**Diagram typing.** Each Mermaid block in an architecture template carries a
+`<!-- diagram_type: component | sequence | state | flow -->` HTML comment as
+its first fenced-block line. One type per block — do not mix component edges
+with sequence arrows in one diagram. Subsystem pages should ship a component
+diagram in the first screen, before any table. Doctor `15U [DIAGRAM-TYPE-TAG]`
+and `15V [DIAGRAM-FIRST]` track this.
+
+**KISS bridge update — mini-card permitted form for first-mention canonical
+vocabulary.** Doctor `15F [VOCAB-PROSE-FORK]` keeps the single-prose-owner
+rule for canonical vocabulary (each term has exactly one prose owner —
+`glossary/<term>.md`). v2.51 carves out one explicit inline aid for
+first-mention readability without violating that rule:
+
+```
+**Term** (def: <one clause ≤ 15 words> → [CORE-REF: glossary/<term>.md])
+```
+
+This mini-card is **permitted**, not required. The glossary entry is still
+the owner. The mini-card is bounded to one clause and one anchor; a second
+prose sentence, a state-transition clause, or any further explanation falls
+back under 15F and must move to the glossary owner. Use the mini-card only
+on first mention in a consuming owner; later mentions in the same file use
+the bare term plus optional link.
+
 ---
 
 ## Review procedure

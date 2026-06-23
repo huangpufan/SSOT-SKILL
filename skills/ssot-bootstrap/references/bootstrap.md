@@ -429,6 +429,43 @@ A reader who only sees the tree and the map annotations must be able to answer
 [`cold-agent-sim.md`](../../ssot-doctor/references/cold-agent-sim.md) §1.8
 `dir-tree-only` probes.
 
+**Reader scaffolds (v2.51).** The v2.47–v2.50 floors all subtracted — they
+removed table-only intent, language-locked H1s missing locked language,
+shadow ledgers, directory READMEs without a tree. v2.51 adds the four
+reader-facing structural slots a cold agent uses to orient itself once it
+has been routed to an owner:
+
+| Slot | What it answers | When to fill |
+|---|---|---|
+| **Walkthrough** | One concrete end-to-end example of this owner doing its job. Prose, not a table. | Required on every owner README. `not_applicable: <reason>` allowed only for purely indexical owners (`SSOT/README.md`, area-trunk indexes). |
+| **Easily confused with** | One to three sibling owners most likely to be confused with this one, each with a one-line disambiguating boundary. | Required on every owner README. |
+| **Out of scope** | One-line statement of what this owner does NOT answer plus a pointer to the owner that does. | Required even when none (write `none — covers complete intent`). |
+| **See also** | Forward-link bouquet (three to seven outbound links), each with a one-line hook. Once present, inline body avoids navigation-only links. | Required on every owner README. |
+
+Per-archetype minimum scaffold set:
+
+- `ssot-readme.md` (overview): all four slots plus a global routing diagram.
+- `architecture-readme.md` (architecture overview): all four slots plus at least one component diagram in the Diagrams section.
+- `architecture-domain-readme.md` (subsystem): all four top-level slots plus a first-screen component diagram (before any table) plus a `### Walkthrough (canonical flow)` H3 above the Runtime Flows table whenever the table is non-empty.
+- `product-readme.md` (product overview): all four slots plus a Capabilities ↔ Journeys relationship diagram.
+- `dir-readme-map.md` (directory index): Easily confused with + Out of scope + See also (top-level Walkthrough defaults to `not_applicable` — the index is not a system).
+- `glossary-entry.md` (atomic owner, new in v2.51): see [`assets/templates/{en,zh}/glossary-entry.md`](../assets/templates/en/glossary-entry.md). Slots collapse into `Extended definition`, `Used in` (inverse index), `Not to be confused with`, `Source pin`.
+
+These slots are *additive* — they complement the v2.47 intent/truth narrative
+and the v2.50 directory-map floor; they do not replace them. The prose-before-
+tables, positive-definition, and cell-is-not-a-paragraph guardrails above
+still bind whatever fills them. A `Walkthrough` written as a five-row table
+fails the same `14I` gate as any other table-disguised paragraph.
+
+KISS is the subtractive discipline; reader scaffolds are the additive
+complement. Both serve the cold reader. Doctor rows `15R [WALKTHROUGH]`,
+`15S [BOUNDARY-DISAMBIG]`, `15T [OUT-OF-SCOPE-LINK]`, `15U [DIAGRAM-TYPE-TAG]`,
+`15V [DIAGRAM-FIRST]` enforce the structural floor (existence and shape, not
+prose quality). Bootstrap Phase 1 renders the slots empty with explicit
+`<!-- TODO: fill before declaring covered -->` markers so the converged-area
+check forces the consumer to fill them or mark `not_applicable: <reason>` before
+flipping the area to `covered`.
+
 ### 3.8 SSOT document naming and formatting conventions
 
 All SSOT documents must follow the naming, frontmatter, and H1 language

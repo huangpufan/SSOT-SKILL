@@ -20,6 +20,24 @@ Recommended reading order: start with `<child-A>` (baseline), then `<child-B>` (
 
 <One paragraph (≤5 sentences): why this directory stands on its own; what axis it uses; what axis it rejected; which sibling boundary is most easily confused with it by a cold reader.>
 
+## Walkthrough
+<!-- One end-to-end concrete prose walk of THIS owner doing its job. Not a table.
+     Skip with explicit `not_applicable: <reason>` when the owner is purely
+     indexical (e.g., SSOT/README.md is an index, not a system). -->
+
+## Easily confused with
+<!-- 1-3 sibling owners that get confused with this one; one bullet each:
+     `**[Sibling]** — [one-line boundary that disambiguates]`. -->
+
+## Out of scope
+<!-- 1-line statement of what this owner does NOT answer + pointer to the
+     owner that does. Required even when "none" (write `none — covers complete intent`). -->
+
+## See also
+<!-- Forward-link bouquet (3-7 outbound links). Inline body MUST avoid
+     navigation-only links once this section exists. Each link: one-line
+     hook explaining why a reader might go there. -->
+
 ## Further reading
 
 - Parent entry: [`../README.md`](../README.md)

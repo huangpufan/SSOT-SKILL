@@ -10,6 +10,49 @@ files.
 
 ## Version Ledger
 
+### v2.51
+
+**Upgrade goal**: add the **reader-scaffolds floor**. The v2.47–v2.50 floors
+are all *subtractive* — they cut shadow ledgers, table-only intent narratives,
+language-drift H1s, missing directory maps. v2.51 adds the *additive*
+complement: four owner-template structural slots a cold agent needs to
+orient itself after routing — `## Walkthrough`, `## Easily confused with`,
+`## Out of scope`, `## See also` — plus a new `glossary-entry.md` per-term
+template, diagram-typing comments in architecture Mermaid blocks, and a
+KISS mini-card permitted form for first-mention canonical vocabulary that
+does not violate `15F [VOCAB-PROSE-FORK]`.
+
+**Impact**: `semantic_impact=medium` — adds five new Doctor rows
+(`15R [WALKTHROUGH]` / `15S [BOUNDARY-DISAMBIG]` / `15T [OUT-OF-SCOPE-LINK]`
+/ `15U [DIAGRAM-TYPE-TAG]` / `15V [DIAGRAM-FIRST]`) and five lint script
+checks (18–22). All five ship as WARN-only in the first cycle so existing
+converged SSOTs do not regress; `15R [WALKTHROUGH]` graduates to FAIL after
+one adoption cycle. The `area-model.md §2.0` required-answer list extends
+from five questions to six (added "Where can I go next, and what does this
+owner explicitly NOT answer"). Consumers self-review per
+`status-protocol.md §7.1`; no doctor stop-review is required.
+
+**Impact checklist**:
+
+| Check | Affected area | Audit action | Done criterion |
+|---|---|---|---|
+| Reader-scaffold slots on owner READMEs | Every `covered` owner README under `SSOT/` (top-level area READMEs, architecture domain READMEs, `dir-readme-map.md` rendered indexes) | Open each owner README; fill the four new slots from the upgraded `assets/templates/{en,zh}/` owner template, or write explicit `not_applicable: <reason>` where genuinely indexical. Walkthrough on `architecture/<domain>/README.md` references one canonical flow's surface/symbol pins; never duplicates the Runtime Flows table. | `ssot-lint.sh SSOT/` reports `[BOUNDARY-DISAMBIG]` / `[OUT-OF-SCOPE-LINK]` / `[WALKTHROUGH]` = 0 WARN, OR every WARN row is a deliberate `not_applicable: <reason>` documented in the area's `_manifest.md`. |
+| Diagram typing in `architecture/` | All Mermaid fenced blocks under `architecture/` | Add `<!-- diagram_type: component\|sequence\|state\|flow -->` as the first non-blank line inside each Mermaid fence; split any block that mixes types (e.g. flowchart edges + sequence `participant` directives). | `ssot-lint.sh SSOT/` reports `[DIAGRAM-TYPE-TAG]` = 0 WARN. |
+| First-screen diagram on architecture domain READMEs | Every `architecture/<domain>/README.md` whose `intent_recovery: covered` | Move or add a small component diagram above the first owned-facts table so a cold reader sees the boundary picture before parsing tables. Domains genuinely without a meaningful diagram downgrade to `partial`. | `ssot-lint.sh SSOT/` reports `[DIAGRAM-FIRST]` = 0 WARN. |
+| Glossary entry template adoption | New glossary entries created after this upgrade | Render new glossary entries from `assets/templates/{en,zh}/glossary-entry.md` (`glossary/<term>.md`). Pre-v2.51 entries inside `glossary/README.md` grandfather in until next touched. | New entries follow the per-term file shape; touched entries migrate. |
+| Required-answer count in `area-model.md §2.0` | Anyone authoring or auditing a user-facing owner README | When asserting an owner README is `covered`, confirm the sixth question ("Where can I go next, and what does this owner explicitly NOT answer") is answered by the `## See also` + `## Out of scope` slots, not by inline body navigation links. | Cold-reader review on `covered` owners confirms the sixth answer is locatable in dedicated slots. |
+
+**Migration notes**:
+
+- Self-reviewable per `status-protocol.md §7.1`; no doctor stop-review required.
+- All five new checks ship as WARN-only for one adoption cycle so existing
+  converged SSOTs do not regress.
+- `15R [WALKTHROUGH]` graduates to FAIL in the next cycle's protocol entry;
+  the other four rows stay WARN until their consumer adoption signal warrants
+  promotion.
+- The KISS mini-card permitted form is opt-in: existing `[CORE-REF: ...]`
+  links remain valid; the mini-card is an additional shape, not a rewrite.
+
 ### v2.50
 
 **Upgrade goal**: establish the **information-architecture (IA)

@@ -1,6 +1,10 @@
 # Architecture
 
-> Writing style: any cold reader. See `ssot-bootstrap` §3.7.
+> Writing style: any cold reader. Every section opens with prose before tables;
+> tables are indexes, not paragraphs. Walkthrough / Easily confused with / Out
+> of scope / See also are reader-facing structural slots — fill them or write
+> explicit `not_applicable: <reason>`. See `ssot-bootstrap` §3.7 and
+> `SKILL_STYLE.md` reader-scaffolds section.
 
 > Architecture root is a Runtime Owner Map. It gives the technical mental model,
 > core invariants, cross-owner view routes, runtime-owner domain routes, and
@@ -81,6 +85,11 @@ belong in views or domains.
 |---|---|---|---|---|
 | `<ARCH-OWNER-MAP-CURRENT>` | current / target / stale | runtime owners and cross-owner edges | this file | |
 
+<!-- Diagram typing (v2.51): every Mermaid block in this file SHOULD carry a
+     `<!-- diagram_type: component|sequence|state|flow -->` tag and stay one
+     type per block. Subsystem pages SHOULD ship a component diagram in the
+     FIRST SCREEN (before any table). Doctor 15U / 15V check this. -->
+
 ### Current Runtime Owner Map
 
 - **Diagram ID**: `<ARCH-OWNER-MAP-CURRENT>`
@@ -89,6 +98,7 @@ belong in views or domains.
 - **Evidence**:
 
 ```mermaid
+<!-- diagram_type: component -->
 flowchart LR
   caller["<caller>"] --> ownerA["<runtime owner A>"]
   ownerA --> ownerB["<runtime owner B>"]
@@ -113,6 +123,24 @@ belongs in the relevant view or domain.
 - **Coverage depth**: `deep` / `sampled` / `inferred` / `unknown`
 - **Coverage scope**:
 - **Stop review**: `<reviewer>` returned `no-more-required-changes` / `needs-fix`.
+
+## Walkthrough
+<!-- One end-to-end concrete prose walk of THIS owner doing its job. Not a table.
+     Skip with explicit `not_applicable: <reason>` when the owner is purely
+     indexical (e.g., SSOT/README.md is an index, not a system). -->
+
+## Easily confused with
+<!-- 1-3 sibling owners that get confused with this one; one bullet each:
+     `**[Sibling]** — [one-line boundary that disambiguates]`. -->
+
+## Out of scope
+<!-- 1-line statement of what this owner does NOT answer + pointer to the
+     owner that does. Required even when "none" (write `none — covers complete intent`). -->
+
+## See also
+<!-- Forward-link bouquet (3-7 outbound links). Inline body MUST avoid
+     navigation-only links once this section exists. Each link: one-line
+     hook explaining why a reader might go there. -->
 
 ## Source Material Pointers
 

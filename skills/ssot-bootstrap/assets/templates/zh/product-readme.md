@@ -1,6 +1,9 @@
 # 产品
 
-> 行文风格：写给任何冷读者。详见 `ssot-bootstrap` §3.7。
+> 行文风格：写给任何冷读者。每节先散文后表格；表格是索引而非段落。
+> Walkthrough / Easily confused with / Out of scope / See also 是面向读者的结构槽位 ——
+> 要么填写，要么显式 `not_applicable: <原因>`。详见 `ssot-bootstrap` §3.7
+> 以及 `SKILL_STYLE.md` reader-scaffolds 章节。
 
 > 产品事实入口。本区域拥有 PRD、产品承诺、用户/操作者、产品边界、capability、journey、roadmap 和 product acceptance。Architecture 只链接本区域 owner，并记录实现设计或 gap。
 >
@@ -32,12 +35,43 @@
 | Capability details | [capabilities/](./capabilities/README.md) | 只收稳定 capability owner |
 | Journey details | [journeys/](./journeys/README.md) | 只收跨 capability 或独立验收 journey |
 
+## 能力 ↔ 旅程关系图（Capabilities ↔ Journeys）
+
+> 可选。小型产品主干写 `not_applicable` 和原因。该图只展示 capability /
+> journey 关系一览，把读者路由到 owner，不承载独立产品事实。
+
+```mermaid
+<!-- diagram_type: component -->
+flowchart LR
+  prd["PRD spine"] --> cap1["capability A"]
+  prd --> cap2["capability B"]
+  cap1 --> j1["journey 1"]
+  cap2 --> j1
+```
+
 ## 拆分规则
 
 - 保持事实在最高稳定 owner。不要为一次性 feature、ticket、UI script、测试用例或 implementation flow 创建 product 文件。
 - 当 capability 具有持久用户价值、边界、非目标、acceptance meaning 或 roadmap state，且继续放在 spine 会膨胀时，拆到 `capabilities/<capability>.md`。
 - 当 journey 跨多个 capabilities、影响 roadmap/release 决策、拥有独立 product acceptance，或反复驱动 priority tradeoff 时，拆到 `journeys/<journey>.md`。
 - 产品事实由 product 拥有；architecture 只记录实现设计、runtime execution、lifecycle、failure/recovery、observability 和 technical gap。
+
+## 走查（Walkthrough）
+<!-- 用一段完整的散文描述本 owner 端到端的一次具体工作；不要用表格。
+     若 owner 本质是索引（如 SSOT/README.md 不是系统而是索引），显式写
+     `not_applicable: <原因>` 跳过。 -->
+
+## 容易混淆（Easily confused with）
+<!-- 1-3 个最容易被冷读者混淆的兄弟 owner；每条一行：
+     `**[兄弟 owner]** — [区分边界的一句话]`。 -->
+
+## 不回答（Out of scope）
+<!-- 一句话说明本 owner 不回答什么，指向回答它的 owner。
+     即便没有也必须显式写（如 `none — covers complete intent`）。 -->
+
+## 延伸阅读（See also）
+<!-- 3-7 条向外的链接花束；本节存在后，正文中不应再出现纯导航链接。
+     每条链接附一句话说明读者为什么要去那里。 -->
 
 ## 源资料
 
