@@ -1,0 +1,114 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  bash-syntax:
+    name: bash -n syntax check
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install bash 4+ (macOS)
+        if: runner.os == 'macOS'
+        run: brew install bash
+      - name: Check install.sh
+        run: |
+          if [[ "${{ runner.os }}" == "macOS" ]]; then
+            /opt/homebrew/bin/bash -n install.sh
+          else
+            bash -n install.sh
+          fi
+      - name: Check ssot-lint.sh
+        run: |
+          if [[ "${{ runner.os }}" == "macOS" ]]; then
+            /opt/homebrew/bin/bash -n skills/ssot-doctor/assets/scripts/ssot-lint.sh
+          else
+            bash -n skills/ssot-doctor/assets/scripts/ssot-lint.sh
+          fi
+      - name: Check run-tests.sh
+        run: |
+          if [[ "${{ runner.os }}" == "macOS" ]]; then
+            /opt/homebrew/bin/bash -n skills/ssot-doctor/assets/scripts/test/run-tests.sh
+          else
+            bash -n skills/ssot-doctor/assets/scripts/test/run-tests.sh
+          fi
+      - name: Check test-installer-e2e.sh
+        run: |
+          if [[ "${{ runner.os }}" == "macOS" ]]; then
+            /opt/homebrew/bin/bash -n tests/test-installer-e2e.sh
+          else
+            bash -n tests/test-installer-e2e.sh
+          fi
+      - name: Check test-bundle-shape.sh
+        run: |
+          if [[ "${{ runner.os }}" == "macOS" ]]; then
+            /opt/homebrew/bin/bash -n tests/test-bundle-shape.sh
+          else
+            bash -n tests/test-bundle-shape.sh
+          fi
+
+  shellcheck:
+    name: shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install shellcheck
+        run: sudo apt-get update -qq && sudo apt-get install -y shellcheck
+      - name: shellcheck install.sh
+        run: shellcheck -S warning -e SC2034 install.sh
+      - name: shellcheck ssot-lint.sh
+        run: shellcheck -S warning -e SC2034 skills/ssot-doctor/assets/scripts/ssot-lint.sh
+      - name: shellcheck tests
+        run: shellcheck -S warning -e SC2034 tests/*.sh
+
+  unit-tests:
+    name: ssot-lint unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run lint smoke tests
+        run: bash skills/ssot-doctor/assets/scripts/test/run-tests.sh
+
+  bundle-shape:
+    name: bundle shape & link integrity
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install bash 4+ (macOS)
+        if: runner.os == 'macOS'
+        run: brew install bash
+      - name: Run bundle shape tests
+        run: |
+          if [[ "${{ runner.os }}" == "macOS" ]]; then
+            /opt/homebrew/bin/bash tests/test-bundle-shape.sh
+          else
+            bash tests/test-bundle-shape.sh
+          fi
+
+  installer-e2e:
+    name: installer end-to-end
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install bash 4+ (macOS)
+        if: runner.os == 'macOS'
+        run: brew install bash
+      - name: Run installer e2e
+        run: |
+          if [[ "${{ runner.os }}" == "macOS" ]]; then
+            /opt/homebrew/bin/bash tests/test-installer-e2e.sh
+          else
+            bash tests/test-installer-e2e.sh
+          fi

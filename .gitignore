@@ -1,0 +1,16 @@
+# GitHub 竞品扫描与深度调研（本地研究产物，不入库）
+research/
+
+# OS / editor artifacts
+.DS_Store
+*:Zone.Identifier
+*.bak
+*~
+.idea/
+.vscode/
+
+# Installer local artifacts
+.ssot-skill-install.*
+
+# Locally-installed bundle copy (e.g. this repo self-installs into .claude/)
+.claude/
