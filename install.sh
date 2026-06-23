@@ -123,6 +123,9 @@ t() {
       CLOSEOUT_TIP) echo "final response / claim_done / commit 前使用 \$ssot-closeout。" ;;
       PROJECT_NOTE) echo "项目级安装仅在 Agent 在该项目根启动时生效。" ;;
       ALSO_GLOBAL_HINT) echo "如需同时全局安装，重新跑命令并追加 --scope global。" ;;
+      WIRE_HEADER) echo "下一步：把这段触发指令复制到本仓库的 agent-instructions 文件" ;;
+      WIRE_TARGET_HINT) echo "目标文件：CLAUDE.md / AGENTS.md / .cursorrules / GEMINI.md / 等（按你用的 Agent 选）" ;;
+      WIRE_SEE_README) echo "完整说明与英文版块：https://github.com/huangpufan/SSOT-SKILL#wire-it-into-your-agent-instructions-file" ;;
       NO_AGENT_DETECTED) echo "未检测到已安装的 Agent" ;;
       SHOWING_ALL) echo "显示所有支持的目标" ;;
       NO_AGENT_SELECTED) echo "未选择任何 Agent" ;;
@@ -157,6 +160,9 @@ t() {
       CLOSEOUT_TIP) echo "Use \$ssot-closeout before final response, claim_done, or commit." ;;
       PROJECT_NOTE) echo "Project installs apply only when the Agent starts in this project root." ;;
       ALSO_GLOBAL_HINT) echo "To also install globally, re-run with --scope global appended." ;;
+      WIRE_HEADER) echo "Next: paste this trigger block into this repo's agent-instructions file" ;;
+      WIRE_TARGET_HINT) echo "Target file: CLAUDE.md / AGENTS.md / .cursorrules / GEMINI.md / etc. (whichever your agent uses)" ;;
+      WIRE_SEE_README) echo "Full guide + the other language: https://github.com/huangpufan/SSOT-SKILL#wire-it-into-your-agent-instructions-file" ;;
       NO_AGENT_DETECTED) echo "No installed Agent detected" ;;
       SHOWING_ALL) echo "Showing all supported targets" ;;
       NO_AGENT_SELECTED) echo "No Agent selected" ;;
@@ -206,6 +212,35 @@ ok()   { echo -e "  ${CHECK} $*"; }
 warn() { echo -e "  ${YELLOW}!${NC} $*"; }
 err()  { echo -e "  ${RED}✗${NC} $*" >&2; }
 die()  { err "$@"; exit 1; }
+
+# Print the trigger-directive block users should paste into their
+# agent-instructions file. Switches on $1 = lang (en|zh).
+print_wire_block() {
+  local lang="${1:-en}"
+  echo ""
+  echo -e "  ${BOLD}${YELLOW}━━━ $(t WIRE_HEADER) ━━━${NC}"
+  echo -e "  ${DIM}$(t WIRE_TARGET_HINT)${NC}"
+  echo ""
+  if [[ "$lang" == "zh" ]]; then
+    echo -e "${CYAN}  本仓库已安装 SSOT Skill。\`SSOT/\` 是 Agent 长期记忆；代码 / schema / 测试仍是事实证据源。${NC}"
+    echo ""
+    echo -e "${CYAN}  - \`\$ssot-preflight\` — 实质性仓库任务开始前。${NC}"
+    echo -e "${CYAN}  - \`\$ssot-bootstrap\` — \`SSOT/\` 缺失或 bootstrap 未完成时。${NC}"
+    echo -e "${CYAN}  - \`\$ssot-closeout\` — 实质性变更批次的 final response / \`claim_done\` / commit 前。${NC}"
+    echo -e "${CYAN}  - \`\$ssot-audit\` — 同步 \`tracked_commit\` / \`tracked_session\` / \`tracked_skill_version\`。${NC}"
+    echo -e "${CYAN}  - \`\$ssot-doctor\` — 健康检查 / 停止审查 / CORE-REF / ADAPTER / CONSUMPTION。${NC}"
+  else
+    echo -e "${CYAN}  SSOT Skill is installed here. \`SSOT/\` is agent long-term memory; code, schema, and tests remain the source of truth.${NC}"
+    echo ""
+    echo -e "${CYAN}  - \`\$ssot-preflight\` — before any substantive repository task.${NC}"
+    echo -e "${CYAN}  - \`\$ssot-bootstrap\` — when \`SSOT/\` is missing or bootstrap is incomplete.${NC}"
+    echo -e "${CYAN}  - \`\$ssot-closeout\` — before final response / \`claim_done\` / commit on a substantive change batch.${NC}"
+    echo -e "${CYAN}  - \`\$ssot-audit\` — to catch up \`tracked_commit\` / \`tracked_session\` / \`tracked_skill_version\`.${NC}"
+    echo -e "${CYAN}  - \`\$ssot-doctor\` — for health check, stop review, CORE-REF / ADAPTER / CONSUMPTION.${NC}"
+  fi
+  echo ""
+  echo -e "  ${DIM}$(t WIRE_SEE_README)${NC}"
+}
 
 # -----------------------------------------------------------------------------
 # Interactive widgets
@@ -1356,6 +1391,7 @@ run_install() {
     echo -e "  ${DIM}  $(t ALSO_GLOBAL_HINT)${NC}"
   fi
   echo -e "  ${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  print_wire_block "$lang"
   echo ""
 }
 
@@ -1442,6 +1478,7 @@ run_upgrade() {
   echo -e "  ${CHECK} ${BOLD}$(t INSTALLED)${NC}  ${DIM}v${VERSION}${NC}"
   echo -e "  ${DIM}  $(t RESTART_TIP)${NC}"
   echo -e "  ${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  print_wire_block "${lang:-en}"
   echo ""
 }
 

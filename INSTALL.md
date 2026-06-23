@@ -46,11 +46,46 @@ curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.
 
 Verify a file like `~/.claude/skills/ssot-preflight/SKILL.md` exists.
 
-## 4. Read the skill reference
+## 4. Wire the skills into the repo's agent-instructions file
+
+Step 2 made the skills discoverable, but discovery is not invocation — without an explicit trigger directive, you (and the next agent that opens this repo) may forget to call `$ssot-preflight` at the right moment.
+
+Find this repo's primary agent-instructions file based on which agent you are:
+
+- Claude Code → `CLAUDE.md` at repo root
+- Codex / OpenAI-style → `AGENTS.md`
+- Cursor → `.cursor/rules/ssot.mdc` (new file) or merge into existing `.cursorrules`
+- Windsurf → `.windsurf/rules/ssot.md` or merge into `.windsurfrules`
+- Gemini CLI → `GEMINI.md`
+- Other agents → their canonical instruction file
+
+Read it first if it exists. Then merge in these six lines (use `LANG` from step 1). Pick a natural section — "Skills", "Conventions", or end-of-file — and adapt wording so it flows with the surrounding text. **Do not** paste verbatim if the file uses a different voice.
+
+**en**
+
+> SSOT Skill is installed here. `SSOT/` is agent long-term memory; code, schema, and tests remain the source of truth.
+> - `$ssot-preflight` — before any substantive repository task.
+> - `$ssot-bootstrap` — when `SSOT/` is missing or bootstrap is incomplete.
+> - `$ssot-closeout` — before final response / `claim_done` / commit on a substantive change batch.
+> - `$ssot-audit` — to catch up `tracked_commit` / `tracked_session` / `tracked_skill_version`.
+> - `$ssot-doctor` — for health check, stop review, CORE-REF / ADAPTER / CONSUMPTION.
+
+**zh**
+
+> 本仓库已安装 SSOT Skill。`SSOT/` 是 Agent 长期记忆；代码 / schema / 测试仍是事实证据源。
+> - `$ssot-preflight` — 实质性仓库任务开始前。
+> - `$ssot-bootstrap` — `SSOT/` 缺失或 bootstrap 未完成时。
+> - `$ssot-closeout` — 实质性变更批次的 final response / `claim_done` / commit 前。
+> - `$ssot-audit` — 同步 `tracked_commit` / `tracked_session` / `tracked_skill_version`。
+> - `$ssot-doctor` — 健康检查 / 停止审查 / CORE-REF / ADAPTER / CONSUMPTION。
+
+If the file already references `$ssot-preflight` or `SSOT/`, update that block in place rather than duplicating. Do not modify unrelated sections.
+
+## 5. Read the skill reference
 
 Fetch and read [AGENTS.md](https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/AGENTS.md). It tells you when to invoke each of the six lifecycle skills (`$ssot-preflight`, `$ssot-bootstrap`, `$ssot-closeout`, `$ssot-audit`, `$ssot-doctor`, `$ssot-skill`).
 
-## 5. Tell the user to restart you
+## 6. Tell the user to restart you
 
 The newly installed skills will not load in the current session. Tell the user:
 

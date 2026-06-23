@@ -48,6 +48,38 @@ curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.
 
 交互式安装器用方向键选 Agent、范围、模板语言。装完后重启 Agent 会话，在仓库里跑 `$ssot-bootstrap` 创建 `SSOT/`。
 
+## 把指令写进 agent-instructions 文件
+
+安装 bundle 让 skill 可被**发现**，但大多数 Agent 在没有显式触发指令时**不会可靠地调用** `$ssot-preflight`。你需要在仓库的 agent-instructions 文件（`CLAUDE.md` / `AGENTS.md` / `.cursorrules` / `GEMINI.md` 等）里加一段触发块。
+
+Agent 驱动的安装路径（[`INSTALL.md`](./INSTALL.md) 第 4 步）会自动做这件事。如果你是手动跑 `install.sh`，请把下面的块复制到你仓库的 agent-instructions 文件里。措辞按上下文调整；如果已有相同块，**不要重复粘贴**。
+
+**中文**
+
+```markdown
+本仓库已安装 SSOT Skill。`SSOT/` 是 Agent 长期记忆；代码 / schema / 测试仍是事实证据源。
+
+- `$ssot-preflight` — 实质性仓库任务开始前。
+- `$ssot-bootstrap` — `SSOT/` 缺失或 bootstrap 未完成时。
+- `$ssot-closeout` — 实质性变更批次的 final response / `claim_done` / commit 前。
+- `$ssot-audit` — 同步 `tracked_commit` / `tracked_session` / `tracked_skill_version`。
+- `$ssot-doctor` — 健康检查 / 停止审查 / CORE-REF / ADAPTER / CONSUMPTION。
+```
+
+**English**
+
+```markdown
+SSOT Skill is installed here. `SSOT/` is agent long-term memory; code, schema, and tests remain the source of truth.
+
+- `$ssot-preflight` — before any substantive repository task.
+- `$ssot-bootstrap` — when `SSOT/` is missing or bootstrap is incomplete.
+- `$ssot-closeout` — before final response / `claim_done` / commit on a substantive change batch.
+- `$ssot-audit` — to catch up `tracked_commit` / `tracked_session` / `tracked_skill_version`.
+- `$ssot-doctor` — for health check, stop review, CORE-REF / ADAPTER / CONSUMPTION.
+```
+
+点代码块右上角的复制按钮，把内容粘到 agent-instructions 文件的 "Skills" / "Conventions" / "约定" 段落（若无则贴到文件末尾）。
+
 ## 环境要求
 
 - **Bash 4+**。macOS 默认 bash 3.2，请先 `brew install bash`，然后用 `/opt/homebrew/bin/bash` 跑安装器。

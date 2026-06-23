@@ -48,6 +48,38 @@ curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.
 
 The interactive installer picks scope/agent/language with arrow keys. After install, restart your agent session, then run `$ssot-bootstrap` to create `SSOT/`.
 
+## Wire it into your agent-instructions file
+
+Installing the bundle makes the skills *discoverable*, but most agents will not reliably *invoke* `$ssot-preflight` at the right moment without an explicit trigger line in your repo's agent-instructions file (`CLAUDE.md` / `AGENTS.md` / `.cursorrules` / `GEMINI.md` / etc.).
+
+The agent-driven install ([`INSTALL.md`](./INSTALL.md) step 4) does this for you automatically. If you ran `install.sh` yourself, paste the block below into your repo's agent-instructions file. Adapt wording to match the surrounding style; do not duplicate if a previous block is already present.
+
+**English**
+
+```markdown
+SSOT Skill is installed here. `SSOT/` is agent long-term memory; code, schema, and tests remain the source of truth.
+
+- `$ssot-preflight` — before any substantive repository task.
+- `$ssot-bootstrap` — when `SSOT/` is missing or bootstrap is incomplete.
+- `$ssot-closeout` — before final response / `claim_done` / commit on a substantive change batch.
+- `$ssot-audit` — to catch up `tracked_commit` / `tracked_session` / `tracked_skill_version`.
+- `$ssot-doctor` — for health check, stop review, CORE-REF / ADAPTER / CONSUMPTION.
+```
+
+**中文**
+
+```markdown
+本仓库已安装 SSOT Skill。`SSOT/` 是 Agent 长期记忆；代码 / schema / 测试仍是事实证据源。
+
+- `$ssot-preflight` — 实质性仓库任务开始前。
+- `$ssot-bootstrap` — `SSOT/` 缺失或 bootstrap 未完成时。
+- `$ssot-closeout` — 实质性变更批次的 final response / `claim_done` / commit 前。
+- `$ssot-audit` — 同步 `tracked_commit` / `tracked_session` / `tracked_skill_version`。
+- `$ssot-doctor` — 健康检查 / 停止审查 / CORE-REF / ADAPTER / CONSUMPTION。
+```
+
+Click the copy button on the code block, then paste it into a "Skills" / "Conventions" section of your agent-instructions file (or at the end if no such section exists).
+
 ## Requirements
 
 - **Bash 4+**. macOS ships bash 3.2 by default — install a newer bash first: `brew install bash` (then re-run the installer through `/opt/homebrew/bin/bash`).
