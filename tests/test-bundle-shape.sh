@@ -166,9 +166,9 @@ fi
 # verbatim and are not prose.
 CN_FILES=()
 while IFS= read -r f; do
-  # Strip inline code spans before checking for Chinese
+  # Strip inline code spans before checking for Chinese (python3 — macOS grep lacks -P)
   stripped="$(sed 's/`[^`]*`//g' "$f")"
-  if printf '%s' "$stripped" | grep -qP '[\x{4e00}-\x{9fa5}]' 2>/dev/null; then
+  if printf '%s' "$stripped" | python3 -c "import sys,re; sys.exit(0 if re.search(r'[一-龥]', sys.stdin.read()) else 1)" 2>/dev/null; then
     CN_FILES+=("${f#"$PROJECT_ROOT"/}")
   fi
 done < <(find "$PROJECT_ROOT/skills" -type f \( -name "SKILL.md" -o -path "*/references/*.md" \))

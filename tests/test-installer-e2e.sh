@@ -39,8 +39,8 @@ assert_no_dir "scenario1: no zh/ subdir in installed templates" "$CLAUDE_BASE/ss
 assert_file "scenario1: architecture-readme template present" "$CLAUDE_BASE/ssot-bootstrap/assets/templates/architecture-readme.md"
 assert_file "scenario1: audit current-upgrade installed" "$CLAUDE_BASE/ssot-audit/references/current-upgrade.md"
 assert_file "scenario1: audit archive index installed" "$CLAUDE_BASE/ssot-audit/references/archive/index.md"
-# English-content check: should NOT contain CJK characters
-if grep -qP '[\x{4e00}-\x{9fa5}]' "$CLAUDE_BASE/ssot-bootstrap/assets/templates/architecture-readme.md" 2>/dev/null; then
+# English-content check: should NOT contain CJK characters (python3 — macOS grep lacks -P)
+if python3 -c "import sys,re; sys.exit(0 if re.search(r'[一-龥]', open(sys.argv[1], encoding='utf-8').read()) else 1)" "$CLAUDE_BASE/ssot-bootstrap/assets/templates/architecture-readme.md" 2>/dev/null; then
   fail "scenario1: en templates should not contain Chinese"
 else
   pass "scenario1: en templates have no Chinese"
@@ -56,8 +56,8 @@ HOME="$SCENARIO2" SOURCE_DIR="$PROJECT_ROOT" \
 PROJ_BASE="$SCENARIO2/project/.claude/skills"
 assert_dir "scenario2: project skills dir" "$PROJ_BASE"
 assert_file "scenario2: ssot-preflight installed at project" "$PROJ_BASE/ssot-preflight/SKILL.md"
-# zh templates: should contain CJK
-if grep -qP '[\x{4e00}-\x{9fa5}]' "$PROJ_BASE/ssot-bootstrap/assets/templates/architecture-readme.md" 2>/dev/null; then
+# zh templates: should contain CJK (use python3 — macOS grep lacks -P)
+if python3 -c "import sys,re; sys.exit(0 if re.search(r'[一-龥]', open(sys.argv[1], encoding='utf-8').read()) else 1)" "$PROJ_BASE/ssot-bootstrap/assets/templates/architecture-readme.md" 2>/dev/null; then
   pass "scenario2: zh templates contain Chinese"
 else
   fail "scenario2: zh templates expected Chinese content"
