@@ -20,30 +20,36 @@ SSOT Skill 把仓库的长期事实——产品意图、架构边界、决策、
 
 > `SSOT/` 是 **Agent 长期记忆**，不是代码的替代品。代码、schema、测试和实际运行行为仍然是当前实现事实的证据来源；SSOT 记录围绕这些事实形成的持久结论。
 
+## 它包含什么
+
+- **`install.sh`** — 一个安装器，覆盖 70+ Agent，可项目本地或全局安装。
+- **`skills/ssot-preflight/`** — 每个实质性任务之前必走的入口闸。
+- **`skills/ssot-bootstrap/`** — 从已有代码与文档证据中创建 `SSOT/`。
+- **`skills/ssot-closeout/`** — 提交前对一批改动进行回收与对齐。
+- **`skills/ssot-audit/`** — 分段补齐 commits / sessions / 协议版本漂移。
+- **`skills/ssot-doctor/`** — 独立健康检查与 stop-review。
+- **`skills/ssot-skill/`** — 兼容旧 `$ssot-skill` 调用的转发壳。
+- **`docs/`** — 叙事性补充：动机、术语表、生命周期走读、FAQ。
+
+想要快速了解整体设计，从 [`docs/what-is-ssot.md`](./docs/what-is-ssot.md) 开始。
+
 ## 快速开始
 
-**告诉你的 Agent（把这段贴进仓库对话）：**
+把这一行粘进你的 Agent 对话（Claude Code、Codex、Cursor、Gemini CLI 等均可）：
 
-> 把 SSOT Skill bundle 装到这个项目，跑：
-> ```bash
-> curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash -s -- --quickstart
-> ```
-> 如果下载慢或被阻塞，用镜像：
-> ```bash
-> curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash -s -- --quickstart
-> ```
-> 安装器会自动检测 Agent + 模板语言，**默认装到项目本地**。装完后**问我是否
-> 也装一份全局（默认否）**。如果是，把同一行命令在 `--quickstart` 后面追加
-> `--scope global` 再跑一次。
-> 最后读一下 `AGENTS.md` 并重启自己以加载 skill。
+```
+Read https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/INSTALL.md and follow it.
+```
 
-**或自己跑交互式安装器：**
+Agent 会 fetch [`INSTALL.md`](./INSTALL.md)，跑安装器（默认装到项目本地），问你是否再装一份全局，然后读 `AGENTS.md`。
+
+**没 Agent？自己跑：**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash
 ```
 
-交互式安装器用选择器确认 Agent、范围和模板语言。重启 Agent 会话后，在仓库里跑 `$ssot-bootstrap` 创建 `SSOT/` 并接好 adapter。
+交互式安装器用方向键选 Agent、范围、模板语言。装完后重启 Agent 会话，在仓库里跑 `$ssot-bootstrap` 创建 `SSOT/`。
 
 ## 环境要求
 
@@ -119,6 +125,7 @@ bash install.sh --uninstall --agent <key> --scope <global|project> --yes
 
 ## 文档
 
+- [`docs/`](./docs/) — 叙事性补充文档（推荐从 [`docs/what-is-ssot.md`](./docs/what-is-ssot.md) 开始）
 - [`AGENTS.md`](./AGENTS.md) — 完整 skill 参考和路由规则
 - [`CONTRIBUTING.md`](./CONTRIBUTING.md) — 贡献指南
 - [`CHANGELOG.md`](./CHANGELOG.md) — 协议历史（Keep a Changelog）

@@ -17,31 +17,13 @@ SSOT-SKILL is a lifecycle skill bundle for software repositories. It organizes l
 
 ## Install
 
-**Recommended — non-interactive, project-local, agent-friendly:**
+When a user asks you to install or reinstall this bundle, follow [`INSTALL.md`](./INSTALL.md). The short form:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash -s -- --quickstart
 ```
 
-If the download is blocked or slow, use the mirror:
-
-```bash
-curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash -s -- --quickstart
-```
-
-`--quickstart` auto-detects your agent (via env signature, then filesystem scan) and template language, and installs **project-locally** by default. After installing, ask the user whether to also install globally (default no); if yes, re-run the same command with `--scope global` appended.
-
-Interactive picker (run from your repo if you want to choose scope/agent manually):
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash
-```
-
-To upgrade an existing install (auto-detects every location and reinstalls):
-
-```bash
-bash install.sh --upgrade
-```
+For upgrade or uninstall, see `bash install.sh --help`.
 
 ## Usage
 
@@ -98,3 +80,4 @@ KISS is the permanent SSOT design principle: keep the reader's path short, keep 
 | `skills/ssot-doctor/assets/scripts/ssot-lint.sh` | Deterministic SSOT lint |
 | `tests/` | Bundle shape and installer e2e tests |
 | `.github/workflows/ci.yml` | CI pipeline |
+| `docs/` | Narrative companion (`what-is-ssot`, `glossary`, `how-it-works`, `quickstart`, `why-ssot`, `skills-reference`, `faq`, `contributing-overview`); read for context, not protocol authority |

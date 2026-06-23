@@ -20,31 +20,36 @@ SSOT Skill turns your repository's long-lived facts — product intent, architec
 
 > `SSOT/` is **agent long-term memory**, not a substitute for code. Code, schema, tests, and runtime behavior remain the source of truth for current implementation; SSOT records the durable conclusions around them.
 
+## What's in the bundle
+
+- **`install.sh`** — one installer, 70+ agents, project or global scope.
+- **`skills/ssot-preflight/`** — the gate read before every substantive task.
+- **`skills/ssot-bootstrap/`** — creates `SSOT/` from existing repo evidence.
+- **`skills/ssot-closeout/`** — reconciles a change batch before commit.
+- **`skills/ssot-audit/`** — catches up on drifted waterlines in segments.
+- **`skills/ssot-doctor/`** — independent health check and stop-review.
+- **`skills/ssot-skill/`** — compatibility shim for legacy `$ssot-skill` calls.
+- **`docs/`** — narrative companion: rationale, glossary, lifecycle walkthrough, FAQ.
+
+For a guided tour, start with [`docs/what-is-ssot.md`](./docs/what-is-ssot.md).
+
 ## Quickstart
 
-**Tell your agent (paste this into your repo's chat):**
+Paste this one line into your agent's chat (works for Claude Code, Codex, Cursor, Gemini CLI, …):
 
-> Install the SSOT Skill bundle into this project. Run:
-> ```bash
-> curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash -s -- --quickstart
-> ```
-> If the download is slow or blocked, use the mirror:
-> ```bash
-> curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash -s -- --quickstart
-> ```
-> The installer auto-detects your agent + template language and installs
-> **project-locally by default**. After it finishes, **ask me whether to also
-> install globally (default: no)**. If yes, re-run the same command with
-> `--scope global` appended (after `--quickstart`).
-> Finally, read `AGENTS.md` and restart yourself so the skills load.
+```
+Read https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/INSTALL.md and follow it.
+```
 
-**Or run the interactive installer yourself:**
+The agent fetches [`INSTALL.md`](./INSTALL.md), runs the installer (project-local by default), asks whether you also want a global install, then reads `AGENTS.md`.
+
+**No agent? Run it yourself:**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash
 ```
 
-The interactive installer opens pickers for agent, scope, and template language. After install, restart your agent session, then run `$ssot-bootstrap` to create `SSOT/` and wire the adapter.
+The interactive installer picks scope/agent/language with arrow keys. After install, restart your agent session, then run `$ssot-bootstrap` to create `SSOT/`.
 
 ## Requirements
 
@@ -120,6 +125,7 @@ Aligned with the [vercel-labs/skills](https://github.com/vercel-labs/skills) reg
 
 ## Documentation
 
+- [`docs/`](./docs/) — narrative companion (start at [`docs/what-is-ssot.md`](./docs/what-is-ssot.md))
 - [`AGENTS.md`](./AGENTS.md) — full skill reference and routing rules
 - [`CONTRIBUTING.md`](./CONTRIBUTING.md) — contribution guide
 - [`CHANGELOG.md`](./CHANGELOG.md) — protocol history (Keep a Changelog)
