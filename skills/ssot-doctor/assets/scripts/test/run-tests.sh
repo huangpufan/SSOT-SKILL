@@ -45,15 +45,15 @@ make_base() { # $1=root — build a clean, all-PASS minimal SSOT project (git re
               # documentation_language: 中文 semantics; do not translate.
   local r="$1"
   mkdir -p "$r/SSOT/product/capabilities" "$r/SSOT/product/journeys" "$r/SSOT/architecture" "$r/SSOT/gotchas" "$r/src"
-  printf '# SSOT 导航\n\n```\n├── product/\n├── architecture/\n└── gotchas/\n```\n\n- [product](product/README.md)\n- [architecture](architecture/README.md)\n' > "$r/SSOT/README.md"
-  printf -- '---\nintent_recovery: gap\n---\n# 产品\n\n```\n├── capabilities/\n├── journeys/\n├── prd.md\n├── product-model.md\n└── roadmap-and-acceptance.md\n```\n\n- [PRD](prd.md)\n- [Product model](product-model.md)\n- [Roadmap](roadmap-and-acceptance.md)\n' > "$r/SSOT/product/README.md"
+  printf '# SSOT 导航\n\n```\n├── product/\n├── architecture/\n└── gotchas/\n```\n\n- [product](product/README.md)\n- [architecture](architecture/README.md)\n\n## Easily confused with\n\n（待补充）\n\n## Out of scope\n\n（待补充）\n' > "$r/SSOT/README.md"
+  printf -- '---\nintent_recovery: gap\n---\n# 产品\n\n```\n├── capabilities/\n├── journeys/\n├── prd.md\n├── product-model.md\n└── roadmap-and-acceptance.md\n```\n\n- [PRD](prd.md)\n- [Product model](product-model.md)\n- [Roadmap](roadmap-and-acceptance.md)\n\n## Easily confused with\n\n（待补充）\n\n## Out of scope\n\n（待补充）\n' > "$r/SSOT/product/README.md"
   printf -- '---\nintent_recovery: gap\n---\n# PRD Spine\n' > "$r/SSOT/product/prd.md"
   printf -- '---\nintent_recovery: gap\n---\n# Product Model\n' > "$r/SSOT/product/product-model.md"
   printf -- '---\nintent_recovery: gap\n---\n# Roadmap And Acceptance\n' > "$r/SSOT/product/roadmap-and-acceptance.md"
   printf -- '---\nintent_recovery: gap\n---\n# Product Capabilities\n' > "$r/SSOT/product/capabilities/README.md"
   printf -- '---\nintent_recovery: gap\n---\n# Product Journeys\n' > "$r/SSOT/product/journeys/README.md"
-  printf -- '---\nintent_recovery: gap\n---\n# 架构\n\n核心不变量：请求必须经过鉴权。\n' > "$r/SSOT/architecture/README.md"
-  printf '# 陷阱索引\n\n- [0001](0001-x.md)\n' > "$r/SSOT/gotchas/README.md"
+  printf -- '---\nintent_recovery: gap\n---\n# 架构\n\n核心不变量：请求必须经过鉴权。\n\n## Easily confused with\n\n（待补充）\n\n## Out of scope\n\n（待补充）\n' > "$r/SSOT/architecture/README.md"
+  printf '# 陷阱索引\n\n- [0001](0001-x.md)\n\n## Easily confused with\n\n（待补充）\n\n## Out of scope\n\n（待补充）\n' > "$r/SSOT/gotchas/README.md"
   printf -- '---\nconfidence: candidate\nsource: code-analysis\ndiscovered_at: 2026-05-29\nevidence: "src/foo.ts#barFunc"\n---\n# 陷阱 X\n' > "$r/SSOT/gotchas/0001-x.md"
   printf 'export function barFunc() { return 1 }\n' > "$r/src/foo.ts"
   printf '| tracked_commit | `PLACEHOLDER` |\n| tracked_session | `2026-06-08T00:00:00Z` |\n| tracked_skill_version | `2.19` |\n| documentation_language | 中文 |\n| documentation_language_evidence | README |\n| coverage_result | in_progress |\n\n| 区域 | 状态 | 备注 |\n|---|---|---|\n| product | gap | |\n| architecture | gap | |\n' > "$r/SSOT/STATUS.md"
@@ -192,7 +192,7 @@ rm -rf "$T"
 echo "== S12 decisions entry with all required fields (check 11 -> PASS) =="
 T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
 mkdir -p "$T/SSOT/decisions"
-printf '# Decisions\n' > "$T/SSOT/decisions/README.md"
+printf '# Decisions\n\n## Easily confused with\n\n（待补充）\n\n## Out of scope\n\n（待补充）\n' > "$T/SSOT/decisions/README.md"
 {
   printf -- '---\nstatus: accepted\nimplementation_state: pending\ncreated_on: 2026-06-12\nupdated_on: 2026-06-12\nintroduced_in: abcdef1\n---\n# 0001 Example\n'
 } > "$T/SSOT/decisions/0001-example.md"
@@ -204,7 +204,7 @@ rm -rf "$T"
 echo "== S13 bootstrap-archaeology archive is exempt (check 11) =="
 T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
 mkdir -p "$T/SSOT/decisions"
-printf '# Decisions\n' > "$T/SSOT/decisions/README.md"
+printf '# Decisions\n\n## Easily confused with\n\n（待补充）\n\n## Out of scope\n\n（待补充）\n' > "$T/SSOT/decisions/README.md"
 {
   printf -- '---\nid: DEC-0000\ntype: bootstrap-archaeology\nstatus: archived\narchived_at: 2026-06-12\n---\n# 0000 Bootstrap Recon\n'
 } > "$T/SSOT/decisions/0000-bootstrap-recon.md"
@@ -319,7 +319,8 @@ sed -i 's/| architecture | gap | |/| architecture | covered | |/' "$T/SSOT/STATU
   printf '# 架构\n\n'
   printf '## 设计简报\n\n这里是一句开场。\n\n'
   printf '## 设计意图与设计真相\n\n当前 runtime-owner 拆分解释了设计意图和设计真相。\n\n'
-  printf '本文档的核心恢复清单见 _manifest.md。\n'
+  printf '本文档的核心恢复清单见 _manifest.md。\n\n'
+  printf '## Easily confused with\n\n（待补充）\n\n## Out of scope\n\n（待补充）\n'
 } > "$T/SSOT/architecture/README.md"
 add_clean_adapter "$T"
 out=$(run "$T"); code=$?
