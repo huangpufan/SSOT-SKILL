@@ -29,6 +29,10 @@ versions. This file only restates headline changes.
   alongside the bundle-wide anti-patterns.
 
 ### Added
+- `What is SSOT?` section in `README.md` / `README.zh.md` that explicitly
+  defines "Single Source of Truth", explains how the principle maps to
+  `SSOT/` in this skill, and reiterates that code/schema/tests remain the
+  truth for current implementation (bilingual parity preserved).
 - `Requirements` and `Uninstall` sections in `README.md` / `README.zh.md`
   (bilingual parity preserved).
 - OSS hygiene files: `SECURITY.md`, `CODE_OF_CONDUCT.md`,

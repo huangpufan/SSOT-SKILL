@@ -20,6 +20,19 @@ SSOT Skill 把仓库的长期事实——产品意图、架构边界、决策、
 
 > `SSOT/` 是 **Agent 长期记忆**，不是代码的替代品。代码、schema、测试和实际运行行为仍然是当前实现事实的证据来源；SSOT 记录围绕这些事实形成的持久结论。
 
+## 什么是 SSOT？
+
+**SSOT** 是 **Single Source of Truth**（单一事实源）的缩写——一条经典的软件工程原则：每一条重要事实只在**一个**权威位置存在，不允许有第二份散落的副本。任何人（或任何工具）需要这条事实时，都从同一个位置读，而不是猜测、复制或重新推导。
+
+本 Skill 把同样的思路套到 **Agent 对仓库的记忆**上：
+
+- **一条事实一个位置。** 产品意图、架构边界、关键决策、已知陷阱、测试策略，每一项都落在 `SSOT/` 下的一个 Markdown 文件，而不是散落在对话记录、PR 描述和不同 Agent 的私有缓存里。
+- **可审查。** 全是纯 Markdown，随仓库一起进版本控制——可 diff、可在 PR 里 review、可回滚。
+- **跨工具。** Claude Code、Codex、Cursor、Windsurf、Gemini CLI 等读的是**同一份** `SSOT/`，不会出现某个 Agent 维护一份跑偏的私有记忆。
+- **可验证。** 六个 lifecycle skill（`$ssot-preflight` / `$ssot-bootstrap` / `$ssot-closeout` / `$ssot-audit` / `$ssot-doctor` / `$ssot-skill`）加上 bundle 自带的 lint，保证 `SSOT/` 随仓库演化时不会失真。
+
+**SSOT 不是代码的替代品。** 代码、schema、测试和运行时行为仍然是 *当前实现* 事实的来源；`SSOT/` 记录的是围绕代码的**持久结论**——那些一旦会话结束或换了 Agent 就会丢失的东西。
+
 ## 快速开始
 
 把这一行粘进你的 Agent 对话（Claude Code、Codex、Cursor、Gemini CLI 等均可）：

@@ -20,6 +20,19 @@ SSOT Skill turns your repository's long-lived facts — product intent, architec
 
 > `SSOT/` is **agent long-term memory**, not a substitute for code. Code, schema, tests, and runtime behavior remain the source of truth for current implementation; SSOT records the durable conclusions around them.
 
+## What is SSOT?
+
+**SSOT** stands for **Single Source of Truth** — a long-standing software-engineering principle: every important fact has exactly **one** authoritative, unambiguous place where it lives. Anyone (or any tool) looking for that fact reads from the same place, instead of guessing, copying, or re-deriving it.
+
+This skill applies the same idea to **an agent's memory of a repository**:
+
+- **One place per fact.** Product intent, architecture boundaries, key decisions, known pitfalls, and test policy each live in one Markdown file under `SSOT/` — not scattered across chat logs, PR descriptions, or different agents' private caches.
+- **Reviewable.** Plain Markdown, version-controlled with the repo. You can diff it, review it in PRs, and roll it back.
+- **Cross-tool.** Claude Code, Codex, Cursor, Windsurf, Gemini CLI, … all read the **same** `SSOT/`. No agent maintains a parallel memory that drifts from the others.
+- **Verifiable.** The six lifecycle skills (`$ssot-preflight` / `$ssot-bootstrap` / `$ssot-closeout` / `$ssot-audit` / `$ssot-doctor` / `$ssot-skill`) and the bundled lint rules keep `SSOT/` honest as the repo evolves.
+
+**SSOT is not a code substitute.** Code, schema, tests, and runtime behavior remain the source of truth for *current implementation*. `SSOT/` records the durable conclusions *around* the code — the kind of thing that would otherwise be lost when a session ends or a new agent picks up the work.
+
 ## Quickstart
 
 Paste this one line into your agent's chat (works for Claude Code, Codex, Cursor, Gemini CLI, …):
