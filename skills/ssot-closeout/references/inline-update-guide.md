@@ -28,6 +28,14 @@ This file serves inline updates: when the agent decides to update SSOT, read thi
 4. Apply the write discipline below to update the single authoritative location; do not maintain the same fact in multiple areas, and do not hide action guidance inside a ledger.
 5. Update `STATUS.md` area state, open gaps, open adjudications, source-material absorption matrix and stop-review records.
 
+When the update leaves a fallback, compat shim, temporary workaround,
+later-remove path, TODO/FIXME/HACK/WORKAROUND, or temporary waiver in current
+scope, register it before final response. The registration must name owner,
+reason, closure condition, revisit signal, and verification guard. If the only
+current note is `待立 tech-debt`, `TODO debt`, `opportunistic follow-up`, or
+`Pending action`, create or update the real owner entry instead of leaving the
+note in STATUS or an index.
+
 Inline updates are for immediate writes during daily development; commit-audit and conversation-audit use the same owner rules but have different batch inputs and waterline-advance flows.
 
 ---
@@ -100,6 +108,10 @@ After updating area content, sync STATUS.md:
 - Update the source-material absorption matrix: source material read or changed in this run must record classification, authoritative location, absorption state, conflict/adjudication and last check
 - Update the open-gaps list
 - Add or update adjudications discovered mid-run; remind the user once but do not block the current task by default
+
+Open gaps must have an owner or next action. A gap row that says "create debt
+later" is not routed; either create the debt entry now or mark the gap with the
+explicit owner, trigger, and deferred reason.
 
 Keep STATUS rows register-sized. Write only the changed state, owner, date,
 result, gap/adjudication id, and evidence pointer; do not paste protocol

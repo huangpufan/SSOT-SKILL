@@ -53,7 +53,9 @@ The `state` tag (`contract | design | poc | debt`) tells a cold agent whether th
 
 ## Capability → Surface registry
 
-Product-side mirror of the architecture-side registry in `ssot-preflight/references/architecture.md` §16; each row pins how a capability lands on real routes / components / tests.
+Use this table only when the product capability is the chosen owner for the
+surface row. Otherwise link to the architecture-owned row and do not maintain a
+duplicate mirror. See `ssot-preflight/references/architecture.md` §16.
 
 | Capability | Route or module | Component | Test | state |
 |---|---|---|---|---|

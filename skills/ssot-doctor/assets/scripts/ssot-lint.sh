@@ -1193,6 +1193,214 @@ if [[ "$DF_WARN_COUNT" -eq 0 ]]; then
   add_pass "[DIAGRAM-FIRST] (15V) architecture domain READMEs carry first-screen Mermaid block"
 fi
 
+# ---------- check 23: [MARKDOWN-FENCE] fenced code blocks must close ----------
+MF_FAIL_COUNT=0
+while IFS= read -r -d '' md_file; do
+  hit=$(awk '
+    /^```/ {
+      if (!in_fence) { in_fence=1; start=FNR }
+      else { in_fence=0; start=0 }
+    }
+    END {
+      if (in_fence) { print start }
+    }
+  ' "$md_file")
+  if [[ -n "$hit" ]]; then
+    add_fail "[MARKDOWN-FENCE] unclosed fenced code block: $md_file:$hit"
+    MF_FAIL_COUNT=$((MF_FAIL_COUNT + 1))
+    [[ "$MF_FAIL_COUNT" -ge 20 ]] && break
+  fi
+done < <(find "$SSOT_DIR" -name '*.md' -type f -print0 2>/dev/null || true)
+if [[ "$MF_FAIL_COUNT" -eq 0 ]]; then
+  add_pass "[MARKDOWN-FENCE] SSOT Markdown fenced code blocks are balanced"
+fi
+
+# ---------- check 24: [ADR-CLOSURE] / [DEBT-CLOSURE] deterministic lifecycle fields ----------
+ADR_DEBT_FAIL_COUNT=0
+for dec_dir in "$SSOT_DIR/decisions" "$SSOT_DIR/04-records/decisions"; do
+  [[ -d "$dec_dir" ]] || continue
+  while IFS= read -r -d '' dec_file; do
+    bname=$(basename "$dec_file")
+    [[ "$bname" == "README.md" ]] && continue
+    [[ ! "$bname" =~ ^[0-9]{4}-.+\.md$ ]] && continue
+    fm=$(head -n 45 "$dec_file")
+    state=$(printf '%s\n' "$fm" | awk -F: '/^implementation_state:/ { gsub(/[ "`]/, "", $2); print tolower($2); exit }')
+    if [[ "$state" =~ ^(pending|partial|diverged)$ ]]; then
+      for field in closure_condition revisit_signal; do
+        if ! printf '%s\n' "$fm" | grep -qE "^${field}:"; then
+          add_fail "[ADR-CLOSURE] decision implementation_state=$state missing '${field}' frontmatter: $dec_file"
+          ADR_DEBT_FAIL_COUNT=$((ADR_DEBT_FAIL_COUNT + 1))
+        fi
+      done
+    fi
+    [[ "$ADR_DEBT_FAIL_COUNT" -ge 30 ]] && break
+  done < <(find "$dec_dir" -maxdepth 1 -name '*.md' -type f -print0)
+done
+for debt_dir in "$SSOT_DIR/tech-debt" "$SSOT_DIR/04-records/tech-debt"; do
+  [[ -d "$debt_dir" ]] || continue
+  while IFS= read -r -d '' debt_file; do
+    bname=$(basename "$debt_file")
+    [[ "$bname" == "README.md" ]] && continue
+    [[ ! "$bname" =~ ^[0-9]{4}-.+\.md$ ]] && continue
+    fm=$(head -n 55 "$debt_file")
+    status=$(printf '%s\n' "$fm" | awk -F: '/^status:/ { gsub(/[ "`]/, "", $2); print tolower($2); exit }')
+    if [[ "$status" == "active" ]]; then
+      for field in closure_condition revisit_signal; do
+        if ! printf '%s\n' "$fm" | grep -qE "^${field}:"; then
+          add_fail "[DEBT-CLOSURE] active tech-debt missing '${field}' frontmatter: $debt_file"
+          ADR_DEBT_FAIL_COUNT=$((ADR_DEBT_FAIL_COUNT + 1))
+        fi
+      done
+      if printf '%s\n' "$fm" | grep -qiE '^temporary_surface:[[:space:]]*(true|yes)'; then
+        for field in owner reason verification_guard; do
+          if ! printf '%s\n' "$fm" | grep -qE "^${field}:"; then
+            add_fail "[TEMP-SURFACE] active temporary tech-debt missing '${field}' frontmatter: $debt_file"
+            ADR_DEBT_FAIL_COUNT=$((ADR_DEBT_FAIL_COUNT + 1))
+          fi
+        done
+      fi
+    fi
+    [[ "$ADR_DEBT_FAIL_COUNT" -ge 30 ]] && break
+  done < <(find "$debt_dir" -maxdepth 1 -name '*.md' -type f -print0)
+done
+if [[ "$ADR_DEBT_FAIL_COUNT" -eq 0 ]]; then
+  add_pass "[ADR-CLOSURE]/[DEBT-CLOSURE] open lifecycle entries carry closure fields"
+fi
+
+# ---------- check 25: [COVERED-PLACEHOLDER] covered areas cannot contain starter residue ----------
+area_is_covered() { # $1=area key as written in STATUS area table
+  [[ -f "$STATUS_FILE" ]] || return 1
+  grep -qE "^\|[[:space:]]*$1[[:space:]]*\|[[:space:]]*covered[[:space:]]*\|" "$STATUS_FILE"
+}
+scan_covered_placeholders() { # $1=dir $2=label
+  local dir="$1" label="$2"
+  [[ -d "$dir" ]] || return 0
+  while IFS= read -r -d '' md_file; do
+    local bname hit
+    bname=$(basename "$md_file")
+    [[ "$bname" == "_manifest.md" || "$bname" == "STATUS.md" || "$bname" == "CHANGELOG.md" ]] && continue
+    hit=$(awk '
+      /^```/ { in_code = !in_code; next }
+      !in_code && $0 ~ /(TODO:[[:space:]]|FIXME|review-needed|starter skeleton|to be filled|fill this|TBD:|待补充|（待补充）)/ {
+        print FNR ":" $0
+        exit
+      }
+    ' "$md_file")
+    if [[ -n "$hit" ]]; then
+      add_fail "[COVERED-PLACEHOLDER] covered $label area contains unresolved placeholder/starter residue: $md_file:$hit"
+      COVERED_PLACEHOLDER_FAIL_COUNT=$((COVERED_PLACEHOLDER_FAIL_COUNT + 1))
+      [[ "$COVERED_PLACEHOLDER_FAIL_COUNT" -ge 20 ]] && break
+    fi
+  done < <(find "$dir" -name '*.md' -type f -print0 2>/dev/null || true)
+  return 0
+}
+COVERED_PLACEHOLDER_FAIL_COUNT=0
+area_is_covered product && { scan_covered_placeholders "$SSOT_DIR/product" product; scan_covered_placeholders "$SSOT_DIR/01-product" product; }
+area_is_covered architecture && { scan_covered_placeholders "$SSOT_DIR/architecture" architecture; scan_covered_placeholders "$SSOT_DIR/02-architecture" architecture; }
+area_is_covered development && { scan_covered_placeholders "$SSOT_DIR/development" development; scan_covered_placeholders "$SSOT_DIR/03-process/development" development; }
+area_is_covered testing && { scan_covered_placeholders "$SSOT_DIR/testing" testing; scan_covered_placeholders "$SSOT_DIR/03-process/testing" testing; }
+area_is_covered deployment && { scan_covered_placeholders "$SSOT_DIR/deployment" deployment; scan_covered_placeholders "$SSOT_DIR/03-process/deployment" deployment; }
+area_is_covered release && { scan_covered_placeholders "$SSOT_DIR/release" release; scan_covered_placeholders "$SSOT_DIR/03-process/release" release; }
+area_is_covered decisions && { scan_covered_placeholders "$SSOT_DIR/decisions" decisions; scan_covered_placeholders "$SSOT_DIR/04-records/decisions" decisions; }
+area_is_covered gotchas && { scan_covered_placeholders "$SSOT_DIR/gotchas" gotchas; scan_covered_placeholders "$SSOT_DIR/04-records/gotchas" gotchas; }
+area_is_covered bugs && { scan_covered_placeholders "$SSOT_DIR/bugs" bugs; scan_covered_placeholders "$SSOT_DIR/04-records/bugs" bugs; }
+area_is_covered tech-debt && { scan_covered_placeholders "$SSOT_DIR/tech-debt" tech-debt; scan_covered_placeholders "$SSOT_DIR/04-records/tech-debt" tech-debt; }
+area_is_covered glossary && scan_covered_placeholders "$SSOT_DIR/glossary" glossary
+if [[ "$COVERED_PLACEHOLDER_FAIL_COUNT" -eq 0 ]]; then
+  add_pass "[COVERED-PLACEHOLDER] covered areas have no obvious unresolved starter residue"
+fi
+
+# ---------- check 26: [STATUS-AGGREGATE] stop summaries must not contradict open work ----------
+status_open_gap_count() {
+  [[ -f "$STATUS_FILE" ]] || { printf '0\n'; return; }
+  awk '
+    /^##[[:space:]]+(Open Gaps|开放缺口)/ { in_gap=1; next }
+    /^##[[:space:]]/ && in_gap { exit }
+    in_gap && /^\|/ && $0 !~ /\|[[:space:]]*-+[[:space:]]*\|/ && $0 !~ /(Area|区域|Gap description|缺口描述)/ { count++ }
+    END { print count + 0 }
+  ' "$STATUS_FILE"
+}
+active_high_risk_record_count() {
+  local count=0
+  for bug_dir in "$SSOT_DIR/bugs" "$SSOT_DIR/04-records/bugs"; do
+    [[ -d "$bug_dir" ]] || continue
+    while IFS= read -r -d '' bug_file; do
+      local head
+      head=$(head -n 20 "$bug_file")
+      if printf '%s\n' "$head" | grep -qiE '^status:[[:space:]]*(active|recurred)' &&
+         printf '%s\n' "$head" | grep -qiE '^severity:[[:space:]]*(critical|major|high)'; then
+        count=$((count + 1))
+      fi
+    done < <(find "$bug_dir" -maxdepth 1 -name '[0-9][0-9][0-9][0-9]-*.md' -type f -print0)
+  done
+  for debt_dir in "$SSOT_DIR/tech-debt" "$SSOT_DIR/04-records/tech-debt"; do
+    [[ -d "$debt_dir" ]] || continue
+    while IFS= read -r -d '' debt_file; do
+      local head
+      head=$(head -n 20 "$debt_file")
+      if printf '%s\n' "$head" | grep -qiE '^status:[[:space:]]*active' &&
+         printf '%s\n' "$head" | grep -qiE '^priority:[[:space:]]*(critical|high)'; then
+        count=$((count + 1))
+      fi
+    done < <(find "$debt_dir" -maxdepth 1 -name '[0-9][0-9][0-9][0-9]-*.md' -type f -print0)
+  done
+  printf '%s\n' "$count"
+}
+STATUS_AGG_FAIL_COUNT=0
+if [[ -f "$STATUS_FILE" ]]; then
+  open_gap_count=$(status_open_gap_count)
+  high_risk_count=$(active_high_risk_record_count)
+  if (( open_gap_count > 0 || high_risk_count > 0 )); then
+    while IFS= read -r summary_line; do
+      line_no="${summary_line%%:*}"
+      line="${summary_line#*:}"
+      if printf '%s\n' "$line" | grep -qiE '(remaining[^|]*(only|none|no remaining)|no open gaps|zero remaining|当前无.*缺口|仅剩|只有.*DEBT)'; then
+        add_fail "[STATUS-AGGREGATE] stop/status summary claims only/no remaining work while open gaps=$open_gap_count and active high-risk records=$high_risk_count: $STATUS_FILE:$line_no"
+        STATUS_AGG_FAIL_COUNT=$((STATUS_AGG_FAIL_COUNT + 1))
+      fi
+    done < <(grep -nEi '(remaining|no open gaps|zero remaining|当前无.*缺口|仅剩|只有.*DEBT)' "$STATUS_FILE" || true)
+  fi
+fi
+if [[ "$STATUS_AGG_FAIL_COUNT" -eq 0 ]]; then
+  add_pass "[STATUS-AGGREGATE] stop summaries do not obviously contradict open gaps/high-risk records"
+fi
+
+# ---------- check 27: [GAP-OWNER] open gap rows must not say "create the owner later" ----------
+GAP_OWNER_FAIL_COUNT=0
+if [[ -f "$STATUS_FILE" ]]; then
+  while IFS= read -r gap_line; do
+    line_no="${gap_line%%:*}"
+    line="${gap_line#*:}"
+    if printf '%s\n' "$line" | grep -qiE '(待立|TODO debt|create .*debt|debt later|owner later|unowned|无 owner)' &&
+       ! printf '%s\n' "$line" | grep -qE '(DEBT-[0-9]{4}|BUG-[0-9]{4}|DEC-[0-9]{4}|ADJ-[0-9]{8})'; then
+      add_fail "[GAP-OWNER] open gap row defers ownership instead of linking an owner record: $STATUS_FILE:$line_no"
+      GAP_OWNER_FAIL_COUNT=$((GAP_OWNER_FAIL_COUNT + 1))
+    fi
+  done < <(awk '
+    /^##[[:space:]]+(Open Gaps|开放缺口)/ { in_gap=1; next }
+    /^##[[:space:]]/ && in_gap { exit }
+    in_gap && /^\|/ && $0 !~ /\|[[:space:]]*-+[[:space:]]*\|/ && $0 !~ /(Area|区域|Gap description|缺口描述)/ { print FNR ":" $0 }
+  ' "$STATUS_FILE")
+fi
+if [[ "$GAP_OWNER_FAIL_COUNT" -eq 0 ]]; then
+  add_pass "[GAP-OWNER] open gap rows have no obvious unowned follow-up wording"
+fi
+
+# ---------- check 28: [CAPTURE-LIFECYCLE] resolved/passed captures cannot hide pending actions ----------
+CAPTURE_LIFECYCLE_FAIL_COUNT=0
+if [[ -f "$STATUS_FILE" ]]; then
+  while IFS= read -r cap_line; do
+    line_no="${cap_line%%:*}"
+    line="${cap_line#*:}"
+    add_fail "[CAPTURE-LIFECYCLE] STATUS capture/summary contains actionable follow-up wording that must be promoted, deferred with owner/trigger, or expired: $STATUS_FILE:$line_no -- ${line:0:120}"
+    CAPTURE_LIFECYCLE_FAIL_COUNT=$((CAPTURE_LIFECYCLE_FAIL_COUNT + 1))
+    [[ "$CAPTURE_LIFECYCLE_FAIL_COUNT" -ge 20 ]] && break
+  done < <(grep -nEi '(Pending action|Outstanding .*follow[- ]?ups?|opportunistic follow[- ]?ups?|routed to the next .* audit batch|待处理|后续.*待立)' "$STATUS_FILE" || true)
+fi
+if [[ "$CAPTURE_LIFECYCLE_FAIL_COUNT" -eq 0 ]]; then
+  add_pass "[CAPTURE-LIFECYCLE] STATUS resolved/passed captures have no obvious hidden pending actions"
+fi
+
 fi  # end META_LEAKAGE_SKIP_OTHER_CHECKS guard (checks 13-17 also guarded)
 
 # ---------- output ----------

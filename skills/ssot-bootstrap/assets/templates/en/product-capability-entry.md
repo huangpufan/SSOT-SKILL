@@ -44,7 +44,10 @@ Write three layers in order:
 
 ## Capability → Surface registry
 
-Mirrors `ssot-preflight/references/architecture.md` §16 on the product side; pins each surface this capability lands on. A `contract`-state row that does not name a Playwright test is doctor-blocked (CLAUDE-MAXIM-2: jsdom is not browser evidence).
+Use this table only for rows this capability owns. If the architecture runtime
+owner owns the route/component/test row, link to that owner instead of copying
+it here. A `contract`-state row that does not name a Playwright test is
+doctor-blocked.
 
 | Surface | Route or module | Component | Test | state |
 |---|---|---|---|---|

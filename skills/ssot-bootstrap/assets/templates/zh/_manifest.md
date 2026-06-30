@@ -22,7 +22,8 @@
 
 ## Capability → Surface registry
 
-<!-- 仅 architecture/_manifest.md 承载。 -->
+<!-- 仅作机器恢复索引。每行必须指回 architecture 或 product 中唯一 prose owner；
+本文件不是第二事实源。 -->
 
 | Capability | 路由 + handler | 组件路径 | 测试 |
 |---|---|---|---|

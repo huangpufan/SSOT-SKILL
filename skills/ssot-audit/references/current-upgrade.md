@@ -10,6 +10,47 @@ files.
 
 ## Version Ledger
 
+### v2.52
+
+**Upgrade goal**: add the **open-risk and temporary-surface floor**. A consumer
+SSOT can pass structure lint while hiding three kinds of unfinished work:
+temporary surfaces left in current code/docs without a retirement owner, open
+gaps that say "create debt later" instead of linking a real owner, and stop /
+capture summaries that claim only/no remaining work while open gaps or active
+high-risk records still exist. v2.52 makes those cases first-class protocol
+surface.
+
+**Impact**: `semantic_impact=medium` — adds closeout/preflight obligations, one
+owner-boundary clarification for Capability -> Surface registry rows, and
+deterministic lint checks 23-28. Consumers self-review per
+`status-protocol.md §7.1`; no independent reviewer is required unless the
+consumer also uses the upgrade to claim first-time `converged`.
+
+**Impact checklist**:
+
+| Check | Affected area | Audit action | Done criterion |
+|---|---|---|---|
+| Task-relevant open risks | `STATUS.md ## Open Gaps`, active `tech-debt/`, active/recurred `bugs/`, relevant `gotchas/` | During preflight, surface entries whose trigger/path/capability/failure mode overlaps the task; during closeout, record fixed / deferred-with-reason / next-action. | Closeout cannot end with an overlapped risk silently ignored. |
+| Temporary-surface registration | Current fallback, compat shim, TODO/FIXME/HACK/WORKAROUND, temporary waiver, later-remove path | Register owner, reason, closure condition, revisit signal, and verification guard in `tech-debt/`, `bugs/`, `decisions/`, or an open STATUS gap. | Doctor/lint finds no hidden temporary surface in covered/current scope. |
+| ADR/debt closure fields | `decisions/`, `tech-debt/` | Confirm pending/partial/diverged ADRs and active debts have falsifiable `closure_condition` and concrete `revisit_signal`; `temporary_surface: true` debt also has `owner`, `reason`, and `verification_guard`. | `ssot-lint.sh SSOT/` reports `[ADR-CLOSURE]`, `[DEBT-CLOSURE]`, and `[TEMP-SURFACE]` clean. |
+| Covered placeholder blocker | Any area marked `covered` | Remove unresolved template residue such as TODO/FIXME, `review-needed`, starter skeleton text, `TBD`, or locked-language placeholder text from user-facing owners; otherwise demote the area. | `[COVERED-PLACEHOLDER]` clean. |
+| STATUS aggregate consistency | `STATUS.md` stop/capture summaries | Reconcile "only/no remaining" wording against open gaps and active high/critical records. | `[STATUS-AGGREGATE]` clean. |
+| Gap owner routing | `STATUS.md ## Open Gaps` | Replace "TODO debt", "create debt later", or equivalent unowned wording with a real owner link or explicit deferred owner/trigger. | `[GAP-OWNER]` clean. |
+| Capture lifecycle hygiene | `STATUS.md` pending-capture / resolved-capture sections | Promote actionable follow-ups, defer them with owner/trigger, or expire them; do not leave "Pending action" inside a passed/resolved section. | `[CAPTURE-LIFECYCLE]` clean. |
+| Markdown structure | All SSOT Markdown | Close all fenced code blocks. | `[MARKDOWN-FENCE]` clean. |
+
+**Migration notes**:
+
+- This upgrade intentionally does not raw-grep the whole repository for
+  `TODO`/`fallback`; downgraded source material and tests may contain those
+  words legitimately. The hard gate applies to current SSOT owners, STATUS
+  registers, and active record metadata.
+- A consumer may keep an open gap non-blocking, but it must be routed. "Not a
+  blocker" is a priority claim, not an owner.
+- Capability -> Surface registry rows now have one owner per row plus link-only
+  mirrors. Existing duplicate mirrors should be thinned opportunistically or
+  when touched.
+
 ### v2.51
 
 **Upgrade goal**: add the **reader-scaffolds floor**. The v2.47–v2.50 floors

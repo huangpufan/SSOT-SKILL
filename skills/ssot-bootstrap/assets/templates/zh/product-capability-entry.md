@@ -44,7 +44,9 @@
 
 ## Capability → Surface registry
 
-产品侧镜像 `ssot-preflight/references/architecture.md` §16；钉住该 capability 落地的每个 surface。`contract` 状态行若没有指向 Playwright 测试，会被 doctor 拦下（CLAUDE-MAXIM-2：jsdom 不算浏览器证据）。
+只有当本 capability 是该 surface 行的 owner 时才维护本表；若 runtime owner 在
+architecture，则链接到 architecture owner，不复制该行。`contract` 状态行若没有
+指向 Playwright 测试，会被 doctor 拦下。
 
 | Surface | Route or module | Component | Test | state |
 |---|---|---|---|---|

@@ -98,7 +98,9 @@ owner.
 
 ## Capability → Surface registry
 
-Mirrors `ssot-preflight/references/architecture.md` §16; `product/capabilities/<name>.md` carries the product-side mirror.
+Own rows whose runtime authority lives in this domain. If a product capability
+owns an aggregate surface row, link to that capability instead of copying the
+row here.
 
 | Capability link | Route or module | Component | Test |
 |---|---|---|---|

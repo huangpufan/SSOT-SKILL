@@ -53,7 +53,9 @@
 
 ## Capability → Surface registry
 
-架构侧 registry（`ssot-preflight/references/architecture.md` §16）的产品侧镜像；每行钉住一个 capability 落到真实 route / component / test 的位置。
+只有当产品 capability 是该 surface 行的 owner 时才维护本表；否则只链接到
+architecture owner，不在这里复制镜像。规则见
+`ssot-preflight/references/architecture.md` §16。
 
 | Capability | Route or module | Component | Test | state |
 |---|---|---|---|---|

@@ -813,6 +813,26 @@ with a one-line note in the body explaining the import gap.
 An `active` debt entry without both `closure_condition` and
 `revisit_signal` is doctor-blocked (`15C [DEBT-CLOSURE]`).
 
+Temporary-surface registration (v2.52): every fallback, compat shim,
+temporary workaround, later-remove path, TODO/FIXME/HACK/WORKAROUND marker, or
+temporary waiver that is intentionally left in current code, config, tests, or
+SSOT must be registered. The registration may live in `tech-debt/`, `bugs/`,
+`decisions/`, or an open STATUS gap when no better owner exists, but it must
+carry the same five fields:
+
+- `owner`: the SSOT owner or engineering owner responsible for clearing it;
+- `reason`: why the temporary surface is allowed to exist now;
+- `closure_condition`: a falsifiable predicate that removes or resolves it;
+- `revisit_signal`: the path/event/test trigger that makes agents re-read it;
+- `verification_guard`: the command, grep predicate, test, or runtime evidence
+  that proves the temporary surface did not silently become permanent.
+
+For `tech-debt/` entries, use `temporary_surface: true` in frontmatter and add
+`owner`, `reason`, and `verification_guard` beside `closure_condition` and
+`revisit_signal`. A hidden temporary surface is worse than an honest active
+debt: Doctor reports `[TEMP-SURFACE]`, and covered areas cannot rely on it as a
+closed fact.
+
 Resolved/obsolete entries remain in the document as historical reference and are marked clearly in the index.
 
 Active, high-priority, or cross-cutting debt entries should include an agent quick entry near the top: trigger/scope, first files or tests to inspect, do-not-do boundary, repayment verification, and current status/evidence pointer. Historical rationale can follow; the first screen must help the next agent avoid deepening the debt.

@@ -2,7 +2,7 @@
 name: ssot-preflight
 description: Repository SSOT preflight before substantive code, config, docs, review, debugging, refactoring, or planning work. Use to check SSOT/STATUS.md, open adjudications, documentation language, protocol version, minimal SSOT read routing, and in-task SSOT write triggers. Do not use for pure operations, trivial format-only edits, or non-repository chat.
 metadata:
-  protocol_version: "2.51"
+  protocol_version: "2.52"
   bundle: "SSOT Skill"
   semantic_impact: medium
 ---
@@ -59,6 +59,23 @@ response, `claim_done`, or commit. Detail (including the `Rule / Trigger /
 Why / Evidence / Failure-mode` discipline schema) lives in
 `references/area-model.md §2.5` and in `$ssot-closeout` references — not
 here.
+
+## Surface task-relevant open risks
+
+Before implementation or final planning, scan the SSOT owners routed by the
+task plus `STATUS.md ## Open Gaps`, active `tech-debt/`, active or recurred
+`bugs/`, and relevant `gotchas/`. Report the entries whose trigger, path glob,
+owner, capability, journey, runtime owner, command, or failure mode overlaps the
+task. These are recommendations, not automatic blockers: each one must be
+handled during the task by fixing it, explicitly deferring it with the owner and
+reason still valid, or naming the next action in closeout.
+
+Do not treat downgraded working docs or historical source material as current
+open risk unless STATUS or an owner entry promotes the risk. Do not hide a
+fallback, compat shim, temporary workaround, TODO/FIXME/HACK, later-remove note,
+or waiver behind ordinary prose; it must have a registered owner, reason,
+closure condition, revisit signal, and verification guard in `tech-debt/`,
+`bugs/`, `decisions/`, or `STATUS.md` as appropriate.
 
 ## Park user-directive signals
 

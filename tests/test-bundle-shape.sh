@@ -178,6 +178,52 @@ else
   fail "Chinese remains in: ${CN_FILES[*]}"
 fi
 
+# 8. Markdown fenced code blocks must be balanced in shipped Markdown.
+FENCE_FAILS=()
+while IFS= read -r f; do
+  unclosed_line="$(awk '
+    /^```/ {
+      if (!in_fence) { in_fence=1; start=FNR }
+      else { in_fence=0; start=0 }
+    }
+    END { if (in_fence) print start }
+  ' "$f")"
+  if [[ -n "$unclosed_line" ]]; then
+    FENCE_FAILS+=("${f#"$PROJECT_ROOT"/}:$unclosed_line")
+  fi
+done < <(find "$PROJECT_ROOT" \
+  -path "$PROJECT_ROOT/.git" -prune -o \
+  -type f -name '*.md' -print)
+if [[ ${#FENCE_FAILS[@]} -eq 0 ]]; then
+  pass "all shipped Markdown fences close"
+else
+  fail "unclosed Markdown fences: ${FENCE_FAILS[*]}"
+fi
+
+# 9. Public OSS hygiene: no local-machine paths, origin-project paths/names,
+# or real commit SHAs in shipped protocol/templates/tests.
+HYGIENE_FILES=()
+HOME_PATH_PATTERN="$(printf '/%s/[^\\\\`[:space:]]+' 'home')"
+USERS_PATH_PATTERN="$(printf '/%s/[^\\\\`[:space:]]+' 'Users')"
+ORIGIN_NAME="$(printf 'sisy%s' 'phus')"
+ORIGIN_SRC_PATH="src/${ORIGIN_NAME}"
+ORIGIN_FRONTEND_PATH="$(printf 'frontend/src/components/%s' 'tasks')"
+REAL_SHA_PATTERN="[0-9a-f]{40}"
+HYGIENE_PATTERN="(${HOME_PATH_PATTERN}|${USERS_PATH_PATTERN}|${ORIGIN_SRC_PATH}|${ORIGIN_FRONTEND_PATH}|${ORIGIN_NAME}|${REAL_SHA_PATTERN})"
+while IFS= read -r f; do
+  if grep -nE "$HYGIENE_PATTERN" "$f" >/dev/null 2>&1; then
+    HYGIENE_FILES+=("${f#"$PROJECT_ROOT"/}")
+  fi
+done < <(find "$PROJECT_ROOT" \
+  -path "$PROJECT_ROOT/.git" -prune -o \
+  -path "$PROJECT_ROOT/CHANGELOG.md" -prune -o \
+  -type f \( -name '*.md' -o -name '*.sh' -o -name '*.yaml' -o -name '*.yml' \) -print)
+if [[ ${#HYGIENE_FILES[@]} -eq 0 ]]; then
+  pass "public assets avoid local/origin-project leakage"
+else
+  fail "public hygiene leakage in: ${HYGIENE_FILES[*]}"
+fi
+
 echo
 echo "=== RESULT: pass=$PASS fail=$FAIL ==="
 [[ $FAIL -eq 0 ]] && exit 0 || exit 1

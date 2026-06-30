@@ -25,7 +25,8 @@
 
 ## Capability → Surface registry
 
-<!-- Architecture root _manifest only. -->
+<!-- Machine recovery index only. Each row must point back to exactly one prose
+owner in architecture or product; this file is not a second authority. -->
 
 | Capability | Route + handler | Component path | Test |
 |---|---|---|---|

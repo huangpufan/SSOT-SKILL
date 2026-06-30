@@ -7,8 +7,8 @@
 #         v2.17 handwritten vs SSOT-generated adapter boundary, v2.19
 #         product skeleton, v2.31 decision lifecycle fields, v2.34 ledger
 #         WARN heuristics, v2.35 actionability WARN heuristics, v2.36 KISS
-#         table-density WARN heuristics, v2.47 intent/truth narrative WARN, and the
-#         clean baseline.
+#         table-density WARN heuristics, v2.47 intent/truth narrative WARN,
+#         v2.52 open-risk / temporary-surface checks, and the clean baseline.
 #
 # Usage:       bash assets/scripts/test/run-tests.sh
 # Exit codes:  0 all pass; 1 some failed.
@@ -80,6 +80,10 @@ run() { bash "$LINT" "$1/SSOT" 2>&1; }
 
 set_protocol_238() { # $1=root — opt the temp fixture into v2.38 checks.
   sed -i 's/| tracked_skill_version | `2.19` |/| tracked_skill_version | `2.38` |/' "$1/SSOT/STATUS.md"
+}
+
+resolve_template_placeholders() { # $1=root — replace skeleton residue in fixture prose before marking areas covered.
+  find "$1/SSOT" -name '*.md' -type f -print0 | xargs -0 sed -i 's/（待补充）/无/g'
 }
 
 echo "== S0 bundle package shape (each skill has SKILL.md + agents/openai.yaml) =="
@@ -194,7 +198,7 @@ T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
 mkdir -p "$T/SSOT/decisions"
 printf '# Decisions\n\n## Easily confused with\n\n（待补充）\n\n## Out of scope\n\n（待补充）\n' > "$T/SSOT/decisions/README.md"
 {
-  printf -- '---\nstatus: accepted\nimplementation_state: pending\ncreated_on: 2026-06-12\nupdated_on: 2026-06-12\nintroduced_in: abcdef1\n---\n# 0001 Example\n'
+  printf -- '---\nstatus: accepted\nimplementation_state: pending\ncreated_on: 2026-06-12\nupdated_on: 2026-06-12\nintroduced_in: abcdef1\nclosure_condition: "implementation_state becomes implemented or decision is superseded"\nrevisit_signal: "path-glob:src/**"\n---\n# 0001 Example\n'
 } > "$T/SSOT/decisions/0001-example.md"
 out=$(run "$T"); code=$?
 assert_not_contains "complete decision entry has no DECISION FAIL" "$out" "[DECISION]"
@@ -215,6 +219,7 @@ rm -rf "$T"
 
 echo "== S14 STATUS Notes ledger warning (check 5 -> STATUS-NOTES-LEDGER WARN) =="
 T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+resolve_template_placeholders "$T"
 sed -i 's/| product | gap | |/| product | covered | 2026-06-13 BUG-0001 批次验证 passed |/' "$T/SSOT/STATUS.md"
 out=$(run "$T"); code=$?
 assert_contains "STATUS notes ledger triggers WARN tag" "$out" "[STATUS-NOTES-LEDGER]"
@@ -320,7 +325,7 @@ sed -i 's/| architecture | gap | |/| architecture | covered | |/' "$T/SSOT/STATU
   printf '## 设计简报\n\n这里是一句开场。\n\n'
   printf '## 设计意图与设计真相\n\n当前 runtime-owner 拆分解释了设计意图和设计真相。\n\n'
   printf '本文档的核心恢复清单见 _manifest.md。\n\n'
-  printf '## Easily confused with\n\n（待补充）\n\n## Out of scope\n\n（待补充）\n'
+  printf '## Easily confused with\n\n无易混淆 owner。\n\n## Out of scope\n\n无。\n'
 } > "$T/SSOT/architecture/README.md"
 add_clean_adapter "$T"
 out=$(run "$T"); code=$?
@@ -329,7 +334,9 @@ assert_exit "present intent/truth narrative exits 0" "$code" "0"
 rm -rf "$T"
 
 echo "== S22d product README narrative covers PRD manifest (check 5g2 -> PASS) =="
-T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+T=$(mktemp -d); make_base "$T"
+resolve_template_placeholders "$T"
+add_clean_adapter "$T"
 sed -i 's/| product | gap | |/| product | covered | |/' "$T/SSOT/STATUS.md"
 printf '\n## 产品意图与产品真相\n\n产品入口先解释用户、问题、承诺和当前真相。\n' >> "$T/SSOT/product/README.md"
 {
@@ -419,6 +426,81 @@ mkdir -p "$T/SSOT/architecture/01-foo"
 out=$(run "$T"); code=$?
 assert_contains "checklist-heavy architecture triggers ARCH-CHECKLIST-HEAVY" "$out" "[ARCH-CHECKLIST-HEAVY]"
 assert_exit "checklist-heavy architecture exits 1" "$code" "1"
+rm -rf "$T"
+
+echo "== S29 unclosed markdown fence (check 23 -> MARKDOWN-FENCE FAIL) =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+printf '\n```text\nunterminated\n' >> "$T/SSOT/product/prd.md"
+out=$(run "$T"); code=$?
+assert_contains "unclosed fence triggers MARKDOWN-FENCE" "$out" "[MARKDOWN-FENCE]"
+assert_exit "unclosed fence exits 2" "$code" "2"
+rm -rf "$T"
+
+echo "== S30 partial ADR missing closure fields (check 24 -> ADR-CLOSURE FAIL) =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+mkdir -p "$T/SSOT/decisions"
+printf '# Decisions\n' > "$T/SSOT/decisions/README.md"
+{
+  printf -- '---\nstatus: accepted\nimplementation_state: partial\ncreated_on: 2026-06-30\nupdated_on: 2026-06-30\nintroduced_in: abcdef1\n---\n# 0001 Partial\n'
+} > "$T/SSOT/decisions/0001-partial.md"
+out=$(run "$T"); code=$?
+assert_contains "partial ADR missing closure triggers ADR-CLOSURE" "$out" "[ADR-CLOSURE]"
+assert_exit "partial ADR missing closure exits 2" "$code" "2"
+rm -rf "$T"
+
+echo "== S31 active debt missing closure fields (check 24 -> DEBT-CLOSURE FAIL) =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+mkdir -p "$T/SSOT/tech-debt"
+printf '# Tech debt\n' > "$T/SSOT/tech-debt/README.md"
+printf -- '---\nid: DEBT-0001\nstatus: active\npriority: high\n---\n# Active debt\n' > "$T/SSOT/tech-debt/0001-active.md"
+out=$(run "$T"); code=$?
+assert_contains "active debt missing closure triggers DEBT-CLOSURE" "$out" "[DEBT-CLOSURE]"
+assert_exit "active debt missing closure exits 2" "$code" "2"
+rm -rf "$T"
+
+echo "== S32 temporary debt missing owner/reason/guard (check 24 -> TEMP-SURFACE FAIL) =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+mkdir -p "$T/SSOT/tech-debt"
+printf '# Tech debt\n' > "$T/SSOT/tech-debt/README.md"
+{
+  printf -- '---\nid: DEBT-0002\nstatus: active\npriority: medium\ntemporary_surface: true\nclosure_condition: "grep -nR TODO src returns no match"\nrevisit_signal: "path-glob:src/**"\n---\n# Temporary surface\n'
+} > "$T/SSOT/tech-debt/0002-temp.md"
+out=$(run "$T"); code=$?
+assert_contains "temporary debt missing guard fields triggers TEMP-SURFACE" "$out" "[TEMP-SURFACE]"
+assert_exit "temporary debt missing guard fields exits 2" "$code" "2"
+rm -rf "$T"
+
+echo "== S33 covered area with placeholder residue (check 25 -> COVERED-PLACEHOLDER FAIL) =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+printf '\nTODO: replace this starter section.\n' >> "$T/SSOT/product/README.md"
+sed -i 's/| product | gap | |/| product | covered | |/' "$T/SSOT/STATUS.md"
+out=$(run "$T"); code=$?
+assert_contains "covered placeholder triggers COVERED-PLACEHOLDER" "$out" "[COVERED-PLACEHOLDER]"
+assert_exit "covered placeholder exits 2" "$code" "2"
+rm -rf "$T"
+
+echo "== S34 STATUS only/no remaining contradicts open gaps (check 26 -> STATUS-AGGREGATE FAIL) =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+printf '\n| last_stop_review | remaining=existing non-blocking gaps only (DEBT-0009) |\n\n## Open Gaps\n\n| Area | Status | Gap description | Blocking level |\n|---|---|---|---|\n| testing | gap | Browser smoke missing | non-blocking |\n| release | gap | Release automation missing | non-blocking |\n' >> "$T/SSOT/STATUS.md"
+out=$(run "$T"); code=$?
+assert_contains "contradictory remaining summary triggers STATUS-AGGREGATE" "$out" "[STATUS-AGGREGATE]"
+assert_exit "contradictory remaining summary exits 2" "$code" "2"
+rm -rf "$T"
+
+echo "== S35 open gap with待立 debt and no owner (check 27 -> GAP-OWNER FAIL) =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+printf '\n## Open Gaps\n\n| Area | Status | Gap description | Blocking level |\n|---|---|---|---|\n| testing | gap | frontend lint CI 待立 tech-debt | non-blocking |\n' >> "$T/SSOT/STATUS.md"
+out=$(run "$T"); code=$?
+assert_contains "unowned gap triggers GAP-OWNER" "$out" "[GAP-OWNER]"
+assert_exit "unowned gap exits 2" "$code" "2"
+rm -rf "$T"
+
+echo "== S36 STATUS resolved capture with pending action (check 28 -> CAPTURE-LIFECYCLE FAIL) =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+printf '\n### Pending Captures (cycle passed)\n\nCycle passed. Pending action: add this later during the next audit batch.\n' >> "$T/SSOT/STATUS.md"
+out=$(run "$T"); code=$?
+assert_contains "pending action in capture triggers CAPTURE-LIFECYCLE" "$out" "[CAPTURE-LIFECYCLE]"
+assert_exit "pending action in capture exits 2" "$code" "2"
 rm -rf "$T"
 
 echo ""

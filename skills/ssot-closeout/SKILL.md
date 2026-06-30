@@ -26,6 +26,20 @@ only after actually inspecting the affected scope, not by default.
 Run only the targeted checks needed for the files you touched. Do not
 invoke full `$ssot-doctor` here.
 
+Before final response, resolve the risk recommendations surfaced by preflight
+and anything newly discovered during the batch:
+
+- If the batch closes an active debt, bug, gotcha, adjudication, or open gap,
+  update its owner and STATUS pointer.
+- If the batch touches the same trigger/path/capability but does not close it,
+  explicitly defer with the still-valid owner, reason, closure condition,
+  revisit signal, verification guard, or a next action. Do not leave
+  "TODO later", "fallback for now", "compat shim", or "temporary waiver" as
+  unregistered prose.
+- If a consumer SSOT problem exposed a repeatable protocol/template/lint gap and
+  this repository owns SSOT-SKILL, update the bundle first, refresh the runtime
+  copy, then update the consumer SSOT from the improved rule.
+
 You cannot self-certify high-impact moves. If closeout would hit one of the
 independent-review exceptions in
 `../ssot-preflight/references/status-protocol.md §7.1` -- such as bootstrap

@@ -408,17 +408,22 @@ development.
 
 ## 16. Capability → Surface Registry (v2.39)
 
-Each architecture domain README and each product capability file carries a
-`Capability → Surface registry` table that lets a cold agent jump from a
-named capability to the route + component + test that proves it works today.
-Doctor `[SURFACE-PIN]` (14T) gates this. Both sides of the trunk maintain a
-mirror so navigation works in either direction:
+The `Capability → Surface registry` lets a cold agent jump from a named
+capability to the route + component + test that proves it works today. Doctor
+`[SURFACE-PIN]` (14T) gates this. Each registry row has exactly one owner:
+either the runtime owner in architecture (usual case) or the product capability
+file when the product capability is the more stable lookup surface. The other
+location uses a link-only pointer and does not maintain a mirror row.
 
-- The architecture domain README owns a registry row for every product
-  capability whose runtime authority lives inside the domain.
-- The product capability file owns a mirror registry row for every
-  architecture surface (route + component + Playwright test) that implements
-  it.
+Default ownership rule:
+
+- The architecture domain README owns the row when the row is primarily a
+  runtime surface contract: API route/module, handler, component, test, state.
+- The product capability file owns the row only when a capability intentionally
+  aggregates several runtime owners and the product surface is the stable
+  contract; architecture links to that row.
+- `_manifest.md` may carry machine recovery indexes, but it is not a second
+  authority. If the manifest row contradicts the owner row, fix the manifest.
 
 Default registry shape:
 

@@ -58,6 +58,15 @@ outside SSOT, but they must not masquerade as current authority.
 repository owns the bundle and the weakness is repeatable across projects. Then
 repair consumer SSOT using the improved rule.
 
+**Temporary surfaces** -- fallback, compat shim, later-remove path,
+TODO/FIXME/HACK/WORKAROUND, temporary waiver, or deferred cleanup -- route to a
+real owner before closeout. Prefer an existing `tech-debt/`, `bugs/`,
+`decisions/`, or owner-specific gap entry; create one when the current wording
+only says "TODO debt" or "follow up later". A registered temporary surface must
+name owner, reason, closure condition, revisit signal, and verification guard.
+If those fields cannot be written, do not call the area `covered`; leave an
+open gap instead.
+
 **Conversation directives** route by their durable meaning: product promises to
 `product/`, decisions to `decisions/`, recurring agent discipline to
 `development/`, pitfalls to `gotchas/`, root causes to `bugs/`, and future work
@@ -153,6 +162,7 @@ bundle first.
 | Root cause analysis | `bugs/` |
 | Recurring bug / hotfix loop | `bugs/`, split by failure mode; recurrence timeline for same root cause |
 | Temporary fix / later refactor | `tech-debt/` |
+| Fallback / compat shim / later-remove / temporary waiver / TODO left in current code | `tech-debt/` or the owning `bugs/` / `decisions/` entry, with owner + reason + closure condition + revisit signal + verification guard |
 | Technical priorities / non-goals / NFRs | `architecture/views/operating-model.md`, CTG, or `decisions/`; product promises first enter `product/` |
 | Product promises / users / capability / journey / acceptance / roadmap | `product/` |
 | Constraints | architecture operating model/domain constraints; decisions if long-lived trade-off |

@@ -19,8 +19,7 @@ versions. This file only restates headline changes.
 ### Changed
 - Scrubbed origin-project references from shipped skill assets: replaced
   cold-agent-sim cycle transcripts with one synthetic example using a
-  fictional `src/myapp/` project; replaced `src/sisyphus/...` and
-  `frontend/src/components/tasks/...` example paths in
+  fictional project; replaced origin-project implementation paths in
   `ssot-preflight/references/` and `ssot-audit/references/` with synthetic
   placeholders; replaced real commit SHAs in audit history with `<commit>`.
 - AGENTS.md commit discipline now explicitly scopes to maintainers and
@@ -49,6 +48,39 @@ versions. This file only restates headline changes.
 ### Removed
 - Obsolete `workflows/intent-recoverability-loop.workflow.js` (and the
   now-empty `workflows/` directory).
+
+## [2.52] - 2026-06-30
+
+`semantic_impact: medium` — adds the **open-risk and temporary-surface floor**.
+Preflight now surfaces task-relevant active debt, gotchas, bugs, and open gaps;
+closeout must either close, defer with owner/trigger/guard, or create a next
+action. Temporary fallback, compat shim, later-remove, TODO/FIXME/HACK, and
+waiver surfaces must be registered with owner, reason, closure condition,
+revisit signal, and verification guard. Lint adds deterministic checks for
+markdown fence balance, ADR/debt closure fields, covered-area placeholder
+residue, STATUS aggregate contradictions, unowned gap rows, and pending-action
+text hidden inside resolved capture sections. Bundle-shape adds public hygiene
+guards for local paths, origin-project names, real commit SHAs, and unclosed
+Markdown fences.
+
+### Changed
+- **`VERSION`** -> `2.52`.
+- **`skills/ssot-preflight/SKILL.md`** `metadata.protocol_version` -> `2.52`.
+- **`ssot-preflight` / `ssot-closeout`** now require task-relevant open-risk
+  recommendations and closeout disposition.
+- **`area-model.md`** `tech-debt/` rules now define temporary-surface
+  registration fields.
+- **`architecture.md` §16** now uses one owner per Capability -> Surface
+  registry row plus link-only mirrors instead of duplicate product /
+  architecture registry rows.
+
+### Added
+- `ssot-lint.sh` checks for `[MARKDOWN-FENCE]`, `[ADR-CLOSURE]`,
+  `[DEBT-CLOSURE]`, `[TEMP-SURFACE]`, `[COVERED-PLACEHOLDER]`,
+  `[STATUS-AGGREGATE]`, `[GAP-OWNER]`, and `[CAPTURE-LIFECYCLE]`.
+- Lint smoke tests for the new deterministic checks.
+- Bundle-shape checks for unclosed Markdown fences and public OSS leakage
+  patterns.
 
 ## [2.51] - 2026-06-23
 
