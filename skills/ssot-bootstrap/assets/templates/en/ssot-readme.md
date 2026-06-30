@@ -64,6 +64,7 @@ flowchart LR
 | Deployment and distribution | [deployment/](./deployment/README.md) | Reference | |
 | Release process | [release/](./release/README.md) | Reference | |
 | Major decisions | [decisions/](./decisions/README.md) | Reference | |
+| Research and POC records | [04-records/research/](./04-records/research/README.md) | Reference | |
 | Known gotchas | [gotchas/](./gotchas/README.md) | Reference | |
 | Bug fix records | [bugs/](./bugs/README.md) | Reference | |
 | Tech debt | [tech-debt/](./tech-debt/README.md) | Reference | |

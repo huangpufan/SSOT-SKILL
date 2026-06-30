@@ -87,7 +87,7 @@
 
 ## Tier 4 发现
 
-> 探索过程中发现的 decisions/gotchas/bugs/tech-debt 素材，以及需要进入 architecture 约束与 gap 记录的线索。
+> 探索过程中发现的 decisions/research/gotchas/bugs/tech-debt 素材，以及需要进入 architecture 约束与 gap 记录的线索。
 > 协调者会从此处汇总到 manifest.md 的 Tier 4 发现汇总中。
 
 | 发现 | 类型 | 来源标记 | 来源位置 |

@@ -45,6 +45,7 @@
 | deployment | pending | | | |
 | release | pending | | | |
 | decisions | pending | | | |
+| research records | pending | `04-records/research/` | | |
 | gotchas | pending | | | |
 | bugs | pending | | | |
 | tech-debt | pending | | | |
@@ -87,5 +88,5 @@ Create these only when the repo needs the extra detail:
 - `## Appendix: architecture decomposition` for full signal matrix, rejected
   false friends, diagram inventory, and reviewer challenge.
 - `## Appendix: source material` for detailed absorption rows.
-- `## Appendix: tier-4 roll-up` for consolidated gotcha/bug/decision/debt
+- `## Appendix: tier-4 roll-up` for consolidated gotcha/bug/decision/research/debt
   findings before they are recorded in owners.

@@ -9,7 +9,8 @@
 #         WARN heuristics, v2.35 actionability WARN heuristics, v2.36 KISS
 #         table-density WARN heuristics, v2.47 intent/truth narrative WARN,
 #         v2.52 open-risk / temporary-surface checks, v2.53 non-silent
-#         deferral checks, and the clean baseline.
+#         deferral checks, v2.54 research-record checks, and the clean
+#         baseline.
 #
 # Usage:       bash assets/scripts/test/run-tests.sh
 # Exit codes:  0 all pass; 1 some failed.
@@ -523,6 +524,56 @@ printf '# Tech debt\n\n## Easily confused with\n\nnone\n\n## Out of scope\n\nnon
 out=$(run "$T"); code=$?
 assert_exit "owner-backed deferral exits 0" "$code" "0"
 assert_not_contains "owner-backed deferral has no SILENT-DEFERRAL fail" "$out" "[FAIL] [SILENT-DEFERRAL]"
+rm -rf "$T"
+
+echo "== S39 valid research record passes check 30 =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+mkdir -p "$T/SSOT/04-records/research"
+printf '# Research records\n\n- [0001 sandbox options](0001-sandbox-options.md)\n' > "$T/SSOT/04-records/research/README.md"
+{
+  printf -- '---\nstatus: source-backed\nkind: poc\ncreated_on: 2026-06-30\nowner: platform team\npromotion_targets: [SSOT/02-architecture/domains/sandbox/README.md]\nrecheck_trigger: "runtime isolation model changes"\n---\n'
+  printf '# Sandbox options\n\n## Question\n\nWhich local execution option is practical?\n\n## Conclusion\n\nUse direct shell first and container isolation only when the run needs it.\n\n## Applicability and boundaries\n\n'
+  printf 'do_not_use_for: production isolation guarantees.\n\n## Candidates / options\n\n- direct shell\n- container fallback\n\n## Method and environment\n\nSmall local smoke on a synthetic project.\n\n'
+  printf '## Verification steps\n\n1. Run the smoke command.\n\n## Evidence\n\n- command exited 0.\n\n## Negative findings\n\n- container startup was slower.\n\n'
+  printf '## Reusable claim rows\n\n| Claim | Confidence | Evidence |\n|---|---|---|\n| direct shell is enough for this POC | source-backed | smoke output |\n\n'
+  printf '## Promoted SSOT owners\n\n- SSOT/02-architecture/domains/sandbox/README.md\n\n## Follow-up actions\n\n- Recheck when the runtime isolation model changes.\n'
+} > "$T/SSOT/04-records/research/0001-sandbox-options.md"
+out=$(run "$T"); code=$?
+assert_exit "valid research record exits 0" "$code" "0"
+assert_not_contains "valid research record has no RESEARCH-RECORD fail" "$out" "[FAIL] [RESEARCH-RECORD]"
+rm -rf "$T"
+
+echo "== S40 research record missing required frontmatter fails check 30 =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+mkdir -p "$T/SSOT/04-records/research"
+printf '# Research records\n' > "$T/SSOT/04-records/research/README.md"
+{
+  printf -- '---\nstatus: source-backed\nkind: research\ncreated_on: 2026-06-30\nowner: platform team\npromotion_targets: [SSOT/testing/README.md]\n---\n'
+  printf '# Missing trigger\n\n## Applicability and boundaries\n\ndo_not_use_for: current production fact.\n'
+} > "$T/SSOT/04-records/research/0001-missing-trigger.md"
+out=$(run "$T"); code=$?
+assert_contains "missing research frontmatter triggers RESEARCH-RECORD" "$out" "[RESEARCH-RECORD]"
+assert_contains "missing recheck_trigger flagged" "$out" "missing required frontmatter field 'recheck_trigger'"
+assert_exit "missing research frontmatter exits 2" "$code" "2"
+rm -rf "$T"
+
+echo "== S41 top-level research directory fails check 30 =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+mkdir -p "$T/SSOT/research"
+printf '# Wrong research area\n' > "$T/SSOT/research/README.md"
+out=$(run "$T"); code=$?
+assert_contains "top-level research triggers RESEARCH-RECORD" "$out" "top-level SSOT/research is not a valid authority area"
+assert_exit "top-level research exits 2" "$code" "2"
+rm -rf "$T"
+
+echo "== S42 unnumbered research entry fails check 30 =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+mkdir -p "$T/SSOT/04-records/research"
+printf '# Research records\n' > "$T/SSOT/04-records/research/README.md"
+printf -- '---\nstatus: source-backed\nkind: poc\ncreated_on: 2026-06-30\nowner: platform team\npromotion_targets: [SSOT/testing/README.md]\nrecheck_trigger: "test harness changes"\n---\n# Bad name\n\n## Applicability and boundaries\n\ndo_not_use_for: current production fact.\n' > "$T/SSOT/04-records/research/sandbox-options.md"
+out=$(run "$T"); code=$?
+assert_contains "bad research filename triggers RESEARCH-RECORD" "$out" "must use NNNN-<slug>.md"
+assert_exit "bad research filename exits 2" "$code" "2"
 rm -rf "$T"
 
 echo ""

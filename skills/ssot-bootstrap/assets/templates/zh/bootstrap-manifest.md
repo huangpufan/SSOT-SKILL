@@ -43,6 +43,7 @@
 | deployment | pending | | | |
 | release | pending | | | |
 | decisions | pending | | | |
+| research records | pending | `04-records/research/` | | |
 | gotchas | pending | | | |
 | bugs | pending | | | |
 | tech-debt | pending | | | |
@@ -83,4 +84,4 @@
 - `## Appendix: area scope`：记录 covered/remaining scope 与 confidence notes。
 - `## Appendix: architecture decomposition`：记录完整 signal matrix、rejected false friends、diagram inventory 与 reviewer challenge。
 - `## Appendix: source material`：记录详细 absorption rows。
-- `## Appendix: tier-4 roll-up`：在写入 owner 前汇总 gotcha/bug/decision/debt findings。
+- `## Appendix: tier-4 roll-up`：在写入 owner 前汇总 gotcha/bug/decision/research/debt findings。

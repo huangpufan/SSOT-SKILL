@@ -31,6 +31,12 @@ and anything newly discovered during the batch:
 
 - If the batch closes an active debt, bug, gotcha, adjudication, or open gap,
   update its owner and STATUS pointer.
+- If the batch produced research/PoC output, choose exactly one disposition:
+  create `SSOT/04-records/research/NNNN-<slug>.md`, update an existing research
+  entry, promote durable claim rows into their product/architecture/decision or
+  other owners, or discard the output with a concrete reason. Do not create
+  top-level `SSOT/research/`, and do not mirror the packet into an authority
+  owner.
 - If the batch touches the same trigger/path/capability but does not close it,
   explicitly defer with the still-valid owner, reason, closure condition,
   revisit signal, verification guard, and next action. Do not leave

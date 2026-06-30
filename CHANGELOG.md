@@ -49,6 +49,35 @@ versions. This file only restates headline changes.
 - Obsolete `workflows/intent-recoverability-loop.workflow.js` (and the
   now-empty `workflows/` directory).
 
+## [2.54] - 2026-06-30
+
+`semantic_impact: medium` — adds **research / POC records** as a first-class
+records area under `04-records/research/`. Research records preserve questions,
+methods, environment, evidence, negative findings, boundaries, reusable claim
+rows, and promotion targets as structured evidence packets. Product,
+architecture, decisions, and other owners only absorb claims after promotion;
+raw source material remains governed by the source-material lifecycle rules.
+
+### Changed
+- **`VERSION`** -> `2.54`.
+- **`skills/ssot-preflight/SKILL.md`** `metadata.protocol_version` -> `2.54`.
+- **`ssot-preflight` / `ssot-closeout`** now distinguish research records from
+  authority mirrors and require explicit disposition when a task produces
+  research or POC evidence.
+- **`ssot-doctor`** documents mechanical research-record checks rather than
+  semantic judgement of research quality.
+
+### Added
+- `research-readme.md` and `research-entry.md` bootstrap templates in both
+  `en/` and `zh/`.
+- Bootstrap skeleton support for `SSOT/04-records/research/README.md` without
+  creating sample research entries.
+- `ssot-lint.sh` `[RESEARCH-RECORD]` checks for canonical location,
+  `NNNN-<slug>.md` numbering, required frontmatter, promotion/recheck fields,
+  and mechanical boundary / `do_not_use_for` signals.
+- Lint smoke tests for valid research records, missing required fields,
+  top-level `SSOT/research/`, and unnumbered entry names.
+
 ## [2.53] - 2026-06-30
 
 `semantic_impact: medium` — adds the **active recommendation / non-silent

@@ -1473,6 +1473,56 @@ if [[ "$SILENT_DEFERRAL_FAIL_COUNT" -eq 0 ]]; then
   add_pass "[SILENT-DEFERRAL] obvious future-work wording has owner/reference or retrigger signals"
 fi
 
+# ---------- check 30: [RESEARCH-RECORD] research/POC evidence packets ----------
+# Canonical research records live under 04-records/research/. They are
+# structured evidence packets, not a top-level authority area and not required
+# merely because source-material rows mention research or POC docs.
+RESEARCH_RECORD_FAIL_COUNT=0
+if [[ -d "$SSOT_DIR/research" ]]; then
+  add_fail "[RESEARCH-RECORD] top-level SSOT/research is not a valid authority area; use SSOT/04-records/research: $SSOT_DIR/research"
+  RESEARCH_RECORD_FAIL_COUNT=$((RESEARCH_RECORD_FAIL_COUNT + 1))
+fi
+RESEARCH_DIR="$SSOT_DIR/04-records/research"
+if [[ -d "$RESEARCH_DIR" ]]; then
+  if [[ ! -f "$RESEARCH_DIR/README.md" ]]; then
+    add_fail "[RESEARCH-RECORD] research records area missing README index: $RESEARCH_DIR/README.md"
+    RESEARCH_RECORD_FAIL_COUNT=$((RESEARCH_RECORD_FAIL_COUNT + 1))
+  fi
+  while IFS= read -r -d '' research_file; do
+    bname=$(basename "$research_file")
+    [[ "$bname" == "README.md" ]] && continue
+    if [[ ! "$bname" =~ ^[0-9]{4}-.+\.md$ ]]; then
+      add_fail "[RESEARCH-RECORD] research entry must use NNNN-<slug>.md numbering: $research_file"
+      RESEARCH_RECORD_FAIL_COUNT=$((RESEARCH_RECORD_FAIL_COUNT + 1))
+      [[ "$RESEARCH_RECORD_FAIL_COUNT" -ge 30 ]] && break
+      continue
+    fi
+    fm=$(head -n 45 "$research_file")
+    for field in status kind created_on owner promotion_targets recheck_trigger; do
+      if ! printf '%s\n' "$fm" | grep -qE "^${field}:"; then
+        add_fail "[RESEARCH-RECORD] research entry missing required frontmatter field '${field}': $research_file"
+        RESEARCH_RECORD_FAIL_COUNT=$((RESEARCH_RECORD_FAIL_COUNT + 1))
+      fi
+    done
+    if printf '%s\n' "$fm" | grep -qE '^promotion_targets:[[:space:]]*(\[\][[:space:]]*)?$'; then
+      add_fail "[RESEARCH-RECORD] research entry promotion_targets must name owner targets or explicit not_applicable reason: $research_file"
+      RESEARCH_RECORD_FAIL_COUNT=$((RESEARCH_RECORD_FAIL_COUNT + 1))
+    fi
+    if printf '%s\n' "$fm" | grep -qE '^recheck_trigger:[[:space:]]*"?[[:space:]]*"?$'; then
+      add_fail "[RESEARCH-RECORD] research entry recheck_trigger must be concrete: $research_file"
+      RESEARCH_RECORD_FAIL_COUNT=$((RESEARCH_RECORD_FAIL_COUNT + 1))
+    fi
+    if ! head -n 120 "$research_file" | grep -qiE 'do_not_use_for|Do not use for|Applicability|Boundar(y|ies)|适用边界|不适用|不得用于|不要用于'; then
+      add_fail "[RESEARCH-RECORD] research entry lacks a mechanical boundary / do_not_use_for signal: $research_file"
+      RESEARCH_RECORD_FAIL_COUNT=$((RESEARCH_RECORD_FAIL_COUNT + 1))
+    fi
+    [[ "$RESEARCH_RECORD_FAIL_COUNT" -ge 30 ]] && break
+  done < <(find "$RESEARCH_DIR" -maxdepth 1 -name '*.md' -type f -print0)
+fi
+if [[ "$RESEARCH_RECORD_FAIL_COUNT" -eq 0 ]]; then
+  add_pass "[RESEARCH-RECORD] research evidence packets are canonical and mechanically complete"
+fi
+
 fi  # end META_LEAKAGE_SKIP_OTHER_CHECKS guard (checks 13-17 also guarded)
 
 # ---------- output ----------

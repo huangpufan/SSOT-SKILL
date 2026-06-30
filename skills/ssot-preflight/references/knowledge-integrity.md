@@ -30,6 +30,15 @@ hypothesis ──► candidate ──► source-backed ──► verified
 
 States can only be promoted in order, but intermediate states may be skipped (e.g., agent infers and immediately finds code evidence, marks `source-backed` directly). Demotion may go from any state to any lower state or be deleted outright.
 
+Research/PoC evidence packets under `SSOT/04-records/research/` usually support
+at most `source-backed` claims. A reproducible packet can raise a distilled
+claim row to `source-backed` when it names the method, inputs, artifacts, and
+boundary clearly enough for recheck. It does not make the claim a normal
+verified SSOT fact by itself. Promotion to the implicit `verified` default
+requires the relevant product, architecture, decision, testing, bug, gotcha, or
+debt owner to absorb the long-lived fact and a later independent review or
+subsequent session to confirm that owner-level evidence still holds.
+
 ### 1.1 Intent-recovery axis (v2.43)
 
 Evidence backing (the confidence state machine above) is orthogonal to
@@ -155,6 +164,7 @@ When writing long-lived knowledge to SSOT, the agent determines default confiden
 | Direct derivation from code/config/schema/test | No annotation needed (equivalent to `verified`) | Code itself is evidence |
 | Conclusion confirmed by user in conversation | `candidate` | Conversational confirmation provides initial evidence, still needs code-level cross-verification |
 | Agent code-analysis inference | `candidate` | Has analytic basis but inference may be wrong |
+| Research/PoC record claim row | `candidate` or `source-backed` | Use `source-backed` only when the packet is reproducible and directly supports the claim; never treat the packet alone as `verified` |
 | Agent inference, no direct evidence | `hypothesis` | Verbal agreement, guess, implicit coupling judgment |
 
 Write rules:
@@ -163,6 +173,9 @@ Write rules:
 - When marking `source-backed`, the `evidence` field must be provided simultaneously (see §5); otherwise use `candidate`.
 - Default confidence may not be adjusted downward to bypass write-location restrictions.
 - `hypothesis` must not be written to the authoritative body of architecture views/domains. It may exist as a gap annotation or STATUS.md open gap to mark "verification needed here".
+- Research/PoC packet evidence promoted into an owner keeps a pointer to the
+  packet and remains `source-backed` until owner absorption plus later review
+  confirms the claim as normal SSOT truth.
 
 ---
 

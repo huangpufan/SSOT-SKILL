@@ -46,6 +46,8 @@ SSOT/
   gotchas/           # Pitfalls
   bugs/              # Fix knowledge
   tech-debt/         # Tech debt
+  04-records/        # Structured record packets, not primary authority
+    research/        # Research/PoC evidence packets
 ```
 
 Core model:
@@ -55,8 +57,17 @@ Core model:
 - **Context areas**: `glossary/`. Help the agent first understand what key terms mean.
 - **Engineering operation areas**: `development/`, `testing/`, `deployment/`, `release/`. Answer how to run, how to test, how to deliver.
 - **Emergent/historical areas**: `decisions/`, `gotchas/`, `bugs/`, `tech-debt/`. Record why, pitfalls, fix knowledge, and debt.
+- **Record packets**: `04-records/research/`. Preserve reproducible
+  research/PoC evidence packets and reusable claim rows. They are not
+  authority mirrors; product, architecture, decision, and engineering owners
+  absorb only promoted long-lived facts.
 
 The Views + Domains structure of `architecture/` and the recursion protocol are maintained by [`architecture.md`](architecture.md). Do not add a top-level `SSOT/design/`; design documents are source material, product facts enter `product/`, and technical design facts enter architecture views/domains, decisions, bugs, gotchas, testing, and other authoritative locations by content.
+
+Do not add a top-level `SSOT/research/`. Research and PoC records that belong
+inside SSOT live under `SSOT/04-records/research/` as structured evidence
+packets. Raw research notes, external artifacts, and working docs outside SSOT
+still follow the source-material lifecycle and downgrade rules.
 
 `product/` is a required top-level area. Even pure libraries, tools, or internal platforms must record users/operators, product promises, boundary, non-goals, and acceptance meaning; capabilities or journeys that do not apply should be written as `not_applicable` with a reason, rather than omitting `product/`.
 
@@ -857,6 +868,41 @@ condition, and current status/evidence pointer. Historical rationale can follow;
 the first screen must help the next agent avoid deepening the debt.
 
 **Split signal**: Naturally multi-entry; one file per major debt.
+
+### 2.12 04-records/research/
+
+**Responsibility**: Structured research and PoC evidence packets. This area
+preserves reproducible methods, inputs, artifacts, observations, limitations,
+and distilled claim rows that may be reused by future product, architecture,
+decision, testing, bug, gotcha, or debt owners.
+
+**Applicability**: Applicable when a task produces research, landscape review,
+PoC, experiment, benchmark, spike, external comparison, or measured trial output
+that is too valuable to discard but is not itself a stable product or
+architecture fact. Do not create the directory merely because source-material
+rows mention research. Do not create a top-level `SSOT/research/`.
+
+**Content requirements**: `README.md` is only the index. Entries are independent
+files named `NNNN-<slug>.md`. Each entry records the research question, method,
+inputs, environment or source set, artifacts, observations, known limitations,
+`do_not_use_for` boundary, reusable claim rows, `promotion_targets`, and
+`recheck_trigger`. Claim rows should be distilled enough to promote one by one:
+claim, evidence packet anchor, confidence, boundary, and target owner.
+
+**Authority boundary**: Research records are not authority mirrors. They do not
+own product promises, architecture contracts, decision outcomes, testing policy,
+or current implementation truth. They store evidence packets and reusable claim
+rows. Long-lived facts become normal SSOT facts only when the relevant owner
+absorbs the promoted claim and links back to the packet as evidence. Owners
+absorb the durable fact, not the whole packet.
+
+**Source-material boundary**: Raw docs, external artifacts, copied notes, and
+working PoC files remain source material. They still need lifecycle downgrade
+fields or a STATUS inventory row per [`source-material.md`](source-material.md).
+The research record may point to them as inputs or artifacts, but it does not
+make those raw materials current authority.
+
+**Split signal**: Naturally multi-entry; one file per research/PoC packet.
 
 ---
 

@@ -29,10 +29,11 @@ numbered-prefix rule below.
 Three filename shapes are recognised. Pick the shape from what the directory
 **is**, not from how many files it currently holds.
 
-**Ledger directories** — `bugs/`, `decisions/`, `tech-debt/`. Each entry uses
-a 4-digit zero-padded creation-order prefix: `NNNN-slug.md` (e.g.
-`0001-unified-web-single-writer.md`). The number records the order entries
-were created and never changes after a renumber-blocking event.
+**Ledger directories** — `bugs/`, `decisions/`, `04-records/research/`,
+`tech-debt/`. Each entry uses a 4-digit zero-padded creation-order prefix:
+`NNNN-slug.md` (e.g. `0001-unified-web-single-writer.md`). The number
+records the order entries were created and never changes after a
+renumber-blocking event.
 
 **Ordered content directories** — directories whose sibling documents have a
 recommended reading order from the cold reader's perspective. Each file uses
@@ -79,12 +80,14 @@ frontmatter schema must match the child schema; the README is itself a
 sibling for this rule. Doctor `15J` (check 13 in lint) detects mismatched
 key sets in this scope.
 
-Ledger directories (`bugs/`, `decisions/`, `tech-debt/`) are deliberately
-excluded from the uniformity check because their per-entry frontmatter
-varies with lifecycle state (`closure_condition` and `revisit_signal` only
-on pending/partial decisions per v2.43 ADR-CLOSURE; `superseded_by` only
-on superseded entries; etc.). The ledger frontmatter contract is owned by
-Doctor rows 21, 15B, 15C, not by `15J`.
+Ledger directories (`bugs/`, `decisions/`, `04-records/research/`,
+`tech-debt/`) are deliberately excluded from the uniformity check because
+their per-entry frontmatter varies with lifecycle state (`closure_condition`
+and `revisit_signal` only on pending/partial decisions per v2.43
+ADR-CLOSURE; `superseded_by` only on superseded entries; research entries add
+packet fields such as `promotion_targets` and `recheck_trigger`). The ledger
+frontmatter contract is owned by Doctor rows 21, 15B, 15C, and the v2.54
+`[RESEARCH-RECORD]` check, not by `15J`.
 
 **`intent_recovery` propagation.** Every prose file under `product/` and
 `architecture/` carries `intent_recovery: covered | partial | gap` in

@@ -63,6 +63,7 @@ flowchart LR
 | 部署与分发 | [deployment/](./deployment/README.md) | Reference | |
 | 发布流程 | [release/](./release/README.md) | Reference | |
 | 重大决策 | [decisions/](./decisions/README.md) | Reference | |
+| 研究与 POC 记录 | [04-records/research/](./04-records/research/README.md) | Reference | |
 | 已知陷阱 | [gotchas/](./gotchas/README.md) | Reference | |
 | Bug 修复记录 | [bugs/](./bugs/README.md) | Reference | |
 | 技术债务 | [tech-debt/](./tech-debt/README.md) | Reference | |

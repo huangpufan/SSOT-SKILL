@@ -26,7 +26,23 @@ Reader Map, claim-to-evidence, script/tool inventory, and diagram candidate gove
 
 Source inventory may reuse the documentation language lock detection sources, but the language lock judges only based on natural-language evidence permitted by `SKILL.md` documentation language lock. Natural-language changes in source material may trigger language-lock review leads but must not auto-switch `documentation_language`.
 
-### 1.1 Core reference documents
+### 1.1 Research records are not source mirrors
+
+`SSOT/04-records/research/` is an SSOT-native record area for structured
+research/PoC evidence packets. It is not a top-level authority area, not
+`SSOT/research/`, and not a mirror of raw source material. A research record
+stores reproducible method, inputs, artifacts, observations, limitations,
+reusable claim rows, `promotion_targets`, `recheck_trigger`, and
+`do_not_use_for` boundary.
+
+Raw research notes, external artifacts, copied vendor docs, benchmark logs, and
+working PoC files remain source material even when a research record points to
+them. They still need lifecycle downgrade fields or a STATUS inventory row.
+Product, architecture, decision, testing, bug, gotcha, and debt owners absorb
+only promoted long-lived facts; they link back to the research packet as
+evidence instead of copying the packet or keeping an authority mirror.
+
+### 1.2 Core reference documents
 
 Core reference documents are not exceptions to the ordinary thin-entry rules. If they contain only SSOT routing, generated marker, and a few core-invariant summaries, treat them as SSOT-generated thin adapters; if they carry commands, directory maps, workflow state, architecture constraints, model/config rules, testing strategy, agent operation preconditions, or other long-lived facts, they are simultaneously source material and must undergo fact review. `thin-adapterize` is only a conditional suggestion: propose it only when long-lived facts have been migrated into SSOT, the project wants the file hosted by SSOT, or the user explicitly requests it; hand-written or mixed startup files may retain local facts but must accept `[CORE-REF]` review.
 
@@ -88,6 +104,11 @@ Doctor/lint can find them: `authority`, `owner`, `absorbed_to`,
 historical directories when every file under the pattern shares the same
 lifecycle and downgrade fields.
 
+`working/research` and `working/poc` source files are downgraded source
+material. If the task needs a durable SSOT-native record of their evidence,
+create or update `SSOT/04-records/research/NNNN-<slug>.md`; do not upgrade the
+raw file into current authority and do not create `SSOT/research/`.
+
 All root public documentation and `docs/**/*.md` files must be either:
 
 - inventoried in `STATUS.md` at file or audited pattern level;
@@ -106,6 +127,10 @@ When absorbing, follow:
 3. Record original path, URL, filename, session position, or other stable source identifier.
 4. Material classified as `stale/conflict` must continue to be routed; it cannot stay in matrix state.
 5. Material classified as `obsolete` must not support `covered` or current fact; if the old form may tempt future agents to regress, write into architecture evolution / migration ledger, gotchas, or decisions.
+6. Research records under `04-records/research/` can be evidence sources, but
+   they are not authority mirrors. Promote individual claim rows to the owning
+   product, architecture, decision, testing, bug, gotcha, or debt file only when
+   the claim is durable and the owner can maintain it.
 
 Working and historical source material may contain precise implementation
 language such as "current API", "runtime", "SDK", "schema", "acceptance", or

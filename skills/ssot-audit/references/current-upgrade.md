@@ -10,6 +10,46 @@ files.
 
 ## Version Ledger
 
+### v2.54
+
+**Upgrade goal**: add **research / POC records** as first-class structured
+evidence packets under `04-records/research/`. Research and POC work often
+produces useful proof, but older protocol versions forced agents to either
+bury it in source-material rows or over-promote it into product / architecture
+owners. v2.54 gives that work a records home while preserving owner authority:
+research records keep the question, method, environment, evidence, negative
+findings, reusable claim rows, boundaries, and promotion targets; owners absorb
+only promoted long-lived facts.
+
+**Impact**: `semantic_impact=medium` — adds one records sub-area, two paired
+bootstrap templates, closeout routing obligations, and deterministic lint for
+canonical location / entry shape. Consumers self-review per
+`status-protocol.md §7.1`; no independent reviewer is required unless the
+consumer also uses the upgrade to claim first-time `converged`.
+
+**Impact checklist**:
+
+| Check | Affected area | Audit action | Done criterion |
+|---|---|---|---|
+| Records area | `04-records/research/README.md` | Create the README index when adopting v2.54 or during the next bootstrap refresh. Do not create dummy entries. | The area exists as an index when the consumer chooses the faceted `04-records/` shape; no top-level `SSOT/research/` is introduced. |
+| Research entry shape | `04-records/research/NNNN-<slug>.md` | For real research / POC work, create or update a numbered entry with required frontmatter: `status`, `kind`, `created_on`, `owner`, `promotion_targets`, `recheck_trigger`. | `ssot-lint.sh SSOT/` reports no `[RESEARCH-RECORD]` failures. |
+| Evidence packet boundary | Research / POC records | Preserve the question, conclusion, applicability/boundaries, candidates/options, method/environment, verification steps, evidence, negative findings, reusable claim rows, promoted owners, and follow-up actions. Include a concrete boundary or `do_not_use_for` signal. | A future agent can re-check the evidence without mistaking the POC for product or architecture authority. |
+| Source-material lifecycle | `STATUS.md` source-material matrix and raw docs | Keep raw docs/external artifacts under ordinary lifecycle downgrade rules. Do not use a research record as an authority mirror for full source material. | Source material rows still carry lifecycle / authority / owner / absorbed_to / do_not_use_for / review_on where applicable. |
+| Promotion to owners | `product/`, `architecture/`, `decisions/`, `testing/`, other owners | Promote only durable claim rows that have enough evidence for the owner. POC evidence normally supports at most `source-backed`; owner absorption plus later review is required before it becomes ordinary verified SSOT fact. | Owners contain concise promoted facts with links back to the research record as evidence; they do not mirror the research narrative. |
+| Closeout disposition | `$ssot-closeout` | When a task produced research / POC output, choose one disposition: create research entry, update existing research entry, promote claims to owners, or discard with reason. | Closeout cannot silently drop research output or over-promote it into owners. |
+
+**Migration notes**:
+
+- This is a records sub-area, not a new top-level SSOT trunk. Use
+  `SSOT/04-records/research/`, or the legacy-equivalent records folder only if
+  the consumer has not yet adopted the v2.50 faceted layout.
+- Existing source-material matrices that mention `docs/research/*` or POC docs
+  do not fail merely because there is no research entry. Create entries only
+  when a real research / POC conclusion needs a reusable evidence packet.
+- Research entries are not authority mirrors. They keep re-checkable evidence
+  and distilled claims; product / architecture / decision owners remain the
+  authority after promotion.
+
 ### v2.53
 
 **Upgrade goal**: add the **active recommendation / non-silent deferral

@@ -23,7 +23,8 @@ normal execution path.
    `architecture/`; testing policy goes to `testing/`; recurring procedural
    rules go to `development/`; file/module traps go to `gotchas/`; root causes
    go to `bugs/`; deferred work goes to `tech-debt/`; adjudicated trade-offs go
-   to `decisions/`.
+   to `decisions/`; research/PoC evidence packets go to
+   `04-records/research/` only when preserving the packet is useful.
 5. **What is the impact tier?** Trivial changes usually need no SSOT update;
    localized changes check the direct owner; cross-cutting changes also run the
    cascade path.
@@ -53,6 +54,14 @@ facts enter the right architecture view/domain, decision, debt, gotcha, bug,
 testing, release, or deployment owner. `STATUS.md` records classification,
 lifecycle, downgrade fields, and pointers only. Working/historical docs may stay
 outside SSOT, but they must not masquerade as current authority.
+
+**Research/PoC output** must receive one closeout disposition before final
+response: create a new `SSOT/04-records/research/NNNN-<slug>.md` packet, update
+an existing packet, promote durable claim rows into the owning product,
+architecture, decision, testing, bug, gotcha, or debt files, or discard the
+output with a concrete reason. Research packets preserve reproducible evidence
+and distilled claims; they are not top-level `SSOT/research/` and not authority
+mirrors.
 
 **SSOT readability/actionability gaps** should fix SSOT-SKILL first when the
 repository owns the bundle and the weakness is repeatable across projects. Then
@@ -147,7 +156,7 @@ bundle first.
 | Config / env / feature flags | `architecture/` config/trust model; deployment for environment differences |
 | Monitoring / alerting | `architecture/` observability/verification evidence |
 | README / docs / ADR / runbook / PRD / planning | Source-material absorption; product facts to `product/`; technical facts to owner |
-| Working docs / PoC / closure / report / historical docs | Source-material lifecycle inventory; downgrade fields; absorb durable product/architecture facts only |
+| Working docs / PoC / closure / report / historical docs | Source-material lifecycle inventory; downgrade fields; absorb durable product/architecture facts only; if a reproducible research/PoC packet is valuable, use `04-records/research/` |
 | Generated diagrams / screenshots / dependency graphs / auto-summaries | Source-material/diagram candidates only; facts must be verified and rewritten as maintainable owner content |
 | Deleting legacy surface / retiring compatible paths | `architecture/` evolution/current-target-gap plus gotchas/decisions/testing as linked |
 | Bug fix / hotfix / revert-fix loop | `bugs/`, split by failure mode when critical/major/recurred |
@@ -178,6 +187,7 @@ bundle first.
 | Current/target diagrams or architecture diagrams | architecture diagrams with current/target separation |
 | High-frequency/high-risk task entry | `SSOT/README.md` task-entry thin index |
 | External material/spec/PRD/design doc | Source-material absorption |
+| Research/PoC produced this batch | `04-records/research/` packet, existing packet update, promoted owner claim, or discarded-with-reason disposition |
 | "From now on always..." / "never..." | `development/` discipline |
 | Mock-only test passed but real service differed | `development/` discipline plus originating `bugs/` |
 | Test run output | Usually no SSOT write unless durable testing facts change |

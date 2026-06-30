@@ -151,6 +151,21 @@ an audited exclusion. If they contain strong current-fact words but are not
 authoritative, include `absorbed_to`, `do_not_use_for`, and `review_on` so a
 future agent knows what not to rely on.
 
+When research/PoC output is produced, closeout must choose exactly one of four
+routes:
+
+- create `SSOT/04-records/research/NNNN-<slug>.md` with the reproducible
+  evidence packet and reusable claim rows;
+- update an existing research record when this batch extends or invalidates the
+  same packet;
+- promote durable claim rows into the relevant product, architecture, decision,
+  testing, bug, gotcha, or debt owner, linking back to the packet as evidence;
+- discard the output with a concrete reason, such as non-reproducible,
+  superseded, or no reusable claim.
+
+Research records are not authority mirrors. Raw docs, external artifacts, and
+working PoC files still follow source-material lifecycle downgrade rules.
+
 ---
 
 ### 2.8 Promote and demote check

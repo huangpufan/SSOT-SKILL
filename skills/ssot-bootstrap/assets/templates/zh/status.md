@@ -28,6 +28,7 @@
 | deployment | | |
 | release | | |
 | decisions | | |
+| research records | | `04-records/research/` |
 | gotchas | | |
 | bugs | | |
 | tech-debt | | |

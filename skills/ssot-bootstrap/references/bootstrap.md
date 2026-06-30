@@ -139,10 +139,11 @@ Create the SSOT directory structure and state-tracking file. The skeleton struct
 3. `SSOT/STATUS.md` (tracked_commit set to current HEAD, tracked_skill_version set to current `ssot-preflight` `metadata.protocol_version`, documentation_language / documentation_language_evidence set to Phase 0 lock result, coverage_result set to `bootstrap`, all area states set to gap or unknown) -- template in [`assets/templates/{en,zh}/status.md`](../assets/templates/en/status.md)
 4. `SSOT/01-product/` product trunk folder, by default create `product/README.md`, `product/prd.md`, `product/product-model.md`, `product/roadmap-and-acceptance.md`, `product/capabilities/README.md` and `product/journeys/README.md`. Templates in [`assets/templates/{en,zh}/product-readme.md`](../assets/templates/en/product-readme.md), [`assets/templates/{en,zh}/product-prd.md`](../assets/templates/en/product-prd.md), [`assets/templates/{en,zh}/product-model.md`](../assets/templates/en/product-model.md), [`assets/templates/{en,zh}/product-roadmap-and-acceptance.md`](../assets/templates/en/product-roadmap-and-acceptance.md), [`assets/templates/{en,zh}/product-capabilities-readme.md`](../assets/templates/en/product-capabilities-readme.md), [`assets/templates/{en,zh}/product-journeys-readme.md`](../assets/templates/en/product-journeys-readme.md). Optional entry templates in [`assets/templates/{en,zh}/product-capability-entry.md`](../assets/templates/en/product-capability-entry.md) and [`assets/templates/{en,zh}/product-journey-entry.md`](../assets/templates/en/product-journey-entry.md)
 5. `SSOT/02-architecture/` trunk folder and satellite area folders, each with a `README.md`; new bootstrap by default creates `architecture/views/README.md`, `architecture/views/operating-model.md`, `architecture/views/critical-journeys.md`, `architecture/views/current-target-gap.md` and `architecture/domains/README.md`. Root template in [`assets/templates/{en,zh}/architecture-readme.md`](../assets/templates/en/architecture-readme.md), views index template in [`assets/templates/{en,zh}/architecture-views-readme.md`](../assets/templates/en/architecture-views-readme.md), individual view templates in [`assets/templates/{en,zh}/architecture-view-operating-model.md`](../assets/templates/en/architecture-view-operating-model.md), [`assets/templates/{en,zh}/architecture-view-critical-journeys.md`](../assets/templates/en/architecture-view-critical-journeys.md), [`assets/templates/{en,zh}/architecture-view-current-target-gap.md`](../assets/templates/en/architecture-view-current-target-gap.md), domain README template in [`assets/templates/{en,zh}/architecture-domain-readme.md`](../assets/templates/en/architecture-domain-readme.md). Engineering operation areas may use [`assets/templates/{en,zh}/development-readme.md`](../assets/templates/en/development-readme.md), [`assets/templates/{en,zh}/testing-readme.md`](../assets/templates/en/testing-readme.md), [`assets/templates/{en,zh}/release-readme.md`](../assets/templates/en/release-readme.md)
-6. `SSOT/.bootstrap/recon.md` (already produced in Phase 0)
-7. `SSOT/.bootstrap/manifest.md` (coordination layer: global state + area assignment) -- template in [`assets/templates/{en,zh}/bootstrap-manifest.md`](../assets/templates/en/bootstrap-manifest.md)
-8. `SSOT/.bootstrap/sessions/` (log layer: one file per exploration unit) -- template in [`assets/templates/{en,zh}/bootstrap-session.md`](../assets/templates/en/bootstrap-session.md)
-9. Optional thin-adapter files (AGENTS.md, CLAUDE.md, GEMINI.md, etc.) -- generated only when recon finds the repo already has or needs agent instruction files. Single template in [`assets/templates/{en,zh}/adapter-thin.md`](../assets/templates/en/adapter-thin.md): keep the optional `Key Reminders` section for files read proactively on startup (CLAUDE.md, GEMINI.md), drop it for files only read on demand (AGENTS.md). Before generating, check whether the target file already exists and is not SSOT-generated (no generated marker); on conflict, report rather than overwrite. See [`adapter-strategy.md`](../../ssot-doctor/references/adapter-strategy.md)
+6. `SSOT/04-records/research/README.md` research/POC record index -- template in [`assets/templates/{en,zh}/research-readme.md`](../assets/templates/en/research-readme.md). The skeleton creates the README only; do not create `SSOT/04-records/research/NNNN-<slug>.md` until a concrete research, spike, benchmark, or proof-of-concept record exists. Entry template: [`assets/templates/{en,zh}/research-entry.md`](../assets/templates/en/research-entry.md)
+7. `SSOT/.bootstrap/recon.md` (already produced in Phase 0)
+8. `SSOT/.bootstrap/manifest.md` (coordination layer: global state + area assignment) -- template in [`assets/templates/{en,zh}/bootstrap-manifest.md`](../assets/templates/en/bootstrap-manifest.md)
+9. `SSOT/.bootstrap/sessions/` (log layer: one file per exploration unit) -- template in [`assets/templates/{en,zh}/bootstrap-session.md`](../assets/templates/en/bootstrap-session.md)
+10. Optional thin-adapter files (AGENTS.md, CLAUDE.md, GEMINI.md, etc.) -- generated only when recon finds the repo already has or needs agent instruction files. Single template in [`assets/templates/{en,zh}/adapter-thin.md`](../assets/templates/en/adapter-thin.md): keep the optional `Key Reminders` section for files read proactively on startup (CLAUDE.md, GEMINI.md), drop it for files only read on demand (AGENTS.md). Before generating, check whether the target file already exists and is not SSOT-generated (no generated marker); on conflict, report rather than overwrite. See [`adapter-strategy.md`](../../ssot-doctor/references/adapter-strategy.md)
 
 ### Language discipline when instantiating templates
 
@@ -215,14 +216,15 @@ Tier 3 (engineering operation layer) -- depends on understanding of architecture
 
 Tier 4 (emergent/historical layer) -- not proactively "filled", accumulates naturally during Tier 1-3 exploration
   decisions    major decisions
+  04-records/research  research, spikes, benchmarks, proof-of-concepts and reusable claim evidence
   gotchas      known pitfalls
   bugs         bug fix records
   tech-debt    technical debt
 ```
 
-**Specialness of Tier 4**: decisions, gotchas, bugs, tech-debt information is essentially "discovered" not "extracted". In the bootstrap phase the agent has never participated in project development and can discover only limited content. The protocol requires:
+**Specialness of Tier 4**: decisions, research, gotchas, bugs, tech-debt information is essentially "discovered" not "extracted". In the bootstrap phase the agent has never participated in project development and can discover only limited content. The protocol requires:
 
-- During Tier 0-3 fill, the agent should notice Tier 4 material in parallel (e.g. finding product phase priorities / product non-goals / product acceptance -> note into product; finding technical implementation priorities/non-goals/success criteria -> note into operating-model view, finding architectural constraint sources -> note into related domain's design constraints / invariants / constraints or operating-model view, finding old approach deprecation/migration/do-not-revive -> note into architecture's evolution / migration ledger and decisions, finding circular dependencies -> note as potential gotcha, finding TODO/FIXME -> note as tech-debt candidate, finding repeated fix/revert/hotfix commits -> note by failure mode as potential bugs entry)
+- During Tier 0-3 fill, the agent should notice Tier 4 material in parallel (e.g. finding product phase priorities / product non-goals / product acceptance -> note into product; finding technical implementation priorities/non-goals/success criteria -> note into operating-model view, finding architectural constraint sources -> note into related domain's design constraints / invariants / constraints or operating-model view, finding old approach deprecation/migration/do-not-revive -> note into architecture's evolution / migration ledger and decisions, finding research/POC evidence with reusable claim rows -> note as a research entry candidate, finding circular dependencies -> note as potential gotcha, finding TODO/FIXME -> note as tech-debt candidate, finding repeated fix/revert/hotfix commits -> note by failure mode as potential bugs entry)
 - These discoveries are recorded in the Tier 4 discoveries area of each session log
 - The coordinator aggregates from session logs into the Tier 4 discoveries summary in manifest.md
 - When Tier 1-3 fill reaches a certain level, batch-organize Tier 4 discoveries and write them into the corresponding area
@@ -245,6 +247,7 @@ Information for each area is hidden in different places. The following table gui
 | deployment | Dockerfile, k8s/, terraform/, CI/CD config, docker-compose | Deployment docs, release scripts | -- |
 | release | CHANGELOG, release scripts, version files, CI release steps | tag rules, publish config | `version`, `release`, `changelog` |
 | decisions | ARCHITECTURE.md, ADR directory, design docs | PR descriptions, "why" in commit messages | -- |
+| research | Research notes, POC reports, benchmark summaries, spike docs, reproducibility notes | Code experiments, issue discussions, external papers/docs supplied by the user | `research`, `poc`, `spike`, `experiment`, `benchmark`, `prototype`, `hypothesis` |
 | gotchas | Code comments, bug-fix commits, workaround code | Issue tracker | `TODO`, `FIXME`, `HACK`, `WORKAROUND`, `XXX`, `NOTE` |
 | bugs | Bug-fix commits, root-cause analysis in PR descriptions, Issue tracker; cluster repeated fix/revert/hotfix by failure mode | Fix descriptions in code comments, CHANGELOG | `fix`, `bugfix`, `hotfix`, `revert`, `Fixes #` |
 | tech-debt | Code comments, legacy code patterns, deprecated markers | debt/refactor labels in Issue tracker | `TODO`, `FIXME`, `deprecated`, `legacy`, `TECH_DEBT` |
@@ -322,7 +325,7 @@ Tag format is not mandated -- inline annotation, footnote or entry metadata are 
 
 ### 3.7 SSOT docs must be readable cold
 
-This floor applies to every SSOT area the bundle generates -- `product/`, `architecture/` (root, views, domains), `development/`, `testing/`, `release/`, deployment, `decisions/`, `gotchas/`, `bugs/`, `tech-debt/`, `glossary/` and the root `SSOT/README.md`. Infra-only files (`STATUS.md`, anything under `.bootstrap/`, and thin adapters) are out of scope.
+This floor applies to every SSOT area the bundle generates -- `product/`, `architecture/` (root, views, domains), `development/`, `testing/`, `release/`, deployment, `decisions/`, `04-records/research/`, `gotchas/`, `bugs/`, `tech-debt/`, `glossary/` and the root `SSOT/README.md`. Infra-only files (`STATUS.md`, anything under `.bootstrap/`, and thin adapters) are out of scope.
 
 KISS is the permanent SSOT design principle. The reader should get the mental
 model from prose and use tables only to route, compare, or locate evidence.
@@ -640,7 +643,7 @@ Each session log must record:
 - **Architecture diagram processing**: which Diagram IDs were added/updated, which required diagrams are still gap/unknown
 - **Stop-review records**: when this session declared `done`, `no-op`, "no update needed", `single-level` or stop-decomposition, how the independent reviewer challenged and the result
 - **Output files**: which SSOT areas, architecture views or architecture domain files were written
-- **Tier 4 discoveries**: emergent-layer material accumulated during exploration
+- **Tier 4 discoveries**: emergent-layer material accumulated during exploration, including decisions, research/POC leads, gotchas, bugs, and tech-debt
 - **Blockers and questions**: points where progress is blocked, items needing help
 - **Suggestions for next time**: direction suggestions for follow-up work
 
@@ -665,4 +668,4 @@ Avoid the following:
 - **Even effort**: investing the same exploration depth in every architecture domain, instead of allocating by importance/change frequency/dependency fan-in
 - **Filling empty-shell documents**: writing "TODO: to be filled" content to meet structural requirements -- better to mark as pending and record in manifest.md
 - **Mechanical directory mirroring**: copying the source-code directory directly as architecture domains, without `decomposition_basis`, `why separate` and independence signal
-- **Ignoring Tier 4 material**: encountering pitfall/decision/debt clues during Tier 1-3 exploration but not recording them; when filling Tier 4, already forgotten
+- **Ignoring Tier 4 material**: encountering pitfall/decision/research/debt clues during Tier 1-3 exploration but not recording them; when filling Tier 4, already forgotten

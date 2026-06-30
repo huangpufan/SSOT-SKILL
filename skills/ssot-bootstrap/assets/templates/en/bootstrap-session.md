@@ -87,7 +87,7 @@
 
 ## Tier 4 Findings
 
-> decisions/gotchas/bugs/tech-debt material discovered during exploration, as well as leads that need to enter architecture constraints and gap records.
+> decisions/research/gotchas/bugs/tech-debt material discovered during exploration, as well as leads that need to enter architecture constraints and gap records.
 > The coordinator aggregates these into the Tier 4 Findings Roll-up in manifest.md.
 
 | Finding | Type | Source tag | Source location |

@@ -29,7 +29,7 @@
 
 | Observation | Evidence | Likely route | Confidence/gap | Next check |
 |---|---|---|---|---|
-| | | product / architecture / development / testing / release / deployment / decisions / gotchas / bugs / tech-debt / link-only | verified / documented / inferred / unknown | |
+| | | product / architecture / development / testing / release / deployment / decisions / research / gotchas / bugs / tech-debt / link-only | verified / documented / inferred / unknown | |
 
 ## Architecture 假设
 
