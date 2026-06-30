@@ -1401,6 +1401,78 @@ if [[ "$CAPTURE_LIFECYCLE_FAIL_COUNT" -eq 0 ]]; then
   add_pass "[CAPTURE-LIFECYCLE] STATUS resolved/passed captures have no obvious hidden pending actions"
 fi
 
+# ---------- check 29: [SILENT-DEFERRAL] vague future-work wording needs an owner/retrigger signal ----------
+SILENT_DEFERRAL_FAIL_COUNT=0
+DEFERRAL_WORD_RE='later|someday|future work|handle[[:space:]].*later|do[[:space:]].*later|create[[:space:]].*later|后续处理|之后处理|以后处理|稍后处理|下次.*处理|未来工作'
+DEFERRAL_SIGNAL_RE='DEBT-[0-9]{4}|BUG-[0-9]{4}|DEC-[0-9]{4}|ADJ-[0-9]{8}|owner[[:space:]]*[:=]|closure_condition[[:space:]]*:|revisit_signal[[:space:]]*:|verification_guard[[:space:]]*:|next_action[[:space:]]*:|next action|next concrete action|retrigger|path-glob:|guard'
+strip_code_for_deferral_scan() {
+  awk '
+    /^```/ { in_code = !in_code; next }
+    !in_code { print FNR ":" $0 }
+  ' "$1"
+}
+line_has_deferral_signal() {
+  printf '%s\n' "$1" | grep -qiE "$DEFERRAL_SIGNAL_RE"
+}
+file_head_has_deferral_signal() {
+  head -n 70 "$1" | grep -qiE "$DEFERRAL_SIGNAL_RE"
+}
+record_is_active_for_deferral_scan() {
+  local record_file="$1"
+  local head state status
+  head=$(head -n 45 "$record_file")
+  status=$(printf '%s\n' "$head" | awk -F: '/^status:/ { gsub(/[ "`]/, "", $2); print tolower($2); exit }')
+  state=$(printf '%s\n' "$head" | awk -F: '/^implementation_state:/ { gsub(/[ "`]/, "", $2); print tolower($2); exit }')
+  [[ "$status" =~ ^(active|recurred)$ || "$state" =~ ^(pending|partial|diverged)$ ]]
+}
+scan_deferral_lines() { # $1=file $2=label $3=file-level-signal-ok (0/1)
+  local target_file="$1" label="$2" file_signal_ok="${3:-0}"
+  while IFS= read -r numbered_line; do
+    local line_no line
+    line_no="${numbered_line%%:*}"
+    line="${numbered_line#*:}"
+    if printf '%s\n' "$line" | grep -qiE "$DEFERRAL_WORD_RE"; then
+      if ! line_has_deferral_signal "$line" && [[ "$file_signal_ok" -ne 1 ]]; then
+        add_fail "[SILENT-DEFERRAL] ${label} contains future-work wording without owner/reference or retrigger signal: $target_file:$line_no"
+        SILENT_DEFERRAL_FAIL_COUNT=$((SILENT_DEFERRAL_FAIL_COUNT + 1))
+        [[ "$SILENT_DEFERRAL_FAIL_COUNT" -ge 30 ]] && return 0
+      fi
+    fi
+  done < <(strip_code_for_deferral_scan "$target_file")
+}
+if [[ -f "$STATUS_FILE" ]]; then
+  while IFS= read -r gap_line; do
+    line_no="${gap_line%%:*}"
+    line="${gap_line#*:}"
+    if printf '%s\n' "$line" | grep -qiE "$DEFERRAL_WORD_RE" && ! line_has_deferral_signal "$line"; then
+      add_fail "[SILENT-DEFERRAL] open gap row uses future-work wording without owner/reference or retrigger signal: $STATUS_FILE:$line_no"
+      SILENT_DEFERRAL_FAIL_COUNT=$((SILENT_DEFERRAL_FAIL_COUNT + 1))
+    fi
+  done < <(awk '
+    /^##[[:space:]]+(Open Gaps|开放缺口)/ { in_gap=1; next }
+    /^##[[:space:]]/ && in_gap { exit }
+    in_gap && /^\|/ && $0 !~ /\|[[:space:]]*-+[[:space:]]*\|/ && $0 !~ /(Area|区域|Gap description|缺口描述)/ { print FNR ":" $0 }
+  ' "$STATUS_FILE")
+fi
+for record_dir in "$SSOT_DIR/tech-debt" "$SSOT_DIR/04-records/tech-debt" "$SSOT_DIR/bugs" "$SSOT_DIR/04-records/bugs" "$SSOT_DIR/decisions" "$SSOT_DIR/04-records/decisions"; do
+  [[ -d "$record_dir" ]] || continue
+  while IFS= read -r -d '' record_file; do
+    bname=$(basename "$record_file")
+    [[ "$bname" == "README.md" ]] && continue
+    [[ ! "$bname" =~ ^[0-9]{4}-.+\.md$ ]] && continue
+    record_is_active_for_deferral_scan "$record_file" || continue
+    if file_head_has_deferral_signal "$record_file"; then
+      scan_deferral_lines "$record_file" "active record" 1
+    else
+      scan_deferral_lines "$record_file" "active record" 0
+    fi
+    [[ "$SILENT_DEFERRAL_FAIL_COUNT" -ge 30 ]] && break
+  done < <(find "$record_dir" -maxdepth 1 -name '*.md' -type f -print0)
+done
+if [[ "$SILENT_DEFERRAL_FAIL_COUNT" -eq 0 ]]; then
+  add_pass "[SILENT-DEFERRAL] obvious future-work wording has owner/reference or retrigger signals"
+fi
+
 fi  # end META_LEAKAGE_SKIP_OTHER_CHECKS guard (checks 13-17 also guarded)
 
 # ---------- output ----------

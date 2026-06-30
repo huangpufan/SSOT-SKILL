@@ -2,7 +2,7 @@
 name: ssot-preflight
 description: Repository SSOT preflight before substantive code, config, docs, review, debugging, refactoring, or planning work. Use to check SSOT/STATUS.md, open adjudications, documentation language, protocol version, minimal SSOT read routing, and in-task SSOT write triggers. Do not use for pure operations, trivial format-only edits, or non-repository chat.
 metadata:
-  protocol_version: "2.52"
+  protocol_version: "2.53"
   bundle: "SSOT Skill"
   semantic_impact: medium
 ---
@@ -69,6 +69,24 @@ owner, capability, journey, runtime owner, command, or failure mode overlaps the
 task. These are recommendations, not automatic blockers: each one must be
 handled during the task by fixing it, explicitly deferring it with the owner and
 reason still valid, or naming the next action in closeout.
+
+Classify each overlapping entry before work starts:
+
+- `fix-now`: current facts are wrong, misleading to the agent, or block
+  closeout alignment.
+- `recommend-now`: low-cost, high-confidence repair that should be handled in
+  this batch.
+- `defer-visible`: not blocking this batch, but deferral must name the owner or
+  owner record, reason, closure condition, revisit signal, verification guard,
+  and next concrete action.
+- `ignore-for-scope`: no task overlap after inspection; name why it is outside
+  this batch.
+
+`defer-visible` is a floor, not an excuse to disappear work. Vague wording such
+as "later", "someday", "future work", or a locked-language equivalent of
+"handle later" is invalid unless the same record or STATUS row carries the
+owner/record pointer and the retrigger/guard that makes the deferral visible to
+the next agent.
 
 Do not treat downgraded working docs or historical source material as current
 open risk unless STATUS or an owner entry promotes the risk. Do not hide a

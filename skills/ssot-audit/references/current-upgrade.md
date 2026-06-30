@@ -10,6 +10,42 @@ files.
 
 ## Version Ledger
 
+### v2.53
+
+**Upgrade goal**: add the **active recommendation / non-silent deferral
+floor**. v2.52 made open risks and temporary surfaces visible; v2.53 closes the
+remaining loophole where an agent can see a task-relevant debt or gap, say
+"later" or "out of scope", and leave no retriggerable signal for the next
+agent.
+
+**Impact**: `semantic_impact=medium` — tightens preflight and closeout
+disposition rules and adds one deterministic lint check for vague future-work
+deferrals without an owner/reference signal. Consumers self-review per
+`status-protocol.md §7.1`; no independent reviewer is required unless the
+consumer also uses the upgrade to claim first-time `converged`.
+
+**Impact checklist**:
+
+| Check | Affected area | Audit action | Done criterion |
+|---|---|---|---|
+| Active recommendation classification | `STATUS.md ## Open Gaps`, active `tech-debt/`, active/recurred `bugs/`, relevant `gotchas/` | During preflight, classify each overlapping entry as `fix-now`, `recommend-now`, `defer-visible`, or `ignore-for-scope`. | The final plan/closeout shows why task-overlapping risks were fixed, recommended, visibly deferred, or excluded. |
+| Non-silent deferral | Deferred open gaps, active debt, active bugs, capture follow-ups | For every deferral, name owner or owner record, reason, closure condition, revisit signal, verification guard, and next concrete action. | No deferred risk relies on bare "later", "someday", "future work", or locked-language equivalent prose. |
+| Closeout disposition | Preflight recommendations and newly discovered risks | Carry each recommendation to `fixed`, `deferred-visible`, `expired/out-of-scope`, or `converted-to-owner`. | Closeout cannot declare aligned while dropping a surfaced recommendation. |
+| Tech-debt first screen | Active high-priority or cross-cutting debt entries | Add or confirm quick entry: trigger/scope, first checks, do-not-do boundary, repayment verification, next action / must-handle condition, status pointer. | Future agents can decide whether the debt overlaps their task without reconstructing history. |
+| Lightweight lint | Current SSOT owners and STATUS registers | Run `ssot-lint.sh SSOT/`; inspect `[SILENT-DEFERRAL]` hits. | Lint reports no vague future-work deferral without owner/reference or retrigger signal. |
+
+**Migration notes**:
+
+- This is a tightening of v2.52, not a new backlog system. Issue trackers may
+  still own scheduling; SSOT owns the signal that task-relevant debt must be
+  surfaced and cannot be silently deferred.
+- The lint check is intentionally narrow. It only fires on obvious
+  future-work phrases that lack nearby `DEBT-`, `BUG-`, `DEC-`, `ADJ-`,
+  `owner`, `closure_condition`, `revisit_signal`, `verification_guard`, or
+  `next_action` signals.
+- Consumers may leave a risk open, but "not this batch" must be visible enough
+  for the next agent to know when to revisit it.
+
 ### v2.52
 
 **Upgrade goal**: add the **open-risk and temporary-surface floor**. A consumer

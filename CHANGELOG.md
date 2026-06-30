@@ -49,6 +49,33 @@ versions. This file only restates headline changes.
 - Obsolete `workflows/intent-recoverability-loop.workflow.js` (and the
   now-empty `workflows/` directory).
 
+## [2.53] - 2026-06-30
+
+`semantic_impact: medium` — adds the **active recommendation / non-silent
+deferral floor**. Preflight now classifies task-overlapping open risks as
+`fix-now`, `recommend-now`, `defer-visible`, or `ignore-for-scope`; closeout
+must carry each recommendation to a visible disposition. Deferrals must keep an
+owner or owner record, reason, closure condition, revisit signal, verification
+guard, and next concrete action. Lint adds `[SILENT-DEFERRAL]` for obvious
+future-work wording without owner/reference or retrigger signals.
+
+### Changed
+- **`VERSION`** -> `2.53`.
+- **`skills/ssot-preflight/SKILL.md`** `metadata.protocol_version` -> `2.53`.
+- **`ssot-preflight` / `ssot-closeout`** now require classification and
+  closeout disposition of task-relevant risk recommendations.
+- **`area-model.md`** `tech-debt/` rules now state active debt is not passive
+  backlog and active entries should expose next action / must-handle triggers
+  on the first screen.
+- **`doctor.md`** documents the new `[SILENT-DEFERRAL]` tag and extends the
+  open-risk deterministic summary.
+
+### Added
+- `ssot-lint.sh` check for `[SILENT-DEFERRAL]`, scoped to obvious "later /
+  someday / future work" wording and locked-language equivalents that lack
+  owner/reference or retrigger signals.
+- Lint smoke tests for silent deferral failure and owner-backed deferral pass.
+
 ## [2.52] - 2026-06-30
 
 `semantic_impact: medium` — adds the **open-risk and temporary-surface floor**.

@@ -33,9 +33,14 @@ and anything newly discovered during the batch:
   update its owner and STATUS pointer.
 - If the batch touches the same trigger/path/capability but does not close it,
   explicitly defer with the still-valid owner, reason, closure condition,
-  revisit signal, verification guard, or a next action. Do not leave
-  "TODO later", "fallback for now", "compat shim", or "temporary waiver" as
-  unregistered prose.
+  revisit signal, verification guard, and next action. Do not leave
+  "TODO later", "fallback for now", "compat shim", "future work", "someday",
+  or "temporary waiver" as unregistered prose.
+- Carry every preflight recommendation into a closeout disposition:
+  `fixed`, `deferred-visible`, `expired/out-of-scope`, or `converted-to-owner`.
+  A closeout that says only "create a later task" or "out of scope" without the
+  risk, recommendation, owner/record pointer, retrigger condition, and guard is
+  not aligned.
 - If a consumer SSOT problem exposed a repeatable protocol/template/lint gap and
   this repository owns SSOT-SKILL, update the bundle first, refresh the runtime
   copy, then update the consumer SSOT from the improved rule.

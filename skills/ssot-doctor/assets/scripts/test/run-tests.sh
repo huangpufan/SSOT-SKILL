@@ -8,7 +8,8 @@
 #         product skeleton, v2.31 decision lifecycle fields, v2.34 ledger
 #         WARN heuristics, v2.35 actionability WARN heuristics, v2.36 KISS
 #         table-density WARN heuristics, v2.47 intent/truth narrative WARN,
-#         v2.52 open-risk / temporary-surface checks, and the clean baseline.
+#         v2.52 open-risk / temporary-surface checks, v2.53 non-silent
+#         deferral checks, and the clean baseline.
 #
 # Usage:       bash assets/scripts/test/run-tests.sh
 # Exit codes:  0 all pass; 1 some failed.
@@ -501,6 +502,27 @@ printf '\n### Pending Captures (cycle passed)\n\nCycle passed. Pending action: a
 out=$(run "$T"); code=$?
 assert_contains "pending action in capture triggers CAPTURE-LIFECYCLE" "$out" "[CAPTURE-LIFECYCLE]"
 assert_exit "pending action in capture exits 2" "$code" "2"
+rm -rf "$T"
+
+echo "== S37 open gap with vague later wording and no owner (check 29 -> SILENT-DEFERRAL FAIL) =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+printf '\n## Open Gaps\n\n| Area | Status | Gap description | Blocking level |\n|---|---|---|---|\n| testing | gap | Handle frontend lint later when convenient | non-blocking |\n' >> "$T/SSOT/STATUS.md"
+out=$(run "$T"); code=$?
+assert_contains "silent deferral triggers SILENT-DEFERRAL" "$out" "[SILENT-DEFERRAL]"
+assert_exit "silent deferral exits 2" "$code" "2"
+rm -rf "$T"
+
+echo "== S38 owner-backed deferral with revisit signal passes check 29 =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+mkdir -p "$T/SSOT/tech-debt"
+printf '# Tech debt\n\n## Easily confused with\n\nnone\n\n## Out of scope\n\nnone -- covers complete intent\n' > "$T/SSOT/tech-debt/README.md"
+{
+  printf -- '---\nid: DEBT-0003\nstatus: active\npriority: medium\nowner: SSOT/tech-debt/0003-visible.md\nclosure_condition: "tests/frontend-lint passes in CI"\nrevisit_signal: "path-glob:frontend/**"\nverification_guard: "npm run lint"\n---\n# Visible deferral\n\nHandle this later only when the frontend lint CI gate is touched.\n'
+  printf '\n## Agent quick entry\n\nTrigger: frontend lint CI changes. First check: `npm run lint`. Do not close without CI evidence.\n'
+} > "$T/SSOT/tech-debt/0003-visible.md"
+out=$(run "$T"); code=$?
+assert_exit "owner-backed deferral exits 0" "$code" "0"
+assert_not_contains "owner-backed deferral has no SILENT-DEFERRAL fail" "$out" "[FAIL] [SILENT-DEFERRAL]"
 rm -rf "$T"
 
 echo ""

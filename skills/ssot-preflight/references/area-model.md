@@ -780,7 +780,10 @@ When a fix reveals a gotcha, tech debt, decision, or architecture defect, sync-u
 
 **Applicability**: Always applicable. Initially may be empty.
 
-**Content requirements**: `README.md` serves as the debt index, containing at least `status`. Each debt item records what it is, why it was incurred, scope of impact, repayment plan, priority. Status:
+**Content requirements**: `README.md` serves as the debt index, containing at
+least `status`. Each debt item records what it is, why it was incurred, scope of
+impact, repayment plan, priority, and the next concrete action or retrigger that
+prevents the debt from becoming silent backlog. Status:
 
 - `active`: The debt still exists.
 - `resolved`: Debt repaid; attach resolution method and related change/decision.
@@ -813,6 +816,18 @@ with a one-line note in the body explaining the import gap.
 An `active` debt entry without both `closure_condition` and
 `revisit_signal` is doctor-blocked (`15C [DEBT-CLOSURE]`).
 
+Active recommendation / non-silent deferral floor (v2.53): active debt is not a
+passive backlog. When a task overlaps an active debt's trigger, path glob,
+owner, failure mode, capability, command, or verification guard, the agent must
+surface it as `fix-now`, `recommend-now`, `defer-visible`, or
+`ignore-for-scope`. A debt may stay active, but the deferral must remain visible:
+owner or owner record, reason, closure condition, revisit signal, verification
+guard, and next concrete action. Generic repayment prose such as "later",
+"someday", "future work", "handle this later", or a locked-language equivalent
+is invalid unless it is attached to that visible deferral record. The issue
+tracker may own scheduling and assignment; SSOT owns the signal that future
+agents must not miss.
+
 Temporary-surface registration (v2.52): every fallback, compat shim,
 temporary workaround, later-remove path, TODO/FIXME/HACK/WORKAROUND marker, or
 temporary waiver that is intentionally left in current code, config, tests, or
@@ -835,7 +850,11 @@ closed fact.
 
 Resolved/obsolete entries remain in the document as historical reference and are marked clearly in the index.
 
-Active, high-priority, or cross-cutting debt entries should include an agent quick entry near the top: trigger/scope, first files or tests to inspect, do-not-do boundary, repayment verification, and current status/evidence pointer. Historical rationale can follow; the first screen must help the next agent avoid deepening the debt.
+Active, high-priority, or cross-cutting debt entries should include an agent
+quick entry near the top: trigger/scope, first files or tests to inspect,
+do-not-do boundary, repayment verification, next action or "must handle when"
+condition, and current status/evidence pointer. Historical rationale can follow;
+the first screen must help the next agent avoid deepening the debt.
 
 **Split signal**: Naturally multi-entry; one file per major debt.
 
