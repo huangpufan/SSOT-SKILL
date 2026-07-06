@@ -10,6 +10,54 @@ files.
 
 ## Version Ledger
 
+### v2.56
+
+**Upgrade goal**: narrow the preflight default read set so the agent decides
+what to read, not the gate. Earlier versions defaulted `product/README.md`
+and `architecture/README.md` on at the gate (a low "may touch user value"
+threshold made the product trunk near-always-on; the architecture trunk was
+on unless narrowly excluded) and cold-scanned `tech-debt/`, `bugs/`,
+`gotchas/`, and `STATUS.md ## Open Gaps` as a per-task default obligation.
+v2.56 makes the gate floor match the existing "Load on demand" reference
+layer: the mandatory read is `SSOT/STATUS.md` plus `SSOT/README.md` as the
+project-specific router. The task-entry map in `SSOT/README.md`, not the
+gate, decides whether the `product/` or `architecture/` trunks are read.
+When the task-entry map is missing or does not route the current task,
+preflight falls back to reading both trunks so a thin-router repository
+still gets trunk coverage. The open-risk scan narrows to the owner files the
+router actually routed plus `STATUS.md ## Open Gaps`; cold-scanning the full
+`tech-debt/`, `bugs/`, or `gotchas/` directories becomes the agent's call,
+not a default obligation. `area-model.md §4` becomes the single owner of
+trunk-read routing.
+
+**Impact**: `semantic_impact=medium` -- narrows preflight read/risk-scan
+defaults and relocates the trunk-read decision to the task-entry map
+(`area-model.md §4`). No new SSOT area, owner field, or stop-review trigger.
+Consumers self-review per `status-protocol.md §7.1`; no independent reviewer
+is required unless the consumer also uses the upgrade to claim first-time
+`converged`.
+
+**Impact checklist**:
+
+| Check | Affected area | Audit action | Done criterion |
+|---|---|---|---|
+| Preflight read floor | `skills/ssot-preflight/SKILL.md` gate section | Confirm the gate no longer defaults `product/README.md` or `architecture/README.md` on; the floor is `STATUS.md` plus `SSOT/README.md` as router, with a thin-router fallback to both trunks when the map is missing or does not route the task. | A substantive task enters with only `STATUS.md` + the router as mandatory reads; trunks are router-decided. |
+| Trunk-read ownership | `skills/ssot-preflight/references/area-model.md §4` | Confirm §4 states the task-entry map, not the preflight gate, decides trunk reads, and names the thin-router fallback. | §4 is the single owner of who decides trunk reads. |
+| Open-risk scan | `skills/ssot-preflight/SKILL.md` risk section | Confirm the scan targets the routed owner files plus `STATUS.md ## Open Gaps`; full `tech-debt/` / `bugs/` / `gotchas/` directory scans are agent self-decision, not a per-task default. | Cold-scanning every risk directory is no longer a per-task default obligation. |
+| Closeout disposition | `$ssot-closeout` | Confirm the `fix-now` / `recommend-now` / `defer-visible` / `ignore-for-scope` taxonomy and the non-silent deferral floor are unchanged. | Closeout still carries every surfaced recommendation to a visible disposition. |
+| Bundle version sync | `VERSION`, `skills/ssot-preflight/SKILL.md` metadata | Confirm both equal `2.56`; rerun `tests/test-bundle-shape.sh`. | Bundle-shape test passes. |
+
+**Migration notes**:
+
+- This is a read-routing tightening, not a new SSOT area or owner field. No
+  consumer SSOT content needs to be moved or rewritten.
+- Repositories with a populated task-entry map in `SSOT/README.md` get the
+  narrowest read: `STATUS.md` + the router + only the routed owners.
+  Repositories without one (thin-router) keep trunk coverage via the
+  fallback to `product/README.md` + `architecture/README.md`.
+- The classification taxonomy and deferral floor that closeout consumes are
+  intentionally unchanged; only the default scan breadth narrows.
+
 ### v2.55
 
 **Upgrade goal**: add **benchmark** as an independent engineering process

@@ -984,6 +984,8 @@ Applicable signals include:
 
 `task-entry map` only does entry indexing. Each row describes the task cluster, trigger signal, authoritative location to read first, and final review checkpoint. It must not maintain independent long-lived facts, must not copy playbook body; facts still go back to the corresponding authoritative location. When no clear high-frequency/high-risk task cluster exists, write `not_applicable` or do not create the section.
 
+The task-entry map — not the preflight gate — decides whether a task reads the `product/README.md` or `architecture/README.md` trunks. The preflight mandatory read floor is `STATUS.md` plus `SSOT/README.md` as the router; the trunks are read only when the task-entry map routes the task to them. When the map is missing or does not route the current task, preflight falls back to reading both trunks so a thin-router repository still gets trunk coverage. This makes the task-entry map the single owner of trunk-read routing, consistent with the `trigger` / path-glob fields on `gotchas/` (§2.10), `bugs/` (§2.11), and `tech-debt/` (§2.12) entries.
+
 ---
 
 ## 4.1 Default fallback for unrouted durable knowledge

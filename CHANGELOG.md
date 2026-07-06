@@ -17,6 +17,15 @@ versions. This file only restates headline changes.
 ## [Unreleased]
 
 ### Changed
+- `ssot-preflight` gate floor narrowed (v2.56): the mandatory read is now
+  `SSOT/STATUS.md` plus `SSOT/README.md` as the project-specific router.
+  `product/README.md` and `architecture/README.md` are read only when the
+  task-entry map routes the task to them, with a thin-router fallback to
+  both trunks when the map is missing or does not route the task. The
+  open-risk scan narrows to routed owners plus `STATUS.md ## Open Gaps`;
+  full `tech-debt/` / `bugs/` / `gotchas/` directory scans become agent
+  self-decision. `area-model.md §4` becomes the single owner of trunk-read
+  routing. Protocol version `2.55` -> `2.56`.
 - Scrubbed origin-project references from shipped skill assets: replaced
   cold-agent-sim cycle transcripts with one synthetic example using a
   fictional project; replaced origin-project implementation paths in

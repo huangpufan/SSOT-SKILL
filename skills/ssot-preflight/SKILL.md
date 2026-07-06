@@ -2,7 +2,7 @@
 name: ssot-preflight
 description: Repository SSOT preflight before substantive code, config, docs, review, debugging, refactoring, or planning work. Use to check SSOT/STATUS.md, open adjudications, documentation language, protocol version, minimal SSOT read routing, and in-task SSOT write triggers. Do not use for pure operations, trivial format-only edits, or non-repository chat.
 metadata:
-  protocol_version: "2.55"
+  protocol_version: "2.56"
   bundle: "SSOT Skill"
   semantic_impact: medium
 ---
@@ -36,11 +36,14 @@ you have answered, in order:
 
 ## Route your reads, don't bulk-load
 
-Start from `SSOT/README.md` — its task-entry map is the project-specific
-router. Read only what the task needs. Always include `product/README.md`
-when the task may touch user value, PRD, capabilities, journeys, roadmap,
-or acceptance; include `architecture/README.md` unless the task is clearly
-product-only, operational, historical, or pure format.
+The mandatory floor is `SSOT/STATUS.md` (adjudications, language, version
+— cleared above) plus `SSOT/README.md` as the project-specific router. Read
+its task-entry map and read only the owners it routes for this task. The
+`product/README.md` and `architecture/README.md` trunks are read only when
+the task-entry map routes the task to them — not by default. If the
+task-entry map is missing or does not route the current task, fall back to
+reading `product/README.md` and `architecture/README.md` so a thin-router
+repo still gets trunk coverage.
 
 Skip this entire skill only for non-repository chat, pure command
 execution, or mechanical typo/format edits that cannot alter architecture,
@@ -62,11 +65,13 @@ here.
 
 ## Surface task-relevant open risks
 
-Before implementation or final planning, scan the SSOT owners routed by the
-task plus `STATUS.md ## Open Gaps`, active `tech-debt/`, active or recurred
-`bugs/`, and relevant `gotchas/`. Report the entries whose trigger, path glob,
-owner, capability, journey, runtime owner, command, or failure mode overlaps the
-task. These are recommendations, not automatic blockers: each one must be
+Before implementation or final planning, scan the owner files the router
+actually routed the task to, plus `STATUS.md ## Open Gaps`. Report the
+entries whose trigger, path glob, owner, capability, journey, runtime owner,
+command, or failure mode overlaps the task. Cold-scanning the full
+`tech-debt/`, `bugs/`, or `gotchas/` directories is the agent's call, not a
+default obligation — do it when the routed owners or the task shape make it
+worthwhile. These are recommendations, not automatic blockers: each one must be
 handled during the task by fixing it, explicitly deferring it with the owner and
 reason still valid, or naming the next action in closeout.
 
