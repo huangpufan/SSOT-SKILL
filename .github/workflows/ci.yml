@@ -38,6 +38,13 @@ jobs:
           else
             bash -n skills/ssot-doctor/assets/scripts/test/run-tests.sh
           fi
+      - name: Check test-faceted-layout-migration.sh
+        run: |
+          if [[ "${{ runner.os }}" == "macOS" ]]; then
+            /opt/homebrew/bin/bash -n tests/test-faceted-layout-migration.sh
+          else
+            bash -n tests/test-faceted-layout-migration.sh
+          fi
       - name: Check test-installer-e2e.sh
         run: |
           if [[ "${{ runner.os }}" == "macOS" ]]; then
@@ -52,6 +59,8 @@ jobs:
           else
             bash -n tests/test-bundle-shape.sh
           fi
+      - name: Check Python helpers
+        run: python3 -m py_compile skills/ssot-audit/assets/scripts/migrate-faceted-layout.py
 
   shellcheck:
     name: shellcheck
@@ -74,6 +83,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run lint smoke tests
         run: bash skills/ssot-doctor/assets/scripts/test/run-tests.sh
+      - name: Run faceted-layout migration tests
+        run: bash tests/test-faceted-layout-migration.sh
 
   bundle-shape:
     name: bundle shape & link integrity

@@ -10,6 +10,48 @@ files.
 
 ## Version Ledger
 
+### v2.57
+
+**Upgrade goal**: make the numbered faceted SSOT layout the canonical physical
+layout, and provide an audit-owned migration helper for consumers that still
+use legacy unnumbered top-level directories. Earlier versions already accepted
+faceted paths such as `SSOT/01-product/`, `SSOT/02-architecture/`,
+`SSOT/03-process/`, and `SSOT/04-records/`, but parts of the protocol still
+treated unnumbered paths like `product/`, `architecture/`, `testing/`, and
+`decisions/` as normal physical locations. v2.57 closes that ambiguity: prose
+may use semantic shorthand like "product trunk", but concrete paths, links,
+template destinations, CORE-REF examples, and migration targets use the
+numbered physical layout.
+
+**Impact**: `semantic_impact=medium` -- changes the canonical physical IA and
+adds a deterministic migration helper under `ssot-audit`. Existing legacy
+consumer layouts remain readable, but a consumer should run the helper and
+review its diff before advancing `tracked_skill_version` to `2.57`. Consumers
+self-review per `status-protocol.md §7.1`; no independent reviewer is required
+unless the consumer also uses the upgrade to claim first-time `converged`.
+
+**Impact checklist**:
+
+| Check | Affected area | Audit action | Done criterion |
+|---|---|---|---|
+| Physical layout | `SSOT/` tree | Run `python3 <installed ssot-audit>/assets/scripts/migrate-faceted-layout.py SSOT --dry-run`; if it reports moves and no conflicts, run it without `--dry-run` and review the resulting diff. | Legacy top-level `product/`, `architecture/`, `development/`, `testing/`, `benchmark/`, `deployment/`, `release/`, `decisions/`, `gotchas/`, `bugs/`, `tech-debt/`, and `research/` have moved to `01-product/`, `02-architecture/`, `03-process/*`, or `04-records/*` as applicable. |
+| Architecture domains | `02-architecture/` | Confirm legacy `architecture/domains/<domain>/` entries were flattened to direct numbered domain folders such as `02-architecture/01-runtime/`; inspect numbering if existing numbered domains were already present. | Domains are direct children of `02-architecture/`; legacy `domains/README.md` is preserved as `domain-index.md` when present. |
+| Markdown links and literals | `SSOT/**/*.md` | Review the helper's rewritten Markdown links and literal `SSOT/...` paths. Resolve any ambiguous prose manually instead of doing broad blind replacements. | Links resolve after directory moves and concrete SSOT paths name numbered physical locations. |
+| Conflict handling | Existing mixed layouts | If the helper exits `2`, resolve the named target/source conflict manually before rerunning. Do not advance the waterline while legacy and canonical folders both contain content for the same area. | Helper exits `0` and `git diff --check` passes. |
+| Bundle version sync | `VERSION`, `skills/ssot-preflight/SKILL.md` metadata | Confirm both equal `2.57`; rerun `tests/test-bundle-shape.sh` and `tests/test-faceted-layout-migration.sh`. | Bundle-shape and migration helper tests pass. |
+
+**Migration notes**:
+
+- The helper is intentionally located in `ssot-audit` because protocol drift is
+  caught during audit. It mutates only the consumer `SSOT/` tree it is pointed
+  at; use `--dry-run` first for reviewable output.
+- This migration is path and link hygiene, not semantic rewriting. It does not
+  decide whether an area is `covered`, does not promote facts, and does not
+  create missing content beyond move destinations required by existing files.
+- Legacy unnumbered layouts remain compatibility input. New bootstrap output,
+  examples, CORE-REFs, and durable protocol paths should use the numbered
+  physical layout.
+
 ### v2.56
 
 **Upgrade goal**: narrow the preflight default read set so the agent decides

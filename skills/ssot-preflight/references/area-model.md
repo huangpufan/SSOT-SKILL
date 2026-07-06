@@ -13,13 +13,13 @@ This file is the semantic owner of `SSOT/` top-level area responsibilities, sate
 
 ## 1. Structural model
 
-The SSOT root is fixed at `SSOT/` under the repository root; do not use `docs/` as a long-lived memory surface.
+The SSOT root is fixed at `SSOT/` under the repository root; do not use `docs/` as a long-lived memory surface. The canonical physical layout is the v2.57 faceted layout below. Prose may say "product trunk" or "architecture trunk" as semantic shorthand, but any concrete path, link, template destination, CORE-REF, or example must use the numbered physical path. The unnumbered `product/`, `architecture/`, `testing/`, `decisions/`, and similar top-level paths are legacy-compatible only; upgrading a consumer should migrate them with `ssot-audit/assets/scripts/migrate-faceted-layout.py` before advancing `tracked_skill_version`.
 
 ```text
 SSOT/
   README.md          # Pure index entry; opens with the one-sentence repo positioning
   STATUS.md          # Maintenance status
-  product/           # Long-lived product trunk
+  01-product/        # Long-lived product trunk
     README.md        # Product Reader Map / owner index
     prd.md           # Concise PRD spine
     product-model.md # Users, problems, promises, boundary, language, trade-offs
@@ -28,51 +28,52 @@ SSOT/
       README.md      # Capability owner index
     journeys/
       README.md      # Users/operators journey owner index
-  architecture/      # System concrete-design trunk
+  02-architecture/   # System concrete-design trunk
     README.md        # Whole-system architecture entry (carries tech stack and repository type in the design brief)
     views/           # Cross-domain architecture views
       README.md
       operating-model.md
       critical-journeys.md
       current-target-gap.md
-    domains/         # Architecture domains of state/contract/failure/verification
+    NN-domain/       # Architecture domains of state/contract/failure/verification
       README.md
   glossary/          # Proprietary terms
-  development/       # Local dev and run
-  testing/           # Test strategy
-  benchmark/         # Benchmark suites and measured floors
-  deployment/        # Deploy and distribute
-  release/           # Release process
-  decisions/         # ADR / major decisions
-  gotchas/           # Pitfalls
-  bugs/              # Fix knowledge
-  tech-debt/         # Tech debt
-  04-records/        # Structured record packets, not primary authority
+  03-process/        # Engineering operation areas
+    development/     # Local dev and run
+    testing/         # Test strategy
+    benchmark/       # Benchmark suites and measured floors
+    deployment/      # Deploy and distribute
+    release/         # Release process
+  04-records/        # Historical / emergent records and structured evidence packets
+    decisions/       # ADR / major decisions
+    gotchas/         # Pitfalls
+    bugs/            # Fix knowledge
+    tech-debt/       # Tech debt
     research/        # Research/PoC evidence packets
 ```
 
 Core model:
 
-- **Product trunk**: `product/`. Answers why the product exists, who it serves, what it promises, what it does not do, and how capabilities and journeys are accepted. PRD and product intent default to here.
-- **Technical trunk**: `architecture/`. Answers how the system as a whole implements product constraints, how it operates, why it is split this way, and where current implementation differs from target design. Internally divisible into `views/` and `domains/` as two types of authoritative locations.
+- **Product trunk**: `01-product/`. Answers why the product exists, who it serves, what it promises, what it does not do, and how capabilities and journeys are accepted. PRD and product intent default to here.
+- **Technical trunk**: `02-architecture/`. Answers how the system as a whole implements product constraints, how it operates, why it is split this way, and where current implementation differs from target design. Internally divisible into `views/` and direct `NN-<domain>/` owner folders as two types of authoritative locations.
 - **Context areas**: `glossary/`. Help the agent first understand what key terms mean.
-- **Engineering operation areas**: `development/`, `testing/`, `benchmark/`, `deployment/`, `release/`. Answer how to run, how to test correctness, how to measure performance/cost/capacity, and how to deliver.
-- **Emergent/historical areas**: `decisions/`, `gotchas/`, `bugs/`, `tech-debt/`. Record why, pitfalls, fix knowledge, and debt.
+- **Engineering operation areas**: `03-process/development/`, `03-process/testing/`, `03-process/benchmark/`, `03-process/deployment/`, `03-process/release/`. Answer how to run, how to test correctness, how to measure performance/cost/capacity, and how to deliver.
+- **Emergent/historical areas**: `04-records/decisions/`, `04-records/gotchas/`, `04-records/bugs/`, `04-records/tech-debt/`. Record why, pitfalls, fix knowledge, and debt.
 - **Record packets**: `04-records/research/`. Preserve reproducible
   research/PoC evidence packets and reusable claim rows. They are not
   authority mirrors; product, architecture, decision, and engineering owners
   absorb only promoted long-lived facts.
 
-The Views + Domains structure of `architecture/` and the recursion protocol are maintained by [`architecture.md`](architecture.md). Do not add a top-level `SSOT/design/`; design documents are source material, product facts enter `product/`, and technical design facts enter architecture views/domains, decisions, bugs, gotchas, testing, benchmark, and other authoritative locations by content.
+The Views + direct numbered domains structure of `02-architecture/` and the recursion protocol are maintained by [`architecture.md`](architecture.md). Do not add a top-level `SSOT/design/`; design documents are source material, product facts enter `01-product/`, and technical design facts enter architecture views/domains, decisions, bugs, gotchas, testing, benchmark, and other authoritative locations by content.
 
 Do not add a top-level `SSOT/research/`. Research and PoC records that belong
 inside SSOT live under `SSOT/04-records/research/` as structured evidence
 packets. Raw research notes, external artifacts, and working docs outside SSOT
 still follow the source-material lifecycle and downgrade rules.
 
-`product/` is a required top-level area. Even pure libraries, tools, or internal platforms must record users/operators, product promises, boundary, non-goals, and acceptance meaning; capabilities or journeys that do not apply should be written as `not_applicable` with a reason, rather than omitting `product/`.
+`01-product/` is a required top-level area. Even pure libraries, tools, or internal platforms must record users/operators, product promises, boundary, non-goals, and acceptance meaning; capabilities or journeys that do not apply should be written as `not_applicable` with a reason, rather than omitting the product trunk.
 
-`SSOT/README.md` is the cold-reader entry. It must open with a single-sentence repository positioning ("what this repo is, who it serves, what it does") before any Reader Map table. Tech stack, runtime form, and repository type belong to `architecture/README.md` as part of the design brief; primary capabilities belong to `product/prd.md` as part of the capability map. `SSOT/README.md` only states the one-sentence positioning and routes to those owners; it does not redefine them.
+`SSOT/README.md` is the cold-reader entry. It must open with a single-sentence repository positioning ("what this repo is, who it serves, what it does") before any Reader Map table. Tech stack, runtime form, and repository type belong to `02-architecture/README.md` as part of the design brief; primary capabilities belong to `01-product/prd.md` as part of the capability map. `SSOT/README.md` only states the one-sentence positioning and routes to those owners; it does not redefine them.
 
 ---
 
@@ -97,7 +98,7 @@ set of core things that had to be recovered. A consumer at protocol `>= 2.45`
 therefore maintains a **Core recovery manifest** in the product trunk and in the
 architecture trunk:
 
-- `product/README.md` or `product/prd.md` first gives a short **Core
+- `01-product/README.md` or `01-product/prd.md` first gives a short **Core
   completeness argument**: why this set is the project's core product surface,
   which user/operator, problem, promise, product boundary, acceptance semantics,
   and long-lived trade-off facts are part of the core, what near-miss items are
@@ -108,7 +109,7 @@ architecture trunk:
   (`product_intent`, `product_truth`, or `not_applicable` with reason), the
   current truth state (`contract`, `mixed`, `design`, `debt`, `Out`, or
   `not_applicable`), and the evidence / closure owner.
-- `architecture/README.md` first gives a short **Core completeness argument**:
+- `02-architecture/README.md` first gives a short **Core completeness argument**:
   why this set is the project's core design surface, which runtime-owner axis
   and cross-owner views make it complete, what near-miss implementation details
   are deliberately excluded, and what wrong design conclusion a cold reader
@@ -129,7 +130,7 @@ owner. Use `mixed` when the core item includes a shipped contract slice plus at
 least one unresolved `design`, `debt`, `Out`, or unsampled slice owned by the
 same row. Silence is not a valid `not_applicable` row.
 
-If a manifest row uses a spine owner such as `product/prd.md` instead of a
+If a manifest row uses a spine owner such as `01-product/prd.md` instead of a
 dedicated capability or journey file, that spine must expose a same-granularity
 anchor or short subsection for the row. The reader must not have to reverse
 engineer the row from decision files, architecture current-target-gap tables, or
@@ -150,9 +151,9 @@ without a Pending Capture.
 The Core recovery manifest is a recovery index, not the story. A product or
 architecture trunk that makes the reader reconstruct "what matters and why" from
 manifest cells has failed even when every row is accurate. At protocol
-`>= 2.47`, `product/README.md`, `product/prd.md`, or the consumer's declared
+`>= 2.47`, `01-product/README.md`, `01-product/prd.md`, or the consumer's declared
 product trunk owner must expose a short **Product intent and truth** narrative
-before its Core recovery manifest. Likewise, `architecture/README.md` must expose
+before its Core recovery manifest. Likewise, `02-architecture/README.md` must expose
 a short **Design intent and truth** narrative before its Core recovery manifest.
 
 The narrative is not another fact store. It is the first-principles synthesis of
@@ -189,7 +190,7 @@ the Core completeness argument, the Apex maxim registry, the Capability →
 Surface registry mirror, intent-recovery pillar matrices, evidence strings, and
 README-self failure-mode entries — that machinery starts to crowd out the
 product or architecture narrative the area is supposed to own. A cold reader
-who lands on `product/README.md` or `architecture/README.md` should be able to
+who lands on `01-product/README.md` or `02-architecture/README.md` should be able to
 recover the project's product or design story in five minutes without first
 having to learn SSOT skill vocabulary.
 
@@ -197,18 +198,18 @@ At protocol `>= 2.48`, covered product and architecture areas therefore
 **separate SSOT self-maintenance machinery from the prose owner** into a sibling
 `_manifest.md` file. The split is mechanical, not editorial:
 
-- **Prose owners stay in the existing files** — `product/README.md`,
-  `product/prd.md`, `product/product-model.md`, `product/roadmap-and-acceptance.md`,
-  `product/capabilities/*.md`, `product/journeys/*.md`, `architecture/README.md`,
-  `architecture/<domain>/README.md`, `architecture/<domain>/playbook.md`, and
-  `architecture/views/*.md`. They keep the product / design narrative, the `§不变量`
+- **Prose owners stay in the existing files** — `01-product/README.md`,
+  `01-product/prd.md`, `01-product/product-model.md`, `01-product/roadmap-and-acceptance.md`,
+  `01-product/capabilities/*.md`, `01-product/journeys/*.md`, `02-architecture/README.md`,
+  `02-architecture/NN-<domain>/README.md`, `02-architecture/NN-<domain>/playbook.md`, and
+  `02-architecture/views/*.md`. They keep the product / design narrative, the `§不变量`
   / `§设计简报` / `§运行模型` / `§[MUST]` prose, capability scope and contract anchors,
   and inline CORE-REF anchor links. Frontmatter shrinks to a single
   `intent_recovery: covered|partial|gap` token; evidence strings move out.
 - **Self-maintenance machinery moves to `_manifest.md`** at the area root
-  (`product/_manifest.md`, `product/capabilities/_manifest.md`,
-  `product/journeys/_manifest.md`, `architecture/_manifest.md`,
-  `architecture/views/_manifest.md`, `architecture/<domain>/_manifest.md`). The
+  (`01-product/_manifest.md`, `01-product/capabilities/_manifest.md`,
+  `01-product/journeys/_manifest.md`, `02-architecture/_manifest.md`,
+  `02-architecture/views/_manifest.md`, `02-architecture/NN-<domain>/_manifest.md`). The
   manifest carries: (a) the Core recovery manifest table plus its completeness
   argument; (b) the Apex / Maxim → Owner mirror table (architecture root only);
   (c) the Capability → Surface registry mirror rows (architecture root and
@@ -217,7 +218,7 @@ At protocol `>= 2.48`, covered product and architecture areas therefore
   are documentation-drift on the manifest itself); (f) the adoption-cycle log
   recording when each v2.4x cycle's slice closed.
 - **Adoption-cycle version labels** (`v2.43`, `v2.44`, `v2.45`, `v2.46`, `v2.47`)
-  belong in `_manifest.md`, `STATUS.md`, `CHANGELOG.md`, or `decisions/` — not in
+  belong in `_manifest.md`, `STATUS.md`, `CHANGELOG.md`, or `04-records/decisions/` — not in
   prose owners. Prose may reference the protocol generation as "manifest" /
   "recovery index" / "registry"; it does not stamp doctor codes (`14W`, `14X`,
   `14Z`, `15A`, `15D`, `15F`, `15H`, `[CORE-REF-PROSE]`, `[MAXIM-OWNER]`,
@@ -247,13 +248,13 @@ Repo-wide invariants already declared in a CORE-REF startup file
 `GEMINI.md`) — for example Web-First, Single Writer, route-only-protocol-
 adapter, SdkAdapter-only, mission-only leaf, replay equivalence, core-call
 traceability — must have **exactly one prose owner** inside SSOT (typically
-`architecture/README.md` core-invariants section or the responsible
+`02-architecture/README.md` core-invariants section or the responsible
 architecture domain README) and **exactly one CORE-REF mention**. Other
 SSOT body files (root summary, views, sibling domain READMEs,
-`development/`, `product/`, **and (cycle-2 broadened scope) `glossary/`,
-`decisions/` (excluding the ADR that originally established the invariant —
-that ADR is the sole exception), `tech-debt/`, `bugs/`, `gotchas/`,
-`release/`, `testing/`**) must reference the owner by link plus a one-line
+`03-process/development/`, `01-product/`, **and (cycle-2 broadened scope) `glossary/`,
+`04-records/decisions/` (excluding the ADR that originally established the invariant —
+that ADR is the sole exception), `04-records/tech-debt/`, `04-records/bugs/`, `04-records/gotchas/`,
+`03-process/release/`, `03-process/testing/`**) must reference the owner by link plus a one-line
 orientation; they must not restate the invariant body as a paragraph,
 full-clause bullet, or invariant-table cell. CORE-REF mentions of the same
 invariant thin to a one-sentence summary that points at the SSOT owner via
@@ -263,8 +264,8 @@ both maintain the prose body.
 
 **`glossary/` entries for repo-wide invariants** must be a one-clause
 positive definition + evidence pointer to the SSOT owner, not a verb-
-clause restatement of the invariant body. **Non-establishing `decisions/`,
-`tech-debt/`, `bugs/`, `gotchas/` entries** that touch an apex invariant
+clause restatement of the invariant body. **Non-establishing `04-records/decisions/`,
+`04-records/tech-debt/`, `04-records/bugs/`, `04-records/gotchas/` entries** that touch an apex invariant
 link the owner instead of recopying its body.
 
 **Worked example — legal vs. illegal restatement (cycle-2)**:
@@ -328,7 +329,7 @@ repo-wide invariants both):
 
 > **Legal** glossary entry:
 >
-> | Single Writer | The invariant that database writes are serialized only through the Web process. | see [`architecture/README.md#single-writer`](#) — `path:src/myapp/web/app.py` |
+> | Single Writer | The invariant that database writes are serialized only through the Web process. | see [`02-architecture/README.md#single-writer`](#) — `path:src/myapp/web/app.py` |
 >
 > **Illegal** glossary entry (multi-clause verb-bearing cell):
 >
@@ -347,36 +348,36 @@ only the architecture-domain-to-architecture-domain subset, and
 `[OWNER-ANCHOR]` (14F) covers anchor existence rather than prose
 duplication.
 
-### 2.1 product/
+### 2.1 01-product/
 
 **Responsibility**: Long-lived product trunk. Records PRD/product intent, current and target product posture, users/operators, problems, product promises, product boundary, product language, product-level trade-offs, roadmap intent, product acceptance gates, and owner pointers for stable capabilities and journeys.
 
 **Internal authoritative locations**:
 
-- `product/README.md`: Reader Map and ownership index. Only routes the reader to PRD spine, product model, roadmap/acceptance, capability owners, and journey owners; does not copy fact bodies.
-- `product/prd.md`: Product spine. Keeps a concise PRD spine, recording current/target product posture, core capability map, key non-goals, and owner links.
-- `product/product-model.md`: Users, problems, product promises, product boundary, product language, and long-lived product trade-offs.
-- `product/roadmap-and-acceptance.md`: Phases, roadmap intent, product acceptance gates, product-level gaps.
-- `product/capabilities/`: When a capability has long-lived user value, boundary, non-goals, acceptance meaning, or roadmap state, and keeping it in `prd.md` or `product-model.md` would bloat them, split out `product/capabilities/<capability>.md`.
-- `product/journeys/`: When a journey spans multiple capabilities, influences release/roadmap decisions, owns independent product acceptance, or repeatedly drives priority trade-offs, split out `product/journeys/<journey>.md`.
+- `01-product/README.md`: Reader Map and ownership index. Only routes the reader to PRD spine, product model, roadmap/acceptance, capability owners, and journey owners; does not copy fact bodies.
+- `01-product/prd.md`: Product spine. Keeps a concise PRD spine, recording current/target product posture, core capability map, key non-goals, and owner links.
+- `01-product/product-model.md`: Users, problems, product promises, product boundary, product language, and long-lived product trade-offs.
+- `01-product/roadmap-and-acceptance.md`: Phases, roadmap intent, product acceptance gates, product-level gaps.
+- `01-product/capabilities/`: When a capability has long-lived user value, boundary, non-goals, acceptance meaning, or roadmap state, and keeping it in `prd.md` or `product-model.md` would bloat them, split out `01-product/capabilities/<capability>.md`.
+- `01-product/journeys/`: When a journey spans multiple capabilities, influences release/roadmap decisions, owns independent product acceptance, or repeatedly drives priority trade-offs, split out `01-product/journeys/<journey>.md`.
 
-**Applicability**: Always applicable. `product/README.md`, `prd.md`, `product-model.md`, `roadmap-and-acceptance.md`, `capabilities/README.md`, and `journeys/README.md` are the required skeleton for new bootstrap.
+**Applicability**: Always applicable. `01-product/README.md`, `prd.md`, `product-model.md`, `roadmap-and-acceptance.md`, `capabilities/README.md`, and `journeys/README.md` are the required skeleton for new bootstrap.
 
 **Split rules**:
 
 - Keep facts at the highest stable owner. Do not create capability/journey files for one-off features, tickets, UI scripts, test cases, implementation flows, or short-term tasks.
-- `product/capabilities/<capability>.md` is only created when the capability has long-lived user value, product boundary, non-goals, acceptance meaning, or roadmap state.
-- `product/journeys/<journey>.md` is only created when the journey spans multiple capabilities, independently influences roadmap/release decisions, owns independent product acceptance, or repeatedly drives priority trade-offs.
-- If a statement changes because product promises change, write it into `product/`. If a statement changes because code/runtime architecture changes, write it into `architecture/`, `testing/`, or another technical area.
-- `product/README.md`, `capabilities/README.md`, and `journeys/README.md` are Reader Map and owner indexes, not duplicated fact stores.
+- `01-product/capabilities/<capability>.md` is only created when the capability has long-lived user value, product boundary, non-goals, acceptance meaning, or roadmap state.
+- `01-product/journeys/<journey>.md` is only created when the journey spans multiple capabilities, independently influences roadmap/release decisions, owns independent product acceptance, or repeatedly drives priority trade-offs.
+- If a statement changes because product promises change, write it into `01-product/`. If a statement changes because code/runtime architecture changes, write it into `02-architecture/`, `03-process/testing/`, or another technical area.
+- `01-product/README.md`, `capabilities/README.md`, and `journeys/README.md` are Reader Map and owner indexes, not duplicated fact stores.
 
 **Product / Architecture boundary**:
 
-- Do not migrate `architecture/views/critical-journeys.md` as a whole into product. Product journeys own user intent, touchpoints, experience constraints, and product acceptance; architecture critical journeys own system/runtime execution, lifecycle, failure/recovery, observability signals, domain owners, and Mermaid runtime diagrams.
-- `architecture/views/current-target-gap.md` tracks implementation current/target/gap; `product/roadmap-and-acceptance.md` tracks product roadmap/acceptance intent.
+- Do not migrate `02-architecture/views/critical-journeys.md` as a whole into product. Product journeys own user intent, touchpoints, experience constraints, and product acceptance; architecture critical journeys own system/runtime execution, lifecycle, failure/recovery, observability signals, domain owners, and Mermaid runtime diagrams.
+- `02-architecture/views/current-target-gap.md` tracks implementation current/target/gap; `01-product/roadmap-and-acceptance.md` tracks product roadmap/acceptance intent.
 - Architecture views/domains must link product owner when implementing, rejecting, or marking a product-constraint gap, rather than redefining product facts.
-- `product/` is the intent layer. It owns users/operators, problems, promises, product boundary, non-goals, product language, acceptance meaning, product-level roadmap, and product-level gap.
-- `architecture/` is the implementation response layer. It owns runtime owners, state/resources, contracts, lifecycle/concurrency, failure/recovery, verification, implementation current/target/gap, and technical response to product constraints.
+- `01-product/` is the intent layer. It owns users/operators, problems, promises, product boundary, non-goals, product language, acceptance meaning, product-level roadmap, and product-level gap.
+- `02-architecture/` is the implementation response layer. It owns runtime owners, state/resources, contracts, lifecycle/concurrency, failure/recovery, verification, implementation current/target/gap, and technical response to product constraints.
 - Product capability files stay thin. They may link architecture owners, but they do not copy runtime flows, API/SDK/schema details, persistence layout, or implementation listings.
 - Architecture owners may link product constraints, but they do not redefine users, product promises, roadmap, non-goals, or acceptance meaning.
 
@@ -411,8 +412,8 @@ closure owner. It treats silence, stale pointers, or an unowned "later" note as
 
 When `product` is marked `covered`, the product trunk must let a cold reader
 recover the product story before any owner-index or manifest table. The narrative
-may live in `product/README.md` when that file is the user's first product stop,
-or in `product/prd.md` when `product/README.md` clearly routes to it in the
+may live in `01-product/README.md` when that file is the user's first product stop,
+or in `01-product/prd.md` when `01-product/README.md` clearly routes to it in the
 opening prose. It must state who the product serves, what problem it solves, the
 current and target promise, what is out of scope, the acceptance meaning, and the
 first owner to inspect for details. The Core recovery manifest may then index
@@ -421,18 +422,18 @@ current product truth are recoverable.
 
 **Writing style**: see §2.0.
 
-### 2.2 architecture/
+### 2.2 02-architecture/
 
 **Responsibility**: System concrete-design trunk. Records current implementation, target design, and gaps; explains system boundaries, runtime owners, design units, runtime flows, architecture views/diagrams, state/data/resource ownership, configuration variability, lifecycle/concurrency model, cross-boundary contracts, invariants, failure recovery, and verification.
 
 **Internal authoritative locations**:
 
-- `architecture/README.md`: Quick-mental-model entry, carrying design brief, Reader Map / quick understanding map, technical operating-model summary, major runtime journeys, core invariants, view index, domain index, and implementation Current / Target / Gap summary.
-- `architecture/views/`: Technical design-intent layer and cross-domain views, carrying operating model, critical journeys, current-target-gap, and the implementation design of how architecture responds to product constraints.
-- `architecture/domains/`: Concrete architecture domains, carrying domain-level design intent, design constraints, trade-offs/rejected plans, state/resource ownership, contracts, invariants, failure recovery, verification evidence, and intra-domain diagrams.
-- Legacy direct child domains compatible: existing `architecture/<domain>/README.md` can still serve as a domain authoritative location; migration is not forced.
+- `02-architecture/README.md`: Quick-mental-model entry, carrying design brief, Reader Map / quick understanding map, technical operating-model summary, major runtime journeys, core invariants, view index, domain index, and implementation Current / Target / Gap summary.
+- `02-architecture/views/`: Technical design-intent layer and cross-domain views, carrying operating model, critical journeys, current-target-gap, and the implementation design of how architecture responds to product constraints.
+- `02-architecture/NN-<domain>/`: Concrete architecture domains, carrying domain-level design intent, design constraints, trade-offs/rejected plans, state/resource ownership, contracts, invariants, failure recovery, verification evidence, and intra-domain diagrams. New domains are direct children of `02-architecture/` and carry a two-digit reading-order prefix.
+- Legacy compatibility: existing unnumbered `architecture/<domain>/README.md` or `architecture/domains/<domain>/README.md` can still serve as a domain authoritative location until protocol audit migration runs. New bootstrap must not create `architecture/domains/`.
 
-**Applicability**: Always applicable. New bootstrap and major architecture reorganization prefer `views/ + domains/`; small CLI/library may have only a single-level `architecture/README.md`; large kernels/monorepos must recursively decompose into architecture domains.
+**Applicability**: Always applicable. New bootstrap and major architecture reorganization prefer `views/ + direct numbered domains`; small CLI/library may have only a single-level `02-architecture/README.md`; large kernels/monorepos must recursively decompose into architecture domains.
 
 **Information architecture**: the default model is a Runtime Owner Map. Root
 routes to runtime owners and global invariants; views keep only cross-owner
@@ -440,7 +441,7 @@ technical views; domains own the detailed runtime/state/contract/failure facts.
 
 **Design intent / truth narrative (v2.47)**:
 
-When `architecture` is marked `covered`, `architecture/README.md` must let a
+When `architecture` is marked `covered`, `02-architecture/README.md` must let a
 cold reader recover the design story before any owner-map, apex-index, or Core
 recovery manifest table. The narrative must say why the runtime-owner axis is
 the right decomposition, what current runtime truth is enforced today, which
@@ -451,7 +452,7 @@ make the reader infer design intent or current design truth solely from row
 cells.
 Do not use a universal 20-section checklist as the default domain template.
 
-**Domain README intent triad** (v2.43): every `architecture/<domain>/README.md` —
+**Domain README intent triad** (v2.43): every `02-architecture/NN-<domain>/README.md` —
 including legacy direct-child domain READMEs and `architecture/domains/<domain>/README.md` —
 must carry three named H2 sections, in this order, before the runtime-owner /
 state / contract / lifecycle body:
@@ -476,7 +477,7 @@ state / contract / lifecycle body:
 A domain README that omits any of the three sections, or carries the heading
 but writes runtime-error / generic-recovery prose under it, cannot be marked
 `covered`. Doctor `[INTENT-OWNER]` (14W) gates this.
-[Lightweight-mode single-level `architecture/README.md`](architecture.md#11-lightweight-mode)
+[Lightweight-mode single-level `02-architecture/README.md`](architecture.md#11-lightweight-mode)
 is exempt; the moment lightweight mode is exited and a domain folder is
 created, the triad becomes mandatory.
 
@@ -541,8 +542,8 @@ not apply must be recorded as an explicit `<category>: not_applicable —
 **Single-prose-owner rule for canonical vocabulary (cycle-2)**: each
 hard-list term has exactly one prose owner — `glossary/README.md` — once
 it appears in the consumer's apex docs / schema enums / closeout protocol.
-`product/product-model.md` product-language section, `architecture/views/*`,
-`architecture/<domain>/README.md`, and `development/discipline.md` may
+`01-product/product-model.md` product-language section, `02-architecture/views/*`,
+`02-architecture/NN-<domain>/README.md`, and `03-process/development/discipline.md` may
 reference a hard-list term, but only as a thin pointer row containing **at
 most**: term name, ONE sentence of user-visible / runtime-owner /
 discipline-side angle (no schema-enum repetition, no claim-routing
@@ -554,8 +555,8 @@ prose, a redefinition under a different rubric ("product semantics" /
 in the secondary location is doctor-blocked even when the secondary
 location adds an `Avoid saying` column. If the secondary location requires
 more than one sentence to make the term useful at that altitude, split
-that prose into the corresponding `product/capabilities/<capability>.md`
-body or `architecture/<domain>/README.md` invariants block keyed to a
+that prose into the corresponding `01-product/capabilities/<capability>.md`
+body or `02-architecture/NN-<domain>/README.md` invariants block keyed to a
 non-canonical-vocab capability term, and keep the term row at this
 altitude one-sentence-thin.
 
@@ -619,8 +620,8 @@ owner table:
 
 | Maxim | Short topic | SSOT owner |
 | --- | --- | --- |
-| CLAUDE-MAXIM-1 | … | `development/discipline.md#DISC-NNNN` |
-| CLAUDE-MAXIM-2 | … | `development/discipline.md#DISC-NNNN` |
+| CLAUDE-MAXIM-1 | … | `03-process/development/discipline.md#DISC-NNNN` |
+| CLAUDE-MAXIM-2 | … | `03-process/development/discipline.md#DISC-NNNN` |
 | … | … | … |
 ```
 
@@ -634,7 +635,7 @@ category, owner-block-on-top, and 3-column-table shape so doctor `15A` /
 
 **v2.51 entry template.** New glossary entries SHOULD render from [`ssot-bootstrap/assets/templates/{en,zh}/glossary-entry.md`](../../ssot-bootstrap/assets/templates/en/glossary-entry.md), which collapses the reader-scaffold slots into per-term form: one-sentence positive definition, `Used in` inverse index, `Not to be confused with` boundary list, and `Source pin`. Pre-v2.51 entries inside `glossary/README.md` may stay as table rows until next touched; touching an entry means migrating it to a `glossary/<term>.md` file rendered from the new template.
 
-### 2.4 development/
+### 2.4 03-process/development/
 
 **Responsibility**: How to run the project, and how to write code correctly in this project. Local environment setup, build commands, development workflow, common commands, coding conventions, and pattern language.
 
@@ -647,13 +648,13 @@ When the project has coding conventions beyond linter/formatter coverage, also r
 - **Pattern language**: Key coding paradigms and convention patterns the project adopts (e.g., error-handling paradigm, dependency-injection conventions, logging-call conventions), pointing to representative implementation files. Record only conventions "a new agent will violate when writing code"; do not record rules that can be derived from linter config.
 - **End-to-end skeleton flow**: Files and step list to touch when adding a typical feature type (e.g., new API, new Worker, new CLI command). Use pointers to templates or existing examples; do not write full code.
 - **Agent operation preconditions**: Non-obvious prerequisites that must be satisfied before running tests, builds, or deploys (e.g., start docker compose first, build dependency packages first, do not skip pre-commit hook), and silent-failure manifestation upon violation.
-- **Agent operation discipline**: Cross-task imperative rules a future agent must obey when working on this repository, even though no single file/module path scopes them. Each entry records `Rule` (single-sentence imperative), `Trigger` (file-glob, task pattern, or conversation signal that fires the rule), `Why` (concrete failure history with evidence pointers to `bugs/`, `decisions/`, or commits), `Evidence` (tests, integration suites, or other artifacts that enforce or witness the rule), and `Failure mode` (what visibly breaks when an agent violates it). Recommended sub-file: `development/discipline.md` with `DISC-NNNN <slug>` entries. Apex behavior maxims declared in a project root constraint file (`CLAUDE.md`, `AGENTS.md`, `.cursor/rules/*`, `GEMINI.md`) — numbered named rules such as `CLAUDE-MAXIM-N` / `CORE-RULE-N` — must follow the apex-maxim → SSOT-owner mapping in [`intent-ownership.md`](intent-ownership.md) §1: each maxim has exactly one owner (typically a unique `DISC-NNNN`), and the root constraint file holds only a one-line `[CORE-REF: ...]` link, not the maxim body.
-- **Boundary with `gotchas/`**: A `gotcha` is a file/module-scoped pitfall recorded as a `don't X / do Y instead` pair against a specific code surface (e.g., "do not import `foo.bar.legacy_helper`"). An entry under `development/` discipline is a task-pattern-scoped imperative rule that applies across files and tasks (e.g., "when modifying any SDK adapter, run the real-SDK integration suite before claiming done"). When in doubt: if a future agent's first failure mode is reaching for a wrong API in a known file, write a `gotcha`; if the failure mode is following a procedurally insufficient workflow across many files, write a discipline entry.
-- **Split signal for discipline**: Create `development/discipline.md` the first time a recurring agent-operation rule is confirmed. When entries exceed 10 or fall into distinct domains (delivery, verification, dependency hygiene, etc.), split into sub-files (`discipline/delivery.md`, `discipline/verification.md`, …) under a `development/discipline/` sub-folder.
+- **Agent operation discipline**: Cross-task imperative rules a future agent must obey when working on this repository, even though no single file/module path scopes them. Each entry records `Rule` (single-sentence imperative), `Trigger` (file-glob, task pattern, or conversation signal that fires the rule), `Why` (concrete failure history with evidence pointers to `04-records/bugs/`, `04-records/decisions/`, or commits), `Evidence` (tests, integration suites, or other artifacts that enforce or witness the rule), and `Failure mode` (what visibly breaks when an agent violates it). Recommended sub-file: `03-process/development/discipline.md` with `DISC-NNNN <slug>` entries. Apex behavior maxims declared in a project root constraint file (`CLAUDE.md`, `AGENTS.md`, `.cursor/rules/*`, `GEMINI.md`) — numbered named rules such as `CLAUDE-MAXIM-N` / `CORE-RULE-N` — must follow the apex-maxim → SSOT-owner mapping in [`intent-ownership.md`](intent-ownership.md) §1: each maxim has exactly one owner (typically a unique `DISC-NNNN`), and the root constraint file holds only a one-line `[CORE-REF: ...]` link, not the maxim body.
+- **Boundary with `04-records/gotchas/`**: A `gotcha` is a file/module-scoped pitfall recorded as a `don't X / do Y instead` pair against a specific code surface (e.g., "do not import `foo.bar.legacy_helper`"). An entry under `03-process/development/` discipline is a task-pattern-scoped imperative rule that applies across files and tasks (e.g., "when modifying any SDK adapter, run the real-SDK integration suite before claiming done"). When in doubt: if a future agent's first failure mode is reaching for a wrong API in a known file, write a gotcha; if the failure mode is following a procedurally insufficient workflow across many files, write a discipline entry.
+- **Split signal for discipline**: Create `03-process/development/discipline.md` the first time a recurring agent-operation rule is confirmed. When entries exceed 10 or fall into distinct domains (delivery, verification, dependency hygiene, etc.), split into sub-files (`discipline/delivery.md`, `discipline/verification.md`, …) under a `03-process/development/discipline/` sub-folder.
 
 **Split signal**: In a monorepo where each workspace has an independent development flow, split into sub-files. When pattern language and skeleton flow are large, may split into a `conventions.md` sub-file. When agent operation discipline grows, follow the discipline-specific split signal above.
 
-### 2.5 testing/
+### 2.5 03-process/testing/
 
 **Responsibility**: How to test correctness. Records the stable test strategy, test selection matrix, quality gates, fixtures / test data, current correctness baselines, known gaps, and defensive-test source map.
 
@@ -661,9 +662,9 @@ When the project has coding conventions beyond linter/formatter coverage, also r
 
 **Content requirements**: Summarize test commands and point to test config files. Record the why of test strategy, e.g., why the test layers are divided this way. When no evidence, write `unknown` or `gap`; do not guess test level from script name.
 
-`testing/` is not a verification run ledger. Test results are evidence, not testing facts. Do not append batch-by-batch command transcripts, dates, green/red summaries, or "recent validation" rows unless the result changes a long-lived testing fact: a command/gate changed, a correctness baseline changed, a fixture contract changed, a known gap opened/closed, or a defensive-test mapping was added/removed. Use commit hashes, issue IDs, bug entries, CI links, or release notes as evidence pointers from the stable fact instead of carrying chronological run history in this area.
+`03-process/testing/` is not a verification run ledger. Test results are evidence, not testing facts. Do not append batch-by-batch command transcripts, dates, green/red summaries, or "recent validation" rows unless the result changes a long-lived testing fact: a command/gate changed, a correctness baseline changed, a fixture contract changed, a known gap opened/closed, or a defensive-test mapping was added/removed. Use commit hashes, issue IDs, bug entries, CI links, or release notes as evidence pointers from the stable fact instead of carrying chronological run history in this area.
 
-`testing/` also does not own benchmark methodology or performance/cost/capacity floors. If a performance check is a pass/fail test gate, `testing/` may name when the gate runs and what blocks merge or release, but the measured workload, metric, environment, floor, comparison rule, and trend interpretation live in `benchmark/`. Link to `benchmark/` instead of copying the benchmark table.
+`03-process/testing/` also does not own benchmark methodology or performance/cost/capacity floors. If a performance check is a pass/fail test gate, `03-process/testing/` may name when the gate runs and what blocks merge or release, but the measured workload, metric, environment, floor, comparison rule, and trend interpretation live in `03-process/benchmark/`. Link to `03-process/benchmark/` instead of copying the benchmark table.
 
 Recommended stable sections:
 
@@ -675,11 +676,11 @@ Recommended stable sections:
 - **Known gaps**: missing CI coverage, flaky suites, disabled tests, or manual-only verification with blocking level.
 - **Defensive test sources**: key regression tests mapped to `critical` / `major` / `recurred` bugs or gotchas.
 
-When `bugs/` contains `critical` / `major` / `recurred` fix records, optionally maintain a **defensive-test source** section: list key tests driven by bug regression (test file/case -> `bugs/` entry pointer). This lets an agent understand the reason for a test's existence when modifying protected code, avoiding accidental deletion or bypass. Exhaustiveness not required; record only entries where "deleting this test will let the historical bug recur".
+When `04-records/bugs/` contains `critical` / `major` / `recurred` fix records, optionally maintain a **defensive-test source** section: list key tests driven by bug regression (test file/case -> `04-records/bugs/` entry pointer). This lets an agent understand the reason for a test's existence when modifying protected code, avoiding accidental deletion or bypass. Exhaustiveness not required; record only entries where "deleting this test will let the historical bug recur".
 
-**Split signal**: Split when unit/integration/e2e/contract/manual and other test types each have independent config and strategy. Do not split benchmark detail under `testing/`; route it to `benchmark/`.
+**Split signal**: Split when unit/integration/e2e/contract/manual and other test types each have independent config and strategy. Do not split benchmark detail under `03-process/testing/`; route it to `03-process/benchmark/`.
 
-### 2.6 benchmark/
+### 2.6 03-process/benchmark/
 
 **Responsibility**: How to benchmark. Records current benchmark suites, canonical workloads, metrics, environments, runner commands, baseline/floor policy, comparison rules, trend interpretation, known gaps, and links from promoted benchmark conclusions to product, architecture, release, debt, or decision owners.
 
@@ -696,18 +697,18 @@ Recommended stable sections:
 - **Known gaps**: missing workloads, unstable environments, unmeasured surfaces, or floor uncertainty.
 - **Decision links**: product promises, architecture choices, release gates, debt, or ADRs that consume benchmark conclusions.
 
-`benchmark/` is not a chronological run log. A raw benchmark run, trial transcript, dated result table, or one-off comparison belongs in final response evidence, CI artifact, release note, stop-review evidence, or `04-records/research/` when reusable. Update `benchmark/` only when the stable suite, workload, metric, environment, floor, comparison rule, trend interpretation, known gap, or consuming decision link changes.
+`03-process/benchmark/` is not a chronological run log. A raw benchmark run, trial transcript, dated result table, or one-off comparison belongs in final response evidence, CI artifact, release note, stop-review evidence, or `04-records/research/` when reusable. Update `03-process/benchmark/` only when the stable suite, workload, metric, environment, floor, comparison rule, trend interpretation, known gap, or consuming decision link changes.
 
 **Boundary with other owners**:
 
-- `testing/` owns correctness checks, test selection, quality gates, fixtures, and defensive tests. It may link to a benchmark gate, but it does not own benchmark floors or interpretation.
-- `04-records/research/` owns one-off benchmark studies, exploratory measured trials, POCs, and reusable evidence packets until a stable method, baseline, or rule is promoted into `benchmark/`.
-- `architecture/` may consume benchmark conclusions as evidence for a design choice, risk, or current/target/gap row; it does not own benchmark methodology or current floors.
-- `release/` may name a release gate that depends on a benchmark floor; the benchmark owner keeps the floor and comparison rule.
+- `03-process/testing/` owns correctness checks, test selection, quality gates, fixtures, and defensive tests. It may link to a benchmark gate, but it does not own benchmark floors or interpretation.
+- `04-records/research/` owns one-off benchmark studies, exploratory measured trials, POCs, and reusable evidence packets until a stable method, baseline, or rule is promoted into `03-process/benchmark/`.
+- `02-architecture/` may consume benchmark conclusions as evidence for a design choice, risk, or current/target/gap row; it does not own benchmark methodology or current floors.
+- `03-process/release/` may name a release gate that depends on a benchmark floor; the benchmark owner keeps the floor and comparison rule.
 
 **Split signal**: Split when suites have independent workloads, metrics, environments, or consumers. Common splits are by runtime owner, workload family, provider/model, capacity tier, or cost surface.
 
-### 2.7 deployment/
+### 2.7 03-process/deployment/
 
 **Responsibility**: How to deploy or distribute. Deployment method, environments, infrastructure form, CI/CD pipeline.
 
@@ -717,7 +718,7 @@ Recommended stable sections:
 
 **Split signal**: Split when there are multiple environments, multiple deployment targets, or multiple independent deployment units.
 
-### 2.8 release/
+### 2.8 03-process/release/
 
 **Responsibility**: Release process and versioning strategy. How to release, version-number rules, changelog maintenance, release pipeline.
 
@@ -727,7 +728,7 @@ Recommended stable sections:
 
 **Split signal**: Split when multiple independently releasable artifacts exist.
 
-### 2.9 decisions/
+### 2.9 04-records/decisions/
 
 **Responsibility**: Major decisions and reasons. Why this and not that, decision context and consequences.
 
@@ -764,7 +765,7 @@ tree.
 
 **Split signal**: Naturally multi-entry; one file per decision, naming format `NNNN-<slug>.md`.
 
-### 2.10 gotchas/
+### 2.10 04-records/gotchas/
 
 **Responsibility**: Known pitfalls, failure modes, "don't touch here because X". Records tacit knowledge that code cannot express.
 
@@ -772,7 +773,7 @@ tree.
 
 **Content requirements**: `README.md` serves as the pitfall index, containing at least `status`. Each pitfall explains what it is, why it is dangerous, and scope of impact. Mitigation `[SHOULD]` be given in pairs of "do not do X + do Y instead" to make entries actionable rather than only record failure stories -- a gotcha that only describes failure symptoms without an alternative has very low value. Optional additions:
 
-- **Trigger** `[SHOULD]`: Describe "when the agent does what operation it should first check this gotcha". Format is task type or file/module path matching. Examples: `Trigger: when modifying any file under src/auth/`, `Trigger: when adding a new database migration`. Triggers let the reading protocol route precisely -- the agent proactively drills into the gotcha before executing matching operations, rather than relying on the generic "read gotchas when changing code" rule. A cross-task procedural rule that applies regardless of file scope (e.g., "always run real SDK integration suite before claiming a fix done") is not a gotcha; route it to `development/` discipline (see §2.4) so future agents can find it via task-pattern routing rather than per-file gotcha scan.
+- **Trigger** `[SHOULD]`: Describe "when the agent does what operation it should first check this gotcha". Format is task type or file/module path matching. Examples: `Trigger: when modifying any file under src/auth/`, `Trigger: when adding a new database migration`. Triggers let the reading protocol route precisely -- the agent proactively drills into the gotcha before executing matching operations, rather than relying on the generic "read gotchas when changing code" rule. A cross-task procedural rule that applies regardless of file scope (e.g., "always run real SDK integration suite before claiming a fix done") is not a gotcha; route it to `03-process/development/` discipline (see §2.4) so future agents can find it via task-pattern routing rather than per-file gotcha scan.
 
 Status:
 
@@ -783,7 +784,7 @@ Resolved entries remain in the document as historical reference, but the index m
 
 **Split signal**: When pitfalls exceed 10 entries, group by architecture domain or topic.
 
-### 2.11 bugs/
+### 2.11 04-records/bugs/
 
 **Responsibility**: Bug-fix records. What problem was encountered, what is the root cause, how was it fixed, what was learned.
 
@@ -812,11 +813,11 @@ Status:
 - `fixed`: Already fixed.
 - `recurred`: Previously believed fixed but recurred; attach recurrence reason and new fix record link.
 
-When a fix reveals a gotcha, tech debt, decision, or architecture defect, sync-update the corresponding area. SSOT does not replace Issue Tracker; Issue Tracker manages lifecycle; `bugs/` only records long-lived knowledge after fix completion.
+When a fix reveals a gotcha, tech debt, decision, or architecture defect, sync-update the corresponding area. SSOT does not replace Issue Tracker; Issue Tracker manages lifecycle; `04-records/bugs/` only records long-lived knowledge after fix completion.
 
 **Split signal**: When entries exceed 15, group by architecture domain or time period.
 
-### 2.12 tech-debt/
+### 2.12 04-records/tech-debt/
 
 **Responsibility**: Technical-debt register. Known debts, temporary workarounds, planned refactorings.
 
@@ -838,7 +839,7 @@ alongside `status` and `priority`):
   evaluate to flip this debt from `active` to `resolved` without re-debating
   intent — e.g. `tests/integration/test_engine_dfs_mission_only.py passes
   AND src/myapp/engine/planner.py is absent`,
-  `architecture/backend-runtime/current-target-gap.md row R-NNN deleted`,
+  `02-architecture/NN-backend-runtime/current-target-gap.md row R-NNN deleted`,
   `BUG-NNNN closed and regression test green`,
   `grep -nR 'TODO(DEBT-0001)' src/ returns no match`. Narrative such as
   "synchronize when advancing X" or "review periodically" is not a
@@ -873,8 +874,8 @@ agents must not miss.
 Temporary-surface registration (v2.52): every fallback, compat shim,
 temporary workaround, later-remove path, TODO/FIXME/HACK/WORKAROUND marker, or
 temporary waiver that is intentionally left in current code, config, tests, or
-SSOT must be registered. The registration may live in `tech-debt/`, `bugs/`,
-`decisions/`, or an open STATUS gap when no better owner exists, but it must
+SSOT must be registered. The registration may live in `04-records/tech-debt/`, `04-records/bugs/`,
+`04-records/decisions/`, or an open STATUS gap when no better owner exists, but it must
 carry the same five fields:
 
 - `owner`: the SSOT owner or engineering owner responsible for clearing it;
@@ -884,7 +885,7 @@ carry the same five fields:
 - `verification_guard`: the command, grep predicate, test, or runtime evidence
   that proves the temporary surface did not silently become permanent.
 
-For `tech-debt/` entries, use `temporary_surface: true` in frontmatter and add
+For `04-records/tech-debt/` entries, use `temporary_surface: true` in frontmatter and add
 `owner`, `reason`, and `verification_guard` beside `closure_condition` and
 `revisit_signal`. A hidden temporary surface is worse than an honest active
 debt: Doctor reports `[TEMP-SURFACE]`, and covered areas cannot rely on it as a
@@ -984,7 +985,7 @@ Applicable signals include:
 
 `task-entry map` only does entry indexing. Each row describes the task cluster, trigger signal, authoritative location to read first, and final review checkpoint. It must not maintain independent long-lived facts, must not copy playbook body; facts still go back to the corresponding authoritative location. When no clear high-frequency/high-risk task cluster exists, write `not_applicable` or do not create the section.
 
-The task-entry map — not the preflight gate — decides whether a task reads the `product/README.md` or `architecture/README.md` trunks. The preflight mandatory read floor is `STATUS.md` plus `SSOT/README.md` as the router; the trunks are read only when the task-entry map routes the task to them. When the map is missing or does not route the current task, preflight falls back to reading both trunks so a thin-router repository still gets trunk coverage. This makes the task-entry map the single owner of trunk-read routing, consistent with the `trigger` / path-glob fields on `gotchas/` (§2.10), `bugs/` (§2.11), and `tech-debt/` (§2.12) entries.
+The task-entry map — not the preflight gate — decides whether a task reads the `01-product/README.md` or `02-architecture/README.md` trunks. The preflight mandatory read floor is `STATUS.md` plus `SSOT/README.md` as the router; the trunks are read only when the task-entry map routes the task to them. When the map is missing or does not route the current task, preflight falls back to reading both trunks so a thin-router repository still gets trunk coverage. This makes the task-entry map the single owner of trunk-read routing, consistent with the `trigger` / path-glob fields on `04-records/gotchas/` (§2.10), `04-records/bugs/` (§2.11), and `04-records/tech-debt/` (§2.12) entries.
 
 ---
 
@@ -994,18 +995,18 @@ When a durable fact emerges from conversation or change review but does not clea
 
 | Signal | Drop target | Rationale |
 |---|---|---|
-| Imperative-procedural rule ("always X before Y", "never Z because the real service disagrees with the mock", "from now on, do W first") | `development/` discipline entry | Cross-task procedural rules owned by development practice. Do not collapse into a single bug entry. |
-| File/module-scoped trap ("do not call function A from module B", "config C has a quirk") | `gotchas/` entry | Scoped to a concrete code surface; future agents read by path trigger. |
-| Trade-off or design constraint ("we chose X over Y because Z", "must not exceed N") | `decisions/` entry | Long-lived why record; future agents need the rationale to avoid re-litigation. |
-| Bug root cause, symptom, and prevention ("the crash in component C was because...") | `bugs/<entry>.md` takeaway section | Fix history; high-severity entries carry a takeaway/prevention field and may cross-link to `development/` discipline if a recurring procedural gap is confirmed. |
+| Imperative-procedural rule ("always X before Y", "never Z because the real service disagrees with the mock", "from now on, do W first") | `03-process/development/` discipline entry | Cross-task procedural rules owned by development practice. Do not collapse into a single bug entry. |
+| File/module-scoped trap ("do not call function A from module B", "config C has a quirk") | `04-records/gotchas/` entry | Scoped to a concrete code surface; future agents read by path trigger. |
+| Trade-off or design constraint ("we chose X over Y because Z", "must not exceed N") | `04-records/decisions/` entry | Long-lived why record; future agents need the rationale to avoid re-litigation. |
+| Bug root cause, symptom, and prevention ("the crash in component C was because...") | `04-records/bugs/<entry>.md` takeaway section | Fix history; high-severity entries carry a takeaway/prevention field and may cross-link to `03-process/development/` discipline if a recurring procedural gap is confirmed. |
 
-When unsure between `gotchas/` and `development/` discipline, apply the boundary principle from §2.4: if the rule is scoped to a file/module and a future agent's first failure mode is reaching for the wrong API, write a gotcha; if the failure mode is following an insufficient workflow, write a discipline entry. **Never create a new top-level area** to absorb unrouted knowledge — `development/`, `gotchas/`, `decisions/`, and `bugs/` cover all durable knowledge origins defined in the protocol.
+When unsure between `04-records/gotchas/` and `03-process/development/` discipline, apply the boundary principle from §2.4: if the rule is scoped to a file/module and a future agent's first failure mode is reaching for the wrong API, write a gotcha; if the failure mode is following an insufficient workflow, write a discipline entry. **Never create a new top-level area** to absorb unrouted knowledge — `03-process/development/`, `04-records/gotchas/`, `04-records/decisions/`, and `04-records/bugs/` cover all durable knowledge origins defined in the protocol.
 
 ## 5. Not-applicable areas
 
-`product/`, `architecture/`, `glossary/`, `decisions/`, `gotchas/`, `bugs/`, `tech-debt/` are always applicable.
+`01-product/`, `02-architecture/`, `glossary/`, `04-records/decisions/`, `04-records/gotchas/`, `04-records/bugs/`, and `04-records/tech-debt/` are always applicable.
 
-Engineering operation areas (e.g., `benchmark/`, `deployment/`, `release/`) may be not applicable to certain repos; in that case still create the folder and `README.md` with the following content format:
+Engineering operation areas (e.g., `03-process/benchmark/`, `03-process/deployment/`, `03-process/release/`) may be not applicable to certain repos; in that case still create the folder and `README.md` with the following content format:
 
 ```markdown
 # <Area name>

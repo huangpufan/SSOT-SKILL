@@ -39,6 +39,7 @@ assert_no_dir "scenario1: no zh/ subdir in installed templates" "$CLAUDE_BASE/ss
 assert_file "scenario1: architecture-readme template present" "$CLAUDE_BASE/ssot-bootstrap/assets/templates/architecture-readme.md"
 assert_file "scenario1: audit current-upgrade installed" "$CLAUDE_BASE/ssot-audit/references/current-upgrade.md"
 assert_file "scenario1: audit archive index installed" "$CLAUDE_BASE/ssot-audit/references/archive/index.md"
+assert_file "scenario1: audit faceted migration helper installed" "$CLAUDE_BASE/ssot-audit/assets/scripts/migrate-faceted-layout.py"
 # English-content check: should NOT contain CJK characters (python3 — macOS grep lacks -P)
 if python3 -c "import sys,re; sys.exit(0 if re.search(r'[一-龥]', open(sys.argv[1], encoding='utf-8').read()) else 1)" "$CLAUDE_BASE/ssot-bootstrap/assets/templates/architecture-readme.md" 2>/dev/null; then
   fail "scenario1: en templates should not contain Chinese"

@@ -62,6 +62,19 @@ for skill in "${SKILLS[@]}"; do
   fi
 done
 
+# 4b. Protocol-upgrade migration helper exists and is syntactically valid.
+MIGRATION_HELPER="$PROJECT_ROOT/skills/ssot-audit/assets/scripts/migrate-faceted-layout.py"
+if [[ -f "$MIGRATION_HELPER" ]]; then
+  pass "ssot-audit faceted-layout migration helper exists"
+  if python3 -m py_compile "$MIGRATION_HELPER" >/dev/null 2>&1; then
+    pass "ssot-audit faceted-layout migration helper compiles"
+  else
+    fail "ssot-audit faceted-layout migration helper does not compile"
+  fi
+else
+  fail "ssot-audit faceted-layout migration helper missing"
+fi
+
 # 5. Cross-skill relative link validity in SKILL.md + references/*.md
 # Find all "(../some/path.md)" or "[text](../path)" patterns and resolve.
 # Links inside fenced code blocks (```...```) are skipped — they are
@@ -217,7 +230,7 @@ while IFS= read -r f; do
 done < <(find "$PROJECT_ROOT" \
   -path "$PROJECT_ROOT/.git" -prune -o \
   -path "$PROJECT_ROOT/CHANGELOG.md" -prune -o \
-  -type f \( -name '*.md' -o -name '*.sh' -o -name '*.yaml' -o -name '*.yml' \) -print)
+  -type f \( -name '*.md' -o -name '*.sh' -o -name '*.py' -o -name '*.yaml' -o -name '*.yml' \) -print)
 if [[ ${#HYGIENE_FILES[@]} -eq 0 ]]; then
   pass "public assets avoid local/origin-project leakage"
 else

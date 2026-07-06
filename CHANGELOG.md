@@ -17,6 +17,12 @@ versions. This file only restates headline changes.
 ## [Unreleased]
 
 ### Changed
+- `ssot-preflight` area model now makes the v2.57 numbered faceted layout the
+  canonical physical SSOT layout: `01-product/`, `02-architecture/`,
+  `03-process/*`, and `04-records/*`. Legacy unnumbered paths remain readable
+  compatibility input, but concrete protocol paths, links, template targets,
+  CORE-REF examples, and upgrade targets use numbered paths. Protocol version
+  `2.56` -> `2.57`.
 - `ssot-preflight` gate floor narrowed (v2.56): the mandatory read is now
   `SSOT/STATUS.md` plus `SSOT/README.md` as the project-specific router.
   `product/README.md` and `architecture/README.md` are read only when the
@@ -37,6 +43,12 @@ versions. This file only restates headline changes.
   alongside the bundle-wide anti-patterns.
 
 ### Added
+- `ssot-audit/assets/scripts/migrate-faceted-layout.py`, installed with the
+  audit skill, migrates legacy consumer `SSOT/` trees to the v2.57 faceted
+  layout, rewrites Markdown links/literal paths, preserves legacy domain
+  indexes, and exits explicitly on source/target conflicts.
+- `tests/test-faceted-layout-migration.sh` plus CI wiring cover dry-run,
+  successful migration, conflict handling, and helper syntax.
 - `What is SSOT?` section in `README.md` / `README.zh.md` that explicitly
   defines "Single Source of Truth", explains how the principle maps to
   `SSOT/` in this skill, and reiterates that code/schema/tests remain the
