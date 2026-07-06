@@ -2,7 +2,7 @@
 name: ssot-preflight
 description: Repository SSOT preflight before substantive code, config, docs, review, debugging, refactoring, or planning work. Use to check SSOT/STATUS.md, open adjudications, documentation language, protocol version, minimal SSOT read routing, and in-task SSOT write triggers. Do not use for pure operations, trivial format-only edits, or non-repository chat.
 metadata:
-  protocol_version: "2.54"
+  protocol_version: "2.55"
   bundle: "SSOT Skill"
   semantic_impact: medium
 ---
@@ -57,7 +57,7 @@ appears, either update the unique authority immediately (when clear), or
 write a short delta and resolve it at `$ssot-closeout` before final
 response, `claim_done`, or commit. Detail (including the `Rule / Trigger /
 Why / Evidence / Failure-mode` discipline schema) lives in
-`references/area-model.md §2.5` and in `$ssot-closeout` references — not
+`references/area-model.md §2.4` and in `$ssot-closeout` references — not
 here.
 
 ## Surface task-relevant open risks

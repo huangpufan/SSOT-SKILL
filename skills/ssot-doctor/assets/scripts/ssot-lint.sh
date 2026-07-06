@@ -1523,6 +1523,48 @@ if [[ "$RESEARCH_RECORD_FAIL_COUNT" -eq 0 ]]; then
   add_pass "[RESEARCH-RECORD] research evidence packets are canonical and mechanically complete"
 fi
 
+# ---------- check 31: [BENCHMARK-OWNER] benchmark process owner ----------
+# Canonical benchmark policy lives under 03-process/benchmark/. Legacy
+# top-level benchmark/ is accepted only when the consumer has not adopted the
+# faceted process layout. The check is deliberately structural: semantic
+# quality of floors/trends remains Doctor L2 judgement.
+BENCHMARK_OWNER_FAIL_COUNT=0
+BENCHMARK_DIR=""
+if [[ -d "$SSOT_DIR/03-process/benchmark" ]]; then
+  BENCHMARK_DIR="$SSOT_DIR/03-process/benchmark"
+elif [[ -d "$SSOT_DIR/benchmark" ]]; then
+  BENCHMARK_DIR="$SSOT_DIR/benchmark"
+fi
+if [[ -n "$BENCHMARK_DIR" && ! -f "$BENCHMARK_DIR/README.md" ]]; then
+  add_fail "[BENCHMARK-OWNER] benchmark area missing README owner: $BENCHMARK_DIR/README.md"
+  BENCHMARK_OWNER_FAIL_COUNT=$((BENCHMARK_OWNER_FAIL_COUNT + 1))
+fi
+if [[ -d "$SSOT_DIR/03-process" && ! -d "$SSOT_DIR/03-process/benchmark" ]]; then
+  add_fail "[BENCHMARK-OWNER] 03-process layout missing benchmark owner: $SSOT_DIR/03-process/benchmark/README.md"
+  BENCHMARK_OWNER_FAIL_COUNT=$((BENCHMARK_OWNER_FAIL_COUNT + 1))
+fi
+TESTING_README=""
+if [[ -f "$SSOT_DIR/03-process/testing/README.md" ]]; then
+  TESTING_README="$SSOT_DIR/03-process/testing/README.md"
+elif [[ -f "$SSOT_DIR/testing/README.md" ]]; then
+  TESTING_README="$SSOT_DIR/testing/README.md"
+fi
+if [[ -n "$TESTING_README" && -z "$BENCHMARK_DIR" ]]; then
+  if grep -qiE '(benchmark floor|benchmark baseline|performance floor|latency floor|throughput floor|capacity floor|cost floor|trend interpretation|comparison rule|canonical workload|性能.*(基线|阈值|floor)|成本.*(基线|阈值|floor)|容量.*(基线|阈值|floor))' "$TESTING_README"; then
+    add_fail "[BENCHMARK-OWNER] testing README appears to own benchmark floors or interpretation but benchmark owner is missing: $TESTING_README"
+    BENCHMARK_OWNER_FAIL_COUNT=$((BENCHMARK_OWNER_FAIL_COUNT + 1))
+  fi
+fi
+if [[ -n "$BENCHMARK_DIR" ]]; then
+  BENCHMARK_LEDGER_HIT=$(grep -RInE '(latest benchmark|recent benchmark|benchmark run history|performance run history|20[0-9]{2}-[0-9]{2}-[0-9]{2}.*(benchmark|latency|throughput|perf|performance)|最近.*benchmark|最近.*性能|运行历史)' "$BENCHMARK_DIR" 2>/dev/null | head -1 || true)
+  if [[ -n "$BENCHMARK_LEDGER_HIT" ]]; then
+    add_warn "[BENCHMARK-LEDGER] benchmark area appears to carry chronological run history; keep stable suites/floors/rules only: $BENCHMARK_LEDGER_HIT"
+  fi
+fi
+if [[ "$BENCHMARK_OWNER_FAIL_COUNT" -eq 0 ]]; then
+  add_pass "[BENCHMARK-OWNER] benchmark process owner is present or no obvious benchmark facts are hidden in testing"
+fi
+
 fi  # end META_LEAKAGE_SKIP_OTHER_CHECKS guard (checks 13-17 also guarded)
 
 # ---------- output ----------

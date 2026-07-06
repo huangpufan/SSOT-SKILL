@@ -25,6 +25,7 @@
 | glossary | | |
 | development | | |
 | testing | | |
+| benchmark | | |
 | deployment | | |
 | release | | |
 | decisions | | |

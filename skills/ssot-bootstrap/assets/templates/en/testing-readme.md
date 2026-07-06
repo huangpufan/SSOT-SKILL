@@ -2,7 +2,7 @@
 
 > Writing style: any cold reader. See `ssot-bootstrap` §3.7.
 
-> This area records stable test strategy, selection rules, gates, fixture constraints, current baselines, known gaps, and high-risk regression protection. Test run results are evidence, not testing facts; do not keep batch-by-batch validation history here.
+> This area records stable correctness test strategy, selection rules, gates, fixture constraints, current correctness baselines, known gaps, and high-risk regression protection. Test run results are evidence, not testing facts; do not keep batch-by-batch validation history here. Measured performance, cost, and capacity floors live in [benchmark/](../benchmark/README.md).
 
 ## Testing at a Glance / Reader Map
 
@@ -11,7 +11,7 @@
 | What tests do I run first after a change? | [Test commands](#test-commands) | this file | package.json / CI / Makefile / test config | |
 | Why are the test levels divided this way? | [Test strategy](#test-strategy) | this file | test config / CI / fixture | |
 | Which checks block merge, release, or claim_done? | [Quality gates](#quality-gates) | this file | CI / release workflow / startup instructions | |
-| What is the current expected baseline? | [Current baseline](#current-baseline) | this file | CI / lint config / benchmark fixture / latest baseline-changing commit | |
+| What is the current expected correctness baseline? | [Current baseline](#current-baseline) | this file | CI / lint config / snapshot fixture / latest baseline-changing commit | |
 | Which tests protect historical bugs? | [Defensive test sources](#defensive-test-sources) | this file | linked bug / gotcha / test code | |
 
 ## Test Strategy
@@ -20,7 +20,7 @@ Use a short narrative to describe test levels, boundaries, and trade-offs. If th
 
 | Test level | Coverage | Why split this way | Evidence | Known risk |
 |---|---|---|---|---|
-| unit / integration / e2e / performance / manual | | | test config / CI / fixture | |
+| unit / integration / e2e / contract / manual | | | test config / CI / fixture | |
 
 ## Test Selection Matrix
 
@@ -40,11 +40,11 @@ Record the checks that block merge, release, claim_done, or other durable workfl
 
 ## Current Baseline
 
-Record stable expected test state, such as lint warning counts, benchmark floors, snapshot baselines, or known flaky-suite state. Update only when the baseline itself changes.
+Record stable expected correctness state, such as lint warning counts, snapshot baselines, contract fixture state, or known flaky-suite state. Update only when the baseline itself changes. Benchmark floors and trend rules belong in [benchmark/](../benchmark/README.md).
 
 | Baseline | Current value | Evidence | Last baseline-changing change | Risk |
 |---|---|---|---|---|
-| | | CI / config / benchmark fixture / commit | | |
+| | | CI / config / fixture / commit | | |
 
 ## Test Commands
 
@@ -52,7 +52,7 @@ Record stable expected test state, such as lint warning counts, benchmark floors
 
 | Command | Purpose | Test level | Required setup | Evidence | Known risk |
 |---|---|---|---|---|---|
-| | | unit / integration / e2e / performance / manual | | package.json / CI / Makefile / test config | |
+| | | unit / integration / e2e / contract / manual | | package.json / CI / Makefile / test config | |
 
 ## Fixtures / Test Data
 
@@ -76,4 +76,4 @@ Record stable expected test state, such as lint warning counts, benchmark floors
 
 ## Not a Validation Ledger
 
-Keep task-specific command transcripts, pass/fail dates, durations, and "latest validation" lists out of this file. Preserve those facts in the final response, commit/release note, bug entry, or stop-review evidence when needed; this area keeps only stable testing policy, baseline, gap, fixture, gate, and defensive-map facts.
+Keep task-specific command transcripts, pass/fail dates, durations, and "latest validation" lists out of this file. Preserve those facts in the final response, commit/release note, bug entry, or stop-review evidence when needed; this area keeps only stable testing policy, correctness baseline, gap, fixture, gate, and defensive-map facts.

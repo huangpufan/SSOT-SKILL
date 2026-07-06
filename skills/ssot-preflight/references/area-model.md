@@ -40,6 +40,7 @@ SSOT/
   glossary/          # Proprietary terms
   development/       # Local dev and run
   testing/           # Test strategy
+  benchmark/         # Benchmark suites and measured floors
   deployment/        # Deploy and distribute
   release/           # Release process
   decisions/         # ADR / major decisions
@@ -55,14 +56,14 @@ Core model:
 - **Product trunk**: `product/`. Answers why the product exists, who it serves, what it promises, what it does not do, and how capabilities and journeys are accepted. PRD and product intent default to here.
 - **Technical trunk**: `architecture/`. Answers how the system as a whole implements product constraints, how it operates, why it is split this way, and where current implementation differs from target design. Internally divisible into `views/` and `domains/` as two types of authoritative locations.
 - **Context areas**: `glossary/`. Help the agent first understand what key terms mean.
-- **Engineering operation areas**: `development/`, `testing/`, `deployment/`, `release/`. Answer how to run, how to test, how to deliver.
+- **Engineering operation areas**: `development/`, `testing/`, `benchmark/`, `deployment/`, `release/`. Answer how to run, how to test correctness, how to measure performance/cost/capacity, and how to deliver.
 - **Emergent/historical areas**: `decisions/`, `gotchas/`, `bugs/`, `tech-debt/`. Record why, pitfalls, fix knowledge, and debt.
 - **Record packets**: `04-records/research/`. Preserve reproducible
   research/PoC evidence packets and reusable claim rows. They are not
   authority mirrors; product, architecture, decision, and engineering owners
   absorb only promoted long-lived facts.
 
-The Views + Domains structure of `architecture/` and the recursion protocol are maintained by [`architecture.md`](architecture.md). Do not add a top-level `SSOT/design/`; design documents are source material, product facts enter `product/`, and technical design facts enter architecture views/domains, decisions, bugs, gotchas, testing, and other authoritative locations by content.
+The Views + Domains structure of `architecture/` and the recursion protocol are maintained by [`architecture.md`](architecture.md). Do not add a top-level `SSOT/design/`; design documents are source material, product facts enter `product/`, and technical design facts enter architecture views/domains, decisions, bugs, gotchas, testing, benchmark, and other authoritative locations by content.
 
 Do not add a top-level `SSOT/research/`. Research and PoC records that belong
 inside SSOT live under `SSOT/04-records/research/` as structured evidence
@@ -654,29 +655,59 @@ When the project has coding conventions beyond linter/formatter coverage, also r
 
 ### 2.5 testing/
 
-**Responsibility**: How to test. Records the stable test strategy, test selection matrix, quality gates, fixtures / test data, current baselines, known gaps, and defensive-test source map.
+**Responsibility**: How to test correctness. Records the stable test strategy, test selection matrix, quality gates, fixtures / test data, current correctness baselines, known gaps, and defensive-test source map.
 
 **Applicability**: Applicable when test files, test scripts, or test configs exist. When no tests, declare the current state and record the reason.
 
 **Content requirements**: Summarize test commands and point to test config files. Record the why of test strategy, e.g., why the test layers are divided this way. When no evidence, write `unknown` or `gap`; do not guess test level from script name.
 
-`testing/` is not a verification run ledger. Test results are evidence, not testing facts. Do not append batch-by-batch command transcripts, dates, green/red summaries, or "recent validation" rows unless the result changes a long-lived testing fact: a command/gate changed, a baseline changed, a fixture contract changed, a known gap opened/closed, or a defensive-test mapping was added/removed. Use commit hashes, issue IDs, bug entries, CI links, or release notes as evidence pointers from the stable fact instead of carrying chronological run history in this area.
+`testing/` is not a verification run ledger. Test results are evidence, not testing facts. Do not append batch-by-batch command transcripts, dates, green/red summaries, or "recent validation" rows unless the result changes a long-lived testing fact: a command/gate changed, a correctness baseline changed, a fixture contract changed, a known gap opened/closed, or a defensive-test mapping was added/removed. Use commit hashes, issue IDs, bug entries, CI links, or release notes as evidence pointers from the stable fact instead of carrying chronological run history in this area.
+
+`testing/` also does not own benchmark methodology or performance/cost/capacity floors. If a performance check is a pass/fail test gate, `testing/` may name when the gate runs and what blocks merge or release, but the measured workload, metric, environment, floor, comparison rule, and trend interpretation live in `benchmark/`. Link to `benchmark/` instead of copying the benchmark table.
 
 Recommended stable sections:
 
 - **Test strategy**: layers, boundaries, trade-offs, and why those layers exist.
 - **Test selection matrix**: what to run for each change family and why.
 - **Quality gates**: PR/release/blocking gates, required setup, and failure semantics.
-- **Current baseline**: stable expected state such as "frontend lint baseline is 0 warnings"; update only when the baseline changes.
+- **Current correctness baseline**: stable expected state such as "frontend lint baseline is 0 warnings" or "snapshot baseline is current"; update only when the baseline changes.
 - **Fixtures / test data**: fixture owners, update risk, data contracts, and regeneration constraints.
 - **Known gaps**: missing CI coverage, flaky suites, disabled tests, or manual-only verification with blocking level.
 - **Defensive test sources**: key regression tests mapped to `critical` / `major` / `recurred` bugs or gotchas.
 
 When `bugs/` contains `critical` / `major` / `recurred` fix records, optionally maintain a **defensive-test source** section: list key tests driven by bug regression (test file/case -> `bugs/` entry pointer). This lets an agent understand the reason for a test's existence when modifying protected code, avoiding accidental deletion or bypass. Exhaustiveness not required; record only entries where "deleting this test will let the historical bug recur".
 
-**Split signal**: Split when unit/integration/e2e/performance and other test types each have independent config and strategy.
+**Split signal**: Split when unit/integration/e2e/contract/manual and other test types each have independent config and strategy. Do not split benchmark detail under `testing/`; route it to `benchmark/`.
 
-### 2.6 deployment/
+### 2.6 benchmark/
+
+**Responsibility**: How to benchmark. Records current benchmark suites, canonical workloads, metrics, environments, runner commands, baseline/floor policy, comparison rules, trend interpretation, known gaps, and links from promoted benchmark conclusions to product, architecture, release, debt, or decision owners.
+
+**Applicability**: Applicable when the project has performance, cost, latency, throughput, memory, capacity, scale, model-token, provider-cost, or resource-use measurements that guide engineering decisions. When no benchmark exists, declare `not_applicable` or `gap` with the reason and risk.
+
+**Content requirements**: A cold reader should be able to answer "what benchmark do I run and what floor matters?" from this area. Record the stable method, not every run. Include suite names, workload/data shape, metric units, environment/tooling assumptions, runner command, baseline source, floor or regression threshold, comparison rule, trend interpretation, and the owners that consume the conclusion.
+
+Recommended stable sections:
+
+- **Benchmark suites**: suite purpose, canonical workload, runner command, and required environment.
+- **Metrics and floors**: metric units, current floor/baseline, regression threshold, and evidence pointer.
+- **Comparison rules**: how to compare branches, hardware, data shape, provider/model, cache state, warmup, variance, and confidence.
+- **Trend interpretation**: how to read sustained drift, one-off noise, capacity headroom, and cost changes.
+- **Known gaps**: missing workloads, unstable environments, unmeasured surfaces, or floor uncertainty.
+- **Decision links**: product promises, architecture choices, release gates, debt, or ADRs that consume benchmark conclusions.
+
+`benchmark/` is not a chronological run log. A raw benchmark run, trial transcript, dated result table, or one-off comparison belongs in final response evidence, CI artifact, release note, stop-review evidence, or `04-records/research/` when reusable. Update `benchmark/` only when the stable suite, workload, metric, environment, floor, comparison rule, trend interpretation, known gap, or consuming decision link changes.
+
+**Boundary with other owners**:
+
+- `testing/` owns correctness checks, test selection, quality gates, fixtures, and defensive tests. It may link to a benchmark gate, but it does not own benchmark floors or interpretation.
+- `04-records/research/` owns one-off benchmark studies, exploratory measured trials, POCs, and reusable evidence packets until a stable method, baseline, or rule is promoted into `benchmark/`.
+- `architecture/` may consume benchmark conclusions as evidence for a design choice, risk, or current/target/gap row; it does not own benchmark methodology or current floors.
+- `release/` may name a release gate that depends on a benchmark floor; the benchmark owner keeps the floor and comparison rule.
+
+**Split signal**: Split when suites have independent workloads, metrics, environments, or consumers. Common splits are by runtime owner, workload family, provider/model, capacity tier, or cost surface.
+
+### 2.7 deployment/
 
 **Responsibility**: How to deploy or distribute. Deployment method, environments, infrastructure form, CI/CD pipeline.
 
@@ -686,7 +717,7 @@ When `bugs/` contains `critical` / `major` / `recurred` fix records, optionally 
 
 **Split signal**: Split when there are multiple environments, multiple deployment targets, or multiple independent deployment units.
 
-### 2.7 release/
+### 2.8 release/
 
 **Responsibility**: Release process and versioning strategy. How to release, version-number rules, changelog maintenance, release pipeline.
 
@@ -696,7 +727,7 @@ When `bugs/` contains `critical` / `major` / `recurred` fix records, optionally 
 
 **Split signal**: Split when multiple independently releasable artifacts exist.
 
-### 2.8 decisions/
+### 2.9 decisions/
 
 **Responsibility**: Major decisions and reasons. Why this and not that, decision context and consequences.
 
@@ -733,7 +764,7 @@ tree.
 
 **Split signal**: Naturally multi-entry; one file per decision, naming format `NNNN-<slug>.md`.
 
-### 2.9 gotchas/
+### 2.10 gotchas/
 
 **Responsibility**: Known pitfalls, failure modes, "don't touch here because X". Records tacit knowledge that code cannot express.
 
@@ -752,7 +783,7 @@ Resolved entries remain in the document as historical reference, but the index m
 
 **Split signal**: When pitfalls exceed 10 entries, group by architecture domain or topic.
 
-### 2.10 bugs/
+### 2.11 bugs/
 
 **Responsibility**: Bug-fix records. What problem was encountered, what is the root cause, how was it fixed, what was learned.
 
@@ -785,7 +816,7 @@ When a fix reveals a gotcha, tech debt, decision, or architecture defect, sync-u
 
 **Split signal**: When entries exceed 15, group by architecture domain or time period.
 
-### 2.11 tech-debt/
+### 2.12 tech-debt/
 
 **Responsibility**: Technical-debt register. Known debts, temporary workarounds, planned refactorings.
 
@@ -869,7 +900,7 @@ the first screen must help the next agent avoid deepening the debt.
 
 **Split signal**: Naturally multi-entry; one file per major debt.
 
-### 2.12 04-records/research/
+### 2.13 04-records/research/
 
 **Responsibility**: Structured research and PoC evidence packets. This area
 preserves reproducible methods, inputs, artifacts, observations, limitations,
@@ -972,7 +1003,7 @@ When unsure between `gotchas/` and `development/` discipline, apply the boundary
 
 `product/`, `architecture/`, `glossary/`, `decisions/`, `gotchas/`, `bugs/`, `tech-debt/` are always applicable.
 
-Engineering operation areas (e.g., `deployment/`, `release/`) may be not applicable to certain repos; in that case still create the folder and `README.md` with the following content format:
+Engineering operation areas (e.g., `benchmark/`, `deployment/`, `release/`) may be not applicable to certain repos; in that case still create the folder and `README.md` with the following content format:
 
 ```markdown
 # <Area name>

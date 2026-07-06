@@ -9,8 +9,8 @@
 #         WARN heuristics, v2.35 actionability WARN heuristics, v2.36 KISS
 #         table-density WARN heuristics, v2.47 intent/truth narrative WARN,
 #         v2.52 open-risk / temporary-surface checks, v2.53 non-silent
-#         deferral checks, v2.54 research-record checks, and the clean
-#         baseline.
+#         deferral checks, v2.54 research-record checks, v2.55 benchmark-owner
+#         checks, and the clean baseline.
 #
 # Usage:       bash assets/scripts/test/run-tests.sh
 # Exit codes:  0 all pass; 1 some failed.
@@ -93,7 +93,7 @@ for skill in ssot-preflight ssot-bootstrap ssot-closeout ssot-audit ssot-doctor 
   assert_file "$skill has SKILL.md" "$SKILLS_DIR/$skill/SKILL.md"
   assert_file "$skill has agents/openai.yaml" "$SKILLS_DIR/$skill/agents/openai.yaml"
 done
-for template in product-readme.md product-prd.md product-model.md product-roadmap-and-acceptance.md product-capabilities-readme.md product-journeys-readme.md product-capability-entry.md product-journey-entry.md; do
+for template in product-readme.md product-prd.md product-model.md product-roadmap-and-acceptance.md product-capabilities-readme.md product-journeys-readme.md product-capability-entry.md product-journey-entry.md benchmark-readme.md; do
   # Bilingual split: canonical templates live under en/ and zh/.
   assert_file "template en/$template exists" "$SKILLS_DIR/ssot-bootstrap/assets/templates/en/$template"
   assert_file "template zh/$template exists" "$SKILLS_DIR/ssot-bootstrap/assets/templates/zh/$template"
@@ -574,6 +574,43 @@ printf -- '---\nstatus: source-backed\nkind: poc\ncreated_on: 2026-06-30\nowner:
 out=$(run "$T"); code=$?
 assert_contains "bad research filename triggers RESEARCH-RECORD" "$out" "must use NNNN-<slug>.md"
 assert_exit "bad research filename exits 2" "$code" "2"
+rm -rf "$T"
+
+echo "== S43 faceted process layout missing benchmark owner fails check 31 =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+mkdir -p "$T/SSOT/03-process/testing"
+printf '# Testing\n' > "$T/SSOT/03-process/testing/README.md"
+out=$(run "$T"); code=$?
+assert_contains "missing benchmark owner triggers BENCHMARK-OWNER" "$out" "[BENCHMARK-OWNER]"
+assert_exit "missing benchmark owner exits 2" "$code" "2"
+rm -rf "$T"
+
+echo "== S44 faceted benchmark owner passes check 31 =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+mkdir -p "$T/SSOT/03-process/testing" "$T/SSOT/03-process/benchmark"
+printf '# Testing\n' > "$T/SSOT/03-process/testing/README.md"
+printf '# Benchmark Strategy\n\nStable suites and floors live here.\n' > "$T/SSOT/03-process/benchmark/README.md"
+out=$(run "$T"); code=$?
+assert_not_contains "benchmark owner present has no BENCHMARK-OWNER fail" "$out" "[FAIL] [BENCHMARK-OWNER]"
+assert_exit "benchmark owner present exits 0" "$code" "0"
+rm -rf "$T"
+
+echo "== S45 benchmark facts hidden in testing fail check 31 =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+mkdir -p "$T/SSOT/testing"
+printf '# Testing\n\nCurrent benchmark floor is p95 < 200ms and comparison rule is branch-to-branch.\n' > "$T/SSOT/testing/README.md"
+out=$(run "$T"); code=$?
+assert_contains "testing-owned benchmark floor triggers BENCHMARK-OWNER" "$out" "testing README appears to own benchmark floors"
+assert_exit "testing-owned benchmark floor exits 2" "$code" "2"
+rm -rf "$T"
+
+echo "== S46 benchmark run log warns check 31 =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+mkdir -p "$T/SSOT/benchmark"
+printf '# Benchmark Strategy\n\n## Recent benchmark run history\n\n2026-07-03 benchmark p95 passed.\n' > "$T/SSOT/benchmark/README.md"
+out=$(run "$T"); code=$?
+assert_contains "benchmark ledger triggers WARN" "$out" "[BENCHMARK-LEDGER]"
+assert_exit "benchmark ledger exits 1" "$code" "1"
 rm -rf "$T"
 
 echo ""

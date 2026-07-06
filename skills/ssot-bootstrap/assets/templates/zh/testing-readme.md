@@ -2,7 +2,7 @@
 
 > 行文风格：写给任何冷读者。详见 `ssot-bootstrap` §3.7。
 
-> 本区域记录稳定的测试策略、选择规则、质量闸门、fixture 约束、当前基线、已知缺口和高风险回归保护。测试运行结果是 evidence，不是 testing fact；不要在这里维护逐批验证历史。
+> 本区域记录稳定的 correctness test strategy、selection rules、gates、fixture 约束、当前 correctness baseline、已知缺口和高风险回归保护。测试运行结果是 evidence，不是 testing fact；不要在这里维护逐批验证历史。Measured performance、cost 和 capacity floors 属于 [benchmark/](../benchmark/README.md)。
 
 ## 测试一眼看懂 / Reader Map
 
@@ -11,7 +11,7 @@
 | 改动后先跑什么测试？ | [测试命令](#测试命令) | this file | package.json / CI / Makefile / test config | |
 | 测试层级为什么这样划分？ | [测试策略](#测试策略) | this file | test config / CI / fixture | |
 | 哪些检查会阻塞 merge、release 或 claim_done？ | [质量闸门](#质量闸门) | this file | CI / release workflow / startup instructions | |
-| 当前预期基线是什么？ | [当前基线](#当前基线) | this file | CI / lint config / benchmark fixture / latest baseline-changing commit | |
+| 当前预期 correctness baseline 是什么？ | [当前基线](#当前基线) | this file | CI / lint config / snapshot fixture / latest baseline-changing commit | |
 | 哪些测试保护历史 bug？ | [防御性测试来源](#防御性测试来源) | this file | linked bug / gotcha / test code | |
 
 ## 测试策略
@@ -20,7 +20,7 @@
 
 | Test level | 覆盖内容 | 为什么这样划分 | Evidence | Known risk |
 |---|---|---|---|---|
-| unit / integration / e2e / performance / manual | | | test config / CI / fixture | |
+| unit / integration / e2e / contract / manual | | | test config / CI / fixture | |
 
 ## 测试选择矩阵
 
@@ -40,11 +40,11 @@
 
 ## 当前基线
 
-记录稳定的测试预期状态，例如 lint warning 数、benchmark floor、snapshot baseline 或已知 flaky suite 状态。只有基线本身变化时才更新。
+记录稳定的 correctness 预期状态，例如 lint warning 数、snapshot baseline、contract fixture state 或已知 flaky suite 状态。只有基线本身变化时才更新。Benchmark floors 和 trend rules 属于 [benchmark/](../benchmark/README.md)。
 
 | Baseline | Current value | Evidence | Last baseline-changing change | Risk |
 |---|---|---|---|---|
-| | | CI / config / benchmark fixture / commit | | |
+| | | CI / config / fixture / commit | | |
 
 ## 测试命令
 
@@ -52,7 +52,7 @@
 
 | Command | Purpose | Test level | Required setup | Evidence | Known risk |
 |---|---|---|---|---|---|
-| | | unit / integration / e2e / performance / manual | | package.json / CI / Makefile / test config | |
+| | | unit / integration / e2e / contract / manual | | package.json / CI / Makefile / test config | |
 
 ## Fixtures / 测试数据
 
@@ -76,4 +76,4 @@
 
 ## 不是验证流水账
 
-不要把单次任务的命令转录、pass/fail 日期、耗时或“最近验证”列表写进本文件。必要时把这些事实保存在最终回复、commit/release note、bug 条目或 stop-review evidence；本区域只保存稳定的测试策略、基线、缺口、fixture、闸门和防御性映射事实。
+不要把单次任务的命令转录、pass/fail 日期、耗时或“最近验证”列表写进本文件。必要时把这些事实保存在最终回复、commit/release note、bug 条目或 stop-review evidence；本区域只保存稳定的测试策略、correctness baseline、缺口、fixture、闸门和防御性映射事实。

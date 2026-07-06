@@ -26,6 +26,7 @@ Tech stack, runtime form, and repository type live in [architecture/README.md](.
 | How does the system run, where are the boundaries, which constraints cannot be broken? | [architecture/](./architecture/README.md) | architecture trunk README | code / config / schema / tests / source material | Core read |
 | How do I run locally, build, generate, and modify code? | [development/](./development/README.md) | development area README | package scripts / Makefile / Dockerfile / tool scripts | Reference read |
 | How do I verify changes, and which tests protect historical issues? | [testing/](./testing/README.md) | testing area README | test configs / CI / fixtures / bug regression links | Reference read |
+| Which benchmark suite, workload, metric, and floor guide performance, cost, or capacity decisions? | [benchmark/](./benchmark/README.md) | benchmark area README | benchmark scripts / CI performance jobs / profiling config / research packets | Reference read |
 | How are versioning, release, and delivery consistency maintained? | [release/](./release/README.md) / [deployment/](./deployment/README.md) | release / deployment area READMEs | release scripts / CI / version files | Reference read |
 
 ### Global Reading Path Diagram
@@ -36,7 +37,7 @@ Tech stack, runtime form, and repository type live in [architecture/README.md](.
 flowchart LR
   start["Task / reader question"] --> arch["architecture/"]
   start --> product["product/"]
-  start --> ops["development/testing/release/deployment"]
+  start --> ops["development/testing/benchmark/release/deployment"]
   product --> arch
   arch --> views["architecture/views/"]
   arch --> domains["architecture/domains/"]
@@ -61,6 +62,7 @@ flowchart LR
 | Glossary | [glossary/](./glossary/README.md) | Reference | |
 | Development workflow | [development/](./development/README.md) | Reference | |
 | Testing strategy | [testing/](./testing/README.md) | Reference | |
+| Benchmark strategy | [benchmark/](./benchmark/README.md) | Reference | |
 | Deployment and distribution | [deployment/](./deployment/README.md) | Reference | |
 | Release process | [release/](./release/README.md) | Reference | |
 | Major decisions | [decisions/](./decisions/README.md) | Reference | |

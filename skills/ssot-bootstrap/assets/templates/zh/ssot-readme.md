@@ -25,6 +25,7 @@
 | 系统如何运行、边界在哪里、哪些约束不能破坏？ | [architecture/](./architecture/README.md) | 架构主干 README | code / config / schema / tests / source material | 核心读取 |
 | 如何本地运行、构建、生成和修改代码？ | [development/](./development/README.md) | development 区域 README | package scripts / Makefile / Dockerfile / tool scripts | 参考读取 |
 | 改动后如何验证，哪些测试保护历史问题？ | [testing/](./testing/README.md) | testing 区域 README | test configs / CI / fixtures / bug regression links | 参考读取 |
+| 哪个 benchmark suite、workload、metric 与 floor 支撑性能、成本或容量决策？ | [benchmark/](./benchmark/README.md) | benchmark 区域 README | benchmark scripts / CI performance jobs / profiling config / research packets | 参考读取 |
 | 版本、发布和交付一致性如何保持？ | [release/](./release/README.md) / [deployment/](./deployment/README.md) | release / deployment 区域 README | release scripts / CI / version files | 参考读取 |
 
 ### 全局阅读路径图
@@ -35,7 +36,7 @@
 flowchart LR
   start["Task / reader question"] --> arch["architecture/"]
   start --> product["product/"]
-  start --> ops["development/testing/release/deployment"]
+  start --> ops["development/testing/benchmark/release/deployment"]
   product --> arch
   arch --> views["architecture/views/"]
   arch --> domains["architecture/domains/"]
@@ -60,6 +61,7 @@ flowchart LR
 | 专有名词 | [glossary/](./glossary/README.md) | Reference | |
 | 开发工作流 | [development/](./development/README.md) | Reference | |
 | 测试策略 | [testing/](./testing/README.md) | Reference | |
+| Benchmark 策略 | [benchmark/](./benchmark/README.md) | Reference | |
 | 部署与分发 | [deployment/](./deployment/README.md) | Reference | |
 | 发布流程 | [release/](./release/README.md) | Reference | |
 | 重大决策 | [decisions/](./decisions/README.md) | Reference | |

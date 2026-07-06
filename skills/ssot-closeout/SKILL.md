@@ -14,9 +14,15 @@ location, never duplicated across areas.
 
 Test commands and their pass/fail output are evidence for the final answer
 or for a durable fact elsewhere; they are not automatically facts for
-`testing/`. Update `testing/` only when this batch changes test strategy,
-selection matrix, gates, fixtures, current baseline, known gaps, or
-defensive-test mappings.
+`testing/`. Update `testing/` only when this batch changes correctness test
+strategy, selection matrix, gates, fixtures, correctness baseline, known gaps,
+or defensive-test mappings.
+
+Benchmark commands and their measured output are evidence for the final answer
+or for a consuming owner; they are not automatically facts for `benchmark/`.
+Update `benchmark/` only when this batch changes the stable suite, workload,
+metric, environment, floor, comparison rule, trend interpretation, known gap,
+or decision/release/product/architecture link.
 
 Closeout is a no-op when the batch is purely mechanical, docs-wording
 without durable facts, test-only without policy change, or implementation
@@ -31,12 +37,13 @@ and anything newly discovered during the batch:
 
 - If the batch closes an active debt, bug, gotcha, adjudication, or open gap,
   update its owner and STATUS pointer.
-- If the batch produced research/PoC output, choose exactly one disposition:
+- If the batch produced research/PoC output, including a one-off benchmark
+  study, choose exactly one disposition:
   create `SSOT/04-records/research/NNNN-<slug>.md`, update an existing research
-  entry, promote durable claim rows into their product/architecture/decision or
-  other owners, or discard the output with a concrete reason. Do not create
-  top-level `SSOT/research/`, and do not mirror the packet into an authority
-  owner.
+  entry, promote durable claim rows into their product/architecture/benchmark/
+  decision or other owners, or discard the output with a concrete reason. Do
+  not create top-level `SSOT/research/`, and do not mirror the packet into an
+  authority owner.
 - If the batch touches the same trigger/path/capability but does not close it,
   explicitly defer with the still-valid owner, reason, closure condition,
   revisit signal, verification guard, and next action. Do not leave

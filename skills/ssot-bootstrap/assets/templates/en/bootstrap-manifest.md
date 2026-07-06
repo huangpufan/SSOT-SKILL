@@ -42,6 +42,7 @@
 | glossary | pending | | | |
 | development | pending | | | |
 | testing | pending | | | |
+| benchmark | pending | | | |
 | deployment | pending | | | |
 | release | pending | | | |
 | decisions | pending | | | |

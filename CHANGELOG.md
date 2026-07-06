@@ -49,6 +49,36 @@ versions. This file only restates headline changes.
 - Obsolete `workflows/intent-recoverability-loop.workflow.js` (and the
   now-empty `workflows/` directory).
 
+## [2.55] - 2026-07-03
+
+`semantic_impact: medium` -- adds **benchmark** as an independent engineering
+process owner under `03-process/benchmark/`. Benchmark now owns current suites,
+canonical workloads, metrics, environments, runner commands, floors, comparison
+rules, trend interpretation, known gaps, and links to product / architecture /
+release decisions. `testing/` stays focused on correctness checks and gates;
+`04-records/research/` keeps one-off benchmark studies until stable rules are
+promoted.
+
+### Changed
+- **`VERSION`** -> `2.55`.
+- **`skills/ssot-preflight/SKILL.md`** `metadata.protocol_version` -> `2.55`.
+- **`area-model.md`**, source-material routing, closeout, commit-audit, and
+  conversation-audit now distinguish correctness testing, stable benchmark
+  policy, and research evidence packets.
+- **`ssot-doctor`** documents `[BENCHMARK-OWNER]` and `[BENCHMARK-LEDGER]`
+  semantics so benchmark facts are not hidden in `testing/` and benchmark
+  owners do not become chronological run logs.
+
+### Added
+- `benchmark-readme.md` bootstrap template in both `en/` and `zh/`.
+- Root `SSOT/README.md`, `STATUS.md`, bootstrap manifest, recon, and template
+  index support for the benchmark process area.
+- `ssot-lint.sh` `[BENCHMARK-OWNER]` checks for missing faceted benchmark
+  owner and obvious benchmark floor / trend facts hidden in `testing/`, plus
+  `[BENCHMARK-LEDGER]` WARN heuristics for dated benchmark run logs.
+- Lint smoke tests for missing benchmark owner, valid benchmark owner,
+  benchmark facts hidden in `testing/`, and benchmark run-log warnings.
+
 ## [2.54] - 2026-06-30
 
 `semantic_impact: medium` — adds **research / POC records** as a first-class

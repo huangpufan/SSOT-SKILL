@@ -10,6 +10,45 @@ files.
 
 ## Version Ledger
 
+### v2.55
+
+**Upgrade goal**: add **benchmark** as an independent engineering process
+owner. Earlier protocol versions routed benchmark facts through `testing/` as a
+baseline detail or through `04-records/research/` as a one-off evidence packet.
+That left no stable owner for current benchmark suites, canonical workloads,
+metrics, environments, runner commands, floors, comparison rules, trend
+interpretation, known gaps, and decision links. v2.55 gives that stable policy
+to `benchmark/` while preserving `testing/` for correctness and
+`04-records/research/` for exploratory studies.
+
+**Impact**: `semantic_impact=medium` -- adds one process area, one paired
+bootstrap template, closeout/audit routing obligations, and deterministic lint
+for canonical owner presence / obvious misrouting. Consumers self-review per
+`status-protocol.md §7.1`; no independent reviewer is required unless the
+consumer also uses the upgrade to claim first-time `converged`.
+
+**Impact checklist**:
+
+| Check | Affected area | Audit action | Done criterion |
+|---|---|---|---|
+| Process area | `03-process/benchmark/README.md` | Create the README from `benchmark-readme.md` when adopting the faceted process layout or when benchmark evidence guides engineering decisions. Legacy top-level `benchmark/README.md` may stay until the next faceted-layout migration. | A cold reader can answer "what benchmark do I run and what floor matters?" from the benchmark owner. |
+| Testing boundary | `testing/` | Remove benchmark floors, canonical workloads, comparison rules, and trend interpretation from `testing/`; keep only correctness strategy, selection, gates, fixtures, correctness baselines, gaps, and defensive tests. | `testing/` may link benchmark gates but does not own measured performance/cost/capacity policy. |
+| Research boundary | `04-records/research/` | Keep one-off benchmark studies, exploratory measured trials, and reusable evidence packets in research until a stable method, floor, rule, or trend interpretation is promoted. | Research packets link promoted claims to `benchmark/` and do not become authority mirrors. |
+| Architecture/product/release consumption | `architecture/`, `product/`, `release/`, `decisions/`, `tech-debt/` | Let consuming owners link benchmark conclusions as evidence for promises, design choices, release gates, or debt; do not make them own the benchmark method or current floor. | Consuming owners explain why the benchmark matters; `benchmark/` owns how to run and interpret it. |
+| Ledger boundary | `benchmark/` and evidence surfaces | Move dated runs, command transcripts, raw profiler dumps, and one-off score tables to final evidence, CI artifacts, release notes, stop-review evidence, or research records. | `ssot-lint.sh SSOT/` reports no `[BENCHMARK-OWNER]` failures and no `[BENCHMARK-LEDGER]` warnings that block the intended `covered` claim. |
+
+**Migration notes**:
+
+- This is a process owner, sibling to `testing/`, not a records sub-area and not
+  an architecture domain. Use `SSOT/03-process/benchmark/README.md` in the
+  faceted layout.
+- Existing projects with no benchmark evidence may create the area as
+  `not_applicable` with a reason, or leave it until adopting the faceted process
+  skeleton if their current layout does not yet use `03-process/`.
+- Do not copy historical benchmark logs into `benchmark/`. Promote only stable
+  method, workload, metric, floor, comparison, interpretation, gap, and decision
+  link facts.
+
 ### v2.54
 
 **Upgrade goal**: add **research / POC records** as first-class structured

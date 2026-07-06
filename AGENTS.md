@@ -64,7 +64,7 @@ Every modification to this repository — code, templates, docs, installer, test
 
 ## Writing Style (Global)
 
-KISS is the permanent SSOT design principle: keep the reader's path short, keep one fact in one owner, and make tables serve prose rather than replace it. Every section of every user-facing SSOT body file is first written for the stranger who lands tonight knowing nothing; tables, codes and tags they cannot read are not paragraphs. The scope is every SSOT area the bundle generates — `product/`, `architecture/` (root, views, domains), `development/`, `testing/`, `release/`, deployment, `decisions/`, `gotchas/`, `bugs/`, `tech-debt/`, `glossary/`, root `SSOT/README.md` — plus register-only discipline for `STATUS.md` / `.bootstrap/`: cells stay pointer-sized and narrative moves to its owner. `ssot-bootstrap` §3.7 is the floor; Doctor `14I` and `[KISS]` are the gate.
+KISS is the permanent SSOT design principle: keep the reader's path short, keep one fact in one owner, and make tables serve prose rather than replace it. Every section of every user-facing SSOT body file is first written for the stranger who lands tonight knowing nothing; tables, codes and tags they cannot read are not paragraphs. The scope is every SSOT area the bundle generates — `product/`, `architecture/` (root, views, domains), `development/`, `testing/`, `benchmark/`, `release/`, deployment, `decisions/`, `gotchas/`, `bugs/`, `tech-debt/`, `glossary/`, root `SSOT/README.md` — plus register-only discipline for `STATUS.md` / `.bootstrap/`: cells stay pointer-sized and narrative moves to its owner. `ssot-bootstrap` §3.7 is the floor; Doctor `14I` and `[KISS]` are the gate.
 
 ## Key Files
 

@@ -126,7 +126,8 @@ The protocol version is single-sourced in [`skills/ssot-preflight/SKILL.md`](./s
                                               ┌────────────────────────────────┐
                                               │  your-repo/SSOT/               │  ← long-term memory
                                               │  product / architecture        │     of your repo
-                                              │  testing / development         │
+                                              │  testing / benchmark /         │
+                                              │  development                   │
                                               └────────────────────────────────┘
 ```
 

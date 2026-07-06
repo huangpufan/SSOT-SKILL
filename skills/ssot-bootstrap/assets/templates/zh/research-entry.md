@@ -5,6 +5,7 @@ created_on: YYYY-MM-DD
 owner: <owner-or-role>
 promotion_targets:
   - SSOT/02-architecture/domains/<domain>/README.md
+  - SSOT/03-process/benchmark/README.md
 recheck_trigger: <dependency-change-or-new-evidence>
 do_not_use_for: <current-production-authority-or-broader-claim>
 ---
@@ -13,7 +14,7 @@ do_not_use_for: <current-production-authority-or-broader-claim>
 
 > 写作姿态：面向任意陌生读者。见 `ssot-bootstrap` §3.7。
 
-> Research 或 POC 记录。本文件保存问题、方法、证据、可复用 claim、negative finding，以及提升到 durable SSOT owner 的路径。单条 claim 被提升前，本文件不是权威 owner。
+> Research、一次性 benchmark study 或 POC 记录。本文件保存问题、方法、证据、可复用 claim、negative finding，以及提升到 durable SSOT owner 的路径。单条 claim 被提升前，本文件不是权威 owner。
 
 ## 问题
 
@@ -45,7 +46,7 @@ do_not_use_for: <current-production-authority-or-broader-claim>
 
 ## 验证步骤
 
-列出支撑结论的可复现步骤。按需要包含 commands、scripts、browser checks、benchmark setup、source comparison 或 manual review procedure。
+列出支撑结论的可复现步骤。按需要包含 commands、scripts、browser checks、一次性 benchmark setup、source comparison 或 manual review procedure。稳定 benchmark suites、workloads、floors 和 comparison rules 被提升后写入 `SSOT/03-process/benchmark/README.md`。
 
 ```bash
 <command>

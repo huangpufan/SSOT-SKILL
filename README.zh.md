@@ -126,7 +126,8 @@ bash install.sh --uninstall --agent <key> --scope <global|project> --yes
                                               ┌────────────────────────────────┐
                                               │  your-repo/SSOT/               │  ← 仓库的长期记忆
                                               │  product / architecture        │
-                                              │  testing / development         │
+                                              │  testing / benchmark /         │
+                                              │  development                   │
                                               └────────────────────────────────┘
 ```
 

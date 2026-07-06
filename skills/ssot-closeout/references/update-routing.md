@@ -20,9 +20,11 @@ normal execution path.
    repository owns the bundle, fix SSOT-SKILL first. Then migrate the consumer.
 4. **Who owns the fact?** Product promises go to `product/`; technical runtime,
    state, contract, failure, trust, and current/target/gap facts go to
-   `architecture/`; testing policy goes to `testing/`; recurring procedural
-   rules go to `development/`; file/module traps go to `gotchas/`; root causes
-   go to `bugs/`; deferred work goes to `tech-debt/`; adjudicated trade-offs go
+   `architecture/`; correctness testing policy goes to `testing/`; benchmark
+   suites, workloads, metrics, floors, comparison rules, and trend
+   interpretation go to `benchmark/`; recurring procedural rules go to
+   `development/`; file/module traps go to `gotchas/`; root causes go to
+   `bugs/`; deferred work goes to `tech-debt/`; adjudicated trade-offs go
    to `decisions/`; research/PoC evidence packets go to
    `04-records/research/` only when preserving the packet is useful.
 5. **What is the impact tier?** Trivial changes usually need no SSOT update;
@@ -44,9 +46,17 @@ contract, state/resource ownership, runtime order, persistence, failure or retry
 semantics, trust/config boundary, observability contract, or a domain split. A
 routine internal helper edit usually records no SSOT change.
 
-**Tests and test results** update `testing/` only when future test selection,
-quality gates, fixtures/test data, current baselines, known gaps, or defensive
-test maps change. A one-time pass/fail result is evidence for this batch.
+**Tests and test results** update `testing/` only when future correctness test
+selection, quality gates, fixtures/test data, correctness baselines, known
+gaps, or defensive-test maps change. A one-time pass/fail result is evidence
+for this batch.
+
+**Benchmarks and measured results** update `benchmark/` only when future suites,
+canonical workloads, metrics, environments, runner commands, floors,
+comparison rules, trend interpretation, known gaps, or consuming decision links
+change. A one-time benchmark run, raw profiler dump, dated performance table,
+or exploratory comparison is evidence for this batch or a research packet, not
+a benchmark fact.
 
 **README/docs/ADR/runbook/PRD/source material** first goes through source
 material lifecycle and absorption. Product facts enter `product/`; technical
@@ -58,10 +68,10 @@ outside SSOT, but they must not masquerade as current authority.
 **Research/PoC output** must receive one closeout disposition before final
 response: create a new `SSOT/04-records/research/NNNN-<slug>.md` packet, update
 an existing packet, promote durable claim rows into the owning product,
-architecture, decision, testing, bug, gotcha, or debt files, or discard the
-output with a concrete reason. Research packets preserve reproducible evidence
-and distilled claims; they are not top-level `SSOT/research/` and not authority
-mirrors.
+architecture, decision, testing, benchmark, bug, gotcha, or debt files, or
+discard the output with a concrete reason. Research packets preserve
+reproducible evidence and distilled claims; they are not top-level
+`SSOT/research/` and not authority mirrors.
 
 **SSOT readability/actionability gaps** should fix SSOT-SKILL first when the
 repository owns the bundle and the weakness is repeatable across projects. Then
@@ -116,17 +126,28 @@ High-impact scenarios that commonly cascade:
 
 Appendix C keeps the detailed cascade lookup matrix.
 
-## 5. Testing Ledger Boundary
+## 5. Testing And Benchmark Ledger Boundaries
 
-`testing/` records stable testing policy and protective maps, not chronological
-proof that a particular batch ran. Before writing there, ask whether the
-sentence would still be useful after the next test run. If not, keep it out of
-SSOT or place it in an authorized evidence owner.
+`testing/` records stable correctness testing policy and protective maps, not
+chronological proof that a particular batch ran. Before writing there, ask
+whether the sentence would still be useful after the next test run. If not,
+keep it out of SSOT or place it in an authorized evidence owner.
 
 Write to `testing/` when the result changes strategy, selection matrix, quality
-gate, fixture/test-data contract, current baseline, known gap, or defensive-test
-mapping. Do not write one batch's transcript, date, duration, or latest green
-state.
+gate, fixture/test-data contract, correctness baseline, known gap, or
+defensive-test mapping. Do not write one batch's transcript, date, duration, or
+latest green state.
+
+`benchmark/` records stable benchmark policy and interpretation, not
+chronological proof that a particular run happened. Before writing there, ask
+whether the sentence would still be useful after the next benchmark run. If
+not, keep it out of SSOT or place it in final evidence, release notes, stop
+review evidence, or `04-records/research/`.
+
+Write to `benchmark/` when the result changes the stable suite, workload,
+metric, environment, command, floor, comparison rule, trend interpretation,
+known gap, or consuming owner link. Do not write one run's transcript, dated
+score table, profiler dump, or latest green/red performance state.
 
 ## 6. Agent-Actionability Boundary
 

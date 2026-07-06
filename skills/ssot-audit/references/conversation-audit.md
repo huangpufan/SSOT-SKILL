@@ -111,6 +111,7 @@ The following conversation patterns often contain long-lived SSOT knowledge:
 - Strategy discussion of deployment, configuration, security
 - Discussion of architecture diagrams, flow diagrams, Current/Target design diagrams, lifecycle/failure-recovery/trust-boundary diagrams
 - Discussion that changes stable test policy: strategy, selection matrix, quality gates, fixtures, current baseline, known gaps, or defensive-test mapping
+- Discussion that changes stable benchmark policy: suites, canonical workloads, metrics, environments, floors, comparison rules, trend interpretation, known gaps, or consuming decision links
 - User explicitly provides external material, specifications, design docs or historical documents and asks to use them as project background
 
 ---
@@ -119,7 +120,9 @@ The following conversation patterns often contain long-lived SSOT knowledge:
 
 Transcript-to-area mapping has the "Conversation-signal-to-area mapping" in [`update-routing.md`](../../ssot-closeout/references/update-routing.md) as semantic owner. Conversation audit only extracts long-lived SSOT knowledge from the transcript and feeds it into that mapping.
 
-Test results in the transcript are evidence, not testing facts. Do not promote "ran X and it passed/failed" into `testing/` unless the conversation also establishes a durable testing change: strategy, selection matrix, gate, fixture contract, current baseline, known gap, or defensive-test source. Otherwise keep the result as validation evidence for the current batch, commit, release, or bug record.
+Test results in the transcript are evidence, not testing facts. Do not promote "ran X and it passed/failed" into `testing/` unless the conversation also establishes a durable testing change: strategy, selection matrix, gate, fixture contract, correctness baseline, known gap, or defensive-test source. Otherwise keep the result as validation evidence for the current batch, commit, release, or bug record.
+
+Benchmark results in the transcript are evidence, not benchmark facts. Do not promote "ran benchmark X and got Y" into `benchmark/` unless the conversation also establishes a durable benchmark change: suite, workload, metric, environment, runner command, floor, comparison rule, trend interpretation, known gap, or consuming owner link. One-off benchmark studies that should remain reusable but are not stable owner policy belong in `04-records/research/`.
 
 When the user explicitly provides external material, specifications, PRDs, design docs or historical documents, run source-material classification, absorption, thin-documentation check and conflict adjudication per [`source-material.md`](../../ssot-preflight/references/source-material.md).
 

@@ -38,7 +38,7 @@ reusable claim rows, `promotion_targets`, `recheck_trigger`, and
 Raw research notes, external artifacts, copied vendor docs, benchmark logs, and
 working PoC files remain source material even when a research record points to
 them. They still need lifecycle downgrade fields or a STATUS inventory row.
-Product, architecture, decision, testing, bug, gotcha, and debt owners absorb
+Product, architecture, decision, testing, benchmark, bug, gotcha, and debt owners absorb
 only promoted long-lived facts; they link back to the research packet as
 evidence instead of copying the packet or keeping an authority mirror.
 
@@ -129,7 +129,7 @@ When absorbing, follow:
 5. Material classified as `obsolete` must not support `covered` or current fact; if the old form may tempt future agents to regress, write into architecture evolution / migration ledger, gotchas, or decisions.
 6. Research records under `04-records/research/` can be evidence sources, but
    they are not authority mirrors. Promote individual claim rows to the owning
-   product, architecture, decision, testing, bug, gotcha, or debt file only when
+   product, architecture, decision, testing, benchmark, bug, gotcha, or debt file only when
    the claim is durable and the owner can maintain it.
 
 Working and historical source material may contain precise implementation
@@ -194,10 +194,10 @@ Route architecture-related source material to a unique authoritative location by
 | System/runtime execution, stage lifecycle, failure/recovery, observability signals, cross-domain runtime flow overview | `architecture/views/critical-journeys.md`, linking product journey/capability owner if applicable |
 | Implementation Current / Target / Gap, migration roadmap, migration intent, unlanded technical targets, implementation gap against product acceptance | `architecture/views/current-target-gap.md`, linking `product/roadmap-and-acceptance.md` or relevant product owner |
 | Components, boundaries, state, locks, resource lifecycle, contracts, failure recovery, verification evidence, domain-specific diagrams | `architecture/domains/<domain>/README.md` or legacy-compatible direct child-domain |
-| Script/tool inventory, build/test commands, model generation, session analysis, version sync, import rewriting and other engineering automation | Default route to `development/`, `testing/`, `release/`, or deployment-related area; only when a script carries model-generation pipeline, session analysis, release consistency, state migration, or other architecture behavior does it also enter the relevant architecture view/domain |
+| Script/tool inventory, build/test/benchmark commands, model generation, session analysis, version sync, import rewriting and other engineering automation | Default route to `development/`, `testing/`, `benchmark/`, `release/`, or deployment-related area; only when a script carries model-generation pipeline, session analysis, release consistency, state migration, or other architecture behavior does it also enter the relevant architecture view/domain |
 | Decisions, rejected plans, rollback choices, no-revive bans, trade-off rationales | `decisions/`, and sync architecture evolution / migration ledger pointer |
 | Incidents, RCA, recurrence risk, regression tests | `bugs/`, `gotchas/`, `testing/`, and sync the relevant domain |
-| Performance/capacity, extension points, compatibility strategy | If a product promise, enter `product/`; if a system design fact or risk source, enter architecture; otherwise enter the corresponding engineering area or do not record |
+| Performance, cost, capacity, throughput, latency, memory, scale, provider/model cost, extension points, compatibility strategy | If a product promise, enter `product/`; if a benchmark method, workload, metric, floor, comparison rule, or trend interpretation, enter `benchmark/`; if a system design fact or risk source, enter architecture; otherwise enter the corresponding engineering area or do not record |
 | Pure public explanation, user documentation, installation tutorials | Keep as thin documentation or engineering-operation-area summary; do not serve as long-lived design-fact source |
 
 View cannot be pure tables. If source material contains PRD, current-stage product goals, product promises, product non-goals, product acceptance criteria, or product principles, they must first be absorbed into `product/`; architecture view only records the implementation design, technical constraints, or implementation gap responding to these product facts, and links to the product owner. If source material contains technical operating philosophy, system operating paths, technical acceptance/recovery signals, or migration intent, they should be absorbed into `operating-model.md`, `critical-journeys.md`, or `current-target-gap.md`, not just marked read in `STATUS.md`.

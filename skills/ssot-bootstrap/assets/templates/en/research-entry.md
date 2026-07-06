@@ -5,6 +5,7 @@ created_on: YYYY-MM-DD
 owner: <owner-or-role>
 promotion_targets:
   - SSOT/02-architecture/domains/<domain>/README.md
+  - SSOT/03-process/benchmark/README.md
 recheck_trigger: <dependency-change-or-new-evidence>
 do_not_use_for: <current-production-authority-or-broader-claim>
 ---
@@ -13,7 +14,7 @@ do_not_use_for: <current-production-authority-or-broader-claim>
 
 > Writing style: any cold reader. See `ssot-bootstrap` §3.7.
 
-> Research or POC record. This file preserves a question, method, evidence, reusable claims, negative findings, and the promotion path into durable SSOT owners. It is not authority until individual claim rows are promoted.
+> Research, one-off benchmark study, or POC record. This file preserves a question, method, evidence, reusable claims, negative findings, and the promotion path into durable SSOT owners. It is not authority until individual claim rows are promoted.
 
 ## Question
 
@@ -45,7 +46,7 @@ Where does this conclusion apply, and where does it not apply? Include version, 
 
 ## Verification Steps
 
-List the reproducible steps that support the conclusion. Include commands, scripts, browser checks, benchmark setup, source comparison, or manual review procedure as applicable.
+List the reproducible steps that support the conclusion. Include commands, scripts, browser checks, one-off benchmark setup, source comparison, or manual review procedure as applicable. Stable benchmark suites, workloads, floors, and comparison rules move to `SSOT/03-process/benchmark/README.md` when promoted.
 
 ```bash
 <command>
