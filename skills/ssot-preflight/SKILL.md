@@ -2,7 +2,7 @@
 name: ssot-preflight
 description: Repository SSOT preflight before substantive code, config, docs, review, debugging, refactoring, or planning work. Use to check SSOT/STATUS.md, open adjudications, documentation language, protocol version, minimal SSOT read routing, and in-task SSOT write triggers. Do not use for pure operations, trivial format-only edits, or non-repository chat.
 metadata:
-  protocol_version: "2.57"
+  protocol_version: "2.58"
   bundle: "SSOT Skill"
   semantic_impact: medium
 ---
@@ -39,10 +39,10 @@ you have answered, in order:
 The mandatory floor is `SSOT/STATUS.md` (adjudications, language, version
 — cleared above) plus `SSOT/README.md` as the project-specific router. Read
 its task-entry map and read only the owners it routes for this task. The
-`product/README.md` and `architecture/README.md` trunks are read only when
+`01-product/README.md` and `02-architecture/README.md` trunks are read only when
 the task-entry map routes the task to them — not by default. If the
 task-entry map is missing or does not route the current task, fall back to
-reading `product/README.md` and `architecture/README.md` so a thin-router
+reading `01-product/README.md` and `02-architecture/README.md` so a thin-router
 repo still gets trunk coverage.
 
 Skip this entire skill only for non-repository chat, pure command
@@ -69,7 +69,7 @@ Before implementation or final planning, scan the owner files the router
 actually routed the task to, plus `STATUS.md ## Open Gaps`. Report the
 entries whose trigger, path glob, owner, capability, journey, runtime owner,
 command, or failure mode overlaps the task. Cold-scanning the full
-`tech-debt/`, `bugs/`, or `gotchas/` directories is the agent's call, not a
+`04-records/tech-debt/`, `04-records/bugs/`, or `04-records/gotchas/` directories is the agent's call, not a
 default obligation — do it when the routed owners or the task shape make it
 worthwhile. These are recommendations, not automatic blockers: each one must be
 handled during the task by fixing it, explicitly deferring it with the owner and
@@ -97,8 +97,8 @@ Do not treat downgraded working docs or historical source material as current
 open risk unless STATUS or an owner entry promotes the risk. Do not hide a
 fallback, compat shim, temporary workaround, TODO/FIXME/HACK, later-remove note,
 or waiver behind ordinary prose; it must have a registered owner, reason,
-closure condition, revisit signal, and verification guard in `tech-debt/`,
-`bugs/`, `decisions/`, or `STATUS.md` as appropriate.
+closure condition, revisit signal, and verification guard in `04-records/tech-debt/`,
+`04-records/bugs/`, `04-records/decisions/`, or `STATUS.md` as appropriate.
 
 ## Park user-directive signals
 

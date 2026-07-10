@@ -88,6 +88,20 @@ resolve_template_placeholders() { # $1=root — replace skeleton residue in fixt
   find "$1/SSOT" -name '*.md' -type f -print0 | xargs -0 sed -i 's/（待补充）/无/g'
 }
 
+set_protocol_version() { # $1=root $2=version
+  sed -i -E "s/(\| tracked_skill_version \| \`)[0-9]+\.[0-9]+(\` \|)/\1$2\2/" "$1/SSOT/STATUS.md"
+}
+
+facet_base() { # $1=root — migrate the minimal fixture to the v2.57 physical layout.
+  local r="$1"
+  mkdir -p "$r/SSOT/04-records"
+  mv "$r/SSOT/product" "$r/SSOT/01-product"
+  mv "$r/SSOT/architecture" "$r/SSOT/02-architecture"
+  mv "$r/SSOT/gotchas" "$r/SSOT/04-records/gotchas"
+  sed -i 's#product/README.md#01-product/README.md#g; s#architecture/README.md#02-architecture/README.md#g' "$r/SSOT/README.md"
+  set_protocol_version "$r" "2.57"
+}
+
 echo "== S0 bundle package shape (each skill has SKILL.md + agents/openai.yaml) =="
 for skill in ssot-preflight ssot-bootstrap ssot-closeout ssot-audit ssot-doctor ssot-skill; do
   assert_file "$skill has SKILL.md" "$SKILLS_DIR/$skill/SKILL.md"
@@ -505,6 +519,36 @@ assert_contains "pending action in capture triggers CAPTURE-LIFECYCLE" "$out" "[
 assert_exit "pending action in capture exits 2" "$code" "2"
 rm -rf "$T"
 
+echo "== S36b registered owner file with TODO debt wording passes check 28b =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+mkdir -p "$T/SSOT/tech-debt"
+printf '# Tech debt\n\n## Easily confused with\n\nnone\n\n## Out of scope\n\nnone -- covers complete intent\n' > "$T/SSOT/tech-debt/README.md"
+printf -- '---\nid: DEBT-0004\nstatus: active\npriority: medium\nowner: platform team\nclosure_condition: "real owner is registered"\nrevisit_signal: "path-glob:SSOT/**"\nverification_guard: "ssot-lint passes"\n---\n# Placeholder debt\n\nTODO debt: capture the real owner later.\n\n## Agent quick entry\n\nTrigger: SSOT owner changes. First check: run ssot-lint. Do not close without lint evidence.\n' > "$T/SSOT/tech-debt/0004-placeholder-debt.md"
+out=$(run "$T"); code=$?
+assert_not_contains "registered owner placeholder is not misclassified" "$out" "[FAIL] [CAPTURE-LIFECYCLE] owner file contains placeholder follow-up wording"
+assert_exit "registered owner placeholder exits 0" "$code" "0"
+rm -rf "$T"
+
+echo "== S36c unregistered owner file with TODO debt placeholder fails check 28b =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+mkdir -p "$T/SSOT/tech-debt"
+printf '# Tech debt\n\n## Easily confused with\n\nnone\n\n## Out of scope\n\nnone -- covers complete intent\n' > "$T/SSOT/tech-debt/README.md"
+printf -- '---\nid: DEBT-0005\nstatus: resolved\npriority: medium\n---\n# Placeholder debt\n\nTODO debt: capture the real owner later.\n' > "$T/SSOT/tech-debt/0005-unregistered-placeholder.md"
+out=$(run "$T"); code=$?
+assert_contains "unregistered placeholder debt triggers CAPTURE-LIFECYCLE" "$out" "[CAPTURE-LIFECYCLE] owner file contains placeholder follow-up wording"
+assert_exit "unregistered placeholder debt exits 2" "$code" "2"
+rm -rf "$T"
+
+echo "== S36d quoted and fenced placeholder examples are ignored =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+mkdir -p "$T/SSOT/tech-debt"
+printf '# Tech debt\n\n## Easily confused with\n\nnone\n\n## Out of scope\n\nnone -- covers complete intent\n' > "$T/SSOT/tech-debt/README.md"
+printf -- '---\nid: DEBT-0006\nstatus: resolved\npriority: low\n---\n# Historical wording\n\n> TODO debt: capture the real owner later.\n\n```text\nPending action: follow up later\n```\n' > "$T/SSOT/tech-debt/0006-historical-wording.md"
+out=$(run "$T"); code=$?
+assert_not_contains "quoted/fenced placeholder has no CAPTURE-LIFECYCLE fail" "$out" "[FAIL] [CAPTURE-LIFECYCLE] owner file contains placeholder follow-up wording"
+assert_exit "quoted/fenced placeholder exits 0" "$code" "0"
+rm -rf "$T"
+
 echo "== S37 open gap with vague later wording and no owner (check 29 -> SILENT-DEFERRAL FAIL) =="
 T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
 printf '\n## Open Gaps\n\n| Area | Status | Gap description | Blocking level |\n|---|---|---|---|\n| testing | gap | Handle frontend lint later when convenient | non-blocking |\n' >> "$T/SSOT/STATUS.md"
@@ -611,6 +655,121 @@ printf '# Benchmark Strategy\n\n## Recent benchmark run history\n\n2026-07-03 be
 out=$(run "$T"); code=$?
 assert_contains "benchmark ledger triggers WARN" "$out" "[BENCHMARK-LEDGER]"
 assert_exit "benchmark ledger exits 1" "$code" "1"
+rm -rf "$T"
+
+echo "== S47 canonical v2.57 architecture is scanned by legacy-era checks =="
+T=$(mktemp -d); make_base "$T"; facet_base "$T"
+printf '\nconfidence: hypothesis\n' >> "$T/SSOT/02-architecture/README.md"
+out=$(run "$T"); code=$?
+assert_contains "canonical architecture hypothesis is scanned" "$out" "architecture body contains confidence: hypothesis"
+assert_exit "canonical architecture hypothesis exits 2" "$code" "2"
+rm -rf "$T"
+
+echo "== S48 canonical v2.57 decisions are scanned =="
+T=$(mktemp -d); make_base "$T"; facet_base "$T"
+mkdir -p "$T/SSOT/04-records/decisions"
+printf '# Decisions\n' > "$T/SSOT/04-records/decisions/README.md"
+printf -- '---\nstatus: accepted\n---\n# Missing lifecycle fields\n' > "$T/SSOT/04-records/decisions/0001-missing-fields.md"
+out=$(run "$T"); code=$?
+assert_contains "canonical decisions entry is scanned" "$out" "[DECISION]"
+assert_contains "canonical decisions missing introduced_in is flagged" "$out" "missing required field 'introduced_in'"
+assert_exit "canonical decisions missing fields exits 2" "$code" "2"
+rm -rf "$T"
+
+echo "== S49 v2.57 legacy directories fail FACETED-LAYOUT gate =="
+T=$(mktemp -d); make_base "$T"
+set_protocol_version "$T" "2.57"
+out=$(run "$T"); code=$?
+assert_contains "v2.57 legacy layout triggers FACETED-LAYOUT" "$out" "[FACETED-LAYOUT]"
+assert_exit "v2.57 legacy layout exits 2" "$code" "2"
+rm -rf "$T"
+
+echo "== S50 pre-v2.57 legacy layout remains compatible and scanned =="
+T=$(mktemp -d); make_base "$T"
+set_protocol_version "$T" "2.56"
+printf '\nconfidence: hypothesis\n' >> "$T/SSOT/architecture/README.md"
+out=$(run "$T"); code=$?
+assert_not_contains "pre-v2.57 legacy layout has no FACETED-LAYOUT failure" "$out" "[FACETED-LAYOUT]"
+assert_contains "pre-v2.57 legacy architecture is still scanned" "$out" "architecture body contains confidence: hypothesis"
+assert_exit "pre-v2.57 legacy hypothesis exits 2" "$code" "2"
+rm -rf "$T"
+
+echo "== S51 canonical v2.57 layout passes FACETED-LAYOUT gate =="
+T=$(mktemp -d); make_base "$T"; facet_base "$T"
+out=$(run "$T"); code=$?
+assert_not_contains "canonical layout has no FACETED-LAYOUT failure" "$out" "[FAIL] [FACETED-LAYOUT]"
+assert_exit "canonical minimal layout exits 0" "$code" "0"
+rm -rf "$T"
+
+echo "== S51b v2.57 nested architecture domains fail FACETED-LAYOUT gate =="
+T=$(mktemp -d); make_base "$T"; facet_base "$T"
+mkdir -p "$T/SSOT/02-architecture/domains/runtime"
+printf '# Runtime\n' > "$T/SSOT/02-architecture/domains/runtime/README.md"
+out=$(run "$T"); code=$?
+assert_contains "nested domains trigger FACETED-LAYOUT" "$out" "architecture domains must be direct numbered children"
+assert_exit "nested domains exit 2" "$code" "2"
+rm -rf "$T"
+
+echo "== S51c v2.57 missing canonical architecture owner fails =="
+T=$(mktemp -d); make_base "$T"; facet_base "$T"
+rm "$T/SSOT/02-architecture/README.md"
+out=$(run "$T"); code=$?
+assert_contains "missing canonical architecture owner triggers FACETED-LAYOUT" "$out" "requires canonical owner"
+assert_exit "missing canonical architecture owner exits 2" "$code" "2"
+rm -rf "$T"
+
+echo "== S52 long research frontmatter with block promotion_targets passes =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+mkdir -p "$T/SSOT/04-records/research"
+printf '# Research records\n' > "$T/SSOT/04-records/research/README.md"
+{
+  printf -- '---\nstatus: source-backed\nkind: research\ncreated_on: 2026-07-10\nowner: platform team\npromotion_targets:\n  - SSOT/testing/README.md\n'
+  for i in $(seq 1 48); do printf 'note_%02d: value\n' "$i"; done
+  printf 'recheck_trigger: "test harness changes"\n---\n# Long packet\n\n## Applicability and boundaries\n\ndo_not_use_for: current production fact.\n'
+} > "$T/SSOT/04-records/research/0001-long-frontmatter.md"
+out=$(run "$T"); code=$?
+assert_not_contains "long block-list frontmatter has no RESEARCH-RECORD fail" "$out" "[FAIL] [RESEARCH-RECORD]"
+assert_exit "long block-list frontmatter exits 0" "$code" "0"
+rm -rf "$T"
+
+echo "== S53 empty inline research promotion_targets fails =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+mkdir -p "$T/SSOT/04-records/research"
+printf '# Research records\n' > "$T/SSOT/04-records/research/README.md"
+printf -- '---\nstatus: source-backed\nkind: research\ncreated_on: 2026-07-10\nowner: platform team\npromotion_targets: [ ]\nrecheck_trigger: "test harness changes"\n---\n# Empty targets\n\n## Applicability and boundaries\n\ndo_not_use_for: current production fact.\n' > "$T/SSOT/04-records/research/0001-empty-inline.md"
+out=$(run "$T"); code=$?
+assert_contains "empty inline promotion_targets is rejected" "$out" "promotion_targets must name owner targets"
+assert_exit "empty inline promotion_targets exits 2" "$code" "2"
+rm -rf "$T"
+
+echo "== S54 empty block research promotion_targets fails =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+mkdir -p "$T/SSOT/04-records/research"
+printf '# Research records\n' > "$T/SSOT/04-records/research/README.md"
+printf -- '---\nstatus: source-backed\nkind: research\ncreated_on: 2026-07-10\nowner: platform team\npromotion_targets:\nrecheck_trigger: "test harness changes"\n---\n# Empty targets\n\n## Applicability and boundaries\n\ndo_not_use_for: current production fact.\n' > "$T/SSOT/04-records/research/0001-empty-block.md"
+out=$(run "$T"); code=$?
+assert_contains "empty block promotion_targets is rejected" "$out" "promotion_targets must name owner targets"
+assert_exit "empty block promotion_targets exits 2" "$code" "2"
+rm -rf "$T"
+
+echo "== S55 commented-empty research promotion_targets fails =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+mkdir -p "$T/SSOT/04-records/research"
+printf '# Research records\n' > "$T/SSOT/04-records/research/README.md"
+printf -- '---\nstatus: source-backed\nkind: research\ncreated_on: 2026-07-10\nowner: platform team\npromotion_targets: # intentionally empty\nrecheck_trigger: "test harness changes"\n---\n# Empty targets\n\n## Applicability and boundaries\n\ndo_not_use_for: current production fact.\n' > "$T/SSOT/04-records/research/0001-comment-empty.md"
+out=$(run "$T"); code=$?
+assert_contains "commented-empty promotion_targets is rejected" "$out" "promotion_targets must name owner targets"
+assert_exit "commented-empty promotion_targets exits 2" "$code" "2"
+rm -rf "$T"
+
+echo "== S56 empty-valued research promotion_targets list fails =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+mkdir -p "$T/SSOT/04-records/research"
+printf '# Research records\n' > "$T/SSOT/04-records/research/README.md"
+printf -- '---\nstatus: source-backed\nkind: research\ncreated_on: 2026-07-10\nowner: platform team\npromotion_targets:\n  - ""\n  - []\n  - # still empty\nrecheck_trigger: "test harness changes"\n---\n# Empty targets\n\n## Applicability and boundaries\n\ndo_not_use_for: current production fact.\n' > "$T/SSOT/04-records/research/0001-empty-valued-list.md"
+out=$(run "$T"); code=$?
+assert_contains "empty-valued promotion_targets list is rejected" "$out" "promotion_targets must name owner targets"
+assert_exit "empty-valued promotion_targets list exits 2" "$code" "2"
 rm -rf "$T"
 
 echo ""

@@ -40,7 +40,14 @@ TOP_LEVEL_MOVES = [
     ("research", "04-records/research"),
 ]
 
-LINK_RE = re.compile(r"\]\(([^)]+)\)")
+INLINE_LINK_RE = re.compile(
+    r"(?P<prefix>\]\([ \t]*)(?P<target><[^>\n]*>|[^ \t\n)]+)"
+    r"(?P<suffix>(?:[ \t]+(?:\"[^\"\n]*\"|'[^'\n]*'|\([^\)\n]*\)))?[ \t]*\))"
+)
+REFERENCE_DEFINITION_RE = re.compile(
+    r"^(?P<prefix>[ \t]{0,3}\[[^\]\n]+\]:[ \t]*)(?P<target><[^>\n]+>|[^ \t\n]+)(?P<suffix>[^\n]*)$",
+    re.MULTILINE,
+)
 
 
 @dataclass(frozen=True)
@@ -165,7 +172,6 @@ def should_skip_link(target: str) -> bool:
         or target.startswith("#")
         or re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", target) is not None
         or target.startswith("//")
-        or target.startswith("<")
     )
 
 
@@ -182,18 +188,42 @@ def rel_link(from_file: Path, to_path: Path) -> str:
     return rel.replace(os.sep, "/")
 
 
-def rewrite_markdown_links(text: str, old_file: Path, new_file: Path, repo_root: Path, moves: list[Move]) -> str:
-    def repl(match: re.Match[str]) -> str:
-        target = match.group(1)
-        base, suffix = split_target(target)
-        if should_skip_link(base):
-            return match.group(0)
-        old_target = resolve_target(old_file, repo_root, base)
-        new_target = mapped_path(old_target, moves)
-        new_base = rel_link(new_file, new_target)
-        return f"]({new_base}{suffix})"
+def rewrite_link_target(
+    raw_target: str,
+    old_file: Path,
+    new_file: Path,
+    repo_root: Path,
+    moves: list[Move],
+) -> str:
+    angled = raw_target.startswith("<") and raw_target.endswith(">")
+    target = raw_target[1:-1] if angled else raw_target
+    base, suffix = split_target(target)
+    if should_skip_link(base):
+        return raw_target
+    old_target = resolve_target(old_file, repo_root, base)
+    new_target = mapped_path(old_target, moves)
+    if new_file == old_file and new_target == old_target:
+        return raw_target
+    new_base = rel_link(new_file, new_target)
+    if base.endswith("/") and not new_base.endswith("/"):
+        new_base += "/"
+    rewritten_target = f"{new_base}{suffix}"
+    if angled:
+        return f"<{rewritten_target}>"
+    return rewritten_target
 
-    return LINK_RE.sub(repl, text)
+
+def rewrite_markdown_links(text: str, old_file: Path, new_file: Path, repo_root: Path, moves: list[Move]) -> str:
+    def inline_repl(match: re.Match[str]) -> str:
+        target = rewrite_link_target(match.group("target"), old_file, new_file, repo_root, moves)
+        return f"{match.group('prefix')}{target}{match.group('suffix')}"
+
+    def reference_repl(match: re.Match[str]) -> str:
+        target = rewrite_link_target(match.group("target"), old_file, new_file, repo_root, moves)
+        return f"{match.group('prefix')}{target}{match.group('suffix')}"
+
+    text = INLINE_LINK_RE.sub(inline_repl, text)
+    return REFERENCE_DEFINITION_RE.sub(reference_repl, text)
 
 
 def rewrite_literal_paths(text: str, moves: list[Move], repo_root: Path) -> str:
@@ -201,12 +231,18 @@ def rewrite_literal_paths(text: str, moves: list[Move], repo_root: Path) -> str:
     for move in moves:
         src_rel = display(move.src, repo_root).replace(os.sep, "/")
         dst_rel = display(move.dst, repo_root).replace(os.sep, "/")
-        replacements.append((src_rel + "/", dst_rel + "/"))
         replacements.append((src_rel, dst_rel))
 
     # Longest first so architecture/domains/foo is rewritten before architecture.
+    # Both sides are literal-path boundaries: do not rewrite longer tokens,
+    # absolute/local path fragments, or external URLs that merely contain the
+    # repository-relative spelling.
     for old, new in sorted(replacements, key=lambda item: len(item[0]), reverse=True):
-        text = text.replace(old, new)
+        text = re.sub(
+            rf"(?<![A-Za-z0-9_./-]){re.escape(old)}(?![A-Za-z0-9_.-])",
+            lambda _match: new,
+            text,
+        )
     return text
 
 

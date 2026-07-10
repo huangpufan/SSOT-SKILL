@@ -17,6 +17,25 @@ versions. This file only restates headline changes.
 ## [Unreleased]
 
 ### Changed
+- The v2.57 faceted-layout contract is now end-to-end: bootstrap templates and
+  current references use numbered physical paths, Doctor resolves and enforces
+  canonical facets at the v2.57 waterline, and the migration helper is
+  idempotent and path-boundary-safe on real canonical trees.
+- Research-record lint now accepts valid YAML block-list `promotion_targets`
+  while preserving empty-value failures; Bootstrap and Doctor also share the
+  four independent-review exceptions owned by `status-protocol.md`.
+- `ssot-closeout` / `ssot-audit` now force a durable disposition for user-visible
+  bug-fix, hotfix, regression-fix, and caveat-heavy batches: closeout must
+  adjudicate bug packetization, fix-commit disposition, caveat extraction, and
+  overdue waterlines instead of leaving the outcome only in closeout prose,
+  walkthroughs, plans, or git history. Protocol version `2.57` -> `2.58`.
+- `ssot-doctor` guidance and `ssot-lint.sh` now flag placeholder debt /
+  follow-up wording more aggressively, especially when owner files or STATUS
+  summaries still say `TODO debt`, `Pending action`, or equivalent without a
+  durable owner / trigger / guard.
+- `install.sh` now installs ownership-marked bundle-level companion files such
+  as `skills/SKILL_STYLE.md` into the target skills root, refuses to overwrite
+  unowned collisions, and removes only bundle-owned copies.
 - `ssot-preflight` area model now makes the v2.57 numbered faceted layout the
   canonical physical SSOT layout: `01-product/`, `02-architecture/`,
   `03-process/*`, and `04-records/*`. Legacy unnumbered paths remain readable

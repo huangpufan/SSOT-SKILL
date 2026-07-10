@@ -5,83 +5,32 @@ description: SSOT closeout before final response, claim_done, or commit after su
 
 # SSOT Closeout
 
-You are at the end of a substantive change batch, before final response,
-`claim_done`, or commit. Your job here is to reconcile what just happened
-against `SSOT/`: the diff, the tests, the user's confirmations, the bugs
-found, the in-task SSOT deltas you wrote down at preflight — not just the
-file changes — and to write durable facts into their *single* authoritative
-location, never duplicated across areas.
+Reconcile the whole batch against `SSOT/` before final response, `claim_done`,
+or commit: diff, tests, user decisions, failures, caveats, and the deltas parked
+at preflight. Write each durable fact once, at its authoritative owner. Test and
+benchmark runs are evidence unless the batch changed stable testing or
+benchmark policy.
 
-Test commands and their pass/fail output are evidence for the final answer
-or for a durable fact elsewhere; they are not automatically facts for
-`testing/`. Update `testing/` only when this batch changes correctness test
-strategy, selection matrix, gates, fixtures, correctness baseline, known gaps,
-or defensive-test mappings.
+Do not call the batch fixed or aligned until every user-visible failure,
+fix/hotfix, validation caveat, preflight recommendation, unresolved fallback,
+and overdue waterline has one durable disposition: update its existing owner,
+create the right bug/debt/gotcha/decision/research record or STATUS gap, or
+record a concrete no-op reason. Working docs, walkthroughs, handoffs, plans,
+`link-only` inventory, and git history are not durable owners by themselves.
+If the cause is a repeatable SSOT-SKILL protocol/template/lint gap, fix the
+bundle, refresh the installed copy, then update the consumer.
 
-Benchmark commands and their measured output are evidence for the final answer
-or for a consuming owner; they are not automatically facts for `benchmark/`.
-Update `benchmark/` only when this batch changes the stable suite, workload,
-metric, environment, floor, comparison rule, trend interpretation, known gap,
-or decision/release/product/architecture link.
+Closeout is a no-op only after inspecting the affected scope and finding no
+durable architecture, contract, behaviour, product, workflow, test-policy, or
+operational truth change. Run targeted checks for the files touched; route full
+health checks to `$ssot-doctor`. Waterlines and high-impact claims follow the
+review exceptions owned by
+`../ssot-preflight/references/status-protocol.md §6`.
 
-Closeout is a no-op when the batch is purely mechanical, docs-wording
-without durable facts, test-only without policy change, or implementation
-detail with no architecture / contract / behaviour impact. Record no-op
-only after actually inspecting the affected scope, not by default.
-
-Run only the targeted checks needed for the files you touched. Do not
-invoke full `$ssot-doctor` here.
-
-Before final response, resolve the risk recommendations surfaced by preflight
-and anything newly discovered during the batch:
-
-- If the batch closes an active debt, bug, gotcha, adjudication, or open gap,
-  update its owner and STATUS pointer.
-- If the batch produced research/PoC output, including a one-off benchmark
-  study, choose exactly one disposition:
-  create `SSOT/04-records/research/NNNN-<slug>.md`, update an existing research
-  entry, promote durable claim rows into their product/architecture/benchmark/
-  decision or other owners, or discard the output with a concrete reason. Do
-  not create top-level `SSOT/research/`, and do not mirror the packet into an
-  authority owner.
-- If the batch touches the same trigger/path/capability but does not close it,
-  explicitly defer with the still-valid owner, reason, closure condition,
-  revisit signal, verification guard, and next action. Do not leave
-  "TODO later", "fallback for now", "compat shim", "future work", "someday",
-  or "temporary waiver" as unregistered prose.
-- Carry every preflight recommendation into a closeout disposition:
-  `fixed`, `deferred-visible`, `expired/out-of-scope`, or `converted-to-owner`.
-  A closeout that says only "create a later task" or "out of scope" without the
-  risk, recommendation, owner/record pointer, retrigger condition, and guard is
-  not aligned.
-- If a consumer SSOT problem exposed a repeatable protocol/template/lint gap and
-  this repository owns SSOT-SKILL, update the bundle first, refresh the runtime
-  copy, then update the consumer SSOT from the improved rule.
-
-You cannot self-certify high-impact moves. If closeout would hit one of the
-independent-review exceptions in
-`../ssot-preflight/references/status-protocol.md §7.1` -- such as bootstrap
-overall `passed`, documentation-language change, `semantic_impact=high`
-protocol upgrade, or first `coverage_result=converged` -- stop and route to
-`$ssot-doctor` or `$ssot-audit`. Other daily waterline updates follow the
-self-review path in that same section.
-
-## Distill & promote
-
-Run a small-window two-stream scan over the rules you actually touched
-or cited in this batch — repo/conversation reality (Stream A) and
-user-directive signals parked since last batch (Stream B) — and emit
-zero or more move blocks beside each rule at its new location. The
-schema and the five self-check questions live in
-`references/promotion-rationale.md`. Do not issue moves on rules you
-did not examine this batch.
-
-Also scan `STATUS.md ## Pending Captures` for CAP- rows older than 30
-commits and either route them now or mark `status: deferred` with a
-one-line reason.
-
-Any move with `from: apex` or `to: apex` requires `$ssot-doctor`
-stop-review; moves that do not touch apex do not.
+Run the small-window two-stream promotion scan only over rules touched or cited
+in this batch. Route or explicitly defer stale Pending Captures; apex moves
+require `$ssot-doctor` review. The move schema lives in
+`references/promotion-rationale.md`.
 
 ## Load on demand
 

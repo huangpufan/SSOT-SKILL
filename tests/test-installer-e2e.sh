@@ -13,6 +13,7 @@ trap 'rm -rf "$WORK_ROOT"' EXIT
 pass() { echo "  ok   : $1"; PASS=$((PASS+1)); }
 fail() { echo "  FAIL : $1"; FAIL=$((FAIL+1)); }
 assert_file() { [[ -f "$2" ]] && pass "$1" || fail "$1 (missing: $2)"; }
+assert_no_file() { [[ ! -f "$2" ]] && pass "$1" || fail "$1 (should not exist: $2)"; }
 assert_dir() { [[ -d "$2" ]] && pass "$1" || fail "$1 (missing: $2)"; }
 assert_no_dir() { [[ ! -d "$2" ]] && pass "$1" || fail "$1 (should not exist: $2)"; }
 assert_grep() { grep -q "$3" "$2" 2>/dev/null && pass "$1" || fail "$1 (grep '$3' failed in $2)"; }
@@ -29,6 +30,7 @@ HOME="$SCENARIO1" SOURCE_DIR="$PROJECT_ROOT" \
 
 CLAUDE_BASE="$SCENARIO1/.claude/skills"
 assert_dir "scenario1: claude base created" "$CLAUDE_BASE"
+assert_file "scenario1: bundle-level SKILL_STYLE companion installed" "$CLAUDE_BASE/SKILL_STYLE.md"
 for skill in ssot-preflight ssot-bootstrap ssot-closeout ssot-audit ssot-doctor ssot-skill; do
   assert_file "scenario1: $skill SKILL.md" "$CLAUDE_BASE/$skill/SKILL.md"
   assert_file "scenario1: $skill openai.yaml" "$CLAUDE_BASE/$skill/agents/openai.yaml"
@@ -56,6 +58,7 @@ HOME="$SCENARIO2" SOURCE_DIR="$PROJECT_ROOT" \
   >/dev/null 2>&1 || fail "scenario2 install exit code"
 PROJ_BASE="$SCENARIO2/project/.claude/skills"
 assert_dir "scenario2: project skills dir" "$PROJ_BASE"
+assert_file "scenario2: bundle-level SKILL_STYLE companion installed" "$PROJ_BASE/SKILL_STYLE.md"
 assert_file "scenario2: ssot-preflight installed at project" "$PROJ_BASE/ssot-preflight/SKILL.md"
 # zh templates: should contain CJK (use python3 — macOS grep lacks -P)
 if python3 -c "import sys,re; sys.exit(0 if re.search(r'[一-龥]', open(sys.argv[1], encoding='utf-8').read()) else 1)" "$PROJ_BASE/ssot-bootstrap/assets/templates/architecture-readme.md" 2>/dev/null; then
@@ -81,9 +84,10 @@ HOME="$SCENARIO4" SOURCE_DIR="$PROJECT_ROOT" \
 # Touch a sentinel to ensure overwrite happens
 echo "OLD" > "$SCENARIO4/.claude/skills/ssot-preflight/SENTINEL"
 HOME="$SCENARIO4" SOURCE_DIR="$PROJECT_ROOT" \
-  bash "$INSTALLER" --upgrade >/dev/null 2>&1 || fail "scenario4 upgrade exit code"
+  bash -c "cd '$SCENARIO4' && bash '$INSTALLER' --upgrade" >/dev/null 2>&1 || fail "scenario4 upgrade exit code"
 # SKILL.md should still exist after upgrade
 assert_file "scenario4: SKILL.md after upgrade" "$SCENARIO4/.claude/skills/ssot-preflight/SKILL.md"
+assert_file "scenario4: companion file survives upgrade" "$SCENARIO4/.claude/skills/SKILL_STYLE.md"
 
 # Scenario 5: uninstall
 SCENARIO5="$WORK_ROOT/scenario5"
@@ -95,7 +99,34 @@ HOME="$SCENARIO5" SOURCE_DIR="$PROJECT_ROOT" \
   bash "$INSTALLER" --uninstall --agent claude --scope global --yes >/dev/null 2>&1 || fail "scenario5 uninstall exit code"
 assert_no_dir "scenario5: ssot-preflight removed" "$SCENARIO5/.claude/skills/ssot-preflight"
 assert_no_dir "scenario5: ssot-skill removed" "$SCENARIO5/.claude/skills/ssot-skill"
+assert_no_file "scenario5: owned companion removed" "$SCENARIO5/.claude/skills/SKILL_STYLE.md"
 assert_dir "scenario5: base skills dir preserved" "$SCENARIO5/.claude/skills"
+
+# Scenario 5b: install never overwrites an unowned shared-root file
+SCENARIO5B="$WORK_ROOT/scenario5b"
+mkdir -p "$SCENARIO5B/.claude/skills"
+printf 'FOREIGN COMPANION\n' > "$SCENARIO5B/.claude/skills/SKILL_STYLE.md"
+HOME="$SCENARIO5B" SOURCE_DIR="$PROJECT_ROOT" \
+  bash "$INSTALLER" --non-interactive --agent claude --scope global --lang en --yes \
+  >/dev/null 2>&1
+SCENARIO5B_RC=$?
+if [[ $SCENARIO5B_RC -ne 0 ]]; then
+  pass "scenario5b: unowned companion blocks install"
+else
+  fail "scenario5b: unowned companion should block install"
+fi
+assert_grep "scenario5b: foreign companion preserved" "$SCENARIO5B/.claude/skills/SKILL_STYLE.md" "FOREIGN COMPANION"
+assert_no_dir "scenario5b: blocked install writes no skill" "$SCENARIO5B/.claude/skills/ssot-preflight"
+
+# Scenario 5c: uninstall preserves a companion replaced by another owner
+SCENARIO5C="$WORK_ROOT/scenario5c"
+mkdir -p "$SCENARIO5C"
+HOME="$SCENARIO5C" SOURCE_DIR="$PROJECT_ROOT" \
+  bash "$INSTALLER" --non-interactive --agent claude --scope global --lang en --yes >/dev/null 2>&1
+printf 'FOREIGN AFTER INSTALL\n' > "$SCENARIO5C/.claude/skills/SKILL_STYLE.md"
+HOME="$SCENARIO5C" SOURCE_DIR="$PROJECT_ROOT" \
+  bash "$INSTALLER" --uninstall --agent claude --scope global --yes >/dev/null 2>&1 || fail "scenario5c uninstall exit code"
+assert_grep "scenario5c: uninstall preserves foreign companion" "$SCENARIO5C/.claude/skills/SKILL_STYLE.md" "FOREIGN AFTER INSTALL"
 
 # Scenario 6: --version
 VERSION_OUTPUT="$(bash "$INSTALLER" --version 2>&1)"

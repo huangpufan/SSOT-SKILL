@@ -14,7 +14,7 @@
 
 ## Apex / Maxim → Owner 索引
 
-<!-- 仅 architecture/_manifest.md 承载。product/ 不包含此节。 -->
+<!-- 仅 02-architecture/_manifest.md 承载。01-product/ 不包含此节。 -->
 
 | Maxim | 所有者 | DISC / capability / invariant 锚点 |
 |---|---|---|
@@ -47,4 +47,4 @@
 
 | 版本 | 日期 | 范围 | 注释 |
 |---|---|---|---|
-| v2.48 | 2026-06 | product/ + architecture/ manifest separation | <!-- 记录纳入范围与拓补 --> |
+| <protocol-version> | <YYYY-MM> | <canonical owner paths and adoption scope> | <!-- 记录纳入范围与拓补 --> |

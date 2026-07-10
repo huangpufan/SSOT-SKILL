@@ -7,7 +7,7 @@
 ## 范围
 
 - **负责**：技术系统使命、主要 technical actor/caller、运行哲学、实现优先级、技术非目标、非功能成功标准、product constraints 的技术含义和跨域设计约束。
-- **链接但不拥有**：产品使命、产品承诺、用户/操作者、产品非目标、roadmap 和 product acceptance；这些由 `product/` 拥有。
+- **链接但不拥有**：产品使命、产品承诺、用户/操作者、产品非目标、roadmap 和 product acceptance；这些由 `../../01-product/` 拥有。
 - **不负责**：具体状态/资源所有权、API/schema 字段细节或 domain 内失败恢复；这些应链接到 domains。
 - **主要 源资料**：
 

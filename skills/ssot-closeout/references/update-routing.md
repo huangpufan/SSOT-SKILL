@@ -86,6 +86,17 @@ name owner, reason, closure condition, revisit signal, and verification guard.
 If those fields cannot be written, do not call the area `covered`; leave an
 open gap instead.
 
+**User-visible failure surfaces** -- false success, false failure, wrong result,
+timeout, dead loop, data leak, or contract break -- default to `bugs/` unless
+there is concrete evidence they are only non-durable local implementation
+detail. A fix commit alone is not the durable owner.
+
+**Caveat-only evidence** -- `unchecked`, `inferred`, `blocked by unrelated
+state`, `excluded by unrelated state`, `real-provider gated`, `browser smoke
+blocked`, or similar wording -- is not automatically "evidence only". If the
+caveat changes future closure judgement, route it to a real owner: `testing`
+gap, `tech-debt`, `gotchas`, `bugs`, `decisions/`, or `STATUS.md` open gap.
+
 **Conversation directives** route by their durable meaning: product promises to
 `product/`, decisions to `decisions/`, recurring agent discipline to
 `development/`, pitfalls to `gotchas/`, root causes to `bugs/`, and future work
@@ -177,10 +188,10 @@ bundle first.
 | Config / env / feature flags | `architecture/` config/trust model; deployment for environment differences |
 | Monitoring / alerting | `architecture/` observability/verification evidence |
 | README / docs / ADR / runbook / PRD / planning | Source-material absorption; product facts to `product/`; technical facts to owner |
-| Working docs / PoC / closure / report / historical docs | Source-material lifecycle inventory; downgrade fields; absorb durable product/architecture facts only; if a reproducible research/PoC packet is valuable, use `04-records/research/` |
+| Working docs / PoC / closure / report / historical docs | Source-material lifecycle inventory; downgrade fields; absorb durable product/architecture facts only; if a reproducible research/PoC packet is valuable, use `04-records/research/`; stable caveats that affect future agent judgement must not stay `link-only` forever |
 | Generated diagrams / screenshots / dependency graphs / auto-summaries | Source-material/diagram candidates only; facts must be verified and rewritten as maintainable owner content |
 | Deleting legacy surface / retiring compatible paths | `architecture/` evolution/current-target-gap plus gotchas/decisions/testing as linked |
-| Bug fix / hotfix / revert-fix loop | `bugs/`, split by failure mode when critical/major/recurred |
+| Bug fix / hotfix / revert-fix loop | `bugs/`, split by failure mode when critical/major/recurred; when the batch only repairs a caveat or operational trap, also check `gotchas/`, `tech-debt/`, or `decisions/` for the durable disposition |
 | External SDK / third-party API integration | `architecture/`, `development/` discipline, and `bugs/` when a prior recurrence drove the rule |
 
 ## 8. Appendix B: Conversation Signal Routing Table
@@ -191,8 +202,10 @@ bundle first.
 | "Do not touch..." / trap | `gotchas/` |
 | Root cause analysis | `bugs/` |
 | Recurring bug / hotfix loop | `bugs/`, split by failure mode; recurrence timeline for same root cause |
+| User-visible false success / false failure / wrong result / timeout / loop / leak / contract break | `bugs/` by default; downgrade only when you can show it is a non-durable local implementation detail |
 | Temporary fix / later refactor | `tech-debt/` |
 | Fallback / compat shim / later-remove / temporary waiver / TODO left in current code | `tech-debt/` or the owning `bugs/` / `decisions/` entry, with owner + reason + closure condition + revisit signal + verification guard |
+| `unchecked` / `inferred` / `blocked` / `excluded by unrelated state` / `real-provider gated` / `browser smoke blocked` caveat | `testing` gap, `tech-debt`, `gotchas/`, `bugs/`, `decisions/`, or `STATUS.md` open gap; do not leave it as transcript-only evidence when it changes future closure judgement |
 | Technical priorities / non-goals / NFRs | `architecture/views/operating-model.md`, CTG, or `decisions/`; product promises first enter `product/` |
 | Product promises / users / capability / journey / acceptance / roadmap | `product/` |
 | Constraints | architecture operating model/domain constraints; decisions if long-lived trade-off |

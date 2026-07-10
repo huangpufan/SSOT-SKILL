@@ -54,4 +54,4 @@
 
 | Product constraint | Architecture owner | Implementation gap |
 |---|---|---|
-| | [../architecture/README.md](../architecture/README.md) | |
+| | [../02-architecture/README.md](../02-architecture/README.md) | |

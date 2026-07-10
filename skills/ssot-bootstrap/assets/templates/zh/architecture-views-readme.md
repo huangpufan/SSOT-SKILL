@@ -2,7 +2,7 @@
 
 > 行文风格：写给任何冷读者。详见 `ssot-bootstrap` §3.7。
 
-> 跨域架构视角。Views 从 domains 进行跨域综合，并吸收源资料中的技术系统目标、运行哲学、runtime journeys 和 implementation current/target/gap；具体所有权、契约、状态和恢复细节必须路由到 domains。产品承诺、capability、journey 和 product acceptance 由 `product/` 拥有，views 只链接 product owner 并记录实现设计或 gap。
+> 跨域架构视角。Views 从 domains 进行跨域综合，并吸收源资料中的技术系统目标、运行哲学、runtime journeys 和 implementation current/target/gap；具体所有权、契约、状态和恢复细节必须路由到 domains。产品承诺、capability、journey 和 product acceptance 由 `../../01-product/` 拥有，views 只链接 product owner 并记录实现设计或 gap。
 >
 > Views 是 SSOT 的设计意图层，必须包含叙述性的设计思考，不能只有表格。
 
@@ -40,7 +40,7 @@
 
 | 源资料内容 | 目标视角 | Domain / 卫星区域后续 |
 |---|---|---|
-| 产品定位、产品目标、产品优先级、产品非目标、产品验收 | `../product/` owner | architecture view 链接 product owner，不复制事实 |
+| 产品定位、产品目标、产品优先级、产品非目标、产品验收 | `../../01-product/` owner | architecture view 链接 product owner，不复制事实 |
 | 技术系统定位、实现优先级、技术非目标、运行哲学、主要 technical actor、非功能成功标准 | [operating-model.md](./operating-model.md) | 链接执行这些原则的 domains 和相关 product owner |
 | Runtime 主路径、阶段生命周期、failure/recovery、observability signals | [critical-journeys.md](./critical-journeys.md) | 链接负责各阶段/状态/资源/恢复的 domains |
 | Implementation current/target/gap、迁移目标、设计缺口、product acceptance 实现差距 | [current-target-gap.md](./current-target-gap.md) | 链接 product owner、decisions、domains、开放裁决项 |

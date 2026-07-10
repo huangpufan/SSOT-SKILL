@@ -103,6 +103,7 @@ The following conversation patterns often contain long-lived SSOT knowledge:
 - Root-cause analysis discovered during debugging
 - "Note this cannot be...", "the trap here is..."
 - "This is a temporary fix, later we must..."
+- `unchecked`, `inferred`, `blocked`, `excluded by unrelated state`, `real-provider gated`, `browser smoke blocked`, or "no browser proof / no real-provider proof"
 - "Current priority...", "this is not the current goal...", "success criterion is..."
 - Constraint confirmation or clarification
 - Confirmation of design rationale, design intent, non-goals, rejected approaches or do-not-revive concepts
@@ -125,6 +126,13 @@ Test results in the transcript are evidence, not testing facts. Do not promote "
 Benchmark results in the transcript are evidence, not benchmark facts. Do not promote "ran benchmark X and got Y" into `benchmark/` unless the conversation also establishes a durable benchmark change: suite, workload, metric, environment, runner command, floor, comparison rule, trend interpretation, known gap, or consuming owner link. One-off benchmark studies that should remain reusable but are not stable owner policy belong in `04-records/research/`.
 
 When the user explicitly provides external material, specifications, PRDs, design docs or historical documents, run source-material classification, absorption, thin-documentation check and conflict adjudication per [`source-material.md`](../../ssot-preflight/references/source-material.md).
+
+Transcript durable capture is not satisfied by the transcript alone. When the
+conversation records a root cause, workaround, future-work caveat, missing
+browser/real-provider proof, or other closure-affecting caveat, route it to a
+durable owner adjudication (`bugs/`, `tech-debt/`, `testing`, `gotchas/`,
+`decisions/`, or `STATUS.md` gap) instead of leaving it as transcript-only
+memory.
 
 ---
 

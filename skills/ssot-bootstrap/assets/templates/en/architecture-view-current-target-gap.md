@@ -7,7 +7,7 @@
 ## Scope
 
 - **Owns**: global implementation current/target/gap, migration priorities, partially landed technical design intent, implementation gaps against product acceptance, stale/conflicting technical design source material, and open design adjudications.
-- **Links but does not own**: product roadmap, phase intent, product-level gaps, and product acceptance gates; these are owned by `product/roadmap-and-acceptance.md` or the relevant product owner.
+- **Links but does not own**: product roadmap, phase intent, product-level gaps, and product acceptance gates; these are owned by `../../01-product/roadmap-and-acceptance.md` or the relevant product owner.
 - **Does not own**: in-domain implementation details. Each concrete gap should link to a domain, decision, bug, gotcha, test, or tech-debt entry.
 - **Primary source material**:
 

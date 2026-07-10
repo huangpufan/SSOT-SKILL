@@ -80,4 +80,4 @@
 <!-- 一句话说明本 owner 不回答什么，并指向回答它的 owner。 -->
 
 ## 延伸阅读（See also）
-<!-- 3-7 条链接并附一句说明，通常包含 testing/、release/、architecture/、product/、decisions/、tech-debt/ 与 04-records/research/。 -->
+<!-- 3-7 条链接并附一句说明，通常包含 03-process/testing/、03-process/release/、02-architecture/、01-product/、04-records/decisions/、04-records/tech-debt/ 与 04-records/research/。 -->

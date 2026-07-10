@@ -26,10 +26,10 @@ Do not create an entry for ordinary task notes, meeting summaries, or one-off co
 |----|-------|--------|------|-------|---------|-------------------|-----------------|
 | | | draft / validated / promoted / stale / superseded | research / poc / spike / benchmark / experiment | | YYYY-MM-DD | | |
 
-`promotion_targets` name the SSOT owners that may receive promoted claims, such as `SSOT/02-architecture/domains/<domain>/README.md`, `SSOT/03-process/testing/README.md`, or `SSOT/03-process/benchmark/README.md`.
+`promotion_targets` name the SSOT owners that may receive promoted claims, such as `SSOT/02-architecture/NN-<domain>/README.md`, `SSOT/03-process/testing/README.md`, or `SSOT/03-process/benchmark/README.md`.
 
 ## Promotion Rules
 
-A research record is not authority by itself. Promote only the claim rows that have enough evidence for a durable owner, then update the `Promoted SSOT owners` section in the entry. A one-off benchmark study stays here until its stable method, workload, metric, floor, comparison rule, or trend interpretation is promoted to `benchmark/`. Leave unpromoted claims inside the research record with their boundaries and recheck trigger.
+A research record is not authority by itself. Promote only the claim rows that have enough evidence for a durable owner, then update the `Promoted SSOT owners` section in the entry. A one-off benchmark study stays here until its stable method, workload, metric, floor, comparison rule, or trend interpretation is promoted to `SSOT/03-process/benchmark/`. Leave unpromoted claims inside the research record with their boundaries and recheck trigger.
 
 If a promoted owner contradicts the research record later, the promoted owner wins for current truth. Recheck this record, mark stale or superseded, and keep the historical evidence rather than rewriting it into a new conclusion.

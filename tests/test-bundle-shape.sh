@@ -66,10 +66,10 @@ done
 MIGRATION_HELPER="$PROJECT_ROOT/skills/ssot-audit/assets/scripts/migrate-faceted-layout.py"
 if [[ -f "$MIGRATION_HELPER" ]]; then
   pass "ssot-audit faceted-layout migration helper exists"
-  if python3 -m py_compile "$MIGRATION_HELPER" >/dev/null 2>&1; then
-    pass "ssot-audit faceted-layout migration helper compiles"
+  if python3 -c 'import ast, pathlib, sys; path = pathlib.Path(sys.argv[1]); ast.parse(path.read_text(encoding="utf-8"), filename=str(path))' "$MIGRATION_HELPER" >/dev/null 2>&1; then
+    pass "ssot-audit faceted-layout migration helper syntax parses without bytecode"
   else
-    fail "ssot-audit faceted-layout migration helper does not compile"
+    fail "ssot-audit faceted-layout migration helper does not parse"
   fi
 else
   fail "ssot-audit faceted-layout migration helper missing"
@@ -138,6 +138,79 @@ if [[ -d "$TPL_DIR/en" && -d "$TPL_DIR/zh" ]]; then
   fi
 else
   fail "templates en/ and zh/ dirs not both present"
+fi
+
+# 6a. Current protocol and rendered templates use the v2.57 numbered
+# faceted layout. Unnumbered paths are permitted only where protocol prose
+# explicitly labels them as legacy, migration input, deprecated, or archived.
+CURRENT_PATH_FILES=(
+  "$PROJECT_ROOT/skills/ssot-preflight/SKILL.md"
+  "$PROJECT_ROOT/skills/ssot-preflight/references/architecture.md"
+  "$PROJECT_ROOT/skills/ssot-preflight/references/source-material.md"
+  "$PROJECT_ROOT/skills/ssot-bootstrap/references/bootstrap.md"
+  "$PROJECT_ROOT/skills/ssot-bootstrap/references/formatting-conventions.md"
+  "$PROJECT_ROOT/skills/ssot-bootstrap/references/templates-index.md"
+)
+STALE_PATH_PATTERN='SSOT/(product|architecture|development|testing|benchmark|deployment|release|decisions|gotchas|bugs|tech-debt|research)/|`(product|architecture|development|testing|benchmark|deployment|release|decisions|gotchas|bugs|tech-debt|research)/|^[[:space:]]+(product|architecture|development|testing|benchmark|deployment|release|decisions|gotchas|bugs|tech-debt|research)/|02-architecture/(domains|<domain>)/'
+LEGACY_CONTEXT_PATTERN='legacy|migration input|migrat(e|ion)|deprecated|obsolete|archive|unnumbered|do not (add|create|use)|must not (add|create|use)'
+PATH_HYGIENE_FAILS=()
+for f in "${CURRENT_PATH_FILES[@]}"; do
+  while IFS= read -r hit; do
+    [[ -z "$hit" ]] && continue
+    if ! grep -qiE "$LEGACY_CONTEXT_PATTERN" <<<"$hit"; then
+      PATH_HYGIENE_FAILS+=("${f#"$PROJECT_ROOT/"}:$hit")
+    fi
+  done < <(grep -nE "$STALE_PATH_PATTERN" "$f" 2>/dev/null || true)
+done
+while IFS= read -r f; do
+  while IFS= read -r hit; do
+    [[ -z "$hit" ]] && continue
+    PATH_HYGIENE_FAILS+=("${f#"$PROJECT_ROOT/"}:$hit")
+  done < <(grep -nE "$STALE_PATH_PATTERN" "$f" 2>/dev/null || true)
+done < <(find "$TPL_DIR/en" "$TPL_DIR/zh" -maxdepth 1 -type f -name '*.md' -print)
+if [[ ${#PATH_HYGIENE_FAILS[@]} -eq 0 ]]; then
+  pass "current protocol/templates use canonical numbered SSOT paths"
+else
+  fail "current protocol/templates contain unnumbered concrete SSOT paths"
+  printf '    %s\n' "${PATH_HYGIENE_FAILS[@]}"
+fi
+
+# Root Reader Map links must route into the canonical facets, and architecture
+# domains are direct numbered children rather than an intermediate domains/ tree.
+ROOT_LINK_FAILS=()
+for lang in en zh; do
+  ROOT_TEMPLATE="$TPL_DIR/$lang/ssot-readme.md"
+  grep -qF '(./01-product/README.md)' "$ROOT_TEMPLATE" || ROOT_LINK_FAILS+=("$lang root product link")
+  grep -qF '(./02-architecture/README.md)' "$ROOT_TEMPLATE" || ROOT_LINK_FAILS+=("$lang root architecture link")
+  grep -qF '(../02-architecture/README.md)' "$TPL_DIR/$lang/product-prd.md" || ROOT_LINK_FAILS+=("$lang product-to-architecture link")
+  grep -qF '(../../02-architecture/README.md)' "$TPL_DIR/$lang/product-capabilities-readme.md" || ROOT_LINK_FAILS+=("$lang capability-to-architecture link")
+  grep -qF '(../../02-architecture/views/critical-journeys.md)' "$TPL_DIR/$lang/product-journeys-readme.md" || ROOT_LINK_FAILS+=("$lang journey-to-architecture link")
+  grep -qF '`../../01-product/roadmap-and-acceptance.md`' "$TPL_DIR/$lang/architecture-view-current-target-gap.md" || ROOT_LINK_FAILS+=("$lang architecture-to-product link")
+  grep -qF 'SSOT/02-architecture/NN-<domain>/README.md' "$TPL_DIR/$lang/research-entry.md" || ROOT_LINK_FAILS+=("$lang research promotion target")
+  if grep -qE '02-architecture/domains/|02-architecture/<domain>|\./domains/' "$TPL_DIR/$lang/architecture-readme.md"; then
+    ROOT_LINK_FAILS+=("$lang architecture domains are not direct numbered children")
+  fi
+  if grep -qE '\| v2\.48 \| 2026-06 \|' "$TPL_DIR/$lang/_manifest.md"; then
+    ROOT_LINK_FAILS+=("$lang manifest hard-codes an old protocol/date")
+  fi
+done
+if [[ ${#ROOT_LINK_FAILS[@]} -eq 0 ]]; then
+  pass "root links and direct numbered architecture-domain paths are canonical"
+else
+  fail "root/domain canonical link contract failed: ${ROOT_LINK_FAILS[*]}"
+fi
+
+# templates-index.md is the complete public inventory, not a hand-maintained
+# subset: each template filename appears exactly once and no unknown row exists.
+TEMPLATE_INDEX="$PROJECT_ROOT/skills/ssot-bootstrap/references/templates-index.md"
+ACTUAL_TEMPLATE_NAMES="$(find "$TPL_DIR/en" -maxdepth 1 -type f -name '*.md' -printf '%f\n' | sort)"
+INDEXED_TEMPLATE_NAMES="$(sed -nE 's/^\| `([^`]+\.md)` \|.*$/\1/p' "$TEMPLATE_INDEX" | sort)"
+if [[ "$ACTUAL_TEMPLATE_NAMES" == "$INDEXED_TEMPLATE_NAMES" ]]; then
+  pass "templates index completely matches shipped templates"
+else
+  fail "templates index does not match shipped templates"
+  echo "    missing from index: $(comm -23 <(printf '%s\n' "$ACTUAL_TEMPLATE_NAMES") <(printf '%s\n' "$INDEXED_TEMPLATE_NAMES") | tr '\n' ' ')"
+  echo "    unknown in index: $(comm -13 <(printf '%s\n' "$ACTUAL_TEMPLATE_NAMES") <(printf '%s\n' "$INDEXED_TEMPLATE_NAMES") | tr '\n' ' ')"
 fi
 
 # 6b. Protocol-upgrade ledger layering

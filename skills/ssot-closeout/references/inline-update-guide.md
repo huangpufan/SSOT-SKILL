@@ -36,6 +36,13 @@ current note is `待立 tech-debt`, `TODO debt`, `opportunistic follow-up`, or
 `Pending action`, create or update the real owner entry instead of leaving the
 note in STATUS or an index.
 
+If closeout notes, inline annotations, walkthroughs, or source-material rows say
+`blocked by unrelated issue`, `browser smoke blocked`, `real-provider gated`,
+`unchecked`, `inferred`, or `follow up later`, decide whether the wording
+changes future closure interpretation. If yes, promote it to a durable owner or
+STATUS gap now; `link-only` only inventories the source material and does not
+finish the owner promotion step.
+
 Inline updates are for immediate writes during daily development; commit-audit and conversation-audit use the same owner rules but have different batch inputs and waterline-advance flows.
 
 ---
@@ -111,7 +118,10 @@ After updating area content, sync STATUS.md:
 
 Open gaps must have an owner or next action. A gap row that says "create debt
 later" is not routed; either create the debt entry now or mark the gap with the
-explicit owner, trigger, and deferred reason.
+explicit owner, trigger, and deferred reason. If a gap remains because browser
+proof, real-provider proof, or unrelated-environment state blocked validation,
+spell out the closure owner, closure condition, revisit signal, and verification
+guard instead of leaving a generic placeholder.
 
 Keep STATUS rows register-sized. Write only the changed state, owner, date,
 result, gap/adjudication id, and evidence pointer; do not paste protocol

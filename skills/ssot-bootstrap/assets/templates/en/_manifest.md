@@ -17,7 +17,7 @@
 
 ## Apex / Maxim → Owner index
 
-<!-- Architecture root _manifest only. Not present in product/ manifests. -->
+<!-- Architecture root _manifest only. Not present in 01-product/ manifests. -->
 
 | Maxim | Owner | DISC / capability / invariant anchor |
 |---|---|---|
@@ -51,4 +51,4 @@ owner in architecture or product; this file is not a second authority. -->
 
 | Version | Date | Scope | Notes |
 |---|---|---|---|
-| v2.48 | 2026-06 | product/ + architecture/ manifest separation | <!-- recorded scope and topology --> |
+| <protocol-version> | <YYYY-MM> | <canonical owner paths and adoption scope> | <!-- recorded scope and topology --> |

@@ -2,7 +2,7 @@
 
 > Writing style: any cold reader. See `ssot-bootstrap` §3.7.
 
-> This file owns product phases, roadmap intent, product acceptance gates, and product-level gaps. Test implementation details remain in `testing/`, and technical current/target/gap remains in `architecture/`.
+> This file owns product phases, roadmap intent, product acceptance gates, and product-level gaps. Test implementation details remain in `03-process/testing/`, and technical current/target/gap remains in `02-architecture/`.
 
 ## The story from this phase to the next [MUST]
 

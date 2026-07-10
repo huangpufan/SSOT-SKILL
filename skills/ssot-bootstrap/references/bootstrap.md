@@ -62,7 +62,7 @@ Size tiers as reference (the agent should judge by actual repo characteristics; 
 
 **Repository topology and architecture decomposition-axis detection**
 
-Judge the organizational shape of the repository, and initially identify candidate decomposition axes for `architecture/`. This decides whether the subsequent architecture trunk recursively decomposes by runtime boundary, business/capability boundary, technical subsystem, data lifecycle, key runtime flow, external contract boundary or change boundary.
+Judge the organizational shape of the repository, and initially identify candidate decomposition axes for `02-architecture/`. This decides whether the subsequent architecture trunk recursively decomposes by runtime boundary, business/capability boundary, technical subsystem, data lifecycle, key runtime flow, external contract boundary or change boundary.
 
 | Topology | Typical signals | Effect on bootstrap |
 |---|---|---|
@@ -80,13 +80,13 @@ The recon phase must produce 2-4 architecture candidate decomposition axes and r
 
 Before recommending the main axis, first record evidence-guided decomposition signals: entrypoints, call/dependency edges, shared state/resource, runtime flow, failure/recovery boundary, contract surface, tests, configs, scripts, ADR/source material. These signals are only candidate clues; current facts still need code, config, schema, test or runtime evidence.
 
-A new bootstrap by default evaluates the `views/ + domains/` structure:
+A new bootstrap by default evaluates the `views/ + direct numbered domains` structure:
 
-- Which PRD trunks, product promises, users / operators, capability map, product non-goals, roadmap intent and product acceptance enter `product/`.
+- Which PRD trunks, product promises, users / operators, capability map, product non-goals, roadmap intent and product acceptance enter `01-product/`.
 - Which technical operating model, implementation constraints and the architectural implications of product constraints enter `views/operating-model.md`.
 - Which runtime journeys, lifecycle, failure/recovery and observability signals enter `views/critical-journeys.md`.
 - Which implementation current-target-gap, migration intent and implementation gaps of product acceptance enter `views/current-target-gap.md`.
-- Which state/contract/failure details enter `domains/<domain>/README.md`.
+- Which state/contract/failure details enter direct numbered `NN-<domain>/README.md` owners.
 
 Bootstrap may extract readability candidates from repository evidence and ordinary source material: Reader Map topics, claim-to-evidence assertions, script/tool inventory and diagram candidates. The recommended main axis must be cross-validated by code, config, schema, test, runtime behaviour or design-intent material; do not copy an external auto topic tree or add a parallel auto-generated knowledge surface, schema or new top-level area.
 
@@ -114,7 +114,7 @@ exclusion. Pattern-level rows are allowed for large research/history trees when
 they declare lifecycle, owner, authority, absorbed target, do-not-use boundary,
 review date, and review trigger.
 
-Repository scripts and utilities are by default first identified from repo script directories, package manifests, CI, Makefile, config and actual run commands, and routed to `development/`, `testing/`, `release/` or deployment-related areas; only when scripts carry model-generation pipelines, session analysis, release consistency, state migration or other architectural behaviour, they are synced into the related architecture view/domain.
+Repository scripts and utilities are by default first identified from repo script directories, package manifests, CI, Makefile, config and actual run commands, and routed to `03-process/development/`, `03-process/testing/`, `03-process/release/` or `03-process/deployment/`; only when scripts carry model-generation pipelines, session analysis, release consistency, state migration or other architectural behaviour, they are synced into the related architecture view/domain.
 
 `STATUS.md` must keep the source-material absorption matrix; during bootstrap also sync into `SSOT/.bootstrap/manifest.md`.
 
@@ -137,8 +137,8 @@ Create the SSOT directory structure and state-tracking file. The skeleton struct
 1. `SSOT/` directory
 2. `SSOT/README.md` (opens with one-sentence repository positioning ("what this repo is, who it serves, what it does") before the Reader Map and area index; if recon found high-frequency/high-risk development task clusters, add the task-entry map thin index. From v2.39: also include a `First-day reading order` section — an ordered 5-step navigation (positioning → architecture root → domain map → product spine → STATUS gates) so a cold agent's first session has a deterministic path. The reading order is ordered links plus one-line reasons; do not copy body content from area READMEs.) -- template in [`assets/templates/{en,zh}/ssot-readme.md`](../assets/templates/en/ssot-readme.md)
 3. `SSOT/STATUS.md` (tracked_commit set to current HEAD, tracked_skill_version set to current `ssot-preflight` `metadata.protocol_version`, documentation_language / documentation_language_evidence set to Phase 0 lock result, coverage_result set to `bootstrap`, all area states set to gap or unknown) -- template in [`assets/templates/{en,zh}/status.md`](../assets/templates/en/status.md)
-4. `SSOT/01-product/` product trunk folder, by default create `product/README.md`, `product/prd.md`, `product/product-model.md`, `product/roadmap-and-acceptance.md`, `product/capabilities/README.md` and `product/journeys/README.md`. Templates in [`assets/templates/{en,zh}/product-readme.md`](../assets/templates/en/product-readme.md), [`assets/templates/{en,zh}/product-prd.md`](../assets/templates/en/product-prd.md), [`assets/templates/{en,zh}/product-model.md`](../assets/templates/en/product-model.md), [`assets/templates/{en,zh}/product-roadmap-and-acceptance.md`](../assets/templates/en/product-roadmap-and-acceptance.md), [`assets/templates/{en,zh}/product-capabilities-readme.md`](../assets/templates/en/product-capabilities-readme.md), [`assets/templates/{en,zh}/product-journeys-readme.md`](../assets/templates/en/product-journeys-readme.md). Optional entry templates in [`assets/templates/{en,zh}/product-capability-entry.md`](../assets/templates/en/product-capability-entry.md) and [`assets/templates/{en,zh}/product-journey-entry.md`](../assets/templates/en/product-journey-entry.md)
-5. `SSOT/02-architecture/` trunk folder and satellite area folders, each with a `README.md`; new bootstrap by default creates `architecture/views/README.md`, `architecture/views/operating-model.md`, `architecture/views/critical-journeys.md`, `architecture/views/current-target-gap.md` and `architecture/domains/README.md`. Root template in [`assets/templates/{en,zh}/architecture-readme.md`](../assets/templates/en/architecture-readme.md), views index template in [`assets/templates/{en,zh}/architecture-views-readme.md`](../assets/templates/en/architecture-views-readme.md), individual view templates in [`assets/templates/{en,zh}/architecture-view-operating-model.md`](../assets/templates/en/architecture-view-operating-model.md), [`assets/templates/{en,zh}/architecture-view-critical-journeys.md`](../assets/templates/en/architecture-view-critical-journeys.md), [`assets/templates/{en,zh}/architecture-view-current-target-gap.md`](../assets/templates/en/architecture-view-current-target-gap.md), domain README template in [`assets/templates/{en,zh}/architecture-domain-readme.md`](../assets/templates/en/architecture-domain-readme.md). Engineering operation areas may use [`assets/templates/{en,zh}/development-readme.md`](../assets/templates/en/development-readme.md), [`assets/templates/{en,zh}/testing-readme.md`](../assets/templates/en/testing-readme.md), [`assets/templates/{en,zh}/benchmark-readme.md`](../assets/templates/en/benchmark-readme.md), [`assets/templates/{en,zh}/release-readme.md`](../assets/templates/en/release-readme.md)
+4. `SSOT/01-product/` product trunk folder, by default create `01-product/README.md`, `01-product/prd.md`, `01-product/product-model.md`, `01-product/roadmap-and-acceptance.md`, `01-product/capabilities/README.md` and `01-product/journeys/README.md`. Templates in [`assets/templates/{en,zh}/product-readme.md`](../assets/templates/en/product-readme.md), [`assets/templates/{en,zh}/product-prd.md`](../assets/templates/en/product-prd.md), [`assets/templates/{en,zh}/product-model.md`](../assets/templates/en/product-model.md), [`assets/templates/{en,zh}/product-roadmap-and-acceptance.md`](../assets/templates/en/product-roadmap-and-acceptance.md), [`assets/templates/{en,zh}/product-capabilities-readme.md`](../assets/templates/en/product-capabilities-readme.md), [`assets/templates/{en,zh}/product-journeys-readme.md`](../assets/templates/en/product-journeys-readme.md). Optional entry templates in [`assets/templates/{en,zh}/product-capability-entry.md`](../assets/templates/en/product-capability-entry.md) and [`assets/templates/{en,zh}/product-journey-entry.md`](../assets/templates/en/product-journey-entry.md)
+5. `SSOT/02-architecture/` trunk folder and satellite area folders, each with a `README.md`; new bootstrap by default creates `02-architecture/views/README.md`, `02-architecture/views/operating-model.md`, `02-architecture/views/critical-journeys.md`, `02-architecture/views/current-target-gap.md`, and one or more direct `02-architecture/NN-<domain>/README.md` owners justified by recon. Root template in [`assets/templates/{en,zh}/architecture-readme.md`](../assets/templates/en/architecture-readme.md), views index template in [`assets/templates/{en,zh}/architecture-views-readme.md`](../assets/templates/en/architecture-views-readme.md), individual view templates in [`assets/templates/{en,zh}/architecture-view-operating-model.md`](../assets/templates/en/architecture-view-operating-model.md), [`assets/templates/{en,zh}/architecture-view-critical-journeys.md`](../assets/templates/en/architecture-view-critical-journeys.md), [`assets/templates/{en,zh}/architecture-view-current-target-gap.md`](../assets/templates/en/architecture-view-current-target-gap.md), domain README template in [`assets/templates/{en,zh}/architecture-domain-readme.md`](../assets/templates/en/architecture-domain-readme.md), and optional domain playbook template in [`assets/templates/{en,zh}/architecture-domain-playbook.md`](../assets/templates/en/architecture-domain-playbook.md). Engineering operation areas may use [`assets/templates/{en,zh}/development-readme.md`](../assets/templates/en/development-readme.md), [`assets/templates/{en,zh}/testing-readme.md`](../assets/templates/en/testing-readme.md), [`assets/templates/{en,zh}/benchmark-readme.md`](../assets/templates/en/benchmark-readme.md), [`assets/templates/{en,zh}/release-readme.md`](../assets/templates/en/release-readme.md)
 6. `SSOT/04-records/research/README.md` research/POC record index -- template in [`assets/templates/{en,zh}/research-readme.md`](../assets/templates/en/research-readme.md). The skeleton creates the README only; do not create `SSOT/04-records/research/NNNN-<slug>.md` until a concrete research, spike, benchmark, or proof-of-concept record exists. Entry template: [`assets/templates/{en,zh}/research-entry.md`](../assets/templates/en/research-entry.md)
 7. `SSOT/.bootstrap/recon.md` (already produced in Phase 0)
 8. `SSOT/.bootstrap/manifest.md` (coordination layer: global state + area assignment) -- template in [`assets/templates/{en,zh}/bootstrap-manifest.md`](../assets/templates/en/bootstrap-manifest.md)
@@ -147,11 +147,11 @@ Create the SSOT directory structure and state-tracking file. The skeleton struct
 
 ### Language discipline when instantiating templates
 
-When rendering any template from `assets/templates/{en,zh}/`, pick the variant matching the `documentation_language` locked in Phase 0 (and mirrored to `SSOT/STATUS.md`), then translate headings, table labels, placeholders, and helper notes into that language. Keep code identifiers, paths, commands, API names, enum values, and direct quotations verbatim regardless of the language lock. The same rule applies to the bootstrap-only files (`recon.md`, `manifest.md`, session logs) before they are archived (`recon.md` → `decisions/0000-bootstrap-recon.md`) or deleted at Phase 4.
+When rendering any template from `assets/templates/{en,zh}/`, pick the variant matching the `documentation_language` locked in Phase 0 (and mirrored to `SSOT/STATUS.md`), then translate headings, table labels, placeholders, and helper notes into that language. Keep code identifiers, paths, commands, API names, enum values, and direct quotations verbatim regardless of the language lock. The same rule applies to the bootstrap-only files (`recon.md`, `manifest.md`, session logs) before they are archived (`recon.md` → `04-records/decisions/0000-bootstrap-recon.md`) or deleted at Phase 4.
 
 ### Skeleton adaptation
 
-For L/XL-size repos, the skeleton creation can pre-build the first layer of domains under `architecture/domains/` (e.g. `query-engine/`, `storage-engine/`, `control-plane/`) and the default views (`operating-model.md`, `critical-journeys.md`, `current-target-gap.md`) based on recon results, reducing structural work during later fill. But do not fill content during the skeleton phase; only empty README titles translated per `documentation_language` and TODO status are allowed; specific content belongs to Phase 2. When taking over an existing project, the legacy direct child-domain structure may be preserved.
+For L/XL-size repos, the skeleton creation can pre-build direct numbered domains under `02-architecture/` (e.g. `01-query-engine/`, `02-storage-engine/`, `03-control-plane/`) and the default views (`operating-model.md`, `critical-journeys.md`, `current-target-gap.md`) based on recon results, reducing structural work during later fill. But do not fill content during the skeleton phase; only empty README titles translated per `documentation_language` and TODO status are allowed; specific content belongs to Phase 2. Existing unnumbered `SSOT/architecture/domains/` and `SSOT/architecture/<domain>/` trees are legacy migration inputs; migrate them before writing current owners.
 
 ---
 
@@ -175,7 +175,7 @@ The following principles apply to repos of all sizes:
 | 4 | Interface definitions (OpenAPI, protobuf, GraphQL schema, type definitions) | Contract boundary |
 | 5 | Implementation code | Only when the above sources are insufficient to answer the question |
 
-**Source material is a clue, not a conclusion**: the source material inventoried in recon should be the starting point when filling the corresponding area -- first build hypotheses from material, then verify with code and config. When describing currently-implemented facts, source material has lower trustworthiness than code/config/schema/test (see §3.4). But `architecture/` and `decisions/` carry design intent, so do not directly overwrite or delete because current code has not landed; on inconsistency, record the implementation state per [`source-material.md`](../../ssot-preflight/references/source-material.md) and enter the adjudication queue.
+**Source material is a clue, not a conclusion**: the source material inventoried in recon should be the starting point when filling the corresponding area -- first build hypotheses from material, then verify with code and config. When describing currently-implemented facts, source material has lower trustworthiness than code/config/schema/test (see §3.4). But `02-architecture/` and `04-records/decisions/` carry design intent, so do not directly overwrite or delete because current code has not landed; on inconsistency, record the implementation state per [`source-material.md`](../../ssot-preflight/references/source-material.md) and enter the adjudication queue.
 
 **Absorb rather than mirror**: per [`source-material.md`](../../ssot-preflight/references/source-material.md), extract only long-lived knowledge into authoritative locations and keep source pointers, evidence tier and conflict state. README/docs may remain thin documentation, public description or derived output, but cannot be an independent long-lived fact source split from `SSOT/`. Regardless of what language the source material uses, SSOT output language follows `documentation_language` in `STATUS.md`; verbatim quotations stay in the original.
 
@@ -189,38 +189,38 @@ SSOT is divided into the product trunk, the architecture trunk and satellite are
 
 ```text
 Tier 0 (product spine) -- must establish the product-facts entry first
-  product/README.md  Product Reader Map / owner index
-  product/prd.md  PRD trunk, product posture, capability map, key non-goals
-  product/product-model.md  users, problems, promises, boundaries, language, long-lived product trade-offs
-  product/roadmap-and-acceptance.md  phases, roadmap intent, product acceptance gates, product-level gaps
-  product/capabilities/README.md  capability owner index
-  product/journeys/README.md  journey owner index
+  01-product/README.md  Product Reader Map / owner index
+  01-product/prd.md  PRD trunk, product posture, capability map, key non-goals
+  01-product/product-model.md  users, problems, promises, boundaries, language, long-lived product trade-offs
+  01-product/roadmap-and-acceptance.md  phases, roadmap intent, product acceptance gates, product-level gaps
+  01-product/capabilities/README.md  capability owner index
+  01-product/journeys/README.md  journey owner index
 
 Tier 1 (context + root/view synthesis) -- establish the entry; re-check finally after Tier 2 domain evidence
   SSOT/README.md  one-sentence repo positioning (opening line) + Reader Map / area index
   glossary    the repo's proprietary vocabulary
-  architecture/README.md  design brief (tech stack, runtime form, repository type), Reader Map / quick-understanding map, view index, Domain index, top-level current/target/gap summary, required overview Mermaid diagram
-  architecture/views/operating-model.md  technical system goals, operating philosophy, implementation priorities, technical non-goals, primary technical actors/callers, runtime main paths, non-functional success criteria
-  architecture/views/critical-journeys.md  system / runtime execution, phase lifecycle, failure/recovery, observability signals
-  architecture/views/current-target-gap.md  implementation Current / Target / Gap, migration lines, implementation gaps of product acceptance, partially-landed technical intents
+  02-architecture/README.md  design brief (tech stack, runtime form, repository type), Reader Map / quick-understanding map, view index, Domain index, top-level current/target/gap summary, required overview Mermaid diagram
+  02-architecture/views/operating-model.md  technical system goals, operating philosophy, implementation priorities, technical non-goals, primary technical actors/callers, runtime main paths, non-functional success criteria
+  02-architecture/views/critical-journeys.md  system / runtime execution, phase lifecycle, failure/recovery, observability signals
+  02-architecture/views/current-target-gap.md  implementation Current / Target / Gap, migration lines, implementation gaps of product acceptance, partially-landed technical intents
 
 Tier 2 (architecture-domain evidence) -- supports views/root synthesis
-  architecture/domains/<domain>/README.md (or legacy-compatible architecture/<domain>/README.md)
+  02-architecture/NN-<domain>/README.md
   Design intent, design constraints, trade-offs / rejected options, key runtime flows, state ownership, contracts, constraints, failure recovery, verification method, required Mermaid diagrams
 
 Tier 3 (engineering operation layer) -- depends on understanding of architecture
-  development   how to run it
-  testing       test strategy
-  benchmark     benchmark suites, workloads, floors, and comparison rules
-  deployment    deployment and distribution
-  release       release process
+  03-process/development   how to run it
+  03-process/testing       test strategy
+  03-process/benchmark     benchmark suites, workloads, floors, and comparison rules
+  03-process/deployment    deployment and distribution
+  03-process/release       release process
 
 Tier 4 (emergent/historical layer) -- not proactively "filled", accumulates naturally during Tier 1-3 exploration
-  decisions    major decisions
+  04-records/decisions    major decisions
   04-records/research  research, spikes, one-off benchmark studies, proof-of-concepts and reusable claim evidence
-  gotchas      known pitfalls
-  bugs         bug fix records
-  tech-debt    technical debt
+  04-records/gotchas      known pitfalls
+  04-records/bugs         bug fix records
+  04-records/tech-debt    technical debt
 ```
 
 **Specialness of Tier 4**: decisions, research, gotchas, bugs, tech-debt information is essentially "discovered" not "extracted". In the bootstrap phase the agent has never participated in project development and can discover only limited content. The protocol requires:
@@ -230,7 +230,7 @@ Tier 4 (emergent/historical layer) -- not proactively "filled", accumulates natu
 - The coordinator aggregates from session logs into the Tier 4 discoveries summary in manifest.md
 - When Tier 1-3 fill reaches a certain level, batch-organize Tier 4 discoveries and write them into the corresponding area
 - Tier 4 bootstrap quality standard is lower than Tier 1-3: skeleton + discovered entries is enough; subsequent natural growth during actual development
-- If git history shows certain development task clusters recurring at high risk, you may add a task-entry map in `SSOT/README.md`; it only links to authoritative locations like architecture/testing/bugs/gotchas/decisions and does not carry independent facts.
+- If git history shows certain development task clusters recurring at high risk, you may add a task-entry map in `SSOT/README.md`; it only links to authoritative locations like `02-architecture/`, `03-process/testing/`, `04-records/bugs/`, `04-records/gotchas/`, and `04-records/decisions/` and does not carry independent facts.
 
 **Cross-Tier parallel scenario**: if while building the architecture trunk the agent discovers enough information to fill an engineering operation area (e.g. complete deployment info obtained directly from Dockerfile), fill it incidentally without strictly waiting. Tier order is the default priority, not an iron rule.
 
@@ -280,7 +280,7 @@ Tier D: source material (README, ADR, ARCHITECTURE.md, docs/, runbook, user-prov
 
 Source material > config files > code structure > code content > Git history. Material has low trustworthiness but is most efficient as a starting point -- first build initial understanding from material, then verify and correct with code and config.
 
-**Core principle**: source material is a clue; code/config/schema/test is the judge of implemented facts; `architecture/` and `decisions/` are the judges of design intent. The agent should:
+**Core principle**: source material is a clue; code/config/schema/test is the judge of implemented facts; `02-architecture/` and `04-records/decisions/` are the judges of design intent. The agent should:
 
 1. Build hypotheses quickly from source material (high exploration efficiency)
 2. Validate hypotheses with code and config (high trustworthiness)
@@ -291,7 +291,7 @@ This is consistent with `$ssot-preflight`'s "implemented facts vs design intent"
 
 ### 3.5 Depth-calibration guide
 
-Different-size repos produce different-granularity `architecture/` content. Typical calibration (the agent should adjust by repo characteristics):
+Different-size repos produce different-granularity `02-architecture/` content. Typical calibration (the agent should adjust by repo characteristics):
 
 | Area | S | M | L | XL |
 |---|---|---|---|---|
@@ -327,7 +327,7 @@ Tag format is not mandated -- inline annotation, footnote or entry metadata are 
 
 ### 3.7 SSOT docs must be readable cold
 
-This floor applies to every SSOT area the bundle generates -- `product/`, `architecture/` (root, views, domains), `development/`, `testing/`, `benchmark/`, `release/`, deployment, `decisions/`, `04-records/research/`, `gotchas/`, `bugs/`, `tech-debt/`, `glossary/` and the root `SSOT/README.md`. Infra-only files (`STATUS.md`, anything under `.bootstrap/`, and thin adapters) are out of scope.
+This floor applies to every SSOT area the bundle generates -- `01-product/`, `02-architecture/` (root, views, direct numbered domains), `03-process/development/`, `03-process/testing/`, `03-process/benchmark/`, `03-process/release/`, `03-process/deployment/`, `04-records/decisions/`, `04-records/research/`, `04-records/gotchas/`, `04-records/bugs/`, `04-records/tech-debt/`, `glossary/` and the root `SSOT/README.md`. Infra-only files (`STATUS.md`, anything under `.bootstrap/`, and thin adapters) are out of scope.
 
 KISS is the permanent SSOT design principle. The reader should get the mental
 model from prose and use tables only to route, compare, or locate evidence.
@@ -362,7 +362,7 @@ file instead of synthesizing and linking them, route the problem through the
 single-owner checks.
 
 **State-tag protocol (v2.39).** Every invariant, capability, and contract row
-in `product/`, `architecture/` (root, views, domains), and product capability
+in `01-product/`, `02-architecture/` (root, views, direct numbered domains), and product capability
 files carries an inline `state` tag so a cold agent can tell at a glance whether
 the row is enforced today or aspirational. The four legal values:
 
@@ -478,8 +478,8 @@ conventions defined in
 [`references/formatting-conventions.md`](formatting-conventions.md). That file
 is the single source of truth for filename shapes (kebab-case, the `NN-`
 ordered prefix and the `NNNN-` ledger prefix), same-directory frontmatter
-uniformity, the `intent_recovery:` propagation rule under `product/` and
-`architecture/`, and the H1-leads-with-locked-language rule. Mechanical
+uniformity, the `intent_recovery:` propagation rule under `01-product/` and
+`02-architecture/`, and the H1-leads-with-locked-language rule. Mechanical
 checks are owned by `ssot-lint.sh` (checks 13–16 / Doctor `15J`–`15M`); the
 semantic judgement (section-template alignment, naturalness of mixed-language
 H1s, ordered-vs-unordered classification) stays in Doctor L2.
@@ -495,7 +495,7 @@ Verify SSOT content is consistent with code state, with no omission and no stale
 ### Flow
 
 ```text
-1. Independent reviewer (not the filler/coordinator) reads `SSOT/README.md`, `architecture/README.md`, `architecture/views/README.md`, `architecture/domains/README.md` (if present) and all top-level area indexes
+1. Independent reviewer (not the filler/coordinator) reads `SSOT/README.md`, `02-architecture/README.md`, `02-architecture/views/README.md`, every direct `02-architecture/NN-<domain>/README.md`, and all top-level area indexes
 2. Compare against the code state corresponding to tracked_commit, the skill protocol rules corresponding to tracked_skill_version, and the language lock corresponding to `documentation_language`
 3. Compare source-material classification and `STATUS.md` source-material absorption: has `absorb` entered an authoritative location? Has `stale/conflict` adjudicated the current fact, entered Current / Target / Gap or entered the adjudication queue? Are README/docs only thin documentation? Do the SSOT body, headings, table labels use the locked language?
 4. Per-area judgement: is content accurate, complete, free of stale info?
@@ -604,9 +604,9 @@ Core constraint for parallel: **the same README or entry file can only be writte
 
 | Size | Sharding granularity | Example |
 |---|---|---|
-| S/M | By top-level area or views/domains | Agent A handles architecture root/views + glossary, Agent B handles development/testing |
-| L | By Tier or architecture domain | Agent A handles architecture root/views, Agent B handles domains/query-engine/ |
-| XL | By architecture domain | Agent A handles architecture/domains/query-engine/, Agent B handles architecture/domains/storage-engine/ |
+| S/M | By top-level area or views/domains | Agent A handles architecture root/views + glossary, Agent B handles `03-process/development/` and `03-process/testing/` |
+| L | By Tier or architecture domain | Agent A handles architecture root/views, Agent B handles `02-architecture/01-query-engine/` |
+| XL | By architecture domain | Agent A handles `02-architecture/01-query-engine/`, Agent B handles `02-architecture/02-storage-engine/` |
 
 **Tier dependency constraints**
 
@@ -660,7 +660,7 @@ Avoid the following:
 - **Acting without recon**: creating SSOT skeleton without knowing repo size and topology, leading to structure mismatch later
 - **Writing body without locking language**: when language evidence is mixed, insufficient or absent, not asking the user and directly creating SSOT in the current conversation language
 - **Trying to read all source code**: attempting full reading on M+ repos is infeasible; selectively read per priorities in the evidence-source map
-- **Filling areas out of order**: filling lots of domains before establishing `architecture/README.md`, views and decomposition basis, leading to structure mismatch later
+- **Filling areas out of order**: filling lots of domains before establishing `02-architecture/README.md`, views and decomposition basis, leading to structure mismatch later
 - **Inferring without source tag**: inferring a gotcha or decision through code analysis but not tagging it as inference, causing subsequent agents to mistake it for confirmed fact
 - **Mirroring source material**: copying README, docs, PRD or ARCHITECTURE.md content verbatim into SSOT, rather than extracting long-lived knowledge into authoritative locations like product spine / operating-model / critical-journeys / domains + source pointer
 - **Marking stale then skipping**: after discovering source-material conflict with code or design intent, only marking `stale/conflict` in the matrix without adjudicating current fact, writing into Current / Target / Gap or registering an adjudication

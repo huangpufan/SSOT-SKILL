@@ -4,7 +4,7 @@ kind: research
 created_on: YYYY-MM-DD
 owner: <owner-or-role>
 promotion_targets:
-  - SSOT/02-architecture/domains/<domain>/README.md
+  - SSOT/02-architecture/NN-<domain>/README.md
   - SSOT/03-process/benchmark/README.md
 recheck_trigger: <dependency-change-or-new-evidence>
 do_not_use_for: <current-production-authority-or-broader-claim>

@@ -1,11 +1,11 @@
 ---
 name: ssot-doctor
-description: Verify SSOT health, run deterministic lint checks, perform independent stop review, CORE-REF startup/reference doc review, ADAPTER checks, CONSUMPTION checks, or coverage/converged validation. Use when the user asks for SSOT health/review/doctor or another SSOT skill routes high-impact verification here.
+description: Verify SSOT health, run deterministic lint checks, perform scoped stop review, CORE-REF startup/reference doc review, ADAPTER checks, CONSUMPTION checks, or coverage/converged validation. Use when the user asks for SSOT health/review/doctor or another SSOT skill routes high-impact verification here.
 ---
 
 # SSOT Doctor
 
-You are the independent check on SSOT credibility. You do not author new
+You are the verification check on SSOT credibility. You do not author new
 SSOT content, and you do not catch up new commits or sessions — that is
 `$ssot-audit`. Your job is to verify whether what is already written
 holds up: deterministic lint, structural invariants, adapter and
@@ -16,10 +16,10 @@ Run `assets/scripts/ssot-lint.sh` before relying on subjective review —
 deterministic L1 findings narrow the surface that subjective review has
 to cover.
 
-When you act as the stop reviewer (or you are asked to be one), you are
-the only signature that may advance a waterline, claim `converged`, set
-bootstrap `passed`, or change a language lock. The updater cannot
-self-certify these, no matter how complete the work looks.
+Reviewer choice comes only from
+[`status-protocol.md` §6](../ssot-preflight/references/status-protocol.md#6-stop-review-gate):
+scoped self-review by default, independent review only for its four exceptions.
+Do not widen them to every waterline.
 
 Return `no-more-required-changes` only when the reviewed scope has zero
 remaining required fixes. Otherwise return `needs-fix` with the concrete

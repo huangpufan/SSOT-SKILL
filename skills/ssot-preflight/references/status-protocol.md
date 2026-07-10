@@ -187,7 +187,7 @@ Impact classification:
 | `none` | Installer/packaging/no-op changes; no SSOT protocol semantics touched | No content stop review required; no-op waterline may self-review | Archive/current entry optional unless needed for completeness |
 | `low` | Documentation/editorial changes; no new owner, area, or stop-review trigger | Self-review | May be summarized in archive/current entry |
 | `medium` | New semantic check/tag, owner-boundary clarification, or cross-skill write-routing obligation without a new top-level area, STATUS field, lifecycle skill, or high-impact stop-review trigger | Self-review with explicit checklist | Standalone current/archive entry required |
-| `high` | New SSOT area, new STATUS field owner, new stop-review trigger, or new lifecycle skill | Independent reviewer required | Standalone current/archive entry required |
+| `high` | New SSOT area, new STATUS field owner, new stop-review trigger, new lifecycle skill, canonical physical-layout change, or upgrade helper that bulk-mutates a consumer tree | Independent reviewer required | Standalone current/archive entry required |
 
 When `semantic_impact` is missing from `ssot-preflight/SKILL.md`, `ssot-lint`
 reports a FAIL.

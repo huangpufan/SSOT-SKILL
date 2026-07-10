@@ -80,4 +80,4 @@ Keep dated run tables, command transcripts, raw profiler dumps, and one-off benc
 <!-- One line naming excluded questions and the owner that answers them. -->
 
 ## See also
-<!-- 3-7 links with one-line hooks, commonly testing/, release/, architecture/, product/, decisions/, tech-debt/, and 04-records/research/. -->
+<!-- 3-7 links with one-line hooks, commonly 03-process/testing/, 03-process/release/, 02-architecture/, 01-product/, 04-records/decisions/, 04-records/tech-debt/, and 04-records/research/. -->

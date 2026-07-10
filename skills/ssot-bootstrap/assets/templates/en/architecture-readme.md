@@ -9,7 +9,7 @@
 > Architecture root is a Runtime Owner Map. It gives the technical mental model,
 > core invariants, cross-owner view routes, runtime-owner domain routes, and
 > evidence direction. Product promises, users, roadmap, non-goals, and
-> acceptance meaning live in `product/`; architecture only links those owners
+> acceptance meaning live in `../01-product/`; architecture only links those owners
 > and records implementation response or implementation gap.
 
 ## Design Brief
@@ -36,8 +36,8 @@ lifecycle, failure/recovery, or verification. Rows are routes, not body facts.
 
 | Reader question | Runtime owner | First stop | Evidence direction | Stop condition / risk |
 |---|---|---|---|---|
-| Which process owns writes and lifecycle? | `<owner>` | [domains/<owner>/README.md](./domains/<owner>/README.md) | code / config / schema / tests | Reader can locate the write owner and lifecycle boundary |
-| Which contract handles `<surface>`? | `<owner>` | [domains/<owner>/README.md](./domains/<owner>/README.md) | API / SDK / protocol / schema / tests | Reader can locate compatibility semantics |
+| Which process owns writes and lifecycle? | `<owner>` | [NN-owner/README.md](./NN-<owner>/README.md) | code / config / schema / tests | Reader can locate the write owner and lifecycle boundary |
+| Which contract handles `<surface>`? | `<owner>` | [NN-owner/README.md](./NN-<owner>/README.md) | API / SDK / protocol / schema / tests | Reader can locate compatibility semantics |
 
 ## Core Invariants
 
@@ -46,7 +46,7 @@ belong in the domain README.
 
 | Invariant | Owner | Why it exists | Evidence |
 |---|---|---|---|
-| | [domains/<owner>/README.md](./domains/<owner>/README.md) | | |
+| | [NN-owner/README.md](./NN-<owner>/README.md) | | |
 
 ## Views
 
@@ -69,7 +69,7 @@ boundaries, not source directories.
 
 | Domain | Path | Why separate | Owned facts | Owns surfaces | Status | Evidence |
 |---|---|---|---|---|---|---|
-| `<owner>` | [domains/<owner>/README.md](./domains/<owner>/README.md) | | state / resource / contract / lifecycle / failure / verification | routes / SQL identifiers / DOM selectors / CLI commands handled by this owner | gap / covered / stale / unknown | |
+| `<owner>` | [NN-owner/README.md](./NN-<owner>/README.md) | | state / resource / contract / lifecycle / failure / verification | routes / SQL identifiers / DOM selectors / CLI commands handled by this owner | gap / covered / stale / unknown | |
 
 The `Owns surfaces` column lists the route prefixes, SQL identifiers, DOM selector roots, or CLI commands this domain owns; doctor `[FORK]` (14W) treats overlap across rows as a fork signal.
 

@@ -60,8 +60,8 @@ for arg in "$@"; do
 done
 
 # Under --check-meta-leakage, collect every non-flag dir argument as a target
-# scope. If none are given we fall back to <SSOT_DIR>/product and
-# <SSOT_DIR>/architecture (the v2.48 default product/architecture scope).
+# scope. If none are given we fall back to the resolved product and
+# architecture areas (the v2.48 default semantic scope).
 if [[ "$META_LEAKAGE_ONLY" -eq 1 ]]; then
   for arg in "$@"; do
     if [[ "$arg" != --* && -d "$arg" ]]; then
@@ -114,6 +114,104 @@ version_ge() {
   (( lhs_minor >= rhs_minor ))
 }
 
+# Resolve one semantic SSOT area to its physical directory. v2.57 numbered
+# paths are canonical and win whenever both shapes exist; legacy unnumbered
+# paths remain readable for consumers whose tracked protocol is older.
+canonical_area_rel() { # $1=semantic area name
+  case "$1" in
+    product) printf '01-product\n' ;;
+    architecture) printf '02-architecture\n' ;;
+    development|testing|benchmark|deployment|release) printf '03-process/%s\n' "$1" ;;
+    decisions|gotchas|bugs|tech-debt|research) printf '04-records/%s\n' "$1" ;;
+    glossary) printf 'glossary\n' ;;
+    *) return 1 ;;
+  esac
+}
+
+legacy_area_rel() { # $1=semantic area name
+  case "$1" in
+    product|architecture|development|testing|benchmark|deployment|release|decisions|gotchas|bugs|tech-debt|research|glossary)
+      printf '%s\n' "$1"
+      ;;
+    *) return 1 ;;
+  esac
+}
+
+resolve_area_dir() { # $1=semantic area name; prints canonical candidate when absent
+  local canonical legacy
+  canonical=$(canonical_area_rel "$1") || return 1
+  legacy=$(legacy_area_rel "$1") || return 1
+  if [[ -d "$SSOT_DIR/$canonical" ]]; then
+    printf '%s/%s\n' "$SSOT_DIR" "$canonical"
+  elif [[ -d "$SSOT_DIR/$legacy" ]]; then
+    printf '%s/%s\n' "$SSOT_DIR" "$legacy"
+  else
+    printf '%s/%s\n' "$SSOT_DIR" "$canonical"
+  fi
+}
+
+# Print the complete leading YAML frontmatter block, excluding delimiters.
+# A fixed head window silently misses valid long blocks and can accidentally
+# accept body prose that happens to look like a YAML key.
+yaml_frontmatter() { # $1=file
+  awk '
+    NR == 1 && /^---[[:space:]]*$/ { in_frontmatter=1; next }
+    in_frontmatter && /^---[[:space:]]*$/ { exit }
+    in_frontmatter { print }
+  ' "$1"
+}
+
+yaml_field_has_value() { # $1=frontmatter text $2=top-level key
+  local frontmatter="$1" key="$2"
+  printf '%s\n' "$frontmatter" | awk -v key="$key" '
+    function trim(value) {
+      sub(/^[[:space:]]+/, "", value)
+      sub(/[[:space:]]+$/, "", value)
+      return value
+    }
+    function meaningful(value) {
+      value=trim(value)
+      sub(/[[:space:]]+#.*$/, "", value)
+      value=trim(value)
+      return value != "" && value !~ /^#/ && value !~ /^"[[:space:]]*"$/ && \
+        value !~ /^\047[[:space:]]*\047$/ && value !~ /^\[[[:space:]]*\]$/ && \
+        value != "null" && value != "~"
+    }
+    $0 ~ ("^" key ":[[:space:]]*") {
+      found=1
+      value=$0
+      sub(("^" key ":[[:space:]]*"), "", value)
+      if (meaningful(value)) {
+        valid=1
+        exit
+      }
+      in_block=1
+      next
+    }
+    in_block && /^[a-z_][a-z_0-9-]*:[[:space:]]*/ { exit }
+    in_block && /^[[:space:]]*-[[:space:]]*/ {
+      value=$0
+      sub(/^[[:space:]]*-[[:space:]]*/, "", value)
+      if (meaningful(value)) { valid=1; exit }
+    }
+    END { exit(found && valid ? 0 : 1) }
+  '
+}
+
+PRODUCT_DIR=$(resolve_area_dir product)
+ARCHITECTURE_DIR=$(resolve_area_dir architecture)
+DEVELOPMENT_DIR=$(resolve_area_dir development)
+TESTING_DIR=$(resolve_area_dir testing)
+BENCHMARK_AREA_DIR=$(resolve_area_dir benchmark)
+DEPLOYMENT_DIR=$(resolve_area_dir deployment)
+RELEASE_DIR=$(resolve_area_dir release)
+DECISIONS_DIR=$(resolve_area_dir decisions)
+GOTCHAS_DIR=$(resolve_area_dir gotchas)
+BUGS_DIR=$(resolve_area_dir bugs)
+TECH_DEBT_DIR=$(resolve_area_dir tech-debt)
+RESEARCH_AREA_DIR=$(resolve_area_dir research)
+GLOSSARY_DIR=$(resolve_area_dir glossary)
+
 # ---------- v2.48 [META-LEAKAGE] (15I) helper ----------
 # Greps product / architecture prose files for SSOT self-maintenance machinery
 # that v2.48 hoists to sibling `_manifest.md`. Always FAIL; tokens are
@@ -158,8 +256,8 @@ check_meta_leakage_dir() {
 # Run --check-meta-leakage mode: only the v2.48 grep, then output + exit.
 if [[ "$META_LEAKAGE_ONLY" -eq 1 ]]; then
   if [[ "${#META_LEAKAGE_DIRS[@]}" -eq 0 ]]; then
-    [[ -d "$SSOT_DIR/product" ]] && META_LEAKAGE_DIRS+=("$SSOT_DIR/product")
-    [[ -d "$SSOT_DIR/architecture" ]] && META_LEAKAGE_DIRS+=("$SSOT_DIR/architecture")
+    [[ -d "$PRODUCT_DIR" ]] && META_LEAKAGE_DIRS+=("$PRODUCT_DIR")
+    [[ -d "$ARCHITECTURE_DIR" ]] && META_LEAKAGE_DIRS+=("$ARCHITECTURE_DIR")
   fi
   for d in "${META_LEAKAGE_DIRS[@]}"; do
     check_meta_leakage_dir "$d"
@@ -192,6 +290,35 @@ else
   fi
   if grep -qE "\|\s*tracked_commit\s*\|" "$STATUS_FILE"; then
     add_pass "STATUS.md required fields complete"
+  fi
+fi
+
+# ---------- check 1b: v2.57 canonical physical layout ----------
+# Legacy directories remain readable below the v2.57 waterline. Once the
+# consumer records 2.57+, the migration must already be complete; otherwise
+# canonical-first resolution would hide a mixed-layout conflict.
+if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_SKILL_VERSION" "2.57"; then
+  FACETED_LAYOUT_FAIL_COUNT=0
+  for area in product architecture development testing benchmark deployment release decisions gotchas bugs tech-debt research; do
+    legacy_rel=$(legacy_area_rel "$area")
+    canonical_rel=$(canonical_area_rel "$area")
+    if [[ -d "$SSOT_DIR/$legacy_rel" ]]; then
+      add_fail "[FACETED-LAYOUT] tracked_skill_version=$STATUS_SKILL_VERSION still has legacy area $SSOT_DIR/$legacy_rel; migrate it to $SSOT_DIR/$canonical_rel before advancing the waterline"
+      FACETED_LAYOUT_FAIL_COUNT=$((FACETED_LAYOUT_FAIL_COUNT + 1))
+    fi
+  done
+  for required_owner in "01-product/README.md" "02-architecture/README.md"; do
+    if [[ ! -f "$SSOT_DIR/$required_owner" ]]; then
+      add_fail "[FACETED-LAYOUT] tracked_skill_version=$STATUS_SKILL_VERSION requires canonical owner $SSOT_DIR/$required_owner"
+      FACETED_LAYOUT_FAIL_COUNT=$((FACETED_LAYOUT_FAIL_COUNT + 1))
+    fi
+  done
+  if [[ -d "$SSOT_DIR/02-architecture/domains" ]]; then
+    add_fail "[FACETED-LAYOUT] v2.57+ architecture domains must be direct numbered children of $SSOT_DIR/02-architecture, not $SSOT_DIR/02-architecture/domains"
+    FACETED_LAYOUT_FAIL_COUNT=$((FACETED_LAYOUT_FAIL_COUNT + 1))
+  fi
+  if [[ "$FACETED_LAYOUT_FAIL_COUNT" -eq 0 ]]; then
+    add_pass "[FACETED-LAYOUT] v2.57+ consumer has no legacy unnumbered area directories"
   fi
 fi
 
@@ -256,8 +383,8 @@ elif [[ "$LINK_FAIL_COUNT" -ge 20 ]]; then
 fi
 
 # ---------- check 4: bug/tech-debt frontmatter ----------
-for entry_dir in "bugs" "tech-debt"; do
-  if [[ -d "$SSOT_DIR/$entry_dir" ]]; then
+for entry_dir in "$BUGS_DIR" "$TECH_DEBT_DIR"; do
+  if [[ -d "$entry_dir" ]]; then
     missing_count=0
     while IFS= read -r -d '' entry_file; do
       filename=$(basename "$entry_file")
@@ -267,12 +394,12 @@ for entry_dir in "bugs" "tech-debt"; do
       [[ ! "$filename" =~ ^[0-9]{4}-.+\.md$ ]] && continue
       # First 3 lines must contain YAML frontmatter opener ---
       if ! head -n 3 "$entry_file" | grep -qE '^---$'; then
-        add_warn "$entry_dir entry missing YAML frontmatter: $entry_file"
+        add_warn "$(basename "$entry_dir") entry missing YAML frontmatter: $entry_file"
         missing_count=$((missing_count + 1))
       fi
-    done < <(find "$SSOT_DIR/$entry_dir" -name '*.md' -type f -print0)
+    done < <(find "$entry_dir" -name '*.md' -type f -print0)
     if [[ "$missing_count" -eq 0 ]]; then
-      add_pass "$entry_dir entries: frontmatter complete"
+      add_pass "$(basename "$entry_dir") entries: frontmatter complete"
     fi
   fi
 done
@@ -358,10 +485,10 @@ shadow_warn_count=0
 while IFS= read -r -d '' md_file; do
   rel_file="${md_file#"$SSOT_DIR"/}"
   [[ "$rel_file" == "STATUS.md" ]] && continue
-  [[ "$rel_file" == testing/* ]] && continue
-  [[ "$rel_file" == bugs/[0-9][0-9][0-9][0-9]-*.md ]] && continue
-  [[ "$rel_file" == decisions/[0-9][0-9][0-9][0-9]-*.md ]] && continue
-  [[ "$rel_file" == release/* ]] && continue
+  [[ "$md_file" == "$TESTING_DIR"/* ]] && continue
+  [[ "$md_file" == "$BUGS_DIR"/[0-9][0-9][0-9][0-9]-*.md ]] && continue
+  [[ "$md_file" == "$DECISIONS_DIR"/[0-9][0-9][0-9][0-9]-*.md ]] && continue
+  [[ "$md_file" == "$RELEASE_DIR"/* ]] && continue
   found_shadow_ledger=0
   for pattern in "${SHADOW_LEDGER_PATTERNS[@]}"; do
     if grep -qE "$pattern" "$md_file"; then
@@ -408,8 +535,8 @@ fi
 
 # ---------- check 5e: high-risk entry files need an agent quick entry (v2.35) ----------
 entry_actionability_warn_count=0
-for entry_dir in "bugs" "tech-debt"; do
-  if [[ -d "$SSOT_DIR/$entry_dir" ]]; then
+for entry_dir in "$BUGS_DIR" "$TECH_DEBT_DIR"; do
+  if [[ -d "$entry_dir" ]]; then
     while IFS= read -r -d '' entry_file; do
       filename=$(basename "$entry_file")
       [[ "$filename" == "README.md" ]] && continue
@@ -419,11 +546,11 @@ for entry_dir in "bugs" "tech-debt"; do
         continue
       fi
       if ! head -n 80 "$entry_file" | grep -qiE '(Agent quick entry|Quick entry|Agent 快速入口|快速入口)'; then
-        add_warn "[ENTRY-ACTIONABILITY] numbered $entry_dir entry lacks a quick-entry surface for future agents: $entry_file"
+        add_warn "[ENTRY-ACTIONABILITY] numbered $(basename "$entry_dir") entry lacks a quick-entry surface for future agents: $entry_file"
         entry_actionability_warn_count=$((entry_actionability_warn_count + 1))
       fi
       [[ "$entry_actionability_warn_count" -ge 20 ]] && break 2
-    done < <(find "$SSOT_DIR/$entry_dir" -name '*.md' -type f -print0)
+    done < <(find "$entry_dir" -name '*.md' -type f -print0)
   fi
 done
 if [[ "$entry_actionability_warn_count" -eq 0 ]]; then
@@ -507,7 +634,7 @@ if [[ -f "$STATUS_FILE" ]] && grep -qE '^\|\s*(product|architecture)\s*\|\s*cove
         add_warn "[INTENT-TRUTH-NARRATIVE] covered product trunk has a Core recovery manifest but no obvious product intent/truth narrative heading before it: $trunk_file"
         intent_truth_warn_count=$((intent_truth_warn_count + 1))
       fi
-    elif [[ "$rel_trunk" == architecture/* ]]; then
+    elif [[ "$rel_trunk" == "$A_TRUNK"/* ]]; then
       if ! grep -qE '^##[[:space:]].*(Design Intent And Truth|Design intent and truth|设计意图与设计真相|核心设计论证|设计真相)' "$trunk_file"; then
         add_warn "[INTENT-TRUTH-NARRATIVE] covered architecture trunk has a Core recovery manifest but no obvious design intent/truth narrative heading before it: $trunk_file"
         intent_truth_warn_count=$((intent_truth_warn_count + 1))
@@ -652,34 +779,33 @@ fi
 # ---------- check 5i: product/architecture IA drift heuristics (v2.38) ----------
 # WARN-only: these are obvious anti-pattern detectors, not semantic proof.
 product_arch_warn_count=0
-if [[ -d "$SSOT_DIR/product" ]]; then
+if [[ -d "$PRODUCT_DIR" ]]; then
   while IFS= read -r -d '' product_file; do
     if grep -qiE '^##[[:space:]].*(runtime flow|API reference|SDK reference|schema reference|implementation details|database schema)' "$product_file"; then
       add_warn "[PRODUCT-ARCH-DRIFT] product file appears to own runtime/API/SDK/schema implementation detail instead of linking architecture owner: $product_file"
       product_arch_warn_count=$((product_arch_warn_count + 1))
     fi
     [[ "$product_arch_warn_count" -ge 20 ]] && break
-  done < <(find "$SSOT_DIR/product" -name '*.md' -type f -print0)
+  done < <(find "$PRODUCT_DIR" -name '*.md' -type f -print0)
 fi
-if [[ -d "$SSOT_DIR/architecture" ]]; then
+if [[ -d "$ARCHITECTURE_DIR" ]]; then
   while IFS= read -r -d '' arch_file; do
     if grep -qiE '^##[[:space:]].*(product promise|product roadmap|product acceptance|users and problems|用户承诺|产品承诺|产品路线图|产品验收)' "$arch_file"; then
       add_warn "[PRODUCT-ARCH-DRIFT] architecture file appears to redefine product facts instead of linking product owner: $arch_file"
       product_arch_warn_count=$((product_arch_warn_count + 1))
     fi
     [[ "$product_arch_warn_count" -ge 20 ]] && break
-  done < <(find "$SSOT_DIR/architecture" -name '*.md' -type f -print0)
+  done < <(find "$ARCHITECTURE_DIR" -name '*.md' -type f -print0)
 fi
 if [[ "$product_arch_warn_count" -eq 0 ]]; then
   add_pass "product/architecture boundary free of obvious deterministic drift"
 fi
 
 arch_checklist_warn_count=0
-if [[ -d "$SSOT_DIR/architecture" ]]; then
+if [[ -d "$ARCHITECTURE_DIR" ]]; then
   while IFS= read -r -d '' arch_readme; do
-    rel_arch="${arch_readme#"$SSOT_DIR"/}"
-    [[ "$rel_arch" == "architecture/README.md" ]] && continue
-    [[ "$rel_arch" == "architecture/views/README.md" ]] && continue
+    [[ "$arch_readme" == "$ARCHITECTURE_DIR/README.md" ]] && continue
+    [[ "$arch_readme" == "$ARCHITECTURE_DIR/views/README.md" ]] && continue
     h2_count=$(grep -cE '^##[[:space:]]' "$arch_readme" || true)
     placeholder_count=$(grep -cE 'not_applicable|OPTIONAL-START|OPTIONAL-END|<[^>]+>' "$arch_readme" || true)
     if [[ "$h2_count" -ge 18 || "$placeholder_count" -ge 12 ]]; then
@@ -687,7 +813,7 @@ if [[ -d "$SSOT_DIR/architecture" ]]; then
       arch_checklist_warn_count=$((arch_checklist_warn_count + 1))
     fi
     [[ "$arch_checklist_warn_count" -ge 20 ]] && break
-  done < <(find "$SSOT_DIR/architecture" -name 'README.md' -type f -print0)
+  done < <(find "$ARCHITECTURE_DIR" -name 'README.md' -type f -print0)
 fi
 if [[ "$arch_checklist_warn_count" -eq 0 ]]; then
   add_pass "architecture owner files free of obvious checklist-heavy IA warnings"
@@ -697,7 +823,7 @@ fi
 # Per knowledge-integrity.md §1: hypothesis may only live in gotchas / STATUS.md open gaps.
 # candidate inside architecture gap/unknown notes is legal (needs semantic judgement);
 # that case belongs to Doctor L2 and is not checked here.
-ARCH_DIR="$SSOT_DIR/architecture"
+ARCH_DIR="$ARCHITECTURE_DIR"
 if [[ -d "$ARCH_DIR" ]]; then
   hyp_hits=0
   while IFS= read -r -d '' arch_file; do
@@ -822,29 +948,20 @@ if [[ "$consumption_issue" -eq 0 ]]; then
 fi
 
 # ---------- check 10: product skeleton (v2.19) ----------
-# product/ is a required top-level area; only deterministic file existence is checked here.
+# The product trunk is required; only deterministic file existence is checked here.
 # Body semantics are left to Doctor L2.
-# v2.50: consumers may facet the top level (e.g. SSOT/01-product/...); resolve the
-# product trunk at runtime by preferring the faceted form when present.
-if [[ -d "$SSOT_DIR/01-product" ]]; then
-  PRODUCT_TRUNK="01-product"
-elif [[ -d "$SSOT_DIR/product" ]]; then
-  PRODUCT_TRUNK="product"
-else
-  PRODUCT_TRUNK="product"  # report the canonical path as missing
-fi
 PRODUCT_REQUIRED_FILES=(
-  "$PRODUCT_TRUNK/README.md"
-  "$PRODUCT_TRUNK/prd.md"
-  "$PRODUCT_TRUNK/product-model.md"
-  "$PRODUCT_TRUNK/roadmap-and-acceptance.md"
-  "$PRODUCT_TRUNK/capabilities/README.md"
-  "$PRODUCT_TRUNK/journeys/README.md"
+  "README.md"
+  "prd.md"
+  "product-model.md"
+  "roadmap-and-acceptance.md"
+  "capabilities/README.md"
+  "journeys/README.md"
 )
 product_missing=0
 for rel in "${PRODUCT_REQUIRED_FILES[@]}"; do
-  if [[ ! -f "$SSOT_DIR/$rel" ]]; then
-    add_fail "[PRODUCT] missing required product skeleton: $SSOT_DIR/$rel"
+  if [[ ! -f "$PRODUCT_DIR/$rel" ]]; then
+    add_fail "[PRODUCT] missing required product skeleton: $PRODUCT_DIR/$rel"
     product_missing=$((product_missing + 1))
   fi
 done
@@ -860,15 +977,14 @@ fi
 # introducing commit (the area-model rule is "required from the first edit").
 # Exemption: bootstrap-archaeology entries (e.g. 0000-bootstrap-recon.md)
 # use the v2.12 archive frontmatter and are out of scope for this check.
-DEC_DIR="$SSOT_DIR/decisions"
+DEC_DIR="$DECISIONS_DIR"
 if [[ -d "$DEC_DIR" ]]; then
   dec_missing=0
   while IFS= read -r -d '' dec_file; do
     filename=$(basename "$dec_file")
     [[ "$filename" == "README.md" ]] && continue
     [[ ! "$filename" =~ ^[0-9]{4}-.+\.md$ ]] && continue
-    # Frontmatter window: first 30 lines (well past any plausible YAML block).
-    fm=$(head -n 30 "$dec_file")
+    fm=$(yaml_frontmatter "$dec_file")
     # Skip bootstrap-archaeology archives.
     if printf '%s' "$fm" | grep -qE '^type:[[:space:]]*bootstrap-archaeology'; then
       continue
@@ -891,8 +1007,8 @@ fi
 # to `_manifest.md` consistently. The standalone --check-meta-leakage flag runs
 # only this check.
 meta_leakage_before="${#FAILS[@]}"
-[[ -d "$SSOT_DIR/product" ]] && check_meta_leakage_dir "$SSOT_DIR/product"
-[[ -d "$SSOT_DIR/architecture" ]] && check_meta_leakage_dir "$SSOT_DIR/architecture"
+[[ -d "$PRODUCT_DIR" ]] && check_meta_leakage_dir "$PRODUCT_DIR"
+[[ -d "$ARCHITECTURE_DIR" ]] && check_meta_leakage_dir "$ARCHITECTURE_DIR"
 meta_leakage_after="${#FAILS[@]}"
 if [[ "$meta_leakage_after" -eq "$meta_leakage_before" ]]; then
   add_pass "no [META-LEAKAGE] (15I) hits in product/architecture prose"
@@ -910,15 +1026,10 @@ PEER_FM_FAIL_COUNT=0
 peer_fm_check_dir() {
   local dir="$1"
   [[ ! -d "$dir" ]] && return 0
-  local rel="${dir#"$SSOT_DIR"/}"
-  rel="${rel%/}"
-  # Skip ledger directories — lifecycle-dependent optional fields are legitimate.
-  case "$rel" in
-    bugs|decisions|tech-debt|bugs/*|decisions/*|tech-debt/*) return 0 ;;
-  esac
-  # Only apply to product/ and architecture/ scope.
-  case "$rel" in
-    product|product/*|architecture|architecture/*) ;;
+  # Only apply to the resolved product and architecture scope. Ledger areas
+  # are outside these trunks and keep lifecycle-dependent key sets.
+  case "$dir" in
+    "$PRODUCT_DIR"|"$PRODUCT_DIR"/*|"$ARCHITECTURE_DIR"|"$ARCHITECTURE_DIR"/*) ;;
     *) return 0 ;;
   esac
   local -a md_files=()
@@ -962,8 +1073,8 @@ fi
 
 # ---------- check 14: [NUMBERED-PREFIX] (15K) ordered-directory numbering ----------
 NP_FAIL_COUNT=0
-# Ordered content paths under architecture/ — domain directories should have NN- prefix
-for d in "$SSOT_DIR"/architecture/*/; do
+# Ordered content paths under the architecture trunk — domain directories should have NN- prefix
+for d in "$ARCHITECTURE_DIR"/*/; do
   [[ -d "$d" ]] || continue
   bname=$(basename "$d")
   [[ "$bname" == "views" ]] && continue
@@ -973,8 +1084,8 @@ for d in "$SSOT_DIR"/architecture/*/; do
   fi
 done
 
-# product/capabilities/ and product/journeys/ files (not README.md, _manifest.md) must have NN- prefix
-for ordered_dir in "$SSOT_DIR/product/capabilities" "$SSOT_DIR/product/journeys"; do
+# product capabilities/journeys files (not README.md, _manifest.md) must have NN- prefix
+for ordered_dir in "$PRODUCT_DIR/capabilities" "$PRODUCT_DIR/journeys"; do
   [[ -d "$ordered_dir" ]] || continue
   while IFS= read -r -d '' f; do
     bname=$(basename "$f")
@@ -1011,7 +1122,7 @@ if [[ -f "$STATUS_FILE" ]]; then
         H1L_WARN_COUNT=$((H1L_WARN_COUNT + 1))
       fi
       [[ "$H1L_WARN_COUNT" -ge 20 ]] && break
-    done < <(find "$SSOT_DIR/product" "$SSOT_DIR/architecture" "$SSOT_DIR/development" -name '*.md' -type f -print0 2>/dev/null || true)
+    done < <(find "$PRODUCT_DIR" "$ARCHITECTURE_DIR" "$DEVELOPMENT_DIR" -name '*.md' -type f -print0 2>/dev/null || true)
   fi
 fi
 if [[ "$H1L_WARN_COUNT" -eq 0 ]]; then
@@ -1020,7 +1131,7 @@ fi
 
 # ---------- check 16: [INTENT-RECOVERY-UNIFORM] (15M) product/ and architecture/ prose must carry intent_recovery ----------
 IR_FAIL_COUNT=0
-for ir_dir in "$SSOT_DIR/product" "$SSOT_DIR/architecture"; do
+for ir_dir in "$PRODUCT_DIR" "$ARCHITECTURE_DIR"; do
   [[ -d "$ir_dir" ]] || continue
   while IFS= read -r -d '' f; do
     bname=$(basename "$f")
@@ -1061,12 +1172,12 @@ fi
 
 # ---------- check 18: [WALKTHROUGH] (15R) architecture domain README needs canonical-flow walkthrough ----------
 WT_WARN_COUNT=0
-if [[ -d "$SSOT_DIR/architecture" ]]; then
+if [[ -d "$ARCHITECTURE_DIR" ]]; then
   while IFS= read -r -d '' readme; do
-    # Only domain-level READMEs: $SSOT_DIR/architecture/<domain>/README.md.
+    # Only domain-level READMEs: <resolved architecture>/<domain>/README.md.
     parent_dir=$(dirname "$readme")
     grand_dir=$(dirname "$parent_dir")
-    [[ "$grand_dir" != "$SSOT_DIR/architecture" ]] && continue
+    [[ "$grand_dir" != "$ARCHITECTURE_DIR" ]] && continue
     [[ "$(basename "$parent_dir")" == "views" ]] && continue
     # Must carry intent_recovery: covered in frontmatter.
     head -n 5 "$readme" | grep -q 'intent_recovery:[[:space:]]*covered' || continue
@@ -1093,23 +1204,28 @@ if [[ -d "$SSOT_DIR/architecture" ]]; then
         [[ "$WT_WARN_COUNT" -ge 20 ]] && break
       fi
     fi
-  done < <(find "$SSOT_DIR/architecture" -name 'README.md' -type f -print0 2>/dev/null || true)
+  done < <(find "$ARCHITECTURE_DIR" -name 'README.md' -type f -print0 2>/dev/null || true)
 fi
 if [[ "$WT_WARN_COUNT" -eq 0 ]]; then
   add_pass "[WALKTHROUGH] (15R) architecture domain READMEs with non-empty Runtime Flows carry canonical-flow walkthrough"
 fi
 
 # ---------- check 19: [BOUNDARY-DISAMBIG] (15S) owner READMEs need 'Easily confused with' section ----------
+is_owner_archetype_readme() { # $1=README path
+  local readme="$1" parent grand
+  case "$readme" in
+    "$SSOT_DIR/README.md"|"$PRODUCT_DIR/README.md"|"$ARCHITECTURE_DIR/README.md"|"$ARCHITECTURE_DIR/views/README.md"|"$DEVELOPMENT_DIR/README.md"|"$TESTING_DIR/README.md"|"$BENCHMARK_AREA_DIR/README.md"|"$DEPLOYMENT_DIR/README.md"|"$RELEASE_DIR/README.md"|"$DECISIONS_DIR/README.md"|"$GOTCHAS_DIR/README.md"|"$BUGS_DIR/README.md"|"$TECH_DEBT_DIR/README.md"|"$GLOSSARY_DIR/README.md")
+      return 0
+      ;;
+  esac
+  parent=$(dirname "$readme")
+  grand=$(dirname "$parent")
+  [[ "$grand" == "$ARCHITECTURE_DIR" && "$(basename "$parent")" != "views" ]]
+}
+
 BD_WARN_COUNT=0
 while IFS= read -r -d '' readme; do
-  rel_path="${readme#"$SSOT_DIR/"}"
-  # Only check owner-archetype READMEs: top-level area READMEs + architecture domain READMEs.
-  # Skip leaf docs and meta files.
-  case "$rel_path" in
-    README.md|product/README.md|architecture/README.md|architecture/views/README.md|architecture/*/README.md|development/README.md|testing/README.md|release/README.md|deployment/README.md|decisions/README.md|gotchas/README.md|bugs/README.md|tech-debt/README.md|glossary/README.md|01-product/README.md|02-architecture/README.md|02-architecture/views/README.md|02-architecture/*/README.md|03-process/development/README.md|03-process/testing/README.md|03-process/release/README.md|03-process/deployment/README.md)
-      ;;
-    *) continue ;;
-  esac
+  is_owner_archetype_readme "$readme" || continue
   if ! grep -qE '^## +Easily confused with' "$readme"; then
     add_warn "[BOUNDARY-DISAMBIG] (15S) owner README missing '## Easily confused with' section: $readme"
     BD_WARN_COUNT=$((BD_WARN_COUNT + 1))
@@ -1123,12 +1239,7 @@ fi
 # ---------- check 20: [OUT-OF-SCOPE-LINK] (15T) owner READMEs need 'Out of scope' section ----------
 OOS_WARN_COUNT=0
 while IFS= read -r -d '' readme; do
-  rel_path="${readme#"$SSOT_DIR/"}"
-  case "$rel_path" in
-    README.md|product/README.md|architecture/README.md|architecture/views/README.md|architecture/*/README.md|development/README.md|testing/README.md|release/README.md|deployment/README.md|decisions/README.md|gotchas/README.md|bugs/README.md|tech-debt/README.md|glossary/README.md|01-product/README.md|02-architecture/README.md|02-architecture/views/README.md|02-architecture/*/README.md|03-process/development/README.md|03-process/testing/README.md|03-process/release/README.md|03-process/deployment/README.md)
-      ;;
-    *) continue ;;
-  esac
+  is_owner_archetype_readme "$readme" || continue
   if ! grep -qE '^## +Out of scope' "$readme"; then
     add_warn "[OUT-OF-SCOPE-LINK] (15T) owner README missing '## Out of scope' section: $readme"
     OOS_WARN_COUNT=$((OOS_WARN_COUNT + 1))
@@ -1141,7 +1252,7 @@ fi
 
 # ---------- check 21: [DIAGRAM-TYPE-TAG] (15U) Mermaid blocks need diagram_type comment ----------
 DT_WARN_COUNT=0
-if [[ -d "$SSOT_DIR/architecture" ]]; then
+if [[ -d "$ARCHITECTURE_DIR" ]]; then
   while IFS= read -r -d '' f; do
     # awk pass: find every ```mermaid ... ``` block; if the next non-blank
     # line inside the fence is not an HTML comment containing diagram_type:, warn.
@@ -1166,7 +1277,7 @@ if [[ -d "$SSOT_DIR/architecture" ]]; then
         [[ "$DT_WARN_COUNT" -ge 20 ]] && break
       fi
     done
-  done < <(find "$SSOT_DIR/architecture" -name '*.md' -type f -print0 2>/dev/null || true)
+  done < <(find "$ARCHITECTURE_DIR" -name '*.md' -type f -print0 2>/dev/null || true)
 fi
 if [[ "$DT_WARN_COUNT" -eq 0 ]]; then
   add_pass "[DIAGRAM-TYPE-TAG] (15U) architecture Mermaid blocks carry diagram_type comment"
@@ -1174,11 +1285,11 @@ fi
 
 # ---------- check 22: [DIAGRAM-FIRST] (15V) architecture domain README needs first-screen diagram ----------
 DF_WARN_COUNT=0
-if [[ -d "$SSOT_DIR/architecture" ]]; then
+if [[ -d "$ARCHITECTURE_DIR" ]]; then
   while IFS= read -r -d '' readme; do
     parent_dir=$(dirname "$readme")
     grand_dir=$(dirname "$parent_dir")
-    [[ "$grand_dir" != "$SSOT_DIR/architecture" ]] && continue
+    [[ "$grand_dir" != "$ARCHITECTURE_DIR" ]] && continue
     [[ "$(basename "$parent_dir")" == "views" ]] && continue
     head -n 5 "$readme" | grep -q 'intent_recovery:[[:space:]]*covered' || continue
     # First 60 lines must contain a ```mermaid fence opener.
@@ -1187,7 +1298,7 @@ if [[ -d "$SSOT_DIR/architecture" ]]; then
       DF_WARN_COUNT=$((DF_WARN_COUNT + 1))
       [[ "$DF_WARN_COUNT" -ge 20 ]] && break
     fi
-  done < <(find "$SSOT_DIR/architecture" -name 'README.md' -type f -print0 2>/dev/null || true)
+  done < <(find "$ARCHITECTURE_DIR" -name 'README.md' -type f -print0 2>/dev/null || true)
 fi
 if [[ "$DF_WARN_COUNT" -eq 0 ]]; then
   add_pass "[DIAGRAM-FIRST] (15V) architecture domain READMEs carry first-screen Mermaid block"
@@ -1217,13 +1328,13 @@ fi
 
 # ---------- check 24: [ADR-CLOSURE] / [DEBT-CLOSURE] deterministic lifecycle fields ----------
 ADR_DEBT_FAIL_COUNT=0
-for dec_dir in "$SSOT_DIR/decisions" "$SSOT_DIR/04-records/decisions"; do
-  [[ -d "$dec_dir" ]] || continue
+dec_dir="$DECISIONS_DIR"
+if [[ -d "$dec_dir" ]]; then
   while IFS= read -r -d '' dec_file; do
     bname=$(basename "$dec_file")
     [[ "$bname" == "README.md" ]] && continue
     [[ ! "$bname" =~ ^[0-9]{4}-.+\.md$ ]] && continue
-    fm=$(head -n 45 "$dec_file")
+    fm=$(yaml_frontmatter "$dec_file")
     state=$(printf '%s\n' "$fm" | awk -F: '/^implementation_state:/ { gsub(/[ "`]/, "", $2); print tolower($2); exit }')
     if [[ "$state" =~ ^(pending|partial|diverged)$ ]]; then
       for field in closure_condition revisit_signal; do
@@ -1235,14 +1346,14 @@ for dec_dir in "$SSOT_DIR/decisions" "$SSOT_DIR/04-records/decisions"; do
     fi
     [[ "$ADR_DEBT_FAIL_COUNT" -ge 30 ]] && break
   done < <(find "$dec_dir" -maxdepth 1 -name '*.md' -type f -print0)
-done
-for debt_dir in "$SSOT_DIR/tech-debt" "$SSOT_DIR/04-records/tech-debt"; do
-  [[ -d "$debt_dir" ]] || continue
+fi
+debt_dir="$TECH_DEBT_DIR"
+if [[ -d "$debt_dir" ]]; then
   while IFS= read -r -d '' debt_file; do
     bname=$(basename "$debt_file")
     [[ "$bname" == "README.md" ]] && continue
     [[ ! "$bname" =~ ^[0-9]{4}-.+\.md$ ]] && continue
-    fm=$(head -n 55 "$debt_file")
+    fm=$(yaml_frontmatter "$debt_file")
     status=$(printf '%s\n' "$fm" | awk -F: '/^status:/ { gsub(/[ "`]/, "", $2); print tolower($2); exit }')
     if [[ "$status" == "active" ]]; then
       for field in closure_condition revisit_signal; do
@@ -1262,7 +1373,7 @@ for debt_dir in "$SSOT_DIR/tech-debt" "$SSOT_DIR/04-records/tech-debt"; do
     fi
     [[ "$ADR_DEBT_FAIL_COUNT" -ge 30 ]] && break
   done < <(find "$debt_dir" -maxdepth 1 -name '*.md' -type f -print0)
-done
+fi
 if [[ "$ADR_DEBT_FAIL_COUNT" -eq 0 ]]; then
   add_pass "[ADR-CLOSURE]/[DEBT-CLOSURE] open lifecycle entries carry closure fields"
 fi
@@ -1295,17 +1406,17 @@ scan_covered_placeholders() { # $1=dir $2=label
   return 0
 }
 COVERED_PLACEHOLDER_FAIL_COUNT=0
-area_is_covered product && { scan_covered_placeholders "$SSOT_DIR/product" product; scan_covered_placeholders "$SSOT_DIR/01-product" product; }
-area_is_covered architecture && { scan_covered_placeholders "$SSOT_DIR/architecture" architecture; scan_covered_placeholders "$SSOT_DIR/02-architecture" architecture; }
-area_is_covered development && { scan_covered_placeholders "$SSOT_DIR/development" development; scan_covered_placeholders "$SSOT_DIR/03-process/development" development; }
-area_is_covered testing && { scan_covered_placeholders "$SSOT_DIR/testing" testing; scan_covered_placeholders "$SSOT_DIR/03-process/testing" testing; }
-area_is_covered deployment && { scan_covered_placeholders "$SSOT_DIR/deployment" deployment; scan_covered_placeholders "$SSOT_DIR/03-process/deployment" deployment; }
-area_is_covered release && { scan_covered_placeholders "$SSOT_DIR/release" release; scan_covered_placeholders "$SSOT_DIR/03-process/release" release; }
-area_is_covered decisions && { scan_covered_placeholders "$SSOT_DIR/decisions" decisions; scan_covered_placeholders "$SSOT_DIR/04-records/decisions" decisions; }
-area_is_covered gotchas && { scan_covered_placeholders "$SSOT_DIR/gotchas" gotchas; scan_covered_placeholders "$SSOT_DIR/04-records/gotchas" gotchas; }
-area_is_covered bugs && { scan_covered_placeholders "$SSOT_DIR/bugs" bugs; scan_covered_placeholders "$SSOT_DIR/04-records/bugs" bugs; }
-area_is_covered tech-debt && { scan_covered_placeholders "$SSOT_DIR/tech-debt" tech-debt; scan_covered_placeholders "$SSOT_DIR/04-records/tech-debt" tech-debt; }
-area_is_covered glossary && scan_covered_placeholders "$SSOT_DIR/glossary" glossary
+area_is_covered product && scan_covered_placeholders "$PRODUCT_DIR" product
+area_is_covered architecture && scan_covered_placeholders "$ARCHITECTURE_DIR" architecture
+area_is_covered development && scan_covered_placeholders "$DEVELOPMENT_DIR" development
+area_is_covered testing && scan_covered_placeholders "$TESTING_DIR" testing
+area_is_covered deployment && scan_covered_placeholders "$DEPLOYMENT_DIR" deployment
+area_is_covered release && scan_covered_placeholders "$RELEASE_DIR" release
+area_is_covered decisions && scan_covered_placeholders "$DECISIONS_DIR" decisions
+area_is_covered gotchas && scan_covered_placeholders "$GOTCHAS_DIR" gotchas
+area_is_covered bugs && scan_covered_placeholders "$BUGS_DIR" bugs
+area_is_covered tech-debt && scan_covered_placeholders "$TECH_DEBT_DIR" tech-debt
+area_is_covered glossary && scan_covered_placeholders "$GLOSSARY_DIR" glossary
 if [[ "$COVERED_PLACEHOLDER_FAIL_COUNT" -eq 0 ]]; then
   add_pass "[COVERED-PLACEHOLDER] covered areas have no obvious unresolved starter residue"
 fi
@@ -1322,28 +1433,28 @@ status_open_gap_count() {
 }
 active_high_risk_record_count() {
   local count=0
-  for bug_dir in "$SSOT_DIR/bugs" "$SSOT_DIR/04-records/bugs"; do
-    [[ -d "$bug_dir" ]] || continue
+  bug_dir="$BUGS_DIR"
+  if [[ -d "$bug_dir" ]]; then
     while IFS= read -r -d '' bug_file; do
       local head
-      head=$(head -n 20 "$bug_file")
+      head=$(yaml_frontmatter "$bug_file")
       if printf '%s\n' "$head" | grep -qiE '^status:[[:space:]]*(active|recurred)' &&
          printf '%s\n' "$head" | grep -qiE '^severity:[[:space:]]*(critical|major|high)'; then
         count=$((count + 1))
       fi
     done < <(find "$bug_dir" -maxdepth 1 -name '[0-9][0-9][0-9][0-9]-*.md' -type f -print0)
-  done
-  for debt_dir in "$SSOT_DIR/tech-debt" "$SSOT_DIR/04-records/tech-debt"; do
-    [[ -d "$debt_dir" ]] || continue
+  fi
+  debt_dir="$TECH_DEBT_DIR"
+  if [[ -d "$debt_dir" ]]; then
     while IFS= read -r -d '' debt_file; do
       local head
-      head=$(head -n 20 "$debt_file")
+      head=$(yaml_frontmatter "$debt_file")
       if printf '%s\n' "$head" | grep -qiE '^status:[[:space:]]*active' &&
          printf '%s\n' "$head" | grep -qiE '^priority:[[:space:]]*(critical|high)'; then
         count=$((count + 1))
       fi
     done < <(find "$debt_dir" -maxdepth 1 -name '[0-9][0-9][0-9][0-9]-*.md' -type f -print0)
-  done
+  fi
   printf '%s\n' "$count"
 }
 STATUS_AGG_FAIL_COUNT=0
@@ -1401,6 +1512,42 @@ if [[ "$CAPTURE_LIFECYCLE_FAIL_COUNT" -eq 0 ]]; then
   add_pass "[CAPTURE-LIFECYCLE] STATUS resolved/passed captures have no obvious hidden pending actions"
 fi
 
+# ---------- check 28b: [CAPTURE-LIFECYCLE] placeholder debt / follow-up wording in owner files ----------
+CAPTURE_PLACEHOLDER_FAIL_COUNT=0
+CAPTURE_PLACEHOLDER_RE='TODO debt|todo debt|Pending action|follow up later|follow-up later|opportunistic follow-up|后续待立|待立 tech-debt'
+for owner_dir in "$TECH_DEBT_DIR" "$BUGS_DIR" "$DECISIONS_DIR"; do
+  [[ -d "$owner_dir" ]] || continue
+  while IFS= read -r -d '' owner_file; do
+    bname=$(basename "$owner_file")
+    [[ "$bname" == "README.md" ]] && continue
+    [[ ! "$bname" =~ ^[0-9]{4}-.+\.md$ ]] && continue
+    owner_frontmatter=$(yaml_frontmatter "$owner_file")
+    owner_lifecycle_registered=1
+    for field in owner closure_condition revisit_signal verification_guard; do
+      if ! yaml_field_has_value "$owner_frontmatter" "$field"; then
+        owner_lifecycle_registered=0
+        break
+      fi
+    done
+    while IFS= read -r numbered_line; do
+      line_no="${numbered_line%%:*}"
+      line="${numbered_line#*:}"
+      if printf '%s\n' "$line" | grep -qiE "$CAPTURE_PLACEHOLDER_RE" &&
+         [[ "$owner_lifecycle_registered" -ne 1 ]]; then
+        add_fail "[CAPTURE-LIFECYCLE] owner file contains placeholder follow-up wording without owner/trigger guard: $owner_file:$line_no"
+        CAPTURE_PLACEHOLDER_FAIL_COUNT=$((CAPTURE_PLACEHOLDER_FAIL_COUNT + 1))
+        [[ "$CAPTURE_PLACEHOLDER_FAIL_COUNT" -ge 20 ]] && break 2
+      fi
+    done < <(awk '
+      /^```/ { in_code = !in_code; next }
+      !in_code && $0 !~ /^[[:space:]]*>/ { print FNR ":" $0 }
+    ' "$owner_file")
+  done < <(find "$owner_dir" -maxdepth 1 -name '*.md' -type f -print0)
+done
+if [[ "$CAPTURE_PLACEHOLDER_FAIL_COUNT" -eq 0 ]]; then
+  add_pass "[CAPTURE-LIFECYCLE] owner files have no obvious placeholder debt/follow-up wording"
+fi
+
 # ---------- check 29: [SILENT-DEFERRAL] vague future-work wording needs an owner/retrigger signal ----------
 SILENT_DEFERRAL_FAIL_COUNT=0
 DEFERRAL_WORD_RE='later|someday|future work|handle[[:space:]].*later|do[[:space:]].*later|create[[:space:]].*later|后续处理|之后处理|以后处理|稍后处理|下次.*处理|未来工作'
@@ -1408,19 +1555,19 @@ DEFERRAL_SIGNAL_RE='DEBT-[0-9]{4}|BUG-[0-9]{4}|DEC-[0-9]{4}|ADJ-[0-9]{8}|owner[[
 strip_code_for_deferral_scan() {
   awk '
     /^```/ { in_code = !in_code; next }
-    !in_code { print FNR ":" $0 }
+    !in_code && $0 !~ /^[[:space:]]*>/ { print FNR ":" $0 }
   ' "$1"
 }
 line_has_deferral_signal() {
   printf '%s\n' "$1" | grep -qiE "$DEFERRAL_SIGNAL_RE"
 }
 file_head_has_deferral_signal() {
-  head -n 70 "$1" | grep -qiE "$DEFERRAL_SIGNAL_RE"
+  yaml_frontmatter "$1" | grep -qiE "$DEFERRAL_SIGNAL_RE"
 }
 record_is_active_for_deferral_scan() {
   local record_file="$1"
   local head state status
-  head=$(head -n 45 "$record_file")
+  head=$(yaml_frontmatter "$record_file")
   status=$(printf '%s\n' "$head" | awk -F: '/^status:/ { gsub(/[ "`]/, "", $2); print tolower($2); exit }')
   state=$(printf '%s\n' "$head" | awk -F: '/^implementation_state:/ { gsub(/[ "`]/, "", $2); print tolower($2); exit }')
   [[ "$status" =~ ^(active|recurred)$ || "$state" =~ ^(pending|partial|diverged)$ ]]
@@ -1454,7 +1601,7 @@ if [[ -f "$STATUS_FILE" ]]; then
     in_gap && /^\|/ && $0 !~ /\|[[:space:]]*-+[[:space:]]*\|/ && $0 !~ /(Area|区域|Gap description|缺口描述)/ { print FNR ":" $0 }
   ' "$STATUS_FILE")
 fi
-for record_dir in "$SSOT_DIR/tech-debt" "$SSOT_DIR/04-records/tech-debt" "$SSOT_DIR/bugs" "$SSOT_DIR/04-records/bugs" "$SSOT_DIR/decisions" "$SSOT_DIR/04-records/decisions"; do
+for record_dir in "$TECH_DEBT_DIR" "$BUGS_DIR" "$DECISIONS_DIR"; do
   [[ -d "$record_dir" ]] || continue
   while IFS= read -r -d '' record_file; do
     bname=$(basename "$record_file")
@@ -1482,7 +1629,7 @@ if [[ -d "$SSOT_DIR/research" ]]; then
   add_fail "[RESEARCH-RECORD] top-level SSOT/research is not a valid authority area; use SSOT/04-records/research: $SSOT_DIR/research"
   RESEARCH_RECORD_FAIL_COUNT=$((RESEARCH_RECORD_FAIL_COUNT + 1))
 fi
-RESEARCH_DIR="$SSOT_DIR/04-records/research"
+RESEARCH_DIR="$RESEARCH_AREA_DIR"
 if [[ -d "$RESEARCH_DIR" ]]; then
   if [[ ! -f "$RESEARCH_DIR/README.md" ]]; then
     add_fail "[RESEARCH-RECORD] research records area missing README index: $RESEARCH_DIR/README.md"
@@ -1497,21 +1644,27 @@ if [[ -d "$RESEARCH_DIR" ]]; then
       [[ "$RESEARCH_RECORD_FAIL_COUNT" -ge 30 ]] && break
       continue
     fi
-    fm=$(head -n 45 "$research_file")
+    fm=$(yaml_frontmatter "$research_file")
     for field in status kind created_on owner promotion_targets recheck_trigger; do
       if ! printf '%s\n' "$fm" | grep -qE "^${field}:"; then
         add_fail "[RESEARCH-RECORD] research entry missing required frontmatter field '${field}': $research_file"
         RESEARCH_RECORD_FAIL_COUNT=$((RESEARCH_RECORD_FAIL_COUNT + 1))
       fi
     done
-    if printf '%s\n' "$fm" | grep -qE '^promotion_targets:[[:space:]]*(\[\][[:space:]]*)?$'; then
+    if printf '%s\n' "$fm" | grep -qE '^promotion_targets:' && ! yaml_field_has_value "$fm" promotion_targets; then
       add_fail "[RESEARCH-RECORD] research entry promotion_targets must name owner targets or explicit not_applicable reason: $research_file"
       RESEARCH_RECORD_FAIL_COUNT=$((RESEARCH_RECORD_FAIL_COUNT + 1))
     fi
-    if printf '%s\n' "$fm" | grep -qE '^recheck_trigger:[[:space:]]*"?[[:space:]]*"?$'; then
+    if printf '%s\n' "$fm" | grep -qE '^recheck_trigger:' && ! yaml_field_has_value "$fm" recheck_trigger; then
       add_fail "[RESEARCH-RECORD] research entry recheck_trigger must be concrete: $research_file"
       RESEARCH_RECORD_FAIL_COUNT=$((RESEARCH_RECORD_FAIL_COUNT + 1))
     fi
+    for field in status kind created_on owner; do
+      if printf '%s\n' "$fm" | grep -qE "^${field}:" && ! yaml_field_has_value "$fm" "$field"; then
+        add_fail "[RESEARCH-RECORD] research entry frontmatter field '${field}' must not be empty: $research_file"
+        RESEARCH_RECORD_FAIL_COUNT=$((RESEARCH_RECORD_FAIL_COUNT + 1))
+      fi
+    done
     if ! head -n 120 "$research_file" | grep -qiE 'do_not_use_for|Do not use for|Applicability|Boundar(y|ies)|适用边界|不适用|不得用于|不要用于'; then
       add_fail "[RESEARCH-RECORD] research entry lacks a mechanical boundary / do_not_use_for signal: $research_file"
       RESEARCH_RECORD_FAIL_COUNT=$((RESEARCH_RECORD_FAIL_COUNT + 1))
@@ -1530,11 +1683,7 @@ fi
 # quality of floors/trends remains Doctor L2 judgement.
 BENCHMARK_OWNER_FAIL_COUNT=0
 BENCHMARK_DIR=""
-if [[ -d "$SSOT_DIR/03-process/benchmark" ]]; then
-  BENCHMARK_DIR="$SSOT_DIR/03-process/benchmark"
-elif [[ -d "$SSOT_DIR/benchmark" ]]; then
-  BENCHMARK_DIR="$SSOT_DIR/benchmark"
-fi
+[[ -d "$BENCHMARK_AREA_DIR" ]] && BENCHMARK_DIR="$BENCHMARK_AREA_DIR"
 if [[ -n "$BENCHMARK_DIR" && ! -f "$BENCHMARK_DIR/README.md" ]]; then
   add_fail "[BENCHMARK-OWNER] benchmark area missing README owner: $BENCHMARK_DIR/README.md"
   BENCHMARK_OWNER_FAIL_COUNT=$((BENCHMARK_OWNER_FAIL_COUNT + 1))
@@ -1544,11 +1693,7 @@ if [[ -d "$SSOT_DIR/03-process" && ! -d "$SSOT_DIR/03-process/benchmark" ]]; the
   BENCHMARK_OWNER_FAIL_COUNT=$((BENCHMARK_OWNER_FAIL_COUNT + 1))
 fi
 TESTING_README=""
-if [[ -f "$SSOT_DIR/03-process/testing/README.md" ]]; then
-  TESTING_README="$SSOT_DIR/03-process/testing/README.md"
-elif [[ -f "$SSOT_DIR/testing/README.md" ]]; then
-  TESTING_README="$SSOT_DIR/testing/README.md"
-fi
+[[ -f "$TESTING_DIR/README.md" ]] && TESTING_README="$TESTING_DIR/README.md"
 if [[ -n "$TESTING_README" && -z "$BENCHMARK_DIR" ]]; then
   if grep -qiE '(benchmark floor|benchmark baseline|performance floor|latency floor|throughput floor|capacity floor|cost floor|trend interpretation|comparison rule|canonical workload|性能.*(基线|阈值|floor)|成本.*(基线|阈值|floor)|容量.*(基线|阈值|floor))' "$TESTING_README"; then
     add_fail "[BENCHMARK-OWNER] testing README appears to own benchmark floors or interpretation but benchmark owner is missing: $TESTING_README"

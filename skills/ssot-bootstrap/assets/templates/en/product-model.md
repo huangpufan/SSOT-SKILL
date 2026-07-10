@@ -54,4 +54,4 @@ Define each new term positively the first time it appears: "X, in this product, 
 
 | Product constraint | Architecture owner | Implementation gap |
 |---|---|---|
-| | [../architecture/README.md](../architecture/README.md) | |
+| | [../02-architecture/README.md](../02-architecture/README.md) | |

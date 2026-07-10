@@ -50,7 +50,7 @@ version through the current upgrade file.
    affected authoritative locations.
 7. Review scope: `semantic_impact=high` upgrades require an independent
    reviewer before the waterline can advance. `none`, `low`, and `medium`
-   upgrades use self-review per `status-protocol.md §7.1`; `medium` entries
+   upgrades use self-review per `status-protocol.md §6`; `medium` entries
    still require a standalone impact checklist.
 
 ## Bundle Captures

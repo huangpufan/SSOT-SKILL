@@ -5,7 +5,7 @@
 > 要么填写，要么显式 `not_applicable: <原因>`。详见 `ssot-bootstrap` §3.7
 > 以及 `SKILL_STYLE.md` reader-scaffolds 章节。
 
-> 架构 root 是 Runtime Owner Map。它建立技术心智模型、核心不变量、跨 owner 视角路由、runtime owner domain 路由和证据方向。产品承诺、用户、路线图、非目标和验收语义归 `product/`；architecture 只链接这些 owner，并记录实现响应或实现 gap。
+> 架构 root 是 Runtime Owner Map。它建立技术心智模型、核心不变量、跨 owner 视角路由、runtime owner domain 路由和证据方向。产品承诺、用户、路线图、非目标和验收语义归 `../01-product/`；architecture 只链接这些 owner，并记录实现响应或实现 gap。
 
 ## 设计简报
 
@@ -23,8 +23,8 @@
 
 | 读者问题 | Runtime owner | First stop | Evidence direction | Stop condition / risk |
 |---|---|---|---|---|
-| 哪个进程拥有写入和生命周期？ | `<owner>` | [domains/<owner>/README.md](./domains/<owner>/README.md) | code / config / schema / tests | 读者能定位写入 owner 与生命周期边界 |
-| `<surface>` 的契约由谁维护？ | `<owner>` | [domains/<owner>/README.md](./domains/<owner>/README.md) | API / SDK / protocol / schema / tests | 读者能定位兼容语义 |
+| 哪个进程拥有写入和生命周期？ | `<owner>` | [NN-owner/README.md](./NN-<owner>/README.md) | code / config / schema / tests | 读者能定位写入 owner 与生命周期边界 |
+| `<surface>` 的契约由谁维护？ | `<owner>` | [NN-owner/README.md](./NN-<owner>/README.md) | API / SDK / protocol / schema / tests | 读者能定位兼容语义 |
 
 ## 核心不变量
 
@@ -32,7 +32,7 @@
 
 | 不变量 | Owner | 为什么存在 | 证据 |
 |---|---|---|---|
-| | [domains/<owner>/README.md](./domains/<owner>/README.md) | | |
+| | [NN-owner/README.md](./NN-<owner>/README.md) | | |
 
 ## 视角
 
@@ -52,7 +52,7 @@ Domain 拥有详细 runtime 事实。Domain 名称应对齐 runtime owner 边界
 
 | Domain | 路径 | 为什么独立 | 拥有的事实 | Owns surfaces | 状态 | 证据 |
 |---|---|---|---|---|---|---|
-| `<owner>` | [domains/<owner>/README.md](./domains/<owner>/README.md) | | state / resource / contract / lifecycle / failure / verification | routes / SQL identifiers / DOM selectors / CLI commands handled by this owner | gap / covered / stale / unknown | |
+| `<owner>` | [NN-owner/README.md](./NN-<owner>/README.md) | | state / resource / contract / lifecycle / failure / verification | routes / SQL identifiers / DOM selectors / CLI commands handled by this owner | gap / covered / stale / unknown | |
 
 `Owns surfaces` 列出本 domain 拥有的 route 前缀、SQL identifier、DOM selector root 或 CLI command；doctor `[FORK]` (14W) 把跨行重叠视为 fork 信号。
 

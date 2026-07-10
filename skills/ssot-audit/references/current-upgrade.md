@@ -10,6 +10,51 @@ files.
 
 ## Version Ledger
 
+### v2.58
+
+**Upgrade goal**: close consumer-derived reliability gaps across capture,
+canonical artifacts, installation, and review authority. Earlier versions required explicit closeout
+positions, but still allowed user-visible bug fixes, walkthrough caveats,
+transcript-only blockers, or stale waterlines to stop at `fixed`, `link-only`,
+or generic follow-up prose. v2.58 closes that gap: closeout must adjudicate bug
+packetization, fix-commit disposition, caveat extraction, and overdue waterlines;
+audit must treat fix/hotfix clusters and transcript caveats as durable-capture
+review prompts; doctor/lint must inspect canonical facets, accept valid research
+frontmatter block lists, and reject v2.57 waterlines that still use legacy
+physical paths. The faceted-layout helper is now idempotent and path-safe on
+canonical trees. The installer ships owned bundle-level companion files without
+overwriting or deleting unrelated shared-root files. Bootstrap and Doctor now
+defer to the review exceptions owned by `status-protocol.md` instead of widening
+independent review to every waterline.
+
+**Impact**: `semantic_impact=medium` -- changes closeout/audit/doctor behaviour,
+not the consumer's area model. Consumers self-review per `status-protocol.md §6`; no independent reviewer is required unless the consumer also uses the
+upgrade to claim first-time `converged`.
+
+**Impact checklist**:
+
+| Check | Affected area | Audit action | Done criterion |
+|---|---|---|---|
+| Closeout durable disposition | `$ssot-closeout` use | Confirm closeout now forces bug packetization threshold, fix-commit adjudication, caveat extraction, and overdue-waterline notes instead of accepting `fixed` or `link-only` prose alone. | Representative bug-fix / caveat batches route to `bugs/`, `tech-debt`, `testing`, `gotchas/`, `decisions/`, or `STATUS.md` gaps. |
+| Conversation/commit audit prompts | `$ssot-audit` use | Confirm transcript caveats (`unchecked`, `blocked`, `real-provider gated`, etc.) and fix/hotfix clusters are treated as durable-capture review prompts, not transcript/git-only history. | Audits explicitly ask for durable owner disposition when those signals appear. |
+| Canonical artifact contract | Bootstrap templates, migration helper, Doctor | Confirm current templates use numbered facets/direct domains, canonical migration is a no-op, and v2.57+ lint scans and enforces canonical paths. | Template hygiene, migration idempotence, canonical Doctor fixtures, and real-consumer dry-run pass. |
+| Research frontmatter | `04-records/research/*.md` | Confirm inline and block-list `promotion_targets` parse as values while empty forms still fail. | Doctor smoke covers valid block lists and invalid empty values. |
+| Doctor/lint floor | `ssot-doctor` / `ssot-lint.sh` | Confirm placeholder debt / follow-up wording without file-level owner/trigger/guard fails while registered owners and quoted history do not false-fail. | `run-tests.sh` covers positive and negative owner lifecycle paths. |
+| Review authority | Bootstrap / Doctor stop review | Confirm both skills reference the four exceptions in `status-protocol.md §6` and do not claim every waterline requires independent review. | Ordinary waterlines stay explicitly self-reviewed; only the four exceptions route to an independent reviewer. |
+| Installer companion files | Installed skill root | Confirm project/global installs include an ownership-marked `SKILL_STYLE.md`, refuse unowned collisions, and remove only owned copies. | Installer E2E covers install, upgrade, collision, owned uninstall, and foreign-file preservation. |
+| Bundle version sync | `VERSION`, `skills/ssot-preflight/SKILL.md` metadata | Confirm both equal `2.58`; rerun bundle-shape, migration, installer, and Doctor tests. | Version mirrors match and the full local validation matrix passes. |
+
+**Migration notes**:
+
+- This upgrade tightens protocol judgement; it does not create a new SSOT area.
+  Existing consumer owners stay where they are.
+- A consumer that already has stale `tracked_commit`, `tracked_session`, or
+  caveat-heavy walkthrough/handoff material should use the tighter bundle to run
+  a targeted `$ssot-audit` / `$ssot-closeout` pass before claiming the new skill
+  version is fully absorbed.
+- `link-only` remains valid for source-material inventory, but not as the final
+  destination for a stable caveat that changes future closure interpretation.
+
 ### v2.57
 
 **Upgrade goal**: make the numbered faceted SSOT layout the canonical physical
@@ -23,12 +68,11 @@ may use semantic shorthand like "product trunk", but concrete paths, links,
 template destinations, CORE-REF examples, and migration targets use the
 numbered physical layout.
 
-**Impact**: `semantic_impact=medium` -- changes the canonical physical IA and
-adds a deterministic migration helper under `ssot-audit`. Existing legacy
-consumer layouts remain readable, but a consumer should run the helper and
-review its diff before advancing `tracked_skill_version` to `2.57`. Consumers
-self-review per `status-protocol.md §7.1`; no independent reviewer is required
-unless the consumer also uses the upgrade to claim first-time `converged`.
+**Impact**: `semantic_impact=high` -- changes the canonical physical IA and
+adds a helper that bulk-mutates consumer trees. Existing legacy layouts remain
+readable before adoption, but advancing `tracked_skill_version` to `2.57`
+requires running the helper, reviewing its diff, and obtaining an independent
+review per `status-protocol.md §6`.
 
 **Impact checklist**:
 
@@ -75,7 +119,7 @@ trunk-read routing.
 **Impact**: `semantic_impact=medium` -- narrows preflight read/risk-scan
 defaults and relocates the trunk-read decision to the task-entry map
 (`area-model.md §4`). No new SSOT area, owner field, or stop-review trigger.
-Consumers self-review per `status-protocol.md §7.1`; no independent reviewer
+Consumers self-review per `status-protocol.md §6`; no independent reviewer
 is required unless the consumer also uses the upgrade to claim first-time
 `converged`.
 
@@ -111,11 +155,10 @@ interpretation, known gaps, and decision links. v2.55 gives that stable policy
 to `benchmark/` while preserving `testing/` for correctness and
 `04-records/research/` for exploratory studies.
 
-**Impact**: `semantic_impact=medium` -- adds one process area, one paired
+**Impact**: `semantic_impact=high` -- adds one process area, one paired
 bootstrap template, closeout/audit routing obligations, and deterministic lint
-for canonical owner presence / obvious misrouting. Consumers self-review per
-`status-protocol.md §7.1`; no independent reviewer is required unless the
-consumer also uses the upgrade to claim first-time `converged`.
+for canonical owner presence / obvious misrouting. A new owner area requires
+independent review per `status-protocol.md §6`.
 
 **Impact checklist**:
 
@@ -153,7 +196,7 @@ only promoted long-lived facts.
 **Impact**: `semantic_impact=medium` — adds one records sub-area, two paired
 bootstrap templates, closeout routing obligations, and deterministic lint for
 canonical location / entry shape. Consumers self-review per
-`status-protocol.md §7.1`; no independent reviewer is required unless the
+`status-protocol.md §6`; no independent reviewer is required unless the
 consumer also uses the upgrade to claim first-time `converged`.
 
 **Impact checklist**:
@@ -190,7 +233,7 @@ agent.
 **Impact**: `semantic_impact=medium` — tightens preflight and closeout
 disposition rules and adds one deterministic lint check for vague future-work
 deferrals without an owner/reference signal. Consumers self-review per
-`status-protocol.md §7.1`; no independent reviewer is required unless the
+`status-protocol.md §6`; no independent reviewer is required unless the
 consumer also uses the upgrade to claim first-time `converged`.
 
 **Impact checklist**:
@@ -228,7 +271,7 @@ surface.
 **Impact**: `semantic_impact=medium` — adds closeout/preflight obligations, one
 owner-boundary clarification for Capability -> Surface registry rows, and
 deterministic lint checks 23-28. Consumers self-review per
-`status-protocol.md §7.1`; no independent reviewer is required unless the
+`status-protocol.md §6`; no independent reviewer is required unless the
 consumer also uses the upgrade to claim first-time `converged`.
 
 **Impact checklist**:
@@ -276,7 +319,7 @@ converged SSOTs do not regress; `15R [WALKTHROUGH]` graduates to FAIL after
 one adoption cycle. The `area-model.md §2.0` required-answer list extends
 from five questions to six (added "Where can I go next, and what does this
 owner explicitly NOT answer"). Consumers self-review per
-`status-protocol.md §7.1`; no doctor stop-review is required.
+`status-protocol.md §6`; no doctor stop-review is required.
 
 **Impact checklist**:
 
@@ -290,7 +333,7 @@ owner explicitly NOT answer"). Consumers self-review per
 
 **Migration notes**:
 
-- Self-reviewable per `status-protocol.md §7.1`; no doctor stop-review required.
+- Self-reviewable per `status-protocol.md §6`; no doctor stop-review required.
 - All five new checks ship as WARN-only for one adoption cycle so existing
   converged SSOTs do not regress.
 - `15R [WALKTHROUGH]` graduates to FAIL in the next cycle's protocol entry;
@@ -610,7 +653,7 @@ slice scope (cycle-1 slice: as named by `protocol-upgrades.md`).
 Outside the active slice they are WARN-only until promoted in a later
 cycle.
 
-**Review**: Self-review per `status-protocol.md §7.1`.
+**Review**: Self-review per `status-protocol.md §6`.
 
 **Impact checklist**:
 
@@ -826,7 +869,7 @@ the v2.42 prompt template to test whether schema-deviation drops below 10%
 cycles 1–4 (bundle-shape test was passing only because VERSION matched its
 own stale value). This bump aligns both files to `2.42`.
 
-**Review**: Self-review per `status-protocol.md §7.1`.
+**Review**: Self-review per `status-protocol.md §6`.
 
 **Impact checklist**:
 
@@ -856,7 +899,7 @@ lint hard failures for source lifecycle shape, and template/routing
 clarification; no new SSOT top-level area, STATUS field owner, lifecycle skill,
 or high-impact stop-review trigger).
 
-**Review**: Self-review per `status-protocol.md §7.1`.
+**Review**: Self-review per `status-protocol.md §6`.
 
 **Impact checklist**:
 
@@ -910,7 +953,7 @@ default read path into current + archive layers.
 clarification; no new SSOT top-level area, STATUS field, lifecycle skill, or
 high-impact stop-review trigger).
 
-**Review**: Self-review per `status-protocol.md §7.1`.
+**Review**: Self-review per `status-protocol.md §6`.
 
 **Impact checklist**:
 
@@ -954,7 +997,7 @@ proof-of-work transcripts.
 lint heuristic; no new top-level area, STATUS field, lifecycle skill, or
 high-impact stop-review trigger).
 
-**Review**: Self-review per `status-protocol.md §7.1`.
+**Review**: Self-review per `status-protocol.md §6`.
 
 **Impact checklist**:
 
@@ -999,7 +1042,7 @@ what must I avoid, and what minimal verification/evidence closes the loop?
 heuristics; no new top-level area, STATUS field, lifecycle skill, or high-impact
 stop-review trigger).
 
-**Review**: Self-review per `status-protocol.md §7.1`.
+**Review**: Self-review per `status-protocol.md §6`.
 
 **Impact checklist**:
 

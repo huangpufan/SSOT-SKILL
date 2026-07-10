@@ -22,6 +22,7 @@ Independent of task execution, run a full scan over the `tracked_commit..HEAD` d
 3. Pick a processing strategy based on size, obtain the diff
 4. Use [`update-routing.md`](../../ssot-closeout/references/update-routing.md) to map diff file changes to affected areas
    - For repeated fix / revert / hotfix, cluster by specific failure mode; do not merge into broad themes
+   - When `tracked_commit..HEAD` contains fix / hotfix / regression-fix clusters, explicitly ask whether each cluster needs a durable disposition in `bugs/`, `tech-debt/`, `gotchas/`, `decisions/`, or `STATUS.md` rather than leaving the fix only in git history
    - When the diff touches README/docs/ADR/runbook/PRD, product planning, user-supplied material, product promises or product routing, first classify per [`source-material.md`](../../ssot-preflight/references/source-material.md) and route to the product / architecture / testing / benchmark authoritative location
    - For changes to `AGENTS.md`, `CLAUDE.md`, `.cursor/rules/*`, `.windsurf/rules/*`, `GEMINI.md` or equivalent startup reference files, first classify per [`source-material.md`](../../ssot-preflight/references/source-material.md), then run core-reference-document review; do not handle them only as thin-adapter structures
    - Treat test run output in commits, logs, CI summaries, or release notes as evidence. Do not write chronological pass/fail history into `testing/` unless it changes a stable testing fact: strategy, selection matrix, gate, fixture contract, correctness baseline, known gap, or defensive-test map.
@@ -85,6 +86,11 @@ Judgement basis: among the files mapped to that area, the share of files touched
 The diff-file-type-to-area mapping has [`update-routing.md`](../../ssot-closeout/references/update-routing.md) as semantic owner. Commit audit only feeds the `tracked_commit..HEAD` diff into that mapping and verifies area by area that the current SSOT is still accurate.
 
 For test-related diffs, separate stable testing facts from validation evidence. New or modified tests may update `testing/` when they change a durable test layer, selection rule, gate, fixture, correctness baseline, known gap, or defensive-test source. A CI log, command output, "latest green" note, runtime duration, or task-by-task validation summary is evidence for the audited change set, not a `testing/` fact.
+
+For bug-fix-heavy ranges, `git log` is only a prompt to inspect the durable
+capture. A commit message saying `fix`, `hotfix`, or `regression` is not itself
+a fact source, but it is a strong audit signal that the failure mode may need a
+bug packet, debt owner, gotcha, or explicit no-op disposition.
 
 For benchmark-related diffs, separate stable benchmark facts from run evidence. New or modified benchmark scripts may update `benchmark/` when they change a durable suite, workload, metric, environment, runner command, floor, comparison rule, trend interpretation, known gap, or consuming owner link. A raw run result, profiler output, dated score table, CI performance summary, or "latest benchmark green" note is evidence for the audited change set or a research packet, not a `benchmark/` fact.
 

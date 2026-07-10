@@ -22,6 +22,10 @@ BUNDLE_SKILLS=(
   "ssot-doctor"
   "ssot-skill"
 )
+BUNDLE_ROOT_FILES=(
+  "SKILL_STYLE.md"
+)
+BUNDLE_COMPANION_MARKER='<!-- SSOT-SKILL bundle companion; owned by install.sh -->'
 
 BOLD='\033[1m'
 DIM='\033[2m'
@@ -930,11 +934,31 @@ ensure_source() {
 }
 
 validate_bundle_source() {
-  local skill source
+  local skill source companion
   for skill in "${BUNDLE_SKILLS[@]}"; do
     source="$SOURCE_DIR/skills/$skill"
     [[ -f "$source/SKILL.md" ]] || die "missing bundled skill: $source"
     [[ -f "$source/agents/openai.yaml" ]] || die "missing Agent metadata: $source/agents/openai.yaml"
+  done
+  for companion in "${BUNDLE_ROOT_FILES[@]}"; do
+    [[ -f "$SOURCE_DIR/skills/$companion" ]] || die "missing bundle companion file: $SOURCE_DIR/skills/$companion"
+    head -n 1 "$SOURCE_DIR/skills/$companion" | grep -qF "$BUNDLE_COMPANION_MARKER" ||
+      die "bundle companion lacks ownership marker: $SOURCE_DIR/skills/$companion"
+  done
+}
+
+bundle_companion_is_owned() {
+  local path="$1"
+  [[ -f "$path" ]] && head -n 1 "$path" | grep -qF "$BUNDLE_COMPANION_MARKER"
+}
+
+guard_bundle_root_files() {
+  local base="$1" companion target
+  for companion in "${BUNDLE_ROOT_FILES[@]}"; do
+    target="$base/$companion"
+    if [[ -e "$target" ]] && ! bundle_companion_is_owned "$target"; then
+      die "refusing to overwrite unowned bundle companion: $target"
+    fi
   done
 }
 
@@ -972,14 +996,18 @@ copy_bundle() {
   local stage
   validate_bundle_source
   mkdir -p "$base"
+  guard_bundle_root_files "$base"
   stage="$(mktemp -d "$base/.ssot-skill-install.XXXXXX")"
   # shellcheck disable=SC2064
   trap "rm -rf '$stage'; tput cnorm 2>/dev/null || true" EXIT INT TERM
 
-  local skill source
+  local skill source companion
   for skill in "${BUNDLE_SKILLS[@]}"; do
     source="$SOURCE_DIR/skills/$skill"
     cp -R "$source" "$stage/$skill"
+  done
+  for companion in "${BUNDLE_ROOT_FILES[@]}"; do
+    cp "$SOURCE_DIR/skills/$companion" "$stage/$companion"
   done
 
   # Apply template language selection to ssot-bootstrap staged copy
@@ -1003,6 +1031,9 @@ copy_bundle() {
     [[ -d "$target" ]] && rm -rf "$target"
     mv "$stage/$skill" "$target"
   done
+  for companion in "${BUNDLE_ROOT_FILES[@]}"; do
+    mv "$stage/$companion" "$base/$companion"
+  done
 
   rm -rf "$stage"
   # restore base EXIT trap to cursor-only (don't try to remove stage that's gone)
@@ -1020,10 +1051,17 @@ install_to() {
 # -----------------------------------------------------------------------------
 remove_bundle() {
   local base="$1"
-  local skill target
+  local skill target companion
   for skill in "${BUNDLE_SKILLS[@]}"; do
     target="$base/$skill"
     [[ -e "$target" ]] && rm -rf "$target"
+  done
+  for companion in "${BUNDLE_ROOT_FILES[@]}"; do
+    if bundle_companion_is_owned "$base/$companion"; then
+      rm -f "$base/$companion"
+    elif [[ -e "$base/$companion" ]]; then
+      warn "preserving unowned bundle companion: $base/$companion"
+    fi
   done
 }
 

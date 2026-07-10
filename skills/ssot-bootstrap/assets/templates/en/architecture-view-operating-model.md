@@ -7,7 +7,7 @@
 ## Scope
 
 - **Owns**: technical system mission, primary technical actors/callers, operating philosophy, implementation priorities, technical non-goals, non-functional success criteria, technical implications of product constraints, and cross-domain design constraints.
-- **Links but does not own**: product mission, product promises, users/operators, product non-goals, roadmap, and product acceptance; these are owned by `product/`.
+- **Links but does not own**: product mission, product promises, users/operators, product non-goals, roadmap, and product acceptance; these are owned by `../../01-product/`.
 - **Does not own**: concrete state/resource ownership, API/schema field details, or in-domain failure recovery; those should link to domains.
 - **Primary source material**:
 

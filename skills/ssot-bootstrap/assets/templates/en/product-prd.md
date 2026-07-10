@@ -49,7 +49,7 @@ The `state` tag (`contract | design | poc | debt`) tells a cold agent whether th
 |---|---|---|
 | Users / problems / promises | [product-model.md](./product-model.md) | |
 | Roadmap / product acceptance | [roadmap-and-acceptance.md](./roadmap-and-acceptance.md) | |
-| Runtime implementation | [../architecture/README.md](../architecture/README.md) | Architecture links here; do not duplicate product facts there |
+| Runtime implementation | [../02-architecture/README.md](../02-architecture/README.md) | Architecture links here; do not duplicate product facts there |
 
 ## Capability → Surface registry
 

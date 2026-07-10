@@ -18,7 +18,7 @@ Do not create a capability file for a one-off feature, ticket, UI script, test c
 
 | Capability | Owner | Why separate | Product status | Acceptance link | Architecture link |
 |---|---|---|---|---|---|
-| | `<capability>.md` | | current / target / gap / obsolete | [../roadmap-and-acceptance.md](../roadmap-and-acceptance.md) | [../../architecture/README.md](../../architecture/README.md) |
+| | `NN-<capability>.md` | | current / target / gap / obsolete | [../roadmap-and-acceptance.md](../roadmap-and-acceptance.md) | [../../02-architecture/README.md](../../02-architecture/README.md) |
 
 ## Rejected splits
 

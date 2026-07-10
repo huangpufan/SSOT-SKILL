@@ -29,8 +29,8 @@ numbered-prefix rule below.
 Three filename shapes are recognised. Pick the shape from what the directory
 **is**, not from how many files it currently holds.
 
-**Ledger directories** — `bugs/`, `decisions/`, `04-records/research/`,
-`tech-debt/`. Each entry uses a 4-digit zero-padded creation-order prefix:
+**Ledger directories** — `04-records/bugs/`, `04-records/decisions/`,
+`04-records/research/`, `04-records/tech-debt/`. Each entry uses a 4-digit zero-padded creation-order prefix:
 `NNNN-slug.md` (e.g. `0001-unified-web-single-writer.md`). The number
 records the order entries were created and never changes after a
 renumber-blocking event.
@@ -41,11 +41,11 @@ a 2-digit zero-padded reading-order prefix: `NN-slug.md`. When the directory
 itself is one of several ordered domain directories, the directory name also
 takes the prefix (`NN-domain-name/`). The default ordered directories are:
 
-- `product/capabilities/` — capabilities ordered from user-observable surface
+- `01-product/capabilities/` — capabilities ordered from user-observable surface
   toward background ability.
-- `product/journeys/` — journeys ordered from primary user flow toward
+- `01-product/journeys/` — journeys ordered from primary user flow toward
   emergent or recovery paths.
-- `architecture/<domain>/` directories — domains ordered from runtime
+- direct `02-architecture/NN-<domain>/` directories — domains ordered from runtime
   foundation toward integration / SDK / terminal layers.
 
 The reading-order number does **not** guarantee creation-time order. When a
@@ -57,8 +57,8 @@ historical reference).
 
 **Unordered content directories** — directories whose sibling documents have
 no inherent reading order. Filenames use plain kebab-case with no numbered
-prefix: `slug.md`. By default this applies to `architecture/views/`,
-`gotchas/`, `testing/`, `development/`, `deployment/`, `release/`, and
+prefix: `slug.md`. By default this applies to `02-architecture/views/`,
+`04-records/gotchas/`, `03-process/testing/`, `03-process/development/`, `03-process/deployment/`, `03-process/release/`, and
 `glossary/`. New unordered directories follow the same convention.
 
 A directory does not switch between ordered and unordered casually. The
@@ -73,15 +73,15 @@ The first three lines of every body file (excluding `_manifest.md`,
 field values.
 
 **Same-directory frontmatter uniformity.** Sibling files in the same
-directory under `product/` or `architecture/` must declare the same YAML
+directory under `01-product/` or `02-architecture/` must declare the same YAML
 key set. If one capability file declares `intent_recovery: covered`, every
 sibling capability file declares the same key. The parent `README.md`'s
 frontmatter schema must match the child schema; the README is itself a
 sibling for this rule. Doctor `15J` (check 13 in lint) detects mismatched
 key sets in this scope.
 
-Ledger directories (`bugs/`, `decisions/`, `04-records/research/`,
-`tech-debt/`) are deliberately excluded from the uniformity check because
+Ledger directories (`04-records/bugs/`, `04-records/decisions/`,
+`04-records/research/`, `04-records/tech-debt/`) are deliberately excluded from the uniformity check because
 their per-entry frontmatter varies with lifecycle state (`closure_condition`
 and `revisit_signal` only on pending/partial decisions per v2.43
 ADR-CLOSURE; `superseded_by` only on superseded entries; research entries add
@@ -89,14 +89,14 @@ packet fields such as `promotion_targets` and `recheck_trigger`). The ledger
 frontmatter contract is owned by Doctor rows 21, 15B, 15C, and the v2.54
 `[RESEARCH-RECORD]` check, not by `15J`.
 
-**`intent_recovery` propagation.** Every prose file under `product/` and
-`architecture/` carries `intent_recovery: covered | partial | gap` in
+**`intent_recovery` propagation.** Every prose file under `01-product/` and
+`02-architecture/` carries `intent_recovery: covered | partial | gap` in
 frontmatter unless `STATUS.md` lists the file in an audited uncovered scope.
-This applies to the root `product/README.md`, `product/prd.md`,
-`product/product-model.md`, `product/roadmap-and-acceptance.md`, every
-`product/capabilities/*.md`, every `product/journeys/*.md`,
-`architecture/README.md`, every `architecture/<domain>/README.md`, every
-`architecture/<domain>/playbook.md`, and every `architecture/views/*.md`.
+This applies to the root `01-product/README.md`, `01-product/prd.md`,
+`01-product/product-model.md`, `01-product/roadmap-and-acceptance.md`, every
+`01-product/capabilities/*.md`, every `01-product/journeys/*.md`,
+`02-architecture/README.md`, every direct `02-architecture/NN-<domain>/README.md`, every
+`02-architecture/NN-<domain>/playbook.md`, and every `02-architecture/views/*.md`.
 The frontmatter value is the lifecycle flag only; long
 `intent_recovery_evidence:` strings live in `_manifest.md` per v2.48
 `[META-LEAKAGE]` (15I). Doctor `15M` (check 16 in lint) detects missing
@@ -147,9 +147,9 @@ for cases where the agent has to read the file and decide.
 | Check | Doctor row | Level | What it checks |
 |---|---|---|---|
 | 13 | 15J `[PEER-FRONTMATTER]` | FAIL | Sibling files in the same directory declare the same YAML key set. |
-| 14 | 15K `[NUMBERED-PREFIX]` | FAIL | Files under `product/capabilities/`, `product/journeys/`, or `architecture/<domain>/` directories follow `NN-` prefix. Ordered-directory names under `architecture/` also follow `NN-` prefix. |
+| 14 | 15K `[NUMBERED-PREFIX]` | FAIL | Files under `01-product/capabilities/` or `01-product/journeys/` follow `NN-` prefix. Ordered direct-domain directory names under `02-architecture/` also follow `NN-` prefix. |
 | 15 | 15L `[H1-LANGUAGE]` | WARN | When `documentation_language=zh`, H1 lines are not pure English. |
-| 16 | 15M `[INTENT-RECOVERY-UNIFORM]` | FAIL | Prose files under `product/` and `architecture/` (excluding `_manifest.md`, `STATUS.md`, `CHANGELOG.md`) carry an `intent_recovery:` frontmatter key. |
+| 16 | 15M `[INTENT-RECOVERY-UNIFORM]` | FAIL | Prose files under `01-product/` and `02-architecture/` (excluding `_manifest.md`, `STATUS.md`, `CHANGELOG.md`) carry an `intent_recovery:` frontmatter key. |
 
 Doctor L2 owns: whether sibling files use comparable section templates,
 whether mixed-language H1s read naturally, whether a not-yet-numbered

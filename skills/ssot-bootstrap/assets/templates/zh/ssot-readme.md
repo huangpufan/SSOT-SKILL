@@ -9,11 +9,11 @@
 
 ## 仓库定位
 
-<!-- 必需的一句话定位：这是什么项目、为谁服务、做什么。技术栈、运行时形式和仓库类型属于 architecture/README.md；主要能力属于 product/prd.md。不要在此重定义。 -->
+<!-- 必需的一句话定位：这是什么项目、为谁服务、做什么。技术栈、运行时形式和仓库类型属于 02-architecture/README.md；主要能力属于 01-product/prd.md。不要在此重定义。 -->
 
 <one-sentence-positioning>
 
-技术栈、运行时形式和仓库类型见 [architecture/README.md](./architecture/README.md)。主要能力见 [product/prd.md](./product/prd.md)。
+技术栈、运行时形式和仓库类型见 [02-architecture/README.md](./02-architecture/README.md)。主要能力见 [01-product/prd.md](./01-product/prd.md)。
 
 ## 快速理解地图 / Reader Map
 
@@ -21,12 +21,12 @@
 
 | 读者问题 | First stop | Authoritative owner | Evidence direction | Stop condition / risk |
 |---|---|---|---|---|
-| 产品为什么存在、承诺什么、不做什么、如何验收？ | [product/](./product/README.md) | 产品主干 README | PRD / product docs / user-provided source material / acceptance evidence | 核心读取；产品事实不能在 architecture 或 README 中重复维护 |
-| 系统如何运行、边界在哪里、哪些约束不能破坏？ | [architecture/](./architecture/README.md) | 架构主干 README | code / config / schema / tests / source material | 核心读取 |
-| 如何本地运行、构建、生成和修改代码？ | [development/](./development/README.md) | development 区域 README | package scripts / Makefile / Dockerfile / tool scripts | 参考读取 |
-| 改动后如何验证，哪些测试保护历史问题？ | [testing/](./testing/README.md) | testing 区域 README | test configs / CI / fixtures / bug regression links | 参考读取 |
-| 哪个 benchmark suite、workload、metric 与 floor 支撑性能、成本或容量决策？ | [benchmark/](./benchmark/README.md) | benchmark 区域 README | benchmark scripts / CI performance jobs / profiling config / research packets | 参考读取 |
-| 版本、发布和交付一致性如何保持？ | [release/](./release/README.md) / [deployment/](./deployment/README.md) | release / deployment 区域 README | release scripts / CI / version files | 参考读取 |
+| 产品为什么存在、承诺什么、不做什么、如何验收？ | [01-product/](./01-product/README.md) | 产品主干 README | PRD / product docs / user-provided source material / acceptance evidence | 核心读取；产品事实不能在 architecture 或 README 中重复维护 |
+| 系统如何运行、边界在哪里、哪些约束不能破坏？ | [02-architecture/](./02-architecture/README.md) | 架构主干 README | code / config / schema / tests / source material | 核心读取 |
+| 如何本地运行、构建、生成和修改代码？ | [03-process/development/](./03-process/development/README.md) | development 区域 README | package scripts / Makefile / Dockerfile / tool scripts | 参考读取 |
+| 改动后如何验证，哪些测试保护历史问题？ | [03-process/testing/](./03-process/testing/README.md) | testing 区域 README | test configs / CI / fixtures / bug regression links | 参考读取 |
+| 哪个 benchmark suite、workload、metric 与 floor 支撑性能、成本或容量决策？ | [03-process/benchmark/](./03-process/benchmark/README.md) | benchmark 区域 README | benchmark scripts / CI performance jobs / profiling config / research packets | 参考读取 |
+| 版本、发布和交付一致性如何保持？ | [03-process/release/](./03-process/release/README.md) / [03-process/deployment/](./03-process/deployment/README.md) | release / deployment 区域 README | release scripts / CI / version files | 参考读取 |
 
 ### 全局阅读路径图
 
@@ -34,12 +34,12 @@
 
 ```mermaid
 flowchart LR
-  start["Task / reader question"] --> arch["architecture/"]
-  start --> product["product/"]
-  start --> ops["development/testing/benchmark/release/deployment"]
+  start["Task / reader question"] --> arch["02-architecture/"]
+  start --> product["01-product/"]
+  start --> ops["03-process/{development,testing,benchmark,release,deployment}/"]
   product --> arch
-  arch --> views["architecture/views/"]
-  arch --> domains["architecture/domains/"]
+  arch --> views["02-architecture/views/"]
+  arch --> domains["02-architecture/NN-domain/"]
 ```
 
 ## 第一日阅读顺序
@@ -47,28 +47,28 @@ flowchart LR
 > doctor `[FIRST-DAY]` (14X) 要求。冷启动 coding agent 第一次进入本仓库，按下列 5 步顺序读。每步只写一条链接 + 一句原因，不复制 area README 的正文。
 
 1. **定位** — 读上面的一句话仓库定位与 [STATUS.md](./STATUS.md) 的 gate 标题，先看清当前水位线。
-2. **架构 root** — 读 [architecture/README.md](./architecture/README.md)，加载 Runtime Owner Map、核心不变量、views 与 domains 索引。
-3. **Domain 地图** — 挑出任务对应的 runtime owner，读其 `architecture/<domain>/README.md`；若该 domain 有 operational task 分支，再读同级 `playbook.md`。
-4. **Product spine** — 任务触及用户可观察行为时，读 [product/README.md](./product/README.md) 与对应 `product/capabilities/<name>.md`；capability 的 `Capability → Surface registry` 就是 route + component + test 的第一手 anchor。
+2. **架构 root** — 读 [02-architecture/README.md](./02-architecture/README.md)，加载 Runtime Owner Map、核心不变量、views 与 domains 索引。
+3. **Domain 地图** — 挑出任务对应的 runtime owner，读其 `02-architecture/NN-<domain>/README.md`；若该 domain 有 operational task 分支，再读同级 `playbook.md`。
+4. **Product spine** — 任务触及用户可观察行为时，读 [01-product/README.md](./01-product/README.md) 与对应 `01-product/capabilities/NN-<name>.md`；capability 的 `Capability → Surface registry` 就是 route + component + test 的第一手 anchor。
 5. **STATUS gates** — 动手前再读一次 [STATUS.md](./STATUS.md)，关注 open adjudications、open gaps 与 source-material 吸收矩阵。
 
 ## 区域索引
 
 | 区域 | 路径 | 读取层级 | 状态 |
 |---|---|---|---|
-| 产品主干 | [product/](./product/README.md) | Core | |
-| 系统架构主干 | [architecture/](./architecture/README.md) | Core | |
+| 产品主干 | [01-product/](./01-product/README.md) | Core | |
+| 系统架构主干 | [02-architecture/](./02-architecture/README.md) | Core | |
 | 专有名词 | [glossary/](./glossary/README.md) | Reference | |
-| 开发工作流 | [development/](./development/README.md) | Reference | |
-| 测试策略 | [testing/](./testing/README.md) | Reference | |
-| Benchmark 策略 | [benchmark/](./benchmark/README.md) | Reference | |
-| 部署与分发 | [deployment/](./deployment/README.md) | Reference | |
-| 发布流程 | [release/](./release/README.md) | Reference | |
-| 重大决策 | [decisions/](./decisions/README.md) | Reference | |
+| 开发工作流 | [03-process/development/](./03-process/development/README.md) | Reference | |
+| 测试策略 | [03-process/testing/](./03-process/testing/README.md) | Reference | |
+| Benchmark 策略 | [03-process/benchmark/](./03-process/benchmark/README.md) | Reference | |
+| 部署与分发 | [03-process/deployment/](./03-process/deployment/README.md) | Reference | |
+| 发布流程 | [03-process/release/](./03-process/release/README.md) | Reference | |
+| 重大决策 | [04-records/decisions/](./04-records/decisions/README.md) | Reference | |
 | 研究与 POC 记录 | [04-records/research/](./04-records/research/README.md) | Reference | |
-| 已知陷阱 | [gotchas/](./gotchas/README.md) | Reference | |
-| Bug 修复记录 | [bugs/](./bugs/README.md) | Reference | |
-| 技术债务 | [tech-debt/](./tech-debt/README.md) | Reference | |
+| 已知陷阱 | [04-records/gotchas/](./04-records/gotchas/README.md) | Reference | |
+| Bug 修复记录 | [04-records/bugs/](./04-records/bugs/README.md) | Reference | |
+| 技术债务 | [04-records/tech-debt/](./04-records/tech-debt/README.md) | Reference | |
 
 ## 走查（Walkthrough）
 <!-- 用一段完整的散文描述本 owner 端到端的一次具体工作；不要用表格。

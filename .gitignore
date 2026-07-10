@@ -8,6 +8,8 @@ research/
 *~
 .idea/
 .vscode/
+__pycache__/
+*.py[cod]
 
 # Installer local artifacts
 .ssot-skill-install.*

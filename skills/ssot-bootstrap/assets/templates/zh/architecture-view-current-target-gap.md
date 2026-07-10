@@ -7,7 +7,7 @@
 ## 范围
 
 - **负责**：全局 implementation current/target/gap、迁移优先级、部分落地的技术设计意图、product acceptance 的实现差距、过时/冲突的技术设计 源资料，以及开放设计裁决。
-- **链接但不拥有**：product roadmap、phase intent、product-level gaps 和 product acceptance gates；这些由 `product/roadmap-and-acceptance.md` 或相关 product owner 拥有。
+- **链接但不拥有**：product roadmap、phase intent、product-level gaps 和 product acceptance gates；这些由 `../../01-product/roadmap-and-acceptance.md` 或相关 product owner 拥有。
 - **不负责**：domain 内实现细节。每个具体 gap 都应链接到 domain、decision、bug、gotcha、test 或 tech-debt 条目。
 - **主要 源资料**：
 

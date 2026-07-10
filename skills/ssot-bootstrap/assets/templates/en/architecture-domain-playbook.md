@@ -1,6 +1,6 @@
 # <runtime owner> Playbook (maintenance / onboarding / verification)
 
-> Architecture-domain operational playbook. Use when the domain owns ≥3 mechanical task branches (e.g. "add a new SDK adapter", "migrate a schema column"). The README owns contract truth; this file owns *procedure*. See sample: `SSOT/02-architecture/sdk-agent-runtime/playbook.md`.
+> Architecture-domain operational playbook. Use when the domain owns ≥3 mechanical task branches (e.g. "add a new SDK adapter", "migrate a schema column"). The README owns contract truth; this file owns *procedure*. Render at `SSOT/02-architecture/NN-<domain>/playbook.md`.
 
 ## 0. Startup check (run every time)
 

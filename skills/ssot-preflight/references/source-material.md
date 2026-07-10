@@ -20,7 +20,7 @@ Source material is raw information outside SSOT, including:
 - External material, specifications, design notes, historical documents, URLs, files, or context explicitly provided by the user in the current session.
 - Structured design notes inside inline documentation comments.
 
-Source material can serve as an exploration entry point, evidence source, public explanation, or derived artifact, but long-lived knowledge must be absorbed into a unique authoritative location in `SSOT/` for maintenance. When describing currently implemented facts, source material has lower credibility than code, configs, schemas, tests, and actual runtime behavior; when describing product intent, product promises, or PRD goals, source material must enter `product/`; when describing target technical design and historical technical intent, source material may be important evidence, but it still must enter architecture / decisions / status matrix.
+Source material can serve as an exploration entry point, evidence source, public explanation, or derived artifact, but long-lived knowledge must be absorbed into a unique authoritative location in `SSOT/` for maintenance. When describing currently implemented facts, source material has lower credibility than code, configs, schemas, tests, and actual runtime behavior; when describing product intent, product promises, or PRD goals, source material must enter `01-product/`; when describing target technical design and historical technical intent, source material may be important evidence, but it still must enter the `02-architecture/`, `04-records/decisions/`, or status owner.
 
 Reader Map, claim-to-evidence, script/tool inventory, and diagram candidate governance are SSOT-native expressive capabilities and do not depend on any externally generated material. Externally generated diagrams, screenshots, dependency graphs, or automatic summaries explicitly provided by the user can only serve as candidate leads within ordinary external material; before absorption they must be cross-validated against code, configs, schemas, tests, or actual runtime behavior. Do not add parallel auto-generated knowledge surfaces, do not mirror full text, and do not copy external directory or topic structure as the SSOT authoritative structure; unverified content stays `pending`, `link-only`, or `stale/conflict`.
 
@@ -29,8 +29,9 @@ Source inventory may reuse the documentation language lock detection sources, bu
 ### 1.1 Research records are not source mirrors
 
 `SSOT/04-records/research/` is an SSOT-native record area for structured
-research/PoC evidence packets. It is not a top-level authority area, not
-`SSOT/research/`, and not a mirror of raw source material. A research record
+research/PoC evidence packets. It is not a top-level authority area; the legacy
+path `SSOT/research/` is a migration input, not a current destination or a
+mirror of raw source material. A research record
 stores reproducible method, inputs, artifacts, observations, limitations,
 reusable claim rows, `promotion_targets`, `recheck_trigger`, and
 `do_not_use_for` boundary.
@@ -48,7 +49,7 @@ Core reference documents are not exceptions to the ordinary thin-entry rules. If
 
 Handling rules:
 
-- Compare item-by-item against code/config/schema/test, package manifests, Makefile, CI config, SSOT architecture/testing/development, and the current skill protocol.
+- Compare item-by-item against code/config/schema/test, package manifests, Makefile, CI config, `SSOT/02-architecture/`, `SSOT/03-process/testing/`, `SSOT/03-process/development/`, and the current skill protocol.
 - If a long-lived fact is valid but should not remain in the startup file, absorb it into the SSOT authoritative location, and propose `thin-adapterize` when the conditions above are met.
 - If a fact is stale or wrong, mark `stale/conflict`, give a concrete `update-doc` suggestion; do not silently ignore startup-file drift after absorbing the correct fact into SSOT.
 - If a fact expresses target design but implementation has not landed, enter Current / Target / Gap, decisions, or open adjudications, and mark `record-conflict` in the core reference document review table.
@@ -86,7 +87,7 @@ Classify lifecycle:
 | `working/draft` | Draft docs, unfinished specs, proposed copy | `authority`, `owner`, `absorbed_to`, `do_not_use_for`, `review_on` |
 | `working/proposal` | Unaccepted design/product proposals | `authority`, `owner`, `absorbed_to`, `do_not_use_for`, `review_on` |
 | `working/experiment` | Experiment notes or measured trials | `authority`, `owner`, `absorbed_to`, `do_not_use_for`, `review_on` |
-| `working/poc` | PoC plans/results not yet promoted into product/architecture | `authority`, `owner`, `absorbed_to`, `do_not_use_for`, `review_on` |
+| `working/poc` | PoC plans/results not yet promoted into `01-product/` or `02-architecture/` | `authority`, `owner`, `absorbed_to`, `do_not_use_for`, `review_on` |
 | `working/prototype` | Prototype docs or exploratory UI/flow material | `authority`, `owner`, `absorbed_to`, `do_not_use_for`, `review_on` |
 | `working/execution-log` | Task logs and chronological execution records | `authority`, `owner`, `absorbed_to`, `do_not_use_for`, `review_on` |
 | `working/closure` | Closure reports and proof-of-work artifacts | `authority`, `owner`, `absorbed_to`, `do_not_use_for`, `review_on` |
@@ -107,7 +108,8 @@ lifecycle and downgrade fields.
 `working/research` and `working/poc` source files are downgraded source
 material. If the task needs a durable SSOT-native record of their evidence,
 create or update `SSOT/04-records/research/NNNN-<slug>.md`; do not upgrade the
-raw file into current authority and do not create `SSOT/research/`.
+raw file into current authority and do not create the legacy top-level
+`SSOT/research/` migration-input path.
 
 All root public documentation and `docs/**/*.md` files must be either:
 
@@ -161,7 +163,7 @@ When source material conflicts with code or SSOT, handle per the following rules
 |---|---|
 | Source material describes current implementation but code/config/schema/test/runtime behavior disagrees | Current fact is determined by code/config/schema/test/runtime behavior; record the adjudicated fact and source in SSOT, mark source material as `stale/conflict`. |
 | Source material describes target design, constraint, or unlanded plan but current implementation differs | Do not automatically judge code as correct; record both current implementation and target intent in architecture Current / Target / Gap, mark the relevant decision's `implementation_state` as `diverged` or `partial` if needed. |
-| Source material describes product promises, PRD, product boundary, user journeys, or acceptance intent but current implementation differs | Product facts enter `product/`; implementation gaps enter `architecture/views/current-target-gap.md`, the relevant domain, testing, or tech-debt, and link to the product owner. Do not rewrite product promises inside architecture. |
+| Source material describes product promises, PRD, product boundary, user journeys, or acceptance intent but current implementation differs | Product facts enter `01-product/`; implementation gaps enter `02-architecture/views/current-target-gap.md`, the relevant direct numbered domain, `03-process/testing/`, or `04-records/tech-debt/`, and link to the product owner. Do not rewrite product promises inside architecture. |
 | Two source materials conflict with each other | Retain both sources; prefer code fact for current implementation; design-intent conflicts enter decisions or open adjudications. |
 | Source material language changes | Treat only as language-lock review lead; do not auto-rewrite `documentation_language`. |
 | Source material requests restoring an old plan, old surface, or deprecated concept | Check architecture evolution / migration ledger, decisions, gotchas; if the old plan is forbidden to revive, record the conflict and avoid restoring per the source material. |
@@ -170,19 +172,19 @@ Conflicts that do not fit the above tiers must retain both pieces of evidence an
 
 ## 5. Source Routing
 
-Source material is first split between "product facts" and "technical implementation/design facts". Long-lived product facts in PRD, product planning, user research, business constraints, acceptance notes, product copy, and user journey descriptions enter `product/`. Architecture only records how the system responds to these product constraints, or the technical gap between current implementation and product constraints.
+Source material is first split between "product facts" and "technical implementation/design facts". Long-lived product facts in PRD, product planning, user research, business constraints, acceptance notes, product copy, and user journey descriptions enter `01-product/`. Architecture only records how the system responds to these product constraints, or the technical gap between current implementation and product constraints.
 
 ### 5.1 Product Source Routing
 
 | Source material content | Authoritative location |
 |---|---|
-| PRD spine, product posture, core capability map, key non-goals, owner links | `product/prd.md` |
-| Users/operators, problems, product promise, product boundary, product language, long-lived product trade-offs | `product/product-model.md` |
-| Product phase, roadmap intent, product acceptance gates, product-level gaps | `product/roadmap-and-acceptance.md` |
-| User value, boundary, non-goals, acceptance meaning, roadmap state of a stable capability | `product/capabilities/<capability>.md`; if it has not reached the split threshold, keep it in `product/prd.md` or `product/product-model.md` |
-| Cross-capability user/operator journey, touchpoints, experience constraints, product acceptance | `product/journeys/<journey>.md`; if it has not reached the split threshold, keep it in `product/prd.md` or `product/product-model.md` |
+| PRD spine, product posture, core capability map, key non-goals, owner links | `01-product/prd.md` |
+| Users/operators, problems, product promise, product boundary, product language, long-lived product trade-offs | `01-product/product-model.md` |
+| Product phase, roadmap intent, product acceptance gates, product-level gaps | `01-product/roadmap-and-acceptance.md` |
+| User value, boundary, non-goals, acceptance meaning, roadmap state of a stable capability | `01-product/capabilities/NN-<capability>.md`; if it has not reached the split threshold, keep it in `01-product/prd.md` or `01-product/product-model.md` |
+| Cross-capability user/operator journey, touchpoints, experience constraints, product acceptance | `01-product/journeys/NN-<journey>.md`; if it has not reached the split threshold, keep it in `01-product/prd.md` or `01-product/product-model.md` |
 
-`product/README.md`, `product/capabilities/README.md`, and `product/journeys/README.md` only do Reader Map and owner indexing; they do not copy product fact bodies. Product capability files should stay thin: define user-visible value, boundary, non-goals, acceptance meaning, product language, roadmap/gap, and links to architecture owners. They do not maintain runtime flow, API, SDK, schema, persistence, or implementation listings.
+`01-product/README.md`, `01-product/capabilities/README.md`, and `01-product/journeys/README.md` only do Reader Map and owner indexing; they do not copy product fact bodies. Product capability files should stay thin: define user-visible value, boundary, non-goals, acceptance meaning, product language, roadmap/gap, and links to architecture owners. They do not maintain runtime flow, API, SDK, schema, persistence, or implementation listings.
 
 ### 5.2 Architecture Source Routing
 
@@ -190,17 +192,17 @@ Route architecture-related source material to a unique authoritative location by
 
 | Source material content | Authoritative location |
 |---|---|
-| Technical system positioning, operating philosophy, primary technical actor/caller, technical operating main path, non-functional success criteria, impact of product constraints on architecture | `architecture/views/operating-model.md`, linking product owner |
-| System/runtime execution, stage lifecycle, failure/recovery, observability signals, cross-domain runtime flow overview | `architecture/views/critical-journeys.md`, linking product journey/capability owner if applicable |
-| Implementation Current / Target / Gap, migration roadmap, migration intent, unlanded technical targets, implementation gap against product acceptance | `architecture/views/current-target-gap.md`, linking `product/roadmap-and-acceptance.md` or relevant product owner |
-| Components, boundaries, state, locks, resource lifecycle, contracts, failure recovery, verification evidence, domain-specific diagrams | `architecture/domains/<domain>/README.md` or legacy-compatible direct child-domain |
-| Script/tool inventory, build/test/benchmark commands, model generation, session analysis, version sync, import rewriting and other engineering automation | Default route to `development/`, `testing/`, `benchmark/`, `release/`, or deployment-related area; only when a script carries model-generation pipeline, session analysis, release consistency, state migration, or other architecture behavior does it also enter the relevant architecture view/domain |
-| Decisions, rejected plans, rollback choices, no-revive bans, trade-off rationales | `decisions/`, and sync architecture evolution / migration ledger pointer |
-| Incidents, RCA, recurrence risk, regression tests | `bugs/`, `gotchas/`, `testing/`, and sync the relevant domain |
-| Performance, cost, capacity, throughput, latency, memory, scale, provider/model cost, extension points, compatibility strategy | If a product promise, enter `product/`; if a benchmark method, workload, metric, floor, comparison rule, or trend interpretation, enter `benchmark/`; if a system design fact or risk source, enter architecture; otherwise enter the corresponding engineering area or do not record |
+| Technical system positioning, operating philosophy, primary technical actor/caller, technical operating main path, non-functional success criteria, impact of product constraints on architecture | `02-architecture/views/operating-model.md`, linking product owner |
+| System/runtime execution, stage lifecycle, failure/recovery, observability signals, cross-domain runtime flow overview | `02-architecture/views/critical-journeys.md`, linking product journey/capability owner if applicable |
+| Implementation Current / Target / Gap, migration roadmap, migration intent, unlanded technical targets, implementation gap against product acceptance | `02-architecture/views/current-target-gap.md`, linking `01-product/roadmap-and-acceptance.md` or relevant product owner |
+| Components, boundaries, state, locks, resource lifecycle, contracts, failure recovery, verification evidence, domain-specific diagrams | direct numbered `02-architecture/NN-<domain>/README.md` owner; legacy `SSOT/architecture/domains/<domain>/README.md` is migration input only |
+| Script/tool inventory, build/test/benchmark commands, model generation, session analysis, version sync, import rewriting and other engineering automation | Default route to `03-process/development/`, `03-process/testing/`, `03-process/benchmark/`, `03-process/release/`, or `03-process/deployment/`; only when a script carries model-generation pipeline, session analysis, release consistency, state migration, or other architecture behavior does it also enter the relevant architecture view/domain |
+| Decisions, rejected plans, rollback choices, no-revive bans, trade-off rationales | `04-records/decisions/`, and sync architecture evolution / migration ledger pointer |
+| Incidents, RCA, recurrence risk, regression tests | `04-records/bugs/`, `04-records/gotchas/`, `03-process/testing/`, and sync the relevant domain |
+| Performance, cost, capacity, throughput, latency, memory, scale, provider/model cost, extension points, compatibility strategy | If a product promise, enter `01-product/`; if a benchmark method, workload, metric, floor, comparison rule, or trend interpretation, enter `03-process/benchmark/`; if a system design fact or risk source, enter architecture; otherwise enter the corresponding engineering area or do not record |
 | Pure public explanation, user documentation, installation tutorials | Keep as thin documentation or engineering-operation-area summary; do not serve as long-lived design-fact source |
 
-View cannot be pure tables. If source material contains PRD, current-stage product goals, product promises, product non-goals, product acceptance criteria, or product principles, they must first be absorbed into `product/`; architecture view only records the implementation design, technical constraints, or implementation gap responding to these product facts, and links to the product owner. If source material contains technical operating philosophy, system operating paths, technical acceptance/recovery signals, or migration intent, they should be absorbed into `operating-model.md`, `critical-journeys.md`, or `current-target-gap.md`, not just marked read in `STATUS.md`.
+View cannot be pure tables. If source material contains PRD, current-stage product goals, product promises, product non-goals, product acceptance criteria, or product principles, they must first be absorbed into `01-product/`; architecture view only records the implementation design, technical constraints, or implementation gap responding to these product facts, and links to the product owner. If source material contains technical operating philosophy, system operating paths, technical acceptance/recovery signals, or migration intent, they should be absorbed into `02-architecture/views/operating-model.md`, `02-architecture/views/critical-journeys.md`, or `02-architecture/views/current-target-gap.md`, not just marked read in `STATUS.md`.
 
 Architecture root/views/domains must not redefine users, product promises,
 product roadmap, product non-goals, or product acceptance meaning. They may

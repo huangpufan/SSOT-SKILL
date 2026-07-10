@@ -14,10 +14,10 @@ Segment large diffs and long transcripts before reading. Loading the full
 backlog into one context is the failure mode this skill exists to prevent.
 
 Waterline advancement must follow
-`../ssot-preflight/references/status-protocol.md §7.1` and the upgrade router
+`../ssot-preflight/references/status-protocol.md §6` and the upgrade router
 in `references/protocol-upgrades.md`. Record an explicit review before
 advancing `tracked_commit`, `tracked_session`, or `tracked_skill_version`; use
-an independent `$ssot-doctor` stop review only for the §7.1 exceptions,
+an independent `$ssot-doctor` stop review only for the §6 exceptions,
 including `semantic_impact=high` protocol upgrades. `semantic_impact=none`,
 `low`, and `medium` protocol upgrades may be self-reviewed when their checklist
 is recorded.

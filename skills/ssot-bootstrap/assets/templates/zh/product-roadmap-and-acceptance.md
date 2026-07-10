@@ -2,7 +2,7 @@
 
 > 行文风格：写给任何冷读者。详见 `ssot-bootstrap` §3.7。
 
-> 本文件拥有产品 phase、roadmap intent、product acceptance gates 和产品级 gaps。测试实现细节仍在 `testing/`，技术 current/target/gap 仍在 `architecture/`。
+> 本文件拥有产品 phase、roadmap intent、product acceptance gates 和产品级 gaps。测试实现细节仍在 `03-process/testing/`，技术 current/target/gap 仍在 `02-architecture/`。
 
 ## 这一版到下一版的故事 [MUST]
 

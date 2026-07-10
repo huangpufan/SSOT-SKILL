@@ -7,7 +7,7 @@
 ## Scope
 
 - **Owns**: system/runtime execution, phase lifecycles, cross-domain overview diagrams, failure/recovery, observability signals, and technical acceptance signals.
-- **Links but does not own**: user/operator journeys, touchpoints, experience constraints, and product acceptance; these are owned by `product/journeys/` or the product spine.
+- **Links but does not own**: user/operator journeys, touchpoints, experience constraints, and product acceptance; these are owned by `../../01-product/journeys/` or the product spine.
 - **Does not own**: concrete state/resource details or in-domain contracts; those should link to domains.
 - **Primary source material**:
 

@@ -1,6 +1,6 @@
 # <runtime owner> Playbook（维护 / 上手 / 验证）
 
-> Architecture-domain 操作 playbook。仅当本 domain 拥有 ≥3 个机械任务分支（如"接入新 SDK adapter"、"迁移一个 schema 列"）时使用。README 拥有契约真相；本文件拥有*流程*。样例见 `SSOT/02-architecture/sdk-agent-runtime/playbook.md`。
+> Architecture-domain 操作 playbook。仅当本 domain 拥有 ≥3 个机械任务分支（如"接入新 SDK adapter"、"迁移一个 schema 列"）时使用。README 拥有契约真相；本文件拥有*流程*。渲染目标为 `SSOT/02-architecture/NN-<domain>/playbook.md`。
 
 ## 0. 启动检查（每次执行）
 

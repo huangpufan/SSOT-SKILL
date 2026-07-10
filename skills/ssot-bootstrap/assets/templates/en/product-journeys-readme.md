@@ -19,7 +19,7 @@ Do not create a journey file for an implementation flow, test script, single UI 
 
 | Journey | Owner | Why separate | Product acceptance | Capability links | Architecture runtime link |
 |---|---|---|---|---|---|
-| | `<journey>.md` | | [../roadmap-and-acceptance.md](../roadmap-and-acceptance.md) | | [../../architecture/views/critical-journeys.md](../../architecture/views/critical-journeys.md) |
+| | `NN-<journey>.md` | | [../roadmap-and-acceptance.md](../roadmap-and-acceptance.md) | | [../../02-architecture/views/critical-journeys.md](../../02-architecture/views/critical-journeys.md) |
 
 ## Rejected splits
 

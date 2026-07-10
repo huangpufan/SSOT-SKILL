@@ -49,7 +49,7 @@
 |---|---|---|
 | Users / problems / promises | [product-model.md](./product-model.md) | |
 | Roadmap / product acceptance | [roadmap-and-acceptance.md](./roadmap-and-acceptance.md) | |
-| Runtime implementation | [../architecture/README.md](../architecture/README.md) | Architecture 链接到这里；不要在 architecture 中重复维护产品事实 |
+| Runtime implementation | [../02-architecture/README.md](../02-architecture/README.md) | Architecture 链接到这里；不要在 architecture 中重复维护产品事实 |
 
 ## Capability → Surface registry
 

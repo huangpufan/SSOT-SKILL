@@ -26,10 +26,10 @@ Bootstrap 骨架不会创建编号条目。只有存在具体问题、方法、�
 |------|------|------|------|-------|---------|-------------------|-----------------|
 | | | draft / validated / promoted / stale / superseded | research / poc / spike / benchmark / experiment | | YYYY-MM-DD | | |
 
-`promotion_targets` 写可能接收被提升结论的 SSOT owner，例如 `SSOT/02-architecture/domains/<domain>/README.md`、`SSOT/03-process/testing/README.md` 或 `SSOT/03-process/benchmark/README.md`。
+`promotion_targets` 写可能接收被提升结论的 SSOT owner，例如 `SSOT/02-architecture/NN-<domain>/README.md`、`SSOT/03-process/testing/README.md` 或 `SSOT/03-process/benchmark/README.md`。
 
 ## 提升规则
 
-Research 记录本身不是权威。只有证据足够支撑 durable owner 的 claim row 才能被提升；提升后同步更新条目中的 `Promoted SSOT owners`。一次性 benchmark study 留在这里，直到它的稳定 method、workload、metric、floor、comparison rule 或 trend interpretation 被提升到 `benchmark/`。未提升的 claim 留在 research 记录中，保留边界和 recheck trigger。
+Research 记录本身不是权威。只有证据足够支撑 durable owner 的 claim row 才能被提升；提升后同步更新条目中的 `Promoted SSOT owners`。一次性 benchmark study 留在这里，直到它的稳定 method、workload、metric、floor、comparison rule 或 trend interpretation 被提升到 `SSOT/03-process/benchmark/`。未提升的 claim 留在 research 记录中，保留边界和 recheck trigger。
 
 如果被提升 owner 后来与 research 记录冲突，以被提升 owner 的 current truth 为准。回头重检本记录，把状态标为 stale 或 superseded，并保留历史证据，不要把它重写成新的结论。

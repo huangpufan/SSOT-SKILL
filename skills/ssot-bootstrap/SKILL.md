@@ -15,9 +15,10 @@ reviewer signs off.
 Treat `assets/templates/` as scaffolding only. Filling a template is not
 evidence; the absorbed material is.
 
-You cannot self-certify. Declaring bootstrap `passed`, clearing `.bootstrap/`,
-or advancing any waterline requires the independent stop review defined in
-`$ssot-doctor` — even if every section looks complete.
+Bootstrap overall `passed` and clearing bootstrap state require independent
+`$ssot-doctor` review. Do not widen that exception: every other waterline uses
+the reviewer policy owned by
+[`status-protocol.md` §6](../ssot-preflight/references/status-protocol.md#6-stop-review-gate).
 
 ## Load on demand
 

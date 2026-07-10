@@ -1,3 +1,5 @@
+<!-- SSOT-SKILL bundle companion; owned by install.sh -->
+
 # SKILL.md Style — the grill-me distillation
 
 This file is the acceptance standard for the *prose body* of every `SKILL.md`

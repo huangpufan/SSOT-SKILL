@@ -2,7 +2,7 @@
 
 > Writing style: any cold reader. See `ssot-bootstrap` §3.7.
 
-> Cross-domain architecture views. Views synthesize across domains and absorb technical system goals, operating philosophy, runtime journeys, and implementation current/target/gap from source material; concrete ownership, contracts, state, and recovery details must be routed to domains. Product promises, capabilities, journeys, and product acceptance are owned by `product/`; views only link to the product owner and record implementation design or gaps.
+> Cross-domain architecture views. Views synthesize across domains and absorb technical system goals, operating philosophy, runtime journeys, and implementation current/target/gap from source material; concrete ownership, contracts, state, and recovery details must be routed to domains. Product promises, capabilities, journeys, and product acceptance are owned by `../../01-product/`; views only link to the product owner and record implementation design or gaps.
 >
 > Views are the SSOT design intent layer and must contain narrative design thinking, not just tables.
 
@@ -40,7 +40,7 @@
 
 | Source-material content | Target view | Domain / satellite area follow-up |
 |---|---|---|
-| Product positioning, product goals, product priorities, product non-goals, product acceptance | `../product/` owner | Architecture views link to the product owner without duplicating facts |
+| Product positioning, product goals, product priorities, product non-goals, product acceptance | `../../01-product/` owner | Architecture views link to the product owner without duplicating facts |
 | Technical system positioning, implementation priorities, technical non-goals, operating philosophy, primary technical actors, non-functional success criteria | [operating-model.md](./operating-model.md) | Link to domains enforcing these principles and to the relevant product owner |
 | Runtime primary paths, phase lifecycles, failure/recovery, observability signals | [critical-journeys.md](./critical-journeys.md) | Link to domains owning each phase/state/resource/recovery |
 | Implementation current/target/gap, migration goals, design gaps, implementation gaps against product acceptance | [current-target-gap.md](./current-target-gap.md) | Link to product owner, decisions, domains, open adjudication items |

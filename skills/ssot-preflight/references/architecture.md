@@ -1,6 +1,6 @@
 # Architecture Trunk Reference
 
-This file owns the `architecture/` trunk, recursive decomposition, diagram
+This file owns the `02-architecture/` trunk, recursive decomposition, diagram
 expectations, and coverage depth. Read it during bootstrap, architecture audit,
 major refactor, or architecture-domain split/merge.
 
@@ -43,25 +43,27 @@ evidence. They are not a substitute for the first prose paragraph.
 For new bootstrap and user-requested major architecture reorganization, prefer:
 
 ```text
-architecture/
+SSOT/02-architecture/
   README.md
   views/
     README.md
     operating-model.md
     critical-journeys.md
     current-target-gap.md
-  domains/
+  NN-<domain>/
     README.md
-    <domain>/
-      README.md
+    playbook.md  # only when this owner has an operational task branch
 ```
 
-Existing `architecture/<domain>/README.md` direct child-domain structures remain
-valid. Small CLI/library repos may use single-level mode when the stop reason is
-reviewed and recorded. Do not create `SSOT/design/`; design source material is
-absorbed into architecture views/domains, decisions, and related owners.
+Legacy migration inputs such as `SSOT/architecture/domains/<domain>/README.md`
+or the legacy migration input `SSOT/architecture/<domain>/README.md` remain readable during upgrade, but
+current owners use direct numbered children at
+`SSOT/02-architecture/NN-<domain>/README.md`. Small CLI/library repos may use
+single-level mode when the stop reason is reviewed and recorded. Do not create
+`SSOT/design/`; design source material is absorbed into architecture
+views/domains, decisions, and related owners.
 
-Product facts stay in `product/`. Architecture records the technical response,
+Product facts stay in `01-product/`. Architecture records the technical response,
 runtime shape, and implementation gap, and links product owners instead of
 rewriting product promises.
 
@@ -69,7 +71,7 @@ rewriting product promises.
 
 ### Root
 
-`architecture/README.md` should let a new agent build the system goal, main
+`02-architecture/README.md` should let a new agent build the system goal, main
 path, core invariants, and next reading path within one minute.
 
 Default root content:
@@ -127,7 +129,7 @@ runtime-owner / state / contract / lifecycle body —
 `## Why`, `## 失败模式 (Failure Modes)`, `## 关闭条件 (Closing Conditions)`.
 See [`area-model.md §2.2`](area-model.md#22-architecture). Doctor
 `[INTENT-OWNER]` (14W) gates this. Lightweight-mode single-level
-`architecture/README.md` (see §11) is exempt.
+`02-architecture/README.md` (see §11) is exempt.
 
 **Apex maxim and apex invariant single-owner rule** (v2.43): when an
 architecture domain README owns an apex behavior maxim
@@ -154,7 +156,7 @@ Default domain content:
 - **surface anchors** (v2.39) — for each contract row, name the user-observable surface: API route + handler, SQL identifier, DOM selector + component + Playwright test, or CLI command location; doctor `[SURFACE-PIN]` (14T) gates this;
 - **failure trace** (v2.39) — for each failure / recovery row, name the regression test or `BUG-NNNN` entry that owns it; doctor `[FAILURE-TRACE]` (14U) gates this;
 - **state tags** (v2.39) — every invariant / contract row carries `state: contract | design | poc | debt` inline (see `ssot-bootstrap` §3.7); doctor `[STATE-TAG]` (14V) gates this;
-- **playbook** (v2.39) — when the domain owns ≥3 mechanical task branches (e.g. "add a new SDK adapter", "migrate a schema column"), the domain ships a sibling `playbook.md` modeled on [`SSOT/02-architecture/sdk-agent-runtime/playbook.md`](#); the README stays thin and links it. Doctor `[PLAYBOOK]` (14R) gates this;
+- **playbook** (v2.39) — when the domain owns ≥3 mechanical task branches (e.g. "add a new SDK adapter", "migrate a schema column"), the domain ships a sibling `playbook.md` modeled on `SSOT/02-architecture/NN-<domain>/playbook.md`; the README stays thin and links it. Doctor `[PLAYBOOK]` (14R) gates this;
 - verification/evidence;
 - local Current / Target / Gap;
 - verification and evidence.
@@ -172,12 +174,12 @@ Each key claim has one owner:
 | API/CLI/SDK/protocol/schema compatibility semantics | architecture domain contract section or schema/API source plus domain note |
 | Failure detection, recovery, demotion, rollback, termination | architecture domain failure/recovery section |
 | Trust boundary, permission, secret, feature flag, environment difference | architecture domain trust/config section or deployment owner with architecture link |
-| Technical system goals, priorities, non-goals, NFRs | `architecture/views/operating-model.md` or legacy root compensation |
-| Cross-domain runtime journey and observability/recovery signal | `architecture/views/critical-journeys.md` with domain links |
-| Implementation current/target/gap and migration stance | `architecture/views/current-target-gap.md` with domain/decision/debt/product links |
-| Product promises, users, capabilities, journeys, acceptance | `product/` owners |
-| Long-lived design trade-off | `decisions/` with architecture back-link |
-| Apex behavior maxim from project root constraints (e.g. `CLAUDE.md` `CLAUDE-MAXIM-N`, `AGENTS.md`-style numbered named rules) | unique `development/discipline.md#DISC-NNNN` entry, capability invariant section, or architecture domain invariant; root constraint file holds only a one-line `[CORE-REF: ...]` link to the owner |
+| Technical system goals, priorities, non-goals, NFRs | `02-architecture/views/operating-model.md` or explicitly labeled legacy root compensation |
+| Cross-domain runtime journey and observability/recovery signal | `02-architecture/views/critical-journeys.md` with domain links |
+| Implementation current/target/gap and migration stance | `02-architecture/views/current-target-gap.md` with domain/decision/debt/product links |
+| Product promises, users, capabilities, journeys, acceptance | `01-product/` owners |
+| Long-lived design trade-off | `04-records/decisions/` with architecture back-link |
+| Apex behavior maxim from project root constraints (e.g. `CLAUDE.md` `CLAUDE-MAXIM-N`, `AGENTS.md`-style numbered named rules) | unique `03-process/development/discipline.md#DISC-NNNN` entry, capability invariant section, or architecture domain invariant; root constraint file holds only a one-line `[CORE-REF: ...]` link to the owner |
 
 Non-owner locations link to the owner and give evidence direction. If the same
 fact is maintained in multiple places, migrate it back to the owner or mark a
@@ -185,7 +187,7 @@ conflict.
 
 Architecture root/views/domains may link product constraints but must not
 redefine users, product promises, roadmap, non-goals, or acceptance meaning.
-Those live in `product/`.
+Those live in `01-product/`.
 
 ### Apex maxim indexing (v2.43)
 
@@ -194,7 +196,7 @@ behavior maxims** — short, numbered, named rules that codify failure modes
 the project must never re-enter (`CLAUDE-MAXIM-N`, `CORE-RULE-N`, etc.) —
 each maxim is treated as a long-lived claim with the same single-owner
 discipline as any other §4 claim. Each maxim must have **exactly one SSOT
-owner**: a `development/discipline.md#DISC-NNNN` entry, a capability
+owner**: a `03-process/development/discipline.md#DISC-NNNN` entry, a capability
 invariant section, or an architecture domain invariant. The root
 constraint file is a non-owner mirror; it links the owner via
 `[CORE-REF: <owner_path#anchor>]` (see
@@ -333,7 +335,7 @@ must be visible in STATUS or the owner.
 
 ## 11. Lightweight Mode
 
-Small CLI/library repos may keep only `architecture/README.md` when there are no
+Small CLI/library repos may keep only `02-architecture/README.md` when there are no
 multiple public API surfaces, adapters, persistent state owners, plugin
 mechanisms, compatibility commitments, or independent failure boundaries.
 
@@ -388,7 +390,7 @@ Real splits must be backed by repository evidence and `decomposition_basis`.
 ## 14. Source Material
 
 README, docs, ADR, PRD, runbook, design docs, and user-provided material are
-source material. They can guide exploration, but product facts enter `product/`
+source material. They can guide exploration, but product facts enter `01-product/`
 and technical architecture facts enter architecture views/domains, decisions, or
 related owners.
 
@@ -432,7 +434,7 @@ Default registry shape:
 
 | Capability | Route or module | Component | Test | state |
 |---|---|---|---|---|
-| [agent-console-runtime-visibility](../../product/capabilities/agent-console-runtime-visibility.md) | `GET /api/tasks/{id}/runtime-stream` (`src/myapp/web/routes/runtime_stream.py:LNN`) | `web/src/components/AgentConsole.tsx` | `web/e2e/agent-console-runtime.spec.ts::default tab shows participant tool calls` | `contract` |
+| [agent-console-runtime-visibility](../../01-product/capabilities/NN-agent-console-runtime-visibility.md) | `GET /api/tasks/{id}/runtime-stream` (`src/myapp/web/routes/runtime_stream.py:LNN`) | `web/src/components/AgentConsole.tsx` | `web/e2e/agent-console-runtime.spec.ts::default tab shows participant tool calls` | `contract` |
 ```
 
 Each row must carry the `state` tag (see §3.7 of `ssot-bootstrap`). `contract`

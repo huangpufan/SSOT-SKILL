@@ -7,7 +7,7 @@
 ## 范围
 
 - **负责**：系统/runtime execution、阶段生命周期、跨域总览图、failure/recovery、observability signals 和技术验收信号。
-- **链接但不拥有**：用户/操作者 journey、touchpoints、experience constraints 和 product acceptance；这些由 `product/journeys/` 或 product spine 拥有。
+- **链接但不拥有**：用户/操作者 journey、touchpoints、experience constraints 和 product acceptance；这些由 `../../01-product/journeys/` 或 product spine 拥有。
 - **不负责**：具体状态/资源细节或 domain 内契约；这些应链接到 domains。
 - **主要 源资料**：
 
