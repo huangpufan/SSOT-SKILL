@@ -1,67 +1,72 @@
-# PRD 主干
+---
+intent_recovery: gap
+---
+# 产品简介
 
-> 行文风格：写给任何冷读者。详见 `ssot-bootstrap` §3.7。
+<!-- 这里是持久的产品主线，不是外部需求文档的压缩副本。先用自然语言讲清产品，
+     给出一个具体场景和用户可见结果；本仓库特有术语首次出现时要正面定义。 -->
 
-> 简洁产品主线。不要镜像完整外部 PRD；只保留长期产品事实、owner 链接和当前/目标产品姿态。
+## 产品为什么存在
 
-## 这个产品是什么 [MUST]
+<!-- 描述使用者所处的环境、今天令人受挫的工作，以及这个问题为何值得解决。
+     说清主要用户，也要写出会实质影响产品的次要操作者。 -->
 
-用 1–3 段平实的自然语言，回答"这是什么产品 / 谁在用 / 为他解决了什么问题"。至少包含一个具体使用场景或一句话用户故事（"想象一个用户在 X 时刻……"）。术语首次出现要给一句正向定义（"X 是 …"），不能用否定式开场。
+## 今天能够完成的体验
 
-## 当前阶段在做什么 / 不做什么 [MUST]
+<!-- 讲一个完整的当前场景：用户从哪里进入、可以做什么、进行中看见什么、成功
+     结果是什么，以及阻塞或失败怎样呈现。不要把未来步骤混进当前故事。 -->
 
-用 1–2 段散文把"当前姿态 → 目标姿态"的故事讲清楚：我们现在能交付什么、下一步要把哪个用户问题解决到什么程度、为什么是这个顺序。
+## 承诺与范围
 
-非目标必须解释"为什么不做、什么时候会重新考虑"，不能只是 4 字短语或代号堆叠。下方"关键非目标"表是这段散文的索引。
+<!-- 先用正文解释承诺，再使用比较表。承诺是团队会维持稳定的用户可见结果，
+     不是内部组件。若部署或组织环境会改变承诺，应在这里说明。 -->
 
-## 产品姿态
-
-- **当前产品姿态**：
-- **目标产品姿态**：
-- **主要用户 / 操作者**：
-- **核心产品承诺**：
-- **关键非目标**：
-- **Product owner evidence**：
-
-## 核心 capability 地图
-
-`state` 标签（`contract | design | poc | debt`）告诉冷读 Agent 该 capability 是当下已强制还是愿景；详见 `ssot-bootstrap` §3.7。doctor `[STATE-TAG]` (14V)。
-
-| Capability | 用户价值 | 当前状态 | state | Owner | Acceptance link |
-|---|---|---|---|---|---|
-| | | current / target / gap / not_applicable | contract / design / poc / debt | [capabilities/README.md](./capabilities/README.md) 或本文件 | [roadmap-and-acceptance.md](./roadmap-and-acceptance.md) |
-
-## 产品范围
-
-| 范围项 | In / Out / Later | 为什么 | Owner / evidence |
-|---|---|---|---|
-| | | | |
-
-## 关键非目标
-
-| Non-goal | 为什么不做 | 重新考虑条件 | Owner |
-|---|---|---|---|
-| | | | |
-
-## Owner 链接
-
-| 事实 | Owner | Notes |
-|---|---|---|
-| Users / problems / promises | [product-model.md](./product-model.md) | |
-| Roadmap / product acceptance | [roadmap-and-acceptance.md](./roadmap-and-acceptance.md) | |
-| Runtime implementation | [../02-architecture/README.md](../02-architecture/README.md) | Architecture 链接到这里；不要在 architecture 中重复维护产品事实 |
-
-## Capability → Surface registry
-
-只有当产品 capability 是该 surface 行的 owner 时才维护本表；否则只链接到
-architecture owner，不在这里复制镜像。规则见
-`ssot-preflight/references/architecture.md` §16。
-
-| Capability | Route or module | Component | Test | state |
+| 产品承诺 | 用户可见含义 | 产品成熟度 | 重要边界 | 所有者 |
 |---|---|---|---|---|
+| | | current / limited / target / out | | |
 
-## 证据
+## 产品表面与进入方式
 
-| Claim | Source | Confidence | Next action |
+<!-- 覆盖人们实际能够到达的页面、导航、创建模式、控制项、设置、集成、诊断表面
+     与外部渠道。current 结论必须由真实挂载入口验证。 -->
+
+| 表面或入口模式 | 用户目标 | 今天实际发生什么 | 产品成熟度 | 证据保真度 |
+|---|---|---|---|---|
+| | | | current / limited / target / out | browser / integration / unit / static / missing |
+
+## 什么叫成功
+
+<!-- 描述可观察结果、质量门槛和完成含义。若产品存在部分完成、取消和失败状态，
+     也要写清用户会看到什么。 -->
+
+| 结果 | 谁能观察 | 产品验收含义 | 证据所有者 |
 |---|---|---|---|
-| | PRD / README / user-provided source / release evidence | verified / documented / inferred / unknown | |
+| | | | [路线图与验收](./roadmap-and-acceptance.md) |
+
+## 明确不做什么
+
+<!-- 对每项非目标解释现在为什么不做、用户应采用什么替代方案，以及出现什么
+     证据时会重新考虑。不要只写代号或四字短语。 -->
+
+| 非目标 | 不在承诺内的原因 | 当前替代方案 | 重新考虑条件 |
+|---|---|---|---|
+| | | | |
+
+## 方向与未决问题
+
+<!-- 把未来方向与当前事实分开。每个 limited 或 target 项都要写当前行为、
+     对用户的影响，以及负责闭合的人或文档。 -->
+
+| 主题 | 当前行为 | 预期方向 | 缺口对用户的影响 | 闭合所有者 |
+|---|---|---|---|---|
+| | | | | |
+
+## 所有权与证据
+
+| 产品问题 | 权威所有者 | 证据方向 |
+|---|---|---|
+| 人、对象、访问与语言 | [产品模型](./product-model.md) | 用户研究、支持资料、政策与真实表面 |
+| 持久用户结果 | [产品能力](./capabilities/README.md) | 产品验收与当前表面证据 |
+| 端到端体验 | [产品旅程](./journeys/README.md) | 旅程观察与验收证据 |
+| 阶段与交付含义 | [路线图与验收](./roadmap-and-acceptance.md) | 发布、验收与缺口闭合证据 |
+| 运行时如何响应 | [架构](../02-architecture/README.md) | 代码、配置、模式、测试与运行时追踪 |

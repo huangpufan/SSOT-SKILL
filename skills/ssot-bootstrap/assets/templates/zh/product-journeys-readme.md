@@ -1,28 +1,38 @@
-# Product journey 索引
+---
+intent_recovery: gap
+---
+# 产品旅程
 
-> 行文风格：写给任何冷读者。详见 `ssot-bootstrap` §3.7。
+<!-- 解释这里记录哪些反复出现的真实情境，以及旅程集合怎样覆盖普通、选择、
+     控制、恢复与诊断路径。一次界面点击序列并不是持久旅程。 -->
 
-> Product journey owner 索引。不要在本文件复制 journey 事实正文。Architecture critical journeys 拥有 runtime execution、lifecycle、failure/recovery、observability 和 diagrams。
+本目录保存需要独立产品所有权的端到端体验：
 
-## 拆分标准
+```text
+├── NN-example-journey.md
+└── _manifest.md
+```
 
-创建 `journeys/<journey>.md` 前必须满足至少一个稳定产品边界信号：
+## 完整的体验集合
 
-- Journey 跨多个 capabilities。
-- Journey 影响 roadmap/release decisions。
-- Journey 拥有独立 product acceptance。
-- Journey 反复驱动 priority tradeoffs。
+<!-- 先讲主要正常路径，再解释哪些选择、用户控制、恢复过程或操作者诊断会实质
+     改变体验。只属于未来的旅程必须与当前旅程明确分开。 -->
 
-不要为实现 flow、测试脚本、单个 UI path 或一次性 ticket 创建 journey 文件。
-
-## Journey owner 索引
-
-| Journey | Owner | Why separate | Product acceptance | Capability links | Architecture runtime link |
+| 旅程 | 触发与用户目标 | 重要选择或失败 | 完成含义 | 产品成熟度 | 所有者 |
 |---|---|---|---|---|---|
-| | `NN-<journey>.md` | | [../roadmap-and-acceptance.md](../roadmap-and-acceptance.md) | | [../../02-architecture/views/critical-journeys.md](../../02-architecture/views/critical-journeys.md) |
+| | | | | current / limited / target / out | |
 
-## 已拒绝拆分
+## 旅程怎样跨越能力
 
-| Candidate | Why not separate | Current owner |
-|---|---|---|
-| | | [../prd.md](../prd.md) / [../product-model.md](../product-model.md) |
+| 旅程 | 涉及的能力 | 需要独立旅程所有者的原因 | 运行时视图 |
+|---|---|---|---|
+| | | | [关键旅程](../../02-architecture/views/critical-journeys.md) |
+
+## 覆盖缺口
+
+<!-- 写出任何尚无所有者但实际存在的用户选择、控制、恢复、诊断或外部渠道。
+     只有该类别确实不存在时才能写不适用，并说明原因。 -->
+
+| 缺失的旅程类别 | 用户今天的体验 | 遗漏风险 | 闭合所有者 |
+|---|---|---|---|
+| | | | |

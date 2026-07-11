@@ -21,7 +21,7 @@ SSOT/
   STATUS.md          # Maintenance status
   01-product/        # Long-lived product trunk
     README.md        # Product Reader Map / owner index
-    prd.md           # Concise PRD spine
+    prd.md           # Current product brief and scope
     product-model.md # Users, problems, promises, boundary, language, trade-offs
     roadmap-and-acceptance.md # Phases, roadmap intent, product acceptance
     capabilities/
@@ -34,6 +34,9 @@ SSOT/
       README.md
       operating-model.md
       critical-journeys.md
+      state-and-data-lifecycle.md
+      contracts-and-trust-boundaries.md
+      failure-and-recovery.md
       current-target-gap.md
     NN-domain/       # Architecture domains of state/contract/failure/verification
       README.md
@@ -83,11 +86,13 @@ still follow the source-material lifecycle and downgrade rules.
 
 Every section of every user-facing SSOT body file is first written for the stranger who lands tonight knowing nothing; tables, codes and tags they cannot read are not paragraphs. Three guardrails follow: **prose before tables**, **define every term positively on first use**, and **a cell is not a paragraph**. Full text in [`ssot-bootstrap/references/bootstrap.md`](../../ssot-bootstrap/references/bootstrap.md) §3.7; enforced by Doctor `14I`.
 
-KISS is the permanent SSOT design principle. Prefer the shortest prose that
-builds the correct mental model, then add only the table rows needed for
-routing, comparison, status, or evidence lookup. A table-heavy owner that makes
-the reader reconstruct the story from cells should be fixed before it is
-marked `covered`.
+KISS is the permanent SSOT design principle. It means the shortest reliable
+path to understanding, not the fewest words. Remove duplicate and machine-only
+material from the reader path, then write enough causal prose for a newcomer to
+teach the product or system back. Tables remain routing, comparison, status, or
+evidence indexes. A table-heavy owner that makes the reader reconstruct the
+story from cells must be fixed before it is marked `covered`. The complete
+product/architecture contract lives in [`reader-quality.md`](reader-quality.md).
 
 Every user-facing owner is also written as an agent action surface. After the opening explanation, a future agent should be able to answer six questions without reconstructing history from scattered evidence: **when should I read this**, **what current truth does this owner hold**, **where should I inspect first**, **what should I not do**, **what minimal verification or evidence closes the loop**, and (v2.51) **where can I go next, and what does this owner explicitly NOT answer (with a pointer to the owner that does)**. Keep the answers compact; the point is orientation, not a second playbook. If a missing answer is caused by a protocol gap rather than one local document, fix the SSOT Skill protocol first, then update the consumer SSOT from that improved rule.
 
@@ -98,7 +103,7 @@ set of core things that had to be recovered. A consumer at protocol `>= 2.45`
 therefore maintains a **Core recovery manifest** in the product trunk and in the
 architecture trunk:
 
-- `01-product/README.md` or `01-product/prd.md` first gives a short **Core
+- `01-product/README.md` or `01-product/prd.md` first gives a clear **Core
   completeness argument**: why this set is the project's core product surface,
   which user/operator, problem, promise, product boundary, acceptance semantics,
   and long-lived trade-off facts are part of the core, what near-miss items are
@@ -109,7 +114,7 @@ architecture trunk:
   (`product_intent`, `product_truth`, or `not_applicable` with reason), the
   current truth state (`contract`, `mixed`, `design`, `debt`, `Out`, or
   `not_applicable`), and the evidence / closure owner.
-- `02-architecture/README.md` first gives a short **Core completeness argument**:
+- `02-architecture/README.md` first gives a clear **Core completeness argument**:
   why this set is the project's core design surface, which runtime-owner axis
   and cross-owner views make it complete, what near-miss implementation details
   are deliberately excluded, and what wrong design conclusion a cold reader
@@ -152,14 +157,15 @@ The Core recovery manifest is a recovery index, not the story. A product or
 architecture trunk that makes the reader reconstruct "what matters and why" from
 manifest cells has failed even when every row is accurate. At protocol
 `>= 2.47`, `01-product/README.md`, `01-product/prd.md`, or the consumer's declared
-product trunk owner must expose a short **Product intent and truth** narrative
+product trunk owner must expose a self-contained **Product intent and truth** narrative
 before its Core recovery manifest. Likewise, `02-architecture/README.md` must expose
-a short **Design intent and truth** narrative before its Core recovery manifest.
+a self-contained **Design intent and truth** narrative before its Core recovery manifest.
 
 The narrative is not another fact store. It is the first-principles synthesis of
 the owner facts that already live in the trunk, capability, journey, view, and
-domain files. Keep it compact enough to read before opening any table. It must
-answer:
+domain files. Keep the reading path direct, but do not compress away the
+context, example, boundary, or failure/recovery needed to understand it. It
+must answer:
 
 - **intent** — why this product or architecture exists, what pressure shaped
   it, and which trade-off future agents must preserve;
@@ -210,13 +216,12 @@ At protocol `>= 2.48`, covered product and architecture areas therefore
   (`01-product/_manifest.md`, `01-product/capabilities/_manifest.md`,
   `01-product/journeys/_manifest.md`, `02-architecture/_manifest.md`,
   `02-architecture/views/_manifest.md`, `02-architecture/NN-<domain>/_manifest.md`). The
-  manifest carries: (a) the Core recovery manifest table plus its completeness
-  argument; (b) the Apex / Maxim → Owner mirror table (architecture root only);
-  (c) the Capability → Surface registry mirror rows (architecture root and
-  view-level only); (d) intent-recovery pillar matrices and `intent_recovery_evidence`
-  strings; (e) README-self failure-mode sections (where detection and recovery
-  are documentation-drift on the manifest itself); (f) the adoption-cycle log
-  recording when each v2.4x cycle's slice closed.
+  exact content depends on its `manifest_archetype`: `product-root`,
+  `product-collection`, `architecture-root`, `architecture-views`, or
+  `architecture-domain`. Root-only registries do not appear as empty tables in
+  collections or domains. Each manifest carries only the recovery rows,
+  evidence, and document invalidation/retirement conditions owned by that
+  archetype. See [`reader-quality.md §6`](reader-quality.md#6-manifest-archetypes).
 - **Adoption-cycle version labels** (`v2.43`, `v2.44`, `v2.45`, `v2.46`, `v2.47`)
   belong in `_manifest.md`, `STATUS.md`, `CHANGELOG.md`, or `04-records/decisions/` — not in
   prose owners. Prose may reference the protocol generation as "manifest" /
@@ -240,6 +245,11 @@ duplicate `_manifest.md` rows, Doctor reports `[META-LEAKAGE]` (15I). The fix is
 mechanical: extract the machinery into the area's `_manifest.md` and replace any
 remaining prose reference with a one-line link plus the product/design idea the
 surrounding section actually needs.
+
+At protocol `>= 2.59`, a manifest begins with
+`manifest_archetype: <value>`. A `covered` area cannot contain TODOs, author
+handoffs, placeholder paths, empty required cells, or sections forbidden for
+that archetype. Optional sections are omitted, not left as empty cargo.
 
 ### 2.0.1 Apex invariants and CORE-REF prose ownership (v2.43)
 
@@ -355,7 +365,7 @@ duplication.
 **Internal authoritative locations**:
 
 - `01-product/README.md`: Reader Map and ownership index. Only routes the reader to PRD spine, product model, roadmap/acceptance, capability owners, and journey owners; does not copy fact bodies.
-- `01-product/prd.md`: Product spine. Keeps a concise PRD spine, recording current/target product posture, core capability map, key non-goals, and owner links.
+- `01-product/prd.md`: Current product brief. Explains users, real current surfaces and entry choices, the primary current journey, limited/target/out posture, core capabilities, non-goals, and owner links.
 - `01-product/product-model.md`: Users, problems, product promises, product boundary, product language, and long-lived product trade-offs.
 - `01-product/roadmap-and-acceptance.md`: Phases, roadmap intent, product acceptance gates, product-level gaps.
 - `01-product/capabilities/`: When a capability has long-lived user value, boundary, non-goals, acceptance meaning, or roadmap state, and keeping it in `prd.md` or `product-model.md` would bloat them, split out `01-product/capabilities/<capability>.md`.
@@ -422,6 +432,13 @@ current product truth are recoverable.
 
 **Writing style**: see §2.0.
 
+**Completeness and acceptance**: use
+[`reader-quality.md §3`](reader-quality.md#3-product-completeness). Product
+maturity and evidence fidelity are separate axes. A major audit inventories the
+real mounted routes, navigation, creation modes, controls, settings,
+diagnostics, and external channels instead of assuming an old PRD still
+describes the current product.
+
 ### 2.2 02-architecture/
 
 **Responsibility**: System concrete-design trunk. Records current implementation, target design, and gaps; explains system boundaries, runtime owners, design units, runtime flows, architecture views/diagrams, state/data/resource ownership, configuration variability, lifecycle/concurrency model, cross-boundary contracts, invariants, failure recovery, and verification.
@@ -429,7 +446,7 @@ current product truth are recoverable.
 **Internal authoritative locations**:
 
 - `02-architecture/README.md`: Quick-mental-model entry, carrying design brief, Reader Map / quick understanding map, technical operating-model summary, major runtime journeys, core invariants, view index, domain index, and implementation Current / Target / Gap summary.
-- `02-architecture/views/`: Technical design-intent layer and cross-domain views, carrying operating model, critical journeys, current-target-gap, and the implementation design of how architecture responds to product constraints.
+- `02-architecture/views/`: Technical design-intent layer and cross-domain views, carrying operating model, critical journeys, state/data lifecycle, contracts/trust boundaries, failure/recovery, current-target-gap, and the implementation design of how architecture responds to product constraints.
 - `02-architecture/NN-<domain>/`: Concrete architecture domains, carrying domain-level design intent, design constraints, trade-offs/rejected plans, state/resource ownership, contracts, invariants, failure recovery, verification evidence, and intra-domain diagrams. New domains are direct children of `02-architecture/` and carry a two-digit reading-order prefix.
 - Legacy compatibility: existing unnumbered `architecture/<domain>/README.md` or `architecture/domains/<domain>/README.md` can still serve as a domain authoritative location until protocol audit migration runs. New bootstrap must not create `architecture/domains/`.
 
@@ -452,34 +469,16 @@ make the reader infer design intent or current design truth solely from row
 cells.
 Do not use a universal 20-section checklist as the default domain template.
 
-**Domain README intent triad** (v2.43): every `02-architecture/NN-<domain>/README.md` —
-including legacy direct-child domain READMEs and `architecture/domains/<domain>/README.md` —
-must carry three named H2 sections, in this order, before the runtime-owner /
-state / contract / lifecycle body:
-
-- `## Why` — why this owner is split out, and what cross-domain harm appears
-  if it merges back. One opening paragraph plus, when relevant, a link to
-  the originating decision/bug/gotcha. Prose, not a table.
-- `## 失败模式 (Failure Modes)` — at least two concrete failure modes that
-  have already bitten this owner, or that the owner is predicted to bite,
-  each with a `BUG-NNNN` / regression-test (`tests/...::test_*`) / RCA
-  pointer. Generic runtime-error rows under lifecycle / concurrency or
-  failure / recovery sections do not satisfy this section: `失败模式` is the owner-doc's own
-  recoverability surface ("what makes this README go stale, wrong, or
-  impossible to land"), not the runtime's error budget.
-- `## 关闭条件 (Closing Conditions)` — the explicit conditions under which
-  this owner can be `resolved` / merged back / superseded / marked
-  `not_applicable`, and the evidence pointer (decision / capability
-  deletion / ADR / test removal) that would close it. If no closure path is
-  currently foreseen, write `closure: open` plus a one-line revisit signal;
-  do not omit the heading.
-
-A domain README that omits any of the three sections, or carries the heading
-but writes runtime-error / generic-recovery prose under it, cannot be marked
-`covered`. Doctor `[INTENT-OWNER]` (14W) gates this.
-[Lightweight-mode single-level `02-architecture/README.md`](architecture.md#11-lightweight-mode)
-is exempt; the moment lightweight mode is exited and a domain folder is
-created, the triad becomes mandatory.
+**Domain reader surface** (v2.59): every direct domain starts with a mental
+model, why/boundary explanation, and a first-screen component diagram when the
+boundary is non-obvious. It explains a canonical current flow before reference
+tables. Runtime failure/recovery stays in the prose body. Document-self drift,
+merge, supersession, and retirement conditions live in the
+`architecture-domain` manifest, resolving the earlier conflict between the
+v2.43 intent triad and v2.48 manifest separation. The questions a domain must
+answer and the cold-reader gate live in
+[`reader-quality.md §4`](reader-quality.md#4-architecture-completeness); they
+are not a mandatory heading checklist.
 
 **Split signal**: See [`architecture.md`](architecture.md). This file only declares the technical-trunk role of `architecture/` in the area model.
 

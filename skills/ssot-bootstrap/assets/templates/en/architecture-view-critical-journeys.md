@@ -1,99 +1,69 @@
-# Critical Journeys
+---
+intent_recovery: gap
+---
+# Critical journeys
 
-> Writing style: any cold reader. See `ssot-bootstrap` §3.7.
+<!-- Choose the few current request-to-result paths whose correctness decides
+     whether the system delivers a usable outcome. Start with one complete
+     causal story; do not open with a catalogue of flows. -->
 
-> Cross-domain runtime journey view. This file explains the end-to-end runtime paths, lifecycle, failure/recovery, and observability signals that should guide technical design decisions. It synthesizes journeys from domain evidence; it does not own concrete state/contract/failure detail, nor does it redefine product journeys or product acceptance. It must contain narrative technical intent and recovery/observability signals, not just a flow table.
+## The anchor journey
 
-## Scope
-
-- **Owns**: system/runtime execution, phase lifecycles, cross-domain overview diagrams, failure/recovery, observability signals, and technical acceptance signals.
-- **Links but does not own**: user/operator journeys, touchpoints, experience constraints, and product acceptance; these are owned by `../../01-product/journeys/` or the product spine.
-- **Does not own**: concrete state/resource details or in-domain contracts; those should link to domains.
-- **Primary source material**:
-
-## Why This View Exists
-
-Use 1-3 paragraphs to explain which runtime journeys determine whether the system reliably delivers the product promise. When user/operator perspective and system perspective diverge, link to the product journey owner and describe only the system execution path here.
-
-## Narrative / Model
-
-Before listing flows, use natural language to explain the journey model. Identify which journey is the design anchor and how future changes should be judged against it.
-
-## Design Intent / Constraints
-
-| Intent or constraint | Applicable journey | Why it matters | Evidence / source |
-|---|---|---|---|
-| | | | |
-
-## Journey Overview
-
-- **Product journey owner links**:
-- **Primary runtime journeys**:
-- **Secondary runtime journeys**:
-- **Critical failure/recovery journeys**:
-- **Product journeys explicitly out of architecture scope**:
-
-## Journey Diagrams
-
-> Mermaid code blocks are authoritative. Use overview diagrams here; domain-specific subflows go to the domain README.
-
-### External Journey Diagram Candidates
-
-> Externally generated diagrams, screenshots, IDE dependency graphs, and auto dependency graphs are candidates only. When absorbed, they must be rewritten as current or target Mermaid journey diagrams and linked to the domains responsible for each phase.
-
-| Candidate source | Suggested authoritative Diagram ID | Journey / phase | What to verify | Candidate status |
-|---|---|---|---|---|
-| | | | | pending / converted / rejected / obsolete |
-
-### `<JOURNEY-...-CURRENT>`
-
-- **Status**: `current`
-- **Coverage**:
-- **Evidence**:
+<!-- Describe the trigger, entry boundary, owner sequence, durable state
+     changes, external calls, visible progress, and final result. Name the
+     correlation handle an operator uses to follow the same work. -->
 
 ```mermaid
-sequenceDiagram
-  participant Actor
-  participant System
-  participant Domain
-  Actor->>System: <intent>
-  System->>Domain: <cross-domain step>
-  Domain-->>System: <state/result>
-  System-->>Actor: <visible outcome>
+<!-- diagram_type: component -->
+flowchart LR
+  user["User or operator"] -->|request| entry["Entry boundary"]
+  entry -->|validated work| coordinator["Coordinator"]
+  coordinator -->|owned work| owner["Runtime owner"]
+  owner -->|state and result| coordinator
+  coordinator -->|completion| entry
+  entry -->|visible outcome| user
 ```
 
-## Primary Journeys
+## State changes and ownership
 
-| Journey | Product intent / runtime intent | Triggered design constraints | Technical acceptance / recovery / observability signals | Product owner / Domain owners |
+<!-- Explain which transition commits the request, which state is durable, and
+     which owner may advance or reverse it. Link details to the data view and
+     domains. -->
+
+| Journey phase | Runtime owner | State or resource touched | Visible effect | Stable evidence |
 |---|---|---|---|---|
 | | | | | |
 
-## Failure / Recovery Journeys
+## Variants that change the design
 
-| Failure journey | Detection signals | Expected recovery / degradation | What must be observable | Domain recovery owner / tests |
+<!-- Cover alternate entry modes, permissions, synchronous/asynchronous paths,
+     external integrations, or target-only variants only when they alter owner
+     order, state, contracts, or recovery. -->
+
+## Failure and recovery in the journey
+
+<!-- Tell a representative failed path in prose: where failure is detected,
+     what remains committed, how retry/cancel/restart behaves, what the user
+     sees, and how an operator diagnoses it. -->
+
+| Failure point | Detection and correlation | Safe state | Recovery or degradation | Owner |
 |---|---|---|---|---|
 | | | | | |
 
-## Acceptance Criteria
+## Journey inventory
 
-| Criterion | Applies to | Required evidence | Frequency / trigger |
+| Journey | Trigger and visible result | Owners crossed | Product journey | Current evidence |
+|---|---|---|---|---|
+| | | | | |
+
+## Acceptance and observability
+
+| Runtime expectation | User or operator observation | Required trace, metric, log, or test | Owner |
 |---|---|---|---|
 | | | | |
 
-## Related Domains
+## Current direction and gaps
 
-| Domain owner | Journey phases owned | State / contract / recovery owned |
-|---|---|---|
-| | | |
-
-## Current / Target / Gap
-
-| Journey | Current behavior | Target journey | Gap / next verification | Evidence |
-|---|---|---|---|---|
-| | | | | |
-
-## Evidence
-
-| Claim | Source material / code / runtime evidence | Confidence | Follow-up |
+| Journey | Current behaviour | Intended behaviour | Gap and closure owner |
 |---|---|---|---|
-| | | verified / documented / inferred / unknown | |
+| | | | |

@@ -59,6 +59,15 @@ jobs:
           else
             bash -n tests/test-bundle-shape.sh
           fi
+      - name: Check document-quality tests
+        run: |
+          if [[ "${{ runner.os }}" == "macOS" ]]; then
+            /opt/homebrew/bin/bash -n tests/test-document-quality-contract.sh
+            /opt/homebrew/bin/bash -n tests/test-document-quality-lint.sh
+          else
+            bash -n tests/test-document-quality-contract.sh
+            bash -n tests/test-document-quality-lint.sh
+          fi
       - name: Check Python helpers
         run: python3 -m py_compile skills/ssot-audit/assets/scripts/migrate-faceted-layout.py
 
@@ -85,6 +94,8 @@ jobs:
         run: bash skills/ssot-doctor/assets/scripts/test/run-tests.sh
       - name: Run faceted-layout migration tests
         run: bash tests/test-faceted-layout-migration.sh
+      - name: Run document-quality lint tests
+        run: bash tests/test-document-quality-lint.sh
 
   bundle-shape:
     name: bundle shape & link integrity
@@ -103,6 +114,20 @@ jobs:
             /opt/homebrew/bin/bash tests/test-bundle-shape.sh
           else
             bash tests/test-bundle-shape.sh
+          fi
+      - name: Run reader-template contract tests
+        run: |
+          if [[ "${{ runner.os }}" == "macOS" ]]; then
+            /opt/homebrew/bin/bash tests/test-document-quality-contract.sh
+          else
+            bash tests/test-document-quality-contract.sh
+          fi
+      - name: Run document-quality lint contract tests
+        run: |
+          if [[ "${{ runner.os }}" == "macOS" ]]; then
+            /opt/homebrew/bin/bash tests/test-document-quality-lint.sh
+          else
+            bash tests/test-document-quality-lint.sh
           fi
 
   installer-e2e:

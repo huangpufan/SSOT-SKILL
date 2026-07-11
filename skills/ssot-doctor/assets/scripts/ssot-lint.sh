@@ -15,6 +15,8 @@
 #   ./ssot-lint.sh --check-meta-leakage [DIR ...]
 #                                    # only run the v2.48 [META-LEAKAGE] (15I) grep;
 #                                    # DIRs default to <SSOT>/product and <SSOT>/architecture.
+#   ./ssot-lint.sh --check-document-quality [SSOT_DIR]
+#                                    # only run the v2.59 reader-artifact guards.
 #
 # Exit codes:
 #   0  PASS (no FAIL, no WARN)
@@ -33,41 +35,79 @@
 set -euo pipefail
 
 # ---------- arg parsing ----------
-SSOT_DIR="${1:-SSOT}"
+SSOT_DIR="SSOT"
 OUTPUT_FORMAT="text"
 STRICT_MODE=0
 META_LEAKAGE_ONLY=0
+DOCUMENT_QUALITY_ONLY=0
 declare -a META_LEAKAGE_DIRS=()
+declare -a POSITIONAL_ARGS=()
 
 for arg in "$@"; do
   case "$arg" in
     --json) OUTPUT_FORMAT="json" ;;
     --strict) STRICT_MODE=1 ;;
     --check-meta-leakage) META_LEAKAGE_ONLY=1 ;;
+    --check-document-quality) DOCUMENT_QUALITY_ONLY=1 ;;
     --help|-h)
       sed -n '2,28p' "$0"
       exit 0
       ;;
+    --*)
+      echo "ERROR: unknown option: $arg" >&2
+      exit 3
+      ;;
+    *) POSITIONAL_ARGS+=("$arg") ;;
   esac
 done
 
-# First non-flag arg, if a directory, overrides SSOT_DIR.
-for arg in "$@"; do
-  if [[ "$arg" != --* && -d "$arg" ]]; then
-    SSOT_DIR="$arg"
-    break
-  fi
-done
+if [[ "$META_LEAKAGE_ONLY" -eq 1 && "$DOCUMENT_QUALITY_ONLY" -eq 1 ]]; then
+  echo "ERROR: --check-meta-leakage and --check-document-quality are mutually exclusive" >&2
+  exit 3
+fi
+if [[ "$META_LEAKAGE_ONLY" -ne 1 && "${#POSITIONAL_ARGS[@]}" -gt 1 ]]; then
+  echo "ERROR: expected at most one SSOT_DIR positional argument" >&2
+  exit 3
+fi
+if [[ "$META_LEAKAGE_ONLY" -ne 1 && "${#POSITIONAL_ARGS[@]}" -gt 0 ]]; then
+  SSOT_DIR="${POSITIONAL_ARGS[0]}"
+fi
 
 # Under --check-meta-leakage, collect every non-flag dir argument as a target
 # scope. If none are given we fall back to the resolved product and
 # architecture areas (the v2.48 default semantic scope).
 if [[ "$META_LEAKAGE_ONLY" -eq 1 ]]; then
-  for arg in "$@"; do
-    if [[ "$arg" != --* && -d "$arg" ]]; then
-      META_LEAKAGE_DIRS+=("$arg")
+  for arg in "${POSITIONAL_ARGS[@]}"; do
+    if [[ ! -d "$arg" ]]; then
+      echo "ERROR: document-quality/meta-leakage directory not found: $arg" >&2
+      exit 3
     fi
+    META_LEAKAGE_DIRS+=("$arg")
   done
+  if [[ "${#META_LEAKAGE_DIRS[@]}" -gt 0 ]]; then
+    # Focused meta scans accept one or more area directories, but protocol
+    # waterline comes from their common SSOT root. Never let the first scan
+    # directory masquerade as the root and silently disable versioned tokens.
+    inferred_root=""
+    for target_dir in "${META_LEAKAGE_DIRS[@]}"; do
+      target_abs=$(cd "$target_dir" && pwd -P)
+      candidate="$target_abs"
+      while [[ "$candidate" != "/" && ! -f "$candidate/STATUS.md" ]]; do
+        candidate=$(dirname "$candidate")
+      done
+      if [[ ! -f "$candidate/STATUS.md" ]]; then
+        echo "ERROR: cannot infer SSOT root with STATUS.md from meta-leakage target: $target_dir" >&2
+        exit 3
+      fi
+      if [[ -z "$inferred_root" ]]; then
+        inferred_root="$candidate"
+      elif [[ "$candidate" != "$inferred_root" ]]; then
+        echo "ERROR: meta-leakage targets do not share one SSOT root: $inferred_root vs $candidate" >&2
+        exit 3
+      fi
+    done
+    SSOT_DIR="$inferred_root"
+  fi
 fi
 
 if [[ ! -d "$SSOT_DIR" ]]; then
@@ -220,11 +260,19 @@ GLOSSARY_DIR=$(resolve_area_dir glossary)
 #
 # Scope exclusions: `_manifest.md` itself, `STATUS.md`, `CHANGELOG.md`, anything
 # under `decisions/` or `tech-debt/`.
-META_LEAKAGE_TOKENS='\[CORE-REF-PROSE\]|\[MAXIM-OWNER\]|\[INTENT-OWNER\]|\[INTENT-TRUTH-NARRATIVE\]|\[CORE-COVERAGE-MAP\]|\[VOCAB-PROSE-FORK\]|\[WORKFLOW-STATE-VOCAB\]|\[INTENT-RECOVERY\]|\[META-LEAKAGE\]|(^|[^0-9A-Za-z])(14W|14X|14Y|14Z|15A|15B|15C|15D|15F|15G|15H|15I)([^0-9A-Za-z]|$)|(^|[^0-9A-Za-z])v2\.(43|44|45|46|47|48)([^0-9]|$)|product_intent \+ product_truth|design_intent \+ design_truth|必备 pillar|intent_recovery_pillars|intent_recovery_evidence:[[:space:]]*"|本 README 自身的可恢复性失败模式|本节正文回流|Apex-Maxim → Owner 索引|^##[[:space:]]+核心恢复清单|^##[[:space:]]+Capability → Surface registry'
+META_LEAKAGE_TOKENS_BASE='\[CORE-REF-PROSE\]|\[MAXIM-OWNER\]|\[INTENT-OWNER\]|\[INTENT-TRUTH-NARRATIVE\]|\[CORE-COVERAGE-MAP\]|\[VOCAB-PROSE-FORK\]|\[WORKFLOW-STATE-VOCAB\]|\[INTENT-RECOVERY\]|\[META-LEAKAGE\]|(^|[^0-9A-Za-z])(14W|14X|14Y|14Z|15A|15B|15C|15D|15F|15G|15H|15I)([^0-9A-Za-z]|$)|(^|[^0-9A-Za-z])v2\.(43|44|45|46|47|48)([^0-9]|$)|product_intent \+ product_truth|design_intent \+ design_truth|必备 pillar|intent_recovery_pillars|intent_recovery_evidence:[[:space:]]*"|本 README 自身的可恢复性失败模式|本节正文回流|Apex-Maxim → Owner 索引|^##[[:space:]]+核心恢复清单|^##[[:space:]]+Capability → Surface registry'
+META_LEAKAGE_TOKENS_V259='ssot-bootstrap|SKILL_STYLE|[Dd]octor[[:space:]]+(row[[:space:]]+)?[0-9]+[A-Z]?'
 
 check_meta_leakage_dir() {
   local target_dir="$1"
   local hit_count=0
+  local meta_leakage_tokens="$META_LEAKAGE_TOKENS_BASE" status_version=""
+  if [[ -f "$SSOT_DIR/STATUS.md" ]]; then
+    status_version=$(grep -E '(\|\s*tracked_skill_version\s*\||^tracked_skill_version:)' "$SSOT_DIR/STATUS.md" | head -n 1 | grep -oE '[0-9]+\.[0-9]+' | head -n 1 || true)
+  fi
+  if [[ "$DOCUMENT_QUALITY_ONLY" -eq 1 ]] || { [[ -n "$status_version" ]] && version_ge "$status_version" "2.59"; }; then
+    meta_leakage_tokens="$meta_leakage_tokens|$META_LEAKAGE_TOKENS_V259"
+  fi
   [[ ! -d "$target_dir" ]] && return 0
   while IFS= read -r -d '' md_file; do
     local rel_file="${md_file##*/}"
@@ -239,7 +287,7 @@ check_meta_leakage_dir() {
     # cycle labels embedded INSIDE product/architecture prose, not protocol
     # files themselves.
     local hit
-    hit=$(grep -nE "$META_LEAKAGE_TOKENS" "$md_file" 2>/dev/null | head -3 || true)
+    hit=$(grep -nE "$meta_leakage_tokens" "$md_file" 2>/dev/null | head -3 || true)
     if [[ -n "$hit" ]]; then
       local first_hit_line
       first_hit_line=$(printf '%s\n' "$hit" | head -1 | cut -d: -f1)
@@ -253,8 +301,425 @@ check_meta_leakage_dir() {
   return 0
 }
 
-# Run --check-meta-leakage mode: only the v2.48 grep, then output + exit.
-if [[ "$META_LEAKAGE_ONLY" -eq 1 ]]; then
+# ---------- v2.59 reader-artifact quality helpers ----------
+# These checks are deliberately structural. They do not pretend to replace a
+# cold-reader review; they prevent the known false-positive shape where a
+# covered area is only headings, tables, placeholders, or protocol machinery.
+document_quality_active() {
+  [[ "$DOCUMENT_QUALITY_ONLY" -eq 1 ]] && return 0
+  local status_file="$SSOT_DIR/STATUS.md" version
+  [[ -f "$status_file" ]] || return 1
+  version=$(grep -E '(\|\s*tracked_skill_version\s*\||^tracked_skill_version:)' "$status_file" | head -n 1 | grep -oE '[0-9]+\.[0-9]+' | head -n 1 || true)
+  [[ -n "$version" ]] && version_ge "$version" "2.59"
+}
+
+document_area_is_covered() { # $1=product|architecture
+  [[ -f "$SSOT_DIR/STATUS.md" ]] || return 1
+  grep -qE "^\|[[:space:]]*$1[[:space:]]*\|[[:space:]]*covered[[:space:]]*\|" "$SSOT_DIR/STATUS.md"
+}
+
+directory_has_reader_children() { # $1=directory
+  find "$1" -mindepth 1 -maxdepth 1 -type f -name '*.md' \
+    ! -name 'README.md' ! -name '_manifest.md' -print -quit 2>/dev/null | grep -q .
+}
+
+expected_manifest_archetype() { # $1=manifest path
+  local manifest="$1" parent grand
+  parent=$(dirname "$manifest")
+  grand=$(dirname "$parent")
+  if [[ "$manifest" == "$PRODUCT_DIR/_manifest.md" ]]; then
+    printf 'product-root\n'
+  elif [[ "$parent" == "$PRODUCT_DIR/capabilities" || "$parent" == "$PRODUCT_DIR/journeys" ]]; then
+    printf 'product-collection\n'
+  elif [[ "$manifest" == "$ARCHITECTURE_DIR/_manifest.md" ]]; then
+    printf 'architecture-root\n'
+  elif [[ "$parent" == "$ARCHITECTURE_DIR/views" ]]; then
+    printf 'architecture-views\n'
+  elif [[ "$grand" == "$ARCHITECTURE_DIR" ]]; then
+    printf 'architecture-domain\n'
+  else
+    printf 'unknown\n'
+  fi
+}
+
+check_required_manifest() { # $1=directory $2=archetype
+  local dir="$1" archetype="$2" manifest="$1/_manifest.md"
+  [[ -d "$dir" ]] || return 0
+  if [[ ! -f "$manifest" ]]; then
+    add_fail "[MANIFEST-COMPLETENESS] covered reader area is missing $archetype manifest: $manifest"
+  fi
+}
+
+# Print only the archetype's required recovery table. This prevents an
+# unrelated evidence or lifecycle table from satisfying the minimum-row gate.
+manifest_primary_table() { # $1=manifest $2=archetype
+  awk -v archetype="$2" '
+    function is_header(line, lower) {
+      lower=tolower(line)
+      if (archetype == "product-root")
+        return (lower ~ /required product question/ || line ~ /必答产品问题/) && \
+          (lower ~ /narrative owner/ || line ~ /叙事所有者/) && \
+          (lower ~ /recovery coverage/ || line ~ /恢复覆盖/) && \
+          (lower ~ /product maturity/ || line ~ /产品成熟度/) && \
+          (lower ~ /evidence fidelity/ || line ~ /证据保真度/)
+      if (archetype == "product-collection")
+        return (lower ~ /child owner/ || line ~ /子所有者/) && \
+          (lower ~ /recovery coverage/ || line ~ /恢复覆盖/) && \
+          (lower ~ /product maturity/ || line ~ /产品成熟度/) && \
+          (lower ~ /evidence fidelity/ || line ~ /证据保真度/)
+      if (archetype == "architecture-root")
+        return (lower ~ /required architecture question/ || line ~ /必答架构问题/) && \
+          (lower ~ /narrative owner/ || line ~ /叙事所有者/) && \
+          (lower ~ /(recovery|coverage)/ || line ~ /恢复|覆盖/) && \
+          (lower ~ /evidence/ || line ~ /证据/)
+      if (archetype == "architecture-views")
+        return (lower ~ /question class/ || line ~ /问题类别/) && \
+          (lower ~ /narrative owner/ || line ~ /叙事所有者/) && \
+          (lower ~ /(recovery|coverage)/ || line ~ /恢复|覆盖/) && \
+          (lower ~ /evidence/ || line ~ /证据/)
+      if (archetype == "architecture-domain")
+        return (lower ~ /required owner question/ || line ~ /所有者必答问题/) && \
+          (lower ~ /narrative owner/ || line ~ /叙事所有者/) && \
+          (lower ~ /(recovery|coverage)/ || line ~ /恢复|覆盖/) && \
+          (lower ~ /evidence/ || line ~ /证据/)
+      return 0
+    }
+    !active && /^\|/ && is_header($0) { active=1; print; next }
+    active && /^\|/ { print; next }
+    active { exit }
+  ' "$1"
+}
+
+manifest_has_resolved_review_pointer() { # $1=manifest
+  local manifest="$1" line target resolved project_root
+  while IFS= read -r line; do
+    target=$(printf '%s\n' "$line" | sed -nE 's@.*\]\(([^) #]+\.md)(#[^)]*)?\).*@\1@p')
+    if [[ -z "$target" ]]; then
+      target=$(printf '%s\n' "$line" | grep -oE '`[^`]+\.md(#[^`]*)?`' | head -1 | tr -d '`' || true)
+      target="${target%%#*}"
+    fi
+    [[ -n "$target" ]] || continue
+    case "$target" in
+      /*) resolved="$target" ;;
+      SSOT/*)
+        project_root=$(cd "$(dirname "$SSOT_DIR")" && pwd -P)
+        resolved="$project_root/$target"
+        ;;
+      *) resolved="$(dirname "$manifest")/$target" ;;
+    esac
+    if [[ -f "$resolved" ]] && grep -qi 'no-more-required-changes' "$resolved"; then
+      return 0
+    fi
+  done < <(grep -i 'no-more-required-changes' "$manifest" || true)
+  return 1
+}
+
+check_document_quality() {
+  document_quality_active || return 0
+
+  # Covered roots and non-empty reader collections need the manifest archetype
+  # that matches their ownership level. Empty bootstrap directories are exempt.
+  document_area_is_covered product && check_required_manifest "$PRODUCT_DIR" product-root
+  document_area_is_covered architecture && check_required_manifest "$ARCHITECTURE_DIR" architecture-root
+  for collection in "$PRODUCT_DIR/capabilities" "$PRODUCT_DIR/journeys"; do
+    [[ -d "$collection" ]] && directory_has_reader_children "$collection" && \
+      check_required_manifest "$collection" product-collection
+  done
+  if [[ -d "$ARCHITECTURE_DIR/views" ]] && directory_has_reader_children "$ARCHITECTURE_DIR/views"; then
+    check_required_manifest "$ARCHITECTURE_DIR/views" architecture-views
+  fi
+  if [[ -d "$ARCHITECTURE_DIR" ]]; then
+    while IFS= read -r -d '' domain; do
+      [[ "$(basename "$domain")" == "views" ]] && continue
+      [[ -f "$domain/README.md" ]] && check_required_manifest "$domain" architecture-domain
+    done < <(find "$ARCHITECTURE_DIR" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null || true)
+  fi
+
+  local manifest_count=0 manifest_fail_count=0
+  while IFS= read -r -d '' manifest; do
+    manifest_count=$((manifest_count + 1))
+    local expected declared recovery_state manifest_frontmatter declared_count recovery_count
+    local empty_row required_rows minimum_rows primary_table area_covered=0
+    expected=$(expected_manifest_archetype "$manifest")
+    manifest_frontmatter=$(yaml_frontmatter "$manifest")
+    declared_count=$(printf '%s\n' "$manifest_frontmatter" | grep -Ec '^manifest_archetype:[[:space:]]*' || true)
+    recovery_count=$(printf '%s\n' "$manifest_frontmatter" | grep -Ec '^intent_recovery:[[:space:]]*' || true)
+    declared=$(printf '%s\n' "$manifest_frontmatter" | grep -E '^manifest_archetype:[[:space:]]*' | head -1 | sed -E 's/^manifest_archetype:[[:space:]]*//' | tr -d '`"' || true)
+    recovery_state=$(printf '%s\n' "$manifest_frontmatter" | grep -E '^intent_recovery:[[:space:]]*' | head -1 | sed -E 's/^intent_recovery:[[:space:]]*//' | tr -d '`"' || true)
+    case "$manifest" in
+      "$PRODUCT_DIR"/*) document_area_is_covered product && area_covered=1 ;;
+      "$ARCHITECTURE_DIR"/*) document_area_is_covered architecture && area_covered=1 ;;
+    esac
+    if [[ "$declared_count" -ne 1 || "$recovery_count" -ne 1 ]]; then
+      add_fail "[MANIFEST-COMPLETENESS] manifest frontmatter must declare exactly one manifest_archetype and one intent_recovery key: $manifest (manifest_archetype=$declared_count intent_recovery=$recovery_count)"
+      manifest_fail_count=$((manifest_fail_count + 1))
+    fi
+    if [[ -z "$declared" || "$expected" == "unknown" || "$declared" != "$expected" ]]; then
+      add_fail "[MANIFEST-COMPLETENESS] manifest archetype mismatch: $manifest (expected=$expected declared=${declared:-missing})"
+      manifest_fail_count=$((manifest_fail_count + 1))
+    fi
+    if [[ ! "$recovery_state" =~ ^(gap|partial|covered)$ ]]; then
+      add_fail "[MANIFEST-COMPLETENESS] manifest needs intent_recovery: gap|partial|covered in YAML frontmatter: $manifest"
+      manifest_fail_count=$((manifest_fail_count + 1))
+    elif [[ "$area_covered" -eq 1 && "$recovery_state" != "covered" ]]; then
+      add_fail "[MANIFEST-COMPLETENESS] covered area has a non-covered manifest: $manifest (intent_recovery=$recovery_state)"
+      manifest_fail_count=$((manifest_fail_count + 1))
+    fi
+    if grep -qiE '<!--[[:space:]]*(TODO|TBD)|(^|[^A-Za-z])(TODO|TBD|FIXME)([^A-Za-z]|$)|待补充|（待补充）' "$manifest"; then
+      add_fail "[MANIFEST-COMPLETENESS] manifest contains unresolved placeholder text: $manifest"
+      manifest_fail_count=$((manifest_fail_count + 1))
+    fi
+    empty_row=$(awk '
+      /^\|/ && $0 !~ /^\|[[:space:]:|-]+\|[[:space:]:|-]+/ && $0 ~ /\|[[:space:]]*\|/ { print FNR; exit }
+    ' "$manifest")
+    if [[ -n "$empty_row" ]]; then
+      add_fail "[MANIFEST-COMPLETENESS] manifest table has an empty required cell: $manifest:$empty_row"
+      manifest_fail_count=$((manifest_fail_count + 1))
+    fi
+    minimum_rows=0
+    case "$declared" in
+      product-root|architecture-root|architecture-domain) minimum_rows=5 ;;
+      architecture-views) minimum_rows=6 ;;
+      product-collection) minimum_rows=1 ;;
+    esac
+    primary_table=$(manifest_primary_table "$manifest" "$declared")
+    required_rows=$(printf '%s\n' "$primary_table" | awk '
+      NR <= 2 { next }
+      /^\|/ { rows++ }
+      END { print rows + 0 }
+    ')
+    if (( minimum_rows > 0 )) && [[ -z "$primary_table" ]]; then
+      add_fail "[MANIFEST-COMPLETENESS] $declared manifest is missing its archetype-specific recovery table header: $manifest"
+      manifest_fail_count=$((manifest_fail_count + 1))
+    fi
+    if (( minimum_rows > 0 && required_rows < minimum_rows )); then
+      add_fail "[MANIFEST-COMPLETENESS] $declared manifest has too few completed recovery rows: $manifest (rows=$required_rows minimum=$minimum_rows)"
+      manifest_fail_count=$((manifest_fail_count + 1))
+    fi
+    if [[ "$recovery_state" == "covered" ]]; then
+      if grep -q '<!--' "$manifest"; then
+        add_fail "[MANIFEST-COMPLETENESS] covered manifest still contains template/author comments: $manifest"
+        manifest_fail_count=$((manifest_fail_count + 1))
+      fi
+      if grep -qiE '\|[[:space:]]*(gap|missing|unresolved|not-run|needs-review|not-scored|not_assessed|pending|unknown)[[:space:]]*\|' "$manifest"; then
+        add_fail "[MANIFEST-COMPLETENESS] covered manifest still contains incomplete recovery state cells: $manifest"
+        manifest_fail_count=$((manifest_fail_count + 1))
+      fi
+      if grep -qiE '(not yet recorded|no .* recorded yet|尚未(记录|采样|审查)|未记录|未采样)' "$manifest"; then
+        add_fail "[MANIFEST-COMPLETENESS] covered manifest still contains unresolved handoff text: $manifest"
+        manifest_fail_count=$((manifest_fail_count + 1))
+      fi
+      if grep -qE '<[^>]+>|(^|[^[:alnum:]_])(path/to|src/path|tests/path|NN-<domain>)([^[:alnum:]_]|$)' "$manifest"; then
+        add_fail "[MANIFEST-COMPLETENESS] covered manifest still contains placeholder paths or angle-bracket handoff values: $manifest"
+        manifest_fail_count=$((manifest_fail_count + 1))
+      fi
+      if ! manifest_has_resolved_review_pointer "$manifest"; then
+        add_fail "[MANIFEST-COMPLETENESS] covered manifest lacks a no-more-required-changes verdict linked to an existing Markdown review artifact: $manifest"
+        manifest_fail_count=$((manifest_fail_count + 1))
+      fi
+      case "$declared" in
+        product-root)
+          for required_pattern in 'prd\.md' 'product-model\.md' 'capabilities/README\.md' 'journeys/README\.md' 'roadmap-and-acceptance\.md'; do
+            if ! printf '%s\n' "$primary_table" | grep -qiE "$required_pattern"; then
+              add_fail "[MANIFEST-COMPLETENESS] product-root manifest misses required product spine owner '$required_pattern': $manifest"
+              manifest_fail_count=$((manifest_fail_count + 1))
+            fi
+          done
+          if grep -qiE '\|[[:space:]]*(mixed|contract|design|poc|debt)[[:space:]]*\|' "$manifest"; then
+            add_fail "[MANIFEST-COMPLETENESS] covered product manifest uses architecture state as product maturity: $manifest"
+            manifest_fail_count=$((manifest_fail_count + 1))
+          fi
+          ;;
+        product-collection)
+          if ! printf '%s\n' "$primary_table" | grep -qE '\]\(\./[0-9]{2}-[^)]+\.md\)' ||
+             ! printf '%s\n' "$primary_table" | grep -qiE '(product maturity|产品成熟度)' ||
+             ! printf '%s\n' "$primary_table" | grep -qiE '(evidence fidelity|证据保真度)'; then
+            add_fail "[MANIFEST-COMPLETENESS] product-collection manifest must index numbered child owners with product maturity and evidence fidelity: $manifest"
+            manifest_fail_count=$((manifest_fail_count + 1))
+          fi
+          ;;
+        architecture-root)
+          for required_pattern in 'views/README\.md' '(runtime owner|运行时[[:space:]]*(owner|所有者))' '(invariant|不变量)' '(context|上下文|系统边界)'; do
+            if ! printf '%s\n' "$primary_table" | grep -qiE "$required_pattern"; then
+              add_fail "[MANIFEST-COMPLETENESS] architecture-root manifest misses required recovery class '$required_pattern': $manifest"
+              manifest_fail_count=$((manifest_fail_count + 1))
+            fi
+          done
+          if ! grep -qiE 'current-target-gap\.md' "$manifest"; then
+            add_fail "[MANIFEST-COMPLETENESS] architecture-root manifest misses required recovery class 'current-target-gap\\.md': $manifest"
+            manifest_fail_count=$((manifest_fail_count + 1))
+          fi
+          if ! printf '%s\n' "$primary_table" | grep -qE '\]\(\./[0-9]{2}-[^/)]+/README\.md\)'; then
+            add_fail "[MANIFEST-COMPLETENESS] architecture-root manifest does not index any direct numbered runtime-owner domain: $manifest"
+            manifest_fail_count=$((manifest_fail_count + 1))
+          fi
+          ;;
+        architecture-views)
+          for required_pattern in 'operating-model\.md' 'critical-journeys\.md' 'state-and-data-lifecycle\.md' 'contracts-and-trust-boundaries\.md' 'failure-and-recovery\.md' 'current-target-gap\.md'; do
+            if ! printf '%s\n' "$primary_table" | grep -qiE "$required_pattern"; then
+              add_fail "[MANIFEST-COMPLETENESS] architecture-views manifest misses required view or reasoned not_applicable row '$required_pattern': $manifest"
+              manifest_fail_count=$((manifest_fail_count + 1))
+            fi
+          done
+          ;;
+        architecture-domain)
+          for required_pattern in '(boundary|边界)' '(state|resource|状态|资源)' '(contract|trust|契约|信任)' '(flow|journey|流程|旅程)' '(failure|recovery|失败|恢复)'; do
+            if ! printf '%s\n' "$primary_table" | grep -qiE "$required_pattern"; then
+              add_fail "[MANIFEST-COMPLETENESS] architecture-domain manifest misses required recovery class '$required_pattern': $manifest"
+              manifest_fail_count=$((manifest_fail_count + 1))
+            fi
+          done
+          ;;
+      esac
+    fi
+    local forbidden_pattern=""
+    case "$declared" in
+      product-root) forbidden_pattern='^##[[:space:]]+(Apex|Maxim|Runtime surface registry|Domain symbol inventory|顶层规则|最高规则|运行时表面注册表|领域符号清单)' ;;
+      product-collection) forbidden_pattern='^##[[:space:]]+(Apex|Maxim|Runtime Owner Map|Global invariants|Core product spine|顶层规则|最高规则|运行时所有者图|全局不变量|产品主干)' ;;
+      architecture-root) forbidden_pattern='^##[[:space:]]+(Child symbol inventory|Domain-local flows|子项符号清单|领域局部流程)' ;;
+      architecture-views) forbidden_pattern='^##[[:space:]]+(Apex|Maxim|Domain symbol inventory|Capability surface registry|顶层规则|最高规则|领域符号清单|能力表面注册表)' ;;
+      architecture-domain) forbidden_pattern='^##[[:space:]]+(Apex|Maxim|Global invariant registry|Capability surface registry|顶层规则|最高规则|全局不变量注册表|能力表面注册表)' ;;
+    esac
+    if [[ -n "$forbidden_pattern" ]] && grep -qiE "$forbidden_pattern" "$manifest"; then
+      add_fail "[MANIFEST-COMPLETENESS] $declared manifest contains machinery owned by another level: $manifest"
+      manifest_fail_count=$((manifest_fail_count + 1))
+    fi
+  done < <(find "$PRODUCT_DIR" "$ARCHITECTURE_DIR" -name '_manifest.md' -type f -print0 2>/dev/null || true)
+  if [[ "$manifest_fail_count" -eq 0 ]]; then
+    add_pass "v2.59 reader manifests use complete location-specific archetypes"
+  fi
+
+  # A covered reader file needs at least two real prose paragraphs. Headings,
+  # tables, lists, comments, and fenced examples do not count as explanation.
+  local narrative_fail_count=0 density_warn_count=0
+  while IFS= read -r -d '' reader_file; do
+    [[ "$(basename "$reader_file")" == "_manifest.md" ]] && continue
+    local body_frontmatter body_recovery body_area_covered=0
+    body_frontmatter=$(yaml_frontmatter "$reader_file")
+    body_recovery=$(printf '%s\n' "$body_frontmatter" | grep -E '^intent_recovery:[[:space:]]*' | head -1 | sed -E 's/^intent_recovery:[[:space:]]*//' | tr -d '`"' || true)
+    case "$reader_file" in
+      "$PRODUCT_DIR"/*) document_area_is_covered product && body_area_covered=1 ;;
+      "$ARCHITECTURE_DIR"/*) document_area_is_covered architecture && body_area_covered=1 ;;
+    esac
+    if [[ "$body_area_covered" -eq 1 && "$body_recovery" != "covered" ]]; then
+      add_fail "[NARRATIVE-SUFFICIENCY] covered area has a reader file whose intent_recovery is ${body_recovery:-missing}: $reader_file"
+      narrative_fail_count=$((narrative_fail_count + 1))
+      continue
+    fi
+    [[ "$body_recovery" == "covered" ]] || continue
+    local prose_stats paragraphs prose_chars line_stats body_lines table_lines
+    prose_stats=$(awk '
+      function flush() {
+        if (block_chars >= 20) { paragraphs++; prose_chars += block_chars }
+        block_chars=0
+      }
+      NR==1 && /^---[[:space:]]*$/ { front=1; next }
+      front && /^---[[:space:]]*$/ { front=0; next }
+      front { next }
+      /^```/ { flush(); code=!code; next }
+      code { next }
+      /<!--[[:space:]]*/ { flush(); comment=1 }
+      comment { if ($0 ~ /-->/) comment=0; next }
+      /^[[:space:]]*$/ { flush(); next }
+      /^#/ || /^\|/ || /^[[:space:]]*[-*+] / || /^[[:space:]]*[0-9]+\. / { flush(); next }
+      { line=$0; gsub(/[[:space:]]/, "", line); block_chars += length(line) }
+      END { flush(); print paragraphs ":" prose_chars }
+    ' "$reader_file")
+    paragraphs=${prose_stats%%:*}
+    prose_chars=${prose_stats#*:}
+    if (( paragraphs < 2 || prose_chars < 80 )); then
+      add_fail "[NARRATIVE-SUFFICIENCY] covered reader file needs at least two explanatory prose paragraphs (found paragraphs=$paragraphs prose_chars=$prose_chars): $reader_file"
+      narrative_fail_count=$((narrative_fail_count + 1))
+    fi
+    line_stats=$(awk '
+      NR==1 && /^---[[:space:]]*$/ { front=1; next }
+      front && /^---[[:space:]]*$/ { front=0; next }
+      front || /^[[:space:]]*$/ { next }
+      { body++ }
+      /^\|/ { table++ }
+      END { print body ":" table }
+    ' "$reader_file")
+    body_lines=${line_stats%%:*}
+    table_lines=${line_stats#*:}
+    if (( table_lines >= 15 && body_lines > 0 && table_lines * 100 >= body_lines * 35 )); then
+      add_warn "[KISS-TABLE-DENSITY] reader file is compact but table-dominant; move reference inventory after a self-contained explanation or into the manifest: $reader_file (table=$table_lines body=$body_lines)"
+      density_warn_count=$((density_warn_count + 1))
+    fi
+  done < <(find "$PRODUCT_DIR" "$ARCHITECTURE_DIR" -name '*.md' -type f -print0 2>/dev/null || true)
+  [[ "$narrative_fail_count" -eq 0 ]] && add_pass "[NARRATIVE-SUFFICIENCY] covered product/architecture files contain explanatory prose"
+  [[ "$density_warn_count" -eq 0 ]] && add_pass "[KISS-TABLE-DENSITY] no covered reader file is dominated by compact reference tables"
+
+  # Architecture domains are where readers most need a boundary picture. A
+  # covered v2.59 domain without one is a false covered claim, not a warning.
+  local diagram_fail_count=0
+  if [[ -d "$ARCHITECTURE_DIR" ]]; then
+    while IFS= read -r -d '' readme; do
+      local parent_dir grand_dir first_table first_mermaid diagram_info diagram_type
+      parent_dir=$(dirname "$readme")
+      grand_dir=$(dirname "$parent_dir")
+      [[ "$grand_dir" != "$ARCHITECTURE_DIR" || "$(basename "$parent_dir")" == "views" ]] && continue
+      head -n 6 "$readme" | grep -qE '^intent_recovery:[[:space:]]*covered' || continue
+      first_table=$(grep -nE '^\|' "$readme" | head -1 | cut -d: -f1 || true)
+      diagram_info=$(awk '
+        /^```mermaid[[:space:]]*$/ { fence=NR; inside=1; next }
+        inside && /^[[:space:]]*$/ { next }
+        inside {
+          if ($0 ~ /^[[:space:]]*<!--[[:space:]]*diagram_type:[[:space:]]*component[[:space:]]*-->[[:space:]]*$/)
+            print fence "|component"
+          else
+            print fence "|wrong-or-missing"
+          exit
+        }
+      ' "$readme")
+      first_mermaid=${diagram_info%%|*}
+      diagram_type=${diagram_info#*|}
+      if [[ -z "$diagram_info" || "$diagram_type" != "component" || "$first_mermaid" -gt 60 || ( -n "$first_table" && "$first_mermaid" -gt "$first_table" ) ]]; then
+        add_fail "[DIAGRAM-FIRST] (15V) covered architecture domain needs a Mermaid component/boundary diagram tagged '<!-- diagram_type: component -->' within 60 lines and before its first table: $readme"
+        diagram_fail_count=$((diagram_fail_count + 1))
+      fi
+    done < <(find "$ARCHITECTURE_DIR" -name 'README.md' -type f -print0 2>/dev/null || true)
+  fi
+  [[ "$diagram_fail_count" -eq 0 ]] && add_pass "[DIAGRAM-FIRST] (15V) covered architecture domains teach the boundary before reference tables"
+
+  # Root coverage cannot be declared while the default reader route is absent.
+  local surface_fail_count=0 required
+  surface_exception_present() { # $1=root manifest $2=relative path
+    local manifest="$1" rel="$2" stem
+    [[ -f "$manifest" ]] || return 1
+    stem=$(basename "$rel" .md)
+    grep -qiE "\|[^|]*(${rel//\//\\/}|$stem)[^|]*\|[^|]*not_applicable[^|]*\|[^|]{5,}" "$manifest"
+  }
+  if document_area_is_covered product; then
+    for required in README.md prd.md product-model.md roadmap-and-acceptance.md capabilities/README.md journeys/README.md; do
+      if [[ ! -f "$PRODUCT_DIR/$required" ]] && ! surface_exception_present "$PRODUCT_DIR/_manifest.md" "$required"; then
+        add_fail "[SURFACE-COVERAGE] covered product area is missing default reader surface: $PRODUCT_DIR/$required"
+        surface_fail_count=$((surface_fail_count + 1))
+      fi
+    done
+  fi
+  if document_area_is_covered architecture; then
+    for required in README.md views/README.md views/operating-model.md views/critical-journeys.md views/current-target-gap.md views/state-and-data-lifecycle.md views/contracts-and-trust-boundaries.md views/failure-and-recovery.md; do
+      if [[ ! -f "$ARCHITECTURE_DIR/$required" ]] && ! surface_exception_present "$ARCHITECTURE_DIR/_manifest.md" "$required"; then
+        add_fail "[SURFACE-COVERAGE] covered architecture area is missing default reader surface: $ARCHITECTURE_DIR/$required"
+        surface_fail_count=$((surface_fail_count + 1))
+      fi
+    done
+  fi
+  [[ "$surface_fail_count" -eq 0 ]] && add_pass "[SURFACE-COVERAGE] covered product/architecture roots expose the v2.59 default reader route"
+
+  # Normal lint already runs the shared meta-leakage check later. Focused mode
+  # skips the normal suite, so it invokes the same helper here.
+  if [[ "$DOCUMENT_QUALITY_ONLY" -eq 1 ]]; then
+    check_meta_leakage_dir "$PRODUCT_DIR"
+    check_meta_leakage_dir "$ARCHITECTURE_DIR"
+  fi
+}
+
+# Run a focused mode, or include document quality in the normal v2.59 lint.
+if [[ "$DOCUMENT_QUALITY_ONLY" -eq 1 ]]; then
+  check_document_quality
+  META_LEAKAGE_SKIP_OTHER_CHECKS=1
+elif [[ "$META_LEAKAGE_ONLY" -eq 1 ]]; then
   if [[ "${#META_LEAKAGE_DIRS[@]}" -eq 0 ]]; then
     [[ -d "$PRODUCT_DIR" ]] && META_LEAKAGE_DIRS+=("$PRODUCT_DIR")
     [[ -d "$ARCHITECTURE_DIR" ]] && META_LEAKAGE_DIRS+=("$ARCHITECTURE_DIR")
@@ -269,6 +734,7 @@ if [[ "$META_LEAKAGE_ONLY" -eq 1 ]]; then
   META_LEAKAGE_SKIP_OTHER_CHECKS=1
 else
   META_LEAKAGE_SKIP_OTHER_CHECKS=0
+  check_document_quality
 fi
 
 # ---------- check 1: STATUS.md required fields ----------
@@ -1172,7 +1638,9 @@ fi
 
 # ---------- check 18: [WALKTHROUGH] (15R) architecture domain README needs canonical-flow walkthrough ----------
 WT_WARN_COUNT=0
-if [[ -d "$ARCHITECTURE_DIR" ]]; then
+if document_quality_active; then
+  : # v2.59 uses narrative sufficiency plus independent cold-reader review.
+elif [[ -d "$ARCHITECTURE_DIR" ]]; then
   while IFS= read -r -d '' readme; do
     # Only domain-level READMEs: <resolved architecture>/<domain>/README.md.
     parent_dir=$(dirname "$readme")
@@ -1207,7 +1675,11 @@ if [[ -d "$ARCHITECTURE_DIR" ]]; then
   done < <(find "$ARCHITECTURE_DIR" -name 'README.md' -type f -print0 2>/dev/null || true)
 fi
 if [[ "$WT_WARN_COUNT" -eq 0 ]]; then
-  add_pass "[WALKTHROUGH] (15R) architecture domain READMEs with non-empty Runtime Flows carry canonical-flow walkthrough"
+  if document_quality_active; then
+    add_pass "[WALKTHROUGH] (15R) v2.59 does not require an exact walkthrough heading"
+  else
+    add_pass "[WALKTHROUGH] (15R) architecture domain READMEs with non-empty Runtime Flows carry canonical-flow walkthrough"
+  fi
 fi
 
 # ---------- check 19: [BOUNDARY-DISAMBIG] (15S) owner READMEs need 'Easily confused with' section ----------
@@ -1226,57 +1698,70 @@ is_owner_archetype_readme() { # $1=README path
 BD_WARN_COUNT=0
 while IFS= read -r -d '' readme; do
   is_owner_archetype_readme "$readme" || continue
-  if ! grep -qE '^## +Easily confused with' "$readme"; then
-    add_warn "[BOUNDARY-DISAMBIG] (15S) owner README missing '## Easily confused with' section: $readme"
+  if ! grep -qiE '(easily confused|out of scope|does not own|boundary|boundaries|边界|不负责|不在此处|区别|转到.+(owner|文档|README))' "$readme"; then
+    add_warn "[BOUNDARY-DISAMBIG] (15S) owner README does not explain its nearest confusing boundary in prose: $readme"
     BD_WARN_COUNT=$((BD_WARN_COUNT + 1))
     [[ "$BD_WARN_COUNT" -ge 20 ]] && break
   fi
 done < <(find "$SSOT_DIR" -name 'README.md' -type f -print0 2>/dev/null || true)
 if [[ "$BD_WARN_COUNT" -eq 0 ]]; then
-  add_pass "[BOUNDARY-DISAMBIG] (15S) owner READMEs carry 'Easily confused with' section"
+  add_pass "[BOUNDARY-DISAMBIG] (15S) owner READMEs explain likely boundary confusion without requiring an exact heading"
 fi
 
 # ---------- check 20: [OUT-OF-SCOPE-LINK] (15T) owner READMEs need 'Out of scope' section ----------
 OOS_WARN_COUNT=0
 while IFS= read -r -d '' readme; do
   is_owner_archetype_readme "$readme" || continue
-  if ! grep -qE '^## +Out of scope' "$readme"; then
-    add_warn "[OUT-OF-SCOPE-LINK] (15T) owner README missing '## Out of scope' section: $readme"
+  if ! grep -qiE '(out of scope|does not answer|does not own|see .*(README|owner)|不负责|不回答|不在此处|另见|转到)' "$readme"; then
+    add_warn "[OUT-OF-SCOPE-LINK] (15T) owner README does not name an excluded question and successor owner: $readme"
     OOS_WARN_COUNT=$((OOS_WARN_COUNT + 1))
     [[ "$OOS_WARN_COUNT" -ge 20 ]] && break
   fi
 done < <(find "$SSOT_DIR" -name 'README.md' -type f -print0 2>/dev/null || true)
 if [[ "$OOS_WARN_COUNT" -eq 0 ]]; then
-  add_pass "[OUT-OF-SCOPE-LINK] (15T) owner READMEs carry 'Out of scope' section"
+  add_pass "[OUT-OF-SCOPE-LINK] (15T) owner READMEs route excluded questions without requiring an exact heading"
 fi
 
 # ---------- check 21: [DIAGRAM-TYPE-TAG] (15U) Mermaid blocks need diagram_type comment ----------
 DT_WARN_COUNT=0
 if [[ -d "$ARCHITECTURE_DIR" ]]; then
   while IFS= read -r -d '' f; do
-    # awk pass: find every ```mermaid ... ``` block; if the next non-blank
-    # line inside the fence is not an HTML comment containing diagram_type:, warn.
-    awk -v file="$f" '
-      /^```mermaid[[:space:]]*$/ { infence=1; tagged=0; lineno=NR; next }
-      infence && /^```/ {
-        if (!tagged) { print "MISS|" file "|" lineno }
-        infence=0; next
-      }
-      infence {
-        # Skip blank lines while still expecting the tag.
-        if (!tagged && $0 ~ /^[[:space:]]*$/) { next }
-        if (!tagged) {
-          if ($0 ~ /<!--[[:space:]]*diagram_type:/) { tagged=1 }
-          else { tagged=2 }  # not-tagged-and-already-saw-real-content
-        }
-      }
-    ' "$f" | while IFS='|' read -r status filepath lineno; do
+    # Find every Mermaid block. Its first non-blank fenced line must be one
+    # valid type tag. Process substitution keeps counter/diagnostic updates in
+    # this shell rather than losing them in a pipeline subshell.
+    while IFS='|' read -r status filepath lineno; do
       if [[ "$status" == "MISS" ]]; then
-        add_warn "[DIAGRAM-TYPE-TAG] (15U) Mermaid block missing 'diagram_type:' comment: $filepath (fence opened near line $lineno)"
+        add_warn "[DIAGRAM-TYPE-TAG] (15U) Mermaid block has a missing/invalid first-line diagram_type tag or mixes diagram kinds: $filepath (fence opened near line $lineno)"
         DT_WARN_COUNT=$((DT_WARN_COUNT + 1))
         [[ "$DT_WARN_COUNT" -ge 20 ]] && break
       fi
-    done
+    done < <(
+    awk -v file="$f" '
+      /^```mermaid[[:space:]]*$/ { infence=1; checked=0; valid=0; mixed=0; dtype=""; lineno=NR; next }
+      infence && /^```/ {
+        if (!valid || mixed) { print "MISS|" file "|" lineno }
+        infence=0; next
+      }
+      infence {
+        if (!checked && $0 ~ /^[[:space:]]*$/) { next }
+        if (!checked) {
+          checked=1
+          if ($0 ~ /^[[:space:]]*<!--[[:space:]]*diagram_type:[[:space:]]*(component|sequence|state|flow)[[:space:]]*-->[[:space:]]*$/) {
+            valid=1
+            if ($0 ~ /diagram_type:[[:space:]]*component/) dtype="component"
+            else if ($0 ~ /diagram_type:[[:space:]]*sequence/) dtype="sequence"
+            else if ($0 ~ /diagram_type:[[:space:]]*state/) dtype="state"
+            else dtype="flow"
+          }
+          next
+        }
+        if (valid && dtype == "component" && $0 ~ /^[[:space:]]*(sequenceDiagram|participant[[:space:]])/) mixed=1
+        if (valid && dtype == "sequence" && $0 ~ /^[[:space:]]*(flowchart|graph|stateDiagram)/) mixed=1
+        if (valid && dtype == "state" && $0 ~ /^[[:space:]]*(flowchart|graph|sequenceDiagram|participant[[:space:]])/) mixed=1
+      }
+    ' "$f"
+    )
+    [[ "$DT_WARN_COUNT" -ge 20 ]] && break
   done < <(find "$ARCHITECTURE_DIR" -name '*.md' -type f -print0 2>/dev/null || true)
 fi
 if [[ "$DT_WARN_COUNT" -eq 0 ]]; then
@@ -1285,7 +1770,9 @@ fi
 
 # ---------- check 22: [DIAGRAM-FIRST] (15V) architecture domain README needs first-screen diagram ----------
 DF_WARN_COUNT=0
-if [[ -d "$ARCHITECTURE_DIR" ]]; then
+if document_quality_active; then
+  : # v2.59 hard enforcement already ran in check_document_quality.
+elif [[ -d "$ARCHITECTURE_DIR" ]]; then
   while IFS= read -r -d '' readme; do
     parent_dir=$(dirname "$readme")
     grand_dir=$(dirname "$parent_dir")

@@ -1,52 +1,59 @@
-# Capability：<Capability Name>
+---
+intent_recovery: gap
+---
+# 能力：示例结果
 
-<!-- 可选模板。仅当某个 capability 具有持久产品价值、边界、非目标、acceptance meaning 或 roadmap state，且继续放在 product spine 中会使其膨胀时，再实例化本模板。 -->
+<!-- 替换标题。开头先用一句话说明：这项能力让哪类用户在什么情境下取得什么
+     可见结果。随后讲一个当前场景，再引入状态与证据。 -->
 
-> 行文风格：写给任何冷读者。详见 `ssot-bootstrap` §3.7。
+## 真实情境中的用户结果
 
-## 一句话讲清楚这个 capability [MUST]
+<!-- 讲述一个人怎样通过今天可用的产品表面从需求走到结果。包含一个重要选择
+     或控制、进行中能看到什么，以及最后带走什么。若能力只属于未来，先讲今天
+     的替代方式，再把未来场景单独写清。 -->
 
-依次写三层：
+## 用户今天能够依赖什么
 
-1. **一句话概述**：用一句平实的话讲清楚这个 capability 对用户意味着什么（"X 让某类用户在 Y 场景下能 Z"）。
-2. **一个具体场景**：用 2–4 句话描述一个具体使用场景（"想象一个用户在 …"），让没接触过产品的读者立刻有画面。
-3. **为什么独立 owner**：用 1–2 段说明它的产品边界为什么需要从 spine 拆出来独立维护（持久用户价值 / 独立非目标 / 独立 acceptance / 独立 roadmap 状态）；如果只是因为"想细写一下"，应当合并回 spine。
+<!-- 先用正文说明当前行为、质量边界、权限，以及部分完成或失败时的可见反馈。 -->
 
-## Product boundary（产品边界）
+| 承诺或限制 | 用户可见含义 | 产品成熟度 | 证据保真度 |
+|---|---|---|---|
+| | | current / limited / target / out | browser / integration / unit / static / missing |
 
-| In scope | Out of scope | Why |
-|---|---|---|
-| | | |
+## 边界与非目标
 
-## 用户价值
+| 包含的体验 | 明确排除 | 边界存在的原因 | 替代方案或关联所有者 |
+|---|---|---|---|
+| | | | |
 
-| User / operator | Value | Evidence |
-|---|---|---|
-| | | |
+## 失败与恢复体验
 
-## Acceptance 含义
+<!-- 至少讲一个有代表性的失败：用户看见什么、哪些内容仍然安全、能否重试、
+     恢复、取消或求助，以及恢复后如何确认完成。 -->
 
-| Acceptance | Product meaning | Evidence / testing link |
-|---|---|---|
-| | | |
+## 状态、访问与生命周期限制
 
-## Roadmap 状态
+<!-- 使用用户语言。对象状态、权限、保留或多人使用只有在会改变能力承诺时才写。 -->
 
-| Phase | Status | Notes |
-|---|---|---|
-| | planned / active / deferred / shipped / obsolete | |
+## 一个可验证的验收场景
 
-## 架构 owner 链接
+<!-- 给出可证伪的产品场景：起始条件、用户动作、可见结果与不可接受结果。 -->
 
-| Product constraint | Architecture owner | Implementation gap |
-|---|---|---|
-| | | |
+| 场景 | 可观察成功 | 所需证据 | 验收所有者 |
+|---|---|---|---|
+| | | | [路线图与验收](../roadmap-and-acceptance.md) |
 
-## Capability → Surface registry
+## 当前方向与缺口
 
-只有当本 capability 是该 surface 行的 owner 时才维护本表；若 runtime owner 在
-architecture，则链接到 architecture owner，不复制该行。`contract` 状态行若没有
-指向 Playwright 测试，会被 doctor 拦下。
-
-| Surface | Route or module | Component | Test | state |
+| 主题 | 当前行为 | 预期姿态 | 对用户的影响 | 闭合所有者 |
 |---|---|---|---|---|
+| | | | | |
+
+## 证据与实现链接
+
+<!-- 实现细节留在被链接的所有者中。本附录应让维护者能够找到负责的架构与测试
+     证据，但产品正文不依赖路径或符号才能读懂。 -->
+
+| 产品结论 | 架构所有者 | 测试或运行时证据 |
+|---|---|---|
+| | [架构](../../02-architecture/README.md) | |

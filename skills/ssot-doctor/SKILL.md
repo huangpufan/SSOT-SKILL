@@ -16,6 +16,15 @@ Run `assets/scripts/ssot-lint.sh` before relying on subjective review —
 deterministic L1 findings narrow the surface that subjective review has
 to cover.
 
+For a product/architecture rewrite or v2.59 covered claim, also run
+`assets/scripts/ssot-lint.sh --check-document-quality SSOT/` as the focused
+diagnostic. Then perform the teach-back in `reader-quality.md §7` with the
+reviewer selected by `status-protocol.md §6`. The v2.59 high-impact adoption
+uses §6's existing `semantic_impact=high` independent-review exception;
+ordinary later covered claims do not create a new exception. A clean structural
+run cannot produce the `no-more-required-changes` comprehension result by
+itself.
+
 Reviewer choice comes only from
 [`status-protocol.md` §6](../ssot-preflight/references/status-protocol.md#6-stop-review-gate):
 scoped self-review by default, independent review only for its four exceptions.
@@ -49,3 +58,4 @@ one.
 | Trigger-side behaviour probes for consumption claims | `references/consumption-audit.md` |
 | Cold-agent simulation harness (cycle gate, sampling, partition) | `references/cold-agent-sim.md` |
 | Deterministic L1 lint | `assets/scripts/ssot-lint.sh` |
+| Product/architecture explanatory depth, completeness, manifest archetypes, teach-back rubric | `../ssot-preflight/references/reader-quality.md` |

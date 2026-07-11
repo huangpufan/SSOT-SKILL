@@ -1,152 +1,99 @@
+---
+intent_recovery: gap
+---
 # Architecture
 
-> Writing style: any cold reader. Every section opens with prose before tables;
-> tables are indexes, not paragraphs. Walkthrough / Easily confused with / Out
-> of scope / See also are reader-facing structural slots — fill them or write
-> explicit `not_applicable: <reason>`. See `ssot-bootstrap` §3.7 and
-> `SKILL_STYLE.md` reader-scaffolds section.
+<!-- Teach the system before indexing it. Begin with a current request-to-result
+     story that a user or operator can recognise. Explain where work enters,
+     which owners change state, how the visible result returns, and where a
+     representative failure is detected and recovered. -->
 
-> Architecture root is a Runtime Owner Map. It gives the technical mental model,
-> core invariants, cross-owner view routes, runtime-owner domain routes, and
-> evidence direction. Product promises, users, roadmap, non-goals, and
-> acceptance meaning live in `../01-product/`; architecture only links those owners
-> and records implementation response or implementation gap.
+## From request to visible result
 
-## Design Brief
+<!-- Write several connected paragraphs. Name only the system concepts needed
+     to understand causality; defer paths and symbols to owner evidence. Keep
+     target design out of this current story. -->
 
-Use 1-3 paragraphs to explain what this system is, which runtime path matters
-most, which constraints make the architecture safe, and what future agents must
-preserve. Name the primary product owner links, but do not redefine product
-promises here.
+The architecture area separates cross-owner explanations from runtime-owner detail:
 
-## Design Intent And Truth
+```text
+├── views/
+├── NN-example-owner/
+└── _manifest.md
+```
 
-Before any dense owner map or recovery manifest, write 2-5 short paragraphs that
-explain the design from first principles: why the chosen runtime-owner axis is
-the right split, what is enforced today, what remains design/debt/Out, which
-near-miss implementation inventories are deliberately excluded from the design
-core, and which view/domain to inspect first for detail.
+## System context
 
-This section synthesizes owners; it does not replace view/domain bodies.
-
-## Runtime Owner Map
-
-Each row routes a reader to the owner of runtime state, resources, contracts,
-lifecycle, failure/recovery, or verification. Rows are routes, not body facts.
-
-| Reader question | Runtime owner | First stop | Evidence direction | Stop condition / risk |
-|---|---|---|---|---|
-| Which process owns writes and lifecycle? | `<owner>` | [NN-owner/README.md](./NN-<owner>/README.md) | code / config / schema / tests | Reader can locate the write owner and lifecycle boundary |
-| Which contract handles `<surface>`? | `<owner>` | [NN-owner/README.md](./NN-<owner>/README.md) | API / SDK / protocol / schema / tests | Reader can locate compatibility semantics |
-
-## Core Invariants
-
-Only list invariants that apply across runtime owners. Domain-local invariants
-belong in the domain README.
-
-| Invariant | Owner | Why it exists | Evidence |
-|---|---|---|---|
-| | [NN-owner/README.md](./NN-<owner>/README.md) | | |
-
-## Views
-
-Views stay only when the question crosses runtime owners. Common valid views:
-critical runtime flows, contract map, failure/recovery map, and global
-current/target/gap index.
-
-| View | Path | Cross-owner question | Status | Evidence |
-|---|---|---|---|---|
-| Operating model | [views/operating-model.md](./views/operating-model.md) | Technical operating constraints across owners | gap / covered / stale / unknown | |
-| Critical runtime flows | [views/critical-journeys.md](./views/critical-journeys.md) | How load-bearing flows cross owners | gap / covered / stale / unknown | |
-| Contract map | `views/contract-map.md` when needed | Which owners expose which contracts | gap / covered / stale / unknown | |
-| Failure / recovery map | `views/failure-recovery-map.md` when needed | How failures cross owners and recover | gap / covered / stale / unknown | |
-| Current / Target / Gap | [views/current-target-gap.md](./views/current-target-gap.md) | Global migration posture and gap index | gap / covered / stale / unknown | |
-
-## Domains
-
-Domains own detailed runtime facts. Keep domain names aligned to runtime owner
-boundaries, not source directories.
-
-| Domain | Path | Why separate | Owned facts | Owns surfaces | Status | Evidence |
-|---|---|---|---|---|---|---|
-| `<owner>` | [NN-owner/README.md](./NN-<owner>/README.md) | | state / resource / contract / lifecycle / failure / verification | routes / SQL identifiers / DOM selectors / CLI commands handled by this owner | gap / covered / stale / unknown | |
-
-The `Owns surfaces` column lists the route prefixes, SQL identifiers, DOM selector roots, or CLI commands this domain owns; doctor `[FORK]` (14W) treats overlap across rows as a fork signal.
-
-## Architecture Diagrams
-
-Mermaid fenced blocks are authoritative. Exported images are derivatives.
-Root diagrams stay at owner-map level; detailed flow/state/failure diagrams
-belong in views or domains.
-
-### Diagram Index
-
-| Diagram ID | Status | Coverage | Authoritative location | Evidence |
-|---|---|---|---|---|
-| `<ARCH-OWNER-MAP-CURRENT>` | current / target / stale | runtime owners and cross-owner edges | this file | |
-
-<!-- Diagram typing (v2.51): every Mermaid block in this file SHOULD carry a
-     `<!-- diagram_type: component|sequence|state|flow -->` tag and stay one
-     type per block. Subsystem pages SHOULD ship a component diagram in the
-     FIRST SCREEN (before any table). Doctor 15U / 15V check this. -->
-
-### Current Runtime Owner Map
-
-- **Diagram ID**: `<ARCH-OWNER-MAP-CURRENT>`
-- **Status**: `current`
-- **Coverage**: runtime owners and cross-owner edges.
-- **Evidence**:
+<!-- Explain the people, upstream callers, runtime processes, storage systems,
+     and external services around the system. State deployment assumptions and
+     the most important trust boundary. -->
 
 ```mermaid
 <!-- diagram_type: component -->
 flowchart LR
-  caller["<caller>"] --> ownerA["<runtime owner A>"]
-  ownerA --> ownerB["<runtime owner B>"]
+  person["User or operator"] --> entry["Product entry"]
+  entry --> coordinator["Work coordinator"]
+  coordinator --> owner["Runtime owner"]
+  owner --> store[("Durable state")]
+  owner --> external["External dependency"]
+  owner --> entry
 ```
 
-## Current / Target / Gap
+## Why the system is divided this way
 
-Root keeps only global migration posture and the gap index link. Detailed CTG
-belongs in the relevant view or domain.
+<!-- Introduce the runtime-owner decomposition in prose. Explain which state,
+     lifecycle, contract, or failure boundary makes each owner independently
+     changeable. Source directories and team names are not sufficient reasons. -->
 
-| Gap | Owner | Current | Target | Next evidence |
+| Runtime owner | Responsibility in the main story | State or resource owned | Failure boundary | Detailed owner |
 |---|---|---|---|---|
-| | [views/current-target-gap.md](./views/current-target-gap.md) | | | |
+| | | | | |
 
-## decomposition_basis
+## Global invariants and their pressures
 
-- **Chosen split axis**: `runtime-owner-map` / `single-level`
-- **Why this axis**:
-- **Runtime owners**:
-- **Rejected axes**:
-- **Owner anchor**: root routes; domains own runtime facts; views own cross-owner synthesis.
-- **Coverage depth**: `deep` / `sampled` / `inferred` / `unknown`
-- **Coverage scope**:
-- **Stop review**: `<reviewer>` returned `no-more-required-changes` / `needs-fix`.
+<!-- Keep only rules that cross owners. Explain the pressure that produced each
+     rule and the user or operator harm it prevents. Domain-local rules remain
+     with the domain. -->
 
-## Walkthrough
-<!-- One end-to-end concrete prose walk of THIS owner doing its job. Not a table.
-     Skip with explicit `not_applicable: <reason>` when the owner is purely
-     indexical (e.g., SSOT/README.md is an index, not a system). -->
+| Invariant | Pressure it answers | Owners involved | Consequence if broken | Evidence direction |
+|---|---|---|---|---|
+| | | | | |
 
-## Easily confused with
-<!-- 1-3 sibling owners that get confused with this one; one bullet each:
-     `**[Sibling]** — [one-line boundary that disambiguates]`. -->
+## Read the system by question
 
-## Out of scope
-<!-- 1-line statement of what this owner does NOT answer + pointer to the
-     owner that does. Required even when "none" (write `none — covers complete intent`). -->
+<!-- Introduce how the six views complement one another. These pages synthesise
+     cross-owner truth; they do not duplicate domain internals. -->
 
-## See also
-<!-- Forward-link bouquet (3-7 outbound links). Inline body MUST avoid
-     navigation-only links once this section exists. Each link: one-line
-     hook explaining why a reader might go there. -->
+| Question | View |
+|---|---|
+| Which pressures and trade-offs shape the design? | [Operating model](./views/operating-model.md) |
+| How do load-bearing requests cross owners? | [Critical journeys](./views/critical-journeys.md) |
+| Where does state live, change, persist, expire, and recover? | [State and data lifecycle](./views/state-and-data-lifecycle.md) |
+| Which contracts cross trust boundaries and how are they protected? | [Contracts and trust boundaries](./views/contracts-and-trust-boundaries.md) |
+| How are failure, cancellation, restart, and diagnosis handled? | [Failure and recovery](./views/failure-and-recovery.md) |
+| What is implemented, intended, or still unresolved? | [Current, target, and gap](./views/current-target-gap.md) |
 
-## Source Material Pointers
+## Current posture and important gaps
 
-The full inventory lives in `SSOT/STATUS.md`. This root links only
-architecture-related sources whose durable technical facts have an owner.
+<!-- Summarise only the few global facts needed to keep a reader from assuming
+     target design is current. Link detailed gaps to the evolution view or a
+     domain owner. -->
 
-| Source material | Lifecycle / classification | Authoritative owner | Status / conflict |
+| Topic | Current architecture | Intended posture | Risk or gap | Owner |
+|---|---|---|---|---|
+| | | | | |
+
+## Where detail lives
+
+<!-- Explain how to choose a domain: follow the owner of state, resource,
+     compatibility promise, or recovery boundary. Then provide a short index. -->
+
+| Domain | Why it is separate | Owns | Read when |
 |---|---|---|---|
-| | working/* / historical/* / external/source-material / public/thin-entry; absorb / link-only / stale/conflict / obsolete | | |
+| | | | |
+
+## Evidence trail
+
+| Material topic | Disposition | Architecture owner | Stable evidence direction |
+|---|---|---|---|
+| | absorbed / linked / rejected-stale / gap | | |

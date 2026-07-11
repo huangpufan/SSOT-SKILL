@@ -85,6 +85,9 @@ A new bootstrap by default evaluates the `views/ + direct numbered domains` stru
 - Which PRD trunks, product promises, users / operators, capability map, product non-goals, roadmap intent and product acceptance enter `01-product/`.
 - Which technical operating model, implementation constraints and the architectural implications of product constraints enter `views/operating-model.md`.
 - Which runtime journeys, lifecycle, failure/recovery and observability signals enter `views/critical-journeys.md`.
+- Which durable/ephemeral state, write ownership, retention and rebuild facts enter `views/state-and-data-lifecycle.md`.
+- Which public/internal contracts, authentication, permissions, secrets and external trust boundaries enter `views/contracts-and-trust-boundaries.md`.
+- Which cross-owner detection, retry, cancellation, rollback, restart and degradation paths enter `views/failure-and-recovery.md`.
 - Which implementation current-target-gap, migration intent and implementation gaps of product acceptance enter `views/current-target-gap.md`.
 - Which state/contract/failure details enter direct numbered `NN-<domain>/README.md` owners.
 
@@ -135,15 +138,16 @@ Create the SSOT directory structure and state-tracking file. The skeleton struct
 ### Outputs
 
 1. `SSOT/` directory
-2. `SSOT/README.md` (opens with one-sentence repository positioning ("what this repo is, who it serves, what it does") before the Reader Map and area index; if recon found high-frequency/high-risk development task clusters, add the task-entry map thin index. From v2.39: also include a `First-day reading order` section — an ordered 5-step navigation (positioning → architecture root → domain map → product spine → STATUS gates) so a cold agent's first session has a deterministic path. The reading order is ordered links plus one-line reasons; do not copy body content from area READMEs.) -- template in [`assets/templates/{en,zh}/ssot-readme.md`](../assets/templates/en/ssot-readme.md)
+2. `SSOT/README.md` (opens with one-sentence repository positioning ("what this repo is, who it serves, what it does") before the Reader Map and area index; if recon found high-frequency/high-risk development task clusters, add the task-entry map thin index. Include a `First-day reading order` section — positioning → product brief/model → architecture response/runtime-owner map → task-relevant process/records → STATUS gates. Product intent precedes the architecture response for first-day understanding; task-level preflight may still route directly to a runtime owner. The reading order is ordered links plus one-line reasons; do not copy body content from area READMEs.) -- template in [`assets/templates/{en,zh}/ssot-readme.md`](../assets/templates/en/ssot-readme.md)
 3. `SSOT/STATUS.md` (tracked_commit set to current HEAD, tracked_skill_version set to current `ssot-preflight` `metadata.protocol_version`, documentation_language / documentation_language_evidence set to Phase 0 lock result, coverage_result set to `bootstrap`, all area states set to gap or unknown) -- template in [`assets/templates/{en,zh}/status.md`](../assets/templates/en/status.md)
 4. `SSOT/01-product/` product trunk folder, by default create `01-product/README.md`, `01-product/prd.md`, `01-product/product-model.md`, `01-product/roadmap-and-acceptance.md`, `01-product/capabilities/README.md` and `01-product/journeys/README.md`. Templates in [`assets/templates/{en,zh}/product-readme.md`](../assets/templates/en/product-readme.md), [`assets/templates/{en,zh}/product-prd.md`](../assets/templates/en/product-prd.md), [`assets/templates/{en,zh}/product-model.md`](../assets/templates/en/product-model.md), [`assets/templates/{en,zh}/product-roadmap-and-acceptance.md`](../assets/templates/en/product-roadmap-and-acceptance.md), [`assets/templates/{en,zh}/product-capabilities-readme.md`](../assets/templates/en/product-capabilities-readme.md), [`assets/templates/{en,zh}/product-journeys-readme.md`](../assets/templates/en/product-journeys-readme.md). Optional entry templates in [`assets/templates/{en,zh}/product-capability-entry.md`](../assets/templates/en/product-capability-entry.md) and [`assets/templates/{en,zh}/product-journey-entry.md`](../assets/templates/en/product-journey-entry.md)
-5. `SSOT/02-architecture/` trunk folder and satellite area folders, each with a `README.md`; new bootstrap by default creates `02-architecture/views/README.md`, `02-architecture/views/operating-model.md`, `02-architecture/views/critical-journeys.md`, `02-architecture/views/current-target-gap.md`, and one or more direct `02-architecture/NN-<domain>/README.md` owners justified by recon. Root template in [`assets/templates/{en,zh}/architecture-readme.md`](../assets/templates/en/architecture-readme.md), views index template in [`assets/templates/{en,zh}/architecture-views-readme.md`](../assets/templates/en/architecture-views-readme.md), individual view templates in [`assets/templates/{en,zh}/architecture-view-operating-model.md`](../assets/templates/en/architecture-view-operating-model.md), [`assets/templates/{en,zh}/architecture-view-critical-journeys.md`](../assets/templates/en/architecture-view-critical-journeys.md), [`assets/templates/{en,zh}/architecture-view-current-target-gap.md`](../assets/templates/en/architecture-view-current-target-gap.md), domain README template in [`assets/templates/{en,zh}/architecture-domain-readme.md`](../assets/templates/en/architecture-domain-readme.md), and optional domain playbook template in [`assets/templates/{en,zh}/architecture-domain-playbook.md`](../assets/templates/en/architecture-domain-playbook.md). Engineering operation areas may use [`assets/templates/{en,zh}/development-readme.md`](../assets/templates/en/development-readme.md), [`assets/templates/{en,zh}/testing-readme.md`](../assets/templates/en/testing-readme.md), [`assets/templates/{en,zh}/benchmark-readme.md`](../assets/templates/en/benchmark-readme.md), [`assets/templates/{en,zh}/release-readme.md`](../assets/templates/en/release-readme.md)
-6. `SSOT/04-records/research/README.md` research/POC record index -- template in [`assets/templates/{en,zh}/research-readme.md`](../assets/templates/en/research-readme.md). The skeleton creates the README only; do not create `SSOT/04-records/research/NNNN-<slug>.md` until a concrete research, spike, benchmark, or proof-of-concept record exists. Entry template: [`assets/templates/{en,zh}/research-entry.md`](../assets/templates/en/research-entry.md)
-7. `SSOT/.bootstrap/recon.md` (already produced in Phase 0)
-8. `SSOT/.bootstrap/manifest.md` (coordination layer: global state + area assignment) -- template in [`assets/templates/{en,zh}/bootstrap-manifest.md`](../assets/templates/en/bootstrap-manifest.md)
-9. `SSOT/.bootstrap/sessions/` (log layer: one file per exploration unit) -- template in [`assets/templates/{en,zh}/bootstrap-session.md`](../assets/templates/en/bootstrap-session.md)
-10. Optional thin-adapter files (AGENTS.md, CLAUDE.md, GEMINI.md, etc.) -- generated only when recon finds the repo already has or needs agent instruction files. Single template in [`assets/templates/{en,zh}/adapter-thin.md`](../assets/templates/en/adapter-thin.md): keep the optional `Key Reminders` section for files read proactively on startup (CLAUDE.md, GEMINI.md), drop it for files only read on demand (AGENTS.md). Before generating, check whether the target file already exists and is not SSOT-generated (no generated marker); on conflict, report rather than overwrite. See [`adapter-strategy.md`](../../ssot-doctor/references/adapter-strategy.md)
+5. `SSOT/02-architecture/` trunk folder and satellite area folders, each with a `README.md`; new bootstrap by default creates `02-architecture/views/README.md`, `02-architecture/views/operating-model.md`, `02-architecture/views/critical-journeys.md`, `02-architecture/views/state-and-data-lifecycle.md`, `02-architecture/views/contracts-and-trust-boundaries.md`, `02-architecture/views/failure-and-recovery.md`, `02-architecture/views/current-target-gap.md`, and one or more direct `02-architecture/NN-<domain>/README.md` owners justified by recon. Root template in [`assets/templates/{en,zh}/architecture-readme.md`](../assets/templates/en/architecture-readme.md), views index template in [`assets/templates/{en,zh}/architecture-views-readme.md`](../assets/templates/en/architecture-views-readme.md), individual view templates in [`assets/templates/{en,zh}/architecture-view-operating-model.md`](../assets/templates/en/architecture-view-operating-model.md), [`assets/templates/{en,zh}/architecture-view-critical-journeys.md`](../assets/templates/en/architecture-view-critical-journeys.md), [`assets/templates/{en,zh}/architecture-view-state-and-data-lifecycle.md`](../assets/templates/en/architecture-view-state-and-data-lifecycle.md), [`assets/templates/{en,zh}/architecture-view-contracts-and-trust-boundaries.md`](../assets/templates/en/architecture-view-contracts-and-trust-boundaries.md), [`assets/templates/{en,zh}/architecture-view-failure-and-recovery.md`](../assets/templates/en/architecture-view-failure-and-recovery.md), [`assets/templates/{en,zh}/architecture-view-current-target-gap.md`](../assets/templates/en/architecture-view-current-target-gap.md), domain README template in [`assets/templates/{en,zh}/architecture-domain-readme.md`](../assets/templates/en/architecture-domain-readme.md), and optional domain playbook template in [`assets/templates/{en,zh}/architecture-domain-playbook.md`](../assets/templates/en/architecture-domain-playbook.md). Engineering operation areas may use [`assets/templates/{en,zh}/development-readme.md`](../assets/templates/en/development-readme.md), [`assets/templates/{en,zh}/testing-readme.md`](../assets/templates/en/testing-readme.md), [`assets/templates/{en,zh}/benchmark-readme.md`](../assets/templates/en/benchmark-readme.md), [`assets/templates/{en,zh}/release-readme.md`](../assets/templates/en/release-readme.md)
+6. Product and architecture manifests selected by owner type: `product-root-manifest.md`, `product-collection-manifest.md`, `architecture-root-manifest.md`, `architecture-views-manifest.md`, or `architecture-domain-manifest.md`. Do not copy a universal manifest into every owner. Instantiate only the sections that archetype owns; every required row must be complete before `covered`.
+7. `SSOT/04-records/research/README.md` research/POC record index -- template in [`assets/templates/{en,zh}/research-readme.md`](../assets/templates/en/research-readme.md). The skeleton creates the README only; do not create `SSOT/04-records/research/NNNN-<slug>.md` until a concrete research, spike, benchmark, or proof-of-concept record exists. Entry template: [`assets/templates/{en,zh}/research-entry.md`](../assets/templates/en/research-entry.md)
+8. `SSOT/.bootstrap/recon.md` (already produced in Phase 0)
+9. `SSOT/.bootstrap/manifest.md` (coordination layer: global state + area assignment) -- template in [`assets/templates/{en,zh}/bootstrap-manifest.md`](../assets/templates/en/bootstrap-manifest.md)
+10. `SSOT/.bootstrap/sessions/` (log layer: one file per exploration unit) -- template in [`assets/templates/{en,zh}/bootstrap-session.md`](../assets/templates/en/bootstrap-session.md)
+11. Optional thin-adapter files (AGENTS.md, CLAUDE.md, GEMINI.md, etc.) -- generated only when recon finds the repo already has or needs agent instruction files. Single template in [`assets/templates/{en,zh}/adapter-thin.md`](../assets/templates/en/adapter-thin.md): keep the optional `Key Reminders` section for files read proactively on startup (CLAUDE.md, GEMINI.md), drop it for files only read on demand (AGENTS.md). Before generating, check whether the target file already exists and is not SSOT-generated (no generated marker); on conflict, report rather than overwrite. See [`adapter-strategy.md`](../../ssot-doctor/references/adapter-strategy.md)
 
 ### Language discipline when instantiating templates
 
@@ -151,7 +155,7 @@ When rendering any template from `assets/templates/{en,zh}/`, pick the variant m
 
 ### Skeleton adaptation
 
-For L/XL-size repos, the skeleton creation can pre-build direct numbered domains under `02-architecture/` (e.g. `01-query-engine/`, `02-storage-engine/`, `03-control-plane/`) and the default views (`operating-model.md`, `critical-journeys.md`, `current-target-gap.md`) based on recon results, reducing structural work during later fill. But do not fill content during the skeleton phase; only empty README titles translated per `documentation_language` and TODO status are allowed; specific content belongs to Phase 2. Existing unnumbered `SSOT/architecture/domains/` and `SSOT/architecture/<domain>/` trees are legacy migration inputs; migrate them before writing current owners.
+For L/XL-size repos, the skeleton creation can pre-build direct numbered domains under `02-architecture/` (e.g. `01-query-engine/`, `02-storage-engine/`, `03-control-plane/`) and the default views based on recon results, reducing structural work during later fill. But do not fill content during the skeleton phase; explicit gap placeholders are allowed only while `coverage_result=bootstrap` and must be removed or completed before `covered`. Existing unnumbered `SSOT/architecture/domains/` and `SSOT/architecture/<domain>/` trees are legacy migration inputs; migrate them before writing current owners.
 
 ---
 
@@ -202,6 +206,9 @@ Tier 1 (context + root/view synthesis) -- establish the entry; re-check finally 
   02-architecture/README.md  design brief (tech stack, runtime form, repository type), Reader Map / quick-understanding map, view index, Domain index, top-level current/target/gap summary, required overview Mermaid diagram
   02-architecture/views/operating-model.md  technical system goals, operating philosophy, implementation priorities, technical non-goals, primary technical actors/callers, runtime main paths, non-functional success criteria
   02-architecture/views/critical-journeys.md  system / runtime execution, phase lifecycle, failure/recovery, observability signals
+  02-architecture/views/state-and-data-lifecycle.md  durable/ephemeral state, write owners, transitions, retention, rebuild and recovery
+  02-architecture/views/contracts-and-trust-boundaries.md  public/internal contracts, authentication, permissions, secrets, redaction and external trust
+  02-architecture/views/failure-and-recovery.md  cross-owner detection, retry, cancellation, rollback, restart, degradation and operator diagnosis
   02-architecture/views/current-target-gap.md  implementation Current / Target / Gap, migration lines, implementation gaps of product acceptance, partially-landed technical intents
 
 Tier 2 (architecture-domain evidence) -- supports views/root synthesis
@@ -334,6 +341,12 @@ model from prose and use tables only to route, compare, or locate evidence.
 If a table is the only place where the document explains itself, the document
 has failed even if every row is accurate.
 
+KISS removes duplication, protocol machinery, and unnecessary hops; it does
+not minimise word count. Product and architecture owners also follow the
+explanatory-depth, archetype completeness, surface coverage, manifest, and
+cold-reader rules in
+[`reader-quality.md`](../../ssot-preflight/references/reader-quality.md).
+
 > Every section is first written for the stranger who lands tonight knowing nothing; tables, codes and tags they cannot read are not paragraphs.
 
 Three guardrails follow. Trust your defaults on everything else. Doctor `14I` (see [`doctor.md`](../../ssot-doctor/references/doctor.md) §2.2) enforces them as a stop-conclusion gate.
@@ -344,7 +357,7 @@ Three guardrails follow. Trust your defaults on everything else. Doctor `14I` (s
 
 **Intent / truth narrative (v2.47).** Product and architecture trunks must not
 make the Core recovery manifest do the work of explanation. Before the manifest
-or any dense owner map, write a compact narrative that answers from first
+or any dense owner map, write a self-contained narrative that answers from first
 principles:
 
 - product: who the product serves, what problem it solves, what current promise
@@ -361,10 +374,10 @@ derive the product or design story from table cells, Doctor reports
 file instead of synthesizing and linking them, route the problem through the
 single-owner checks.
 
-**State-tag protocol (v2.39).** Every invariant, capability, and contract row
-in `01-product/`, `02-architecture/` (root, views, direct numbered domains), and product capability
-files carries an inline `state` tag so a cold agent can tell at a glance whether
-the row is enforced today or aspirational. The four legal values:
+**Architecture state-tag protocol (v2.39, product split v2.59).** Every
+architecture invariant and contract row carries an inline `state` tag so a
+cold agent can tell at a glance whether the row is enforced today or
+aspirational. The four legal values:
 
 | `state` | Meaning | Cold-agent expectation |
 |---|---|---|
@@ -376,6 +389,12 @@ the row is enforced today or aspirational. The four legal values:
 `design`, `poc`, `debt` rows must point to follow-up evidence; otherwise they
 are indistinguishable from gaps. Doctor `[STATE-TAG]` (14V) gates this; missing
 or invalid tags block `covered`.
+
+Product owners use two independent fields instead: product maturity
+(`current | limited | target | out`) and evidence fidelity (`production |
+integration | unit | static | missing`). Verification weakness must not turn a
+shipped surface into a target feature, and a unit test must not turn a target
+into current product truth. See `reader-quality.md §3`.
 
 Infra registers still obey a lighter KISS floor. `STATUS.md`, bootstrap
 manifest/session files, promotion blocks, and protocol ledgers may use fixed
@@ -434,42 +453,18 @@ A reader who only sees the tree and the map annotations must be able to answer
 [`cold-agent-sim.md`](../../ssot-doctor/references/cold-agent-sim.md) §1.8
 `dir-tree-only` probes.
 
-**Reader scaffolds (v2.51).** The v2.47–v2.50 floors all subtracted — they
-removed table-only intent, language-locked H1s missing locked language,
-shadow ledgers, directory READMEs without a tree. v2.51 adds the four
-reader-facing structural slots a cold agent uses to orient itself once it
-has been routed to an owner:
+**Reader scaffolds (v2.51, de-checklisted v2.59).** Every owner still answers
+four questions: show one concrete walkthrough, distinguish likely sibling
+owners, state what the owner does not answer, and give the next reading path.
+They are semantic roles, not four mandatory H2 headings. Combine them with the
+opening mental model, boundary section, and final evidence/next-reading section
+when that reads better. Directory indexes keep explicit routing; runtime owners
+keep a first-screen component diagram and a canonical flow. Doctor grades the
+answers through the comprehension rubric rather than accepting empty headings.
 
-| Slot | What it answers | When to fill |
-|---|---|---|
-| **Walkthrough** | One concrete end-to-end example of this owner doing its job. Prose, not a table. | Required on every owner README. `not_applicable: <reason>` allowed only for purely indexical owners (`SSOT/README.md`, area-trunk indexes). |
-| **Easily confused with** | One to three sibling owners most likely to be confused with this one, each with a one-line disambiguating boundary. | Required on every owner README. |
-| **Out of scope** | One-line statement of what this owner does NOT answer plus a pointer to the owner that does. | Required even when none (write `none — covers complete intent`). |
-| **See also** | Forward-link bouquet (three to seven outbound links), each with a one-line hook. Once present, inline body avoids navigation-only links. | Required on every owner README. |
-
-Per-archetype minimum scaffold set:
-
-- `ssot-readme.md` (overview): all four slots plus a global routing diagram.
-- `architecture-readme.md` (architecture overview): all four slots plus at least one component diagram in the Diagrams section.
-- `architecture-domain-readme.md` (subsystem): all four top-level slots plus a first-screen component diagram (before any table) plus a `### Walkthrough (canonical flow)` H3 above the Runtime Flows table whenever the table is non-empty.
-- `product-readme.md` (product overview): all four slots plus a Capabilities ↔ Journeys relationship diagram.
-- `dir-readme-map.md` (directory index): Easily confused with + Out of scope + See also (top-level Walkthrough defaults to `not_applicable` — the index is not a system).
-- `glossary-entry.md` (atomic owner, new in v2.51): see [`assets/templates/{en,zh}/glossary-entry.md`](../assets/templates/en/glossary-entry.md). Slots collapse into `Extended definition`, `Used in` (inverse index), `Not to be confused with`, `Source pin`.
-
-These slots are *additive* — they complement the v2.47 intent/truth narrative
-and the v2.50 directory-map floor; they do not replace them. The prose-before-
-tables, positive-definition, and cell-is-not-a-paragraph guardrails above
-still bind whatever fills them. A `Walkthrough` written as a five-row table
-fails the same `14I` gate as any other table-disguised paragraph.
-
-KISS is the subtractive discipline; reader scaffolds are the additive
-complement. Both serve the cold reader. Doctor rows `15R [WALKTHROUGH]`,
-`15S [BOUNDARY-DISAMBIG]`, `15T [OUT-OF-SCOPE-LINK]`, `15U [DIAGRAM-TYPE-TAG]`,
-`15V [DIAGRAM-FIRST]` enforce the structural floor (existence and shape, not
-prose quality). Bootstrap Phase 1 renders the slots empty with explicit
-`<!-- TODO: fill before declaring covered -->` markers so the converged-area
-check forces the consumer to fill them or mark `not_applicable: <reason>` before
-flipping the area to `covered`.
+The prose-before-tables, positive-definition, and cell-is-not-a-paragraph
+guardrails still bind every scaffold. A walkthrough written as a table fails
+the same reader-quality gate as any table-disguised paragraph.
 
 ### 3.8 SSOT document naming and formatting conventions
 
@@ -499,7 +494,7 @@ Verify SSOT content is consistent with code state, with no omission and no stale
 2. Compare against the code state corresponding to tracked_commit, the skill protocol rules corresponding to tracked_skill_version, and the language lock corresponding to `documentation_language`
 3. Compare source-material classification and `STATUS.md` source-material absorption: has `absorb` entered an authoritative location? Has `stale/conflict` adjudicated the current fact, entered Current / Target / Gap or entered the adjudication queue? Are README/docs only thin documentation? Do the SSOT body, headings, table labels use the locked language?
 4. Per-area judgement: is content accurate, complete, free of stale info?
-5. Recursive check on product and architecture: does the product spine cover PRD, product model, roadmap/acceptance, capability/journey owner indexes, without creating product files for one-off tickets or implementation flows; can the architecture root entry build a 1-minute technical mental model and contain the design brief; do views absorb technical goals / implementation priorities / technical non-goals / non-functional success criteria / runtime main paths / implementation current-target-gap and not be a pure table, and link to the product owner; does each domain have design intent, design constraints, trade-offs / rejected simplifications, what future agents must preserve, decomposition_basis, core required, conditional required, current/target/gap, coverage depth, coverage scope / sampling strategy, evidence, verification method and required Mermaid diagrams; does the domain pass the architecture-domain validity test
+5. Recursive product/architecture review uses `reader-quality.md`: the product spine covers users, problems, real current surfaces and entry choices, product objects/lifecycle, maturity, capabilities, journeys, acceptance, non-goals, trust/privacy posture and gaps; architecture explains a current request-to-result story, context, runtime owners, state/data lifecycle, contracts/trust, failure/recovery, operations and runtime CTG; each domain explains its mental model, canonical flow, state/contracts, runtime failure/recovery and local evolution without becoming a universal checklist. Run the comprehension teach-back against the actual Markdown; structure and anchor checks alone cannot support `covered`.
 6. Challenge all `done`, `passed`, `covered`, `single-level`, stop-decomposition and "no update needed" conclusions, and check whether the manifest/session/architecture README records stop-review evidence
 7. If no area needs updating -> reviewer outputs `no-more-required-changes`; only then may the corresponding segment be marked `passed`
 8. If some areas need updates -> reviewer outputs `needs-fix` and remaining changes; coordinator fixes and re-checks

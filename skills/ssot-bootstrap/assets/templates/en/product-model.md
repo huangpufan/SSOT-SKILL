@@ -1,57 +1,84 @@
+---
+intent_recovery: gap
+---
 # Product model
 
-> Writing style: any cold reader. See `ssot-bootstrap` §3.7.
+<!-- Explain how users understand the product: who participates, which objects
+     they handle, how those objects change, and which visible truth they trust.
+     Use product language here; implementation structure belongs in architecture. -->
 
-> This file owns users, problems, product promises, product boundary, product language, and long-term product tradeoffs.
+## People and their working context
 
-## Users and the world they live in [MUST]
+<!-- Describe a typical day or decision pressure for primary users and
+     secondary operators. Explain goals, constraints, skill assumptions, and
+     collaboration needs in prose before summarising them. -->
 
-Use 1–3 paragraphs of prose to describe the real users/operators: the work they do, what a typical day looks like, the two or three pains they feel most sharply today. You may include 2–3 sentences of a concrete dialogue or scene ("the on-call engineer woken up at 3 a.m. by a pager …").
-
-## What we promise and what we do not [MUST]
-
-Use 1–2 paragraphs of prose to walk through the core promise in plain language: "for the users in the section above, here is what we commit to keep stable, and here is what we explicitly refuse to commit to".
-
-Define each new term positively the first time it appears: "X, in this product, means …". Then let the promise / boundary tables below act as precise comparison; the tables are an index to this prose, not a replacement for it.
-
-## Users and operators
-
-| User / operator | Goal | Pain points / risk | Evidence |
+| Person or role | Situation and goal | Friction or risk today | Product responsibility |
 |---|---|---|---|
 | | | | |
 
-## Problems
+## The objects people work with
 
-| Problem | Why it matters | Current handling | Evidence |
+<!-- Introduce each core product object positively. Tell how a person creates or
+     encounters it, which visible state they rely on, and how it relates to the
+     other objects. Do not substitute database entities for the product model. -->
+
+| Product object | Meaning to a user | Created or entered through | Source of visible truth | Related objects |
+|---|---|---|---|---|
+| | | | | |
+
+## A lifecycle in user language
+
+<!-- Walk the most important object from entry through progress, completion,
+     cancellation, failure, recovery, and retention where applicable. Explain
+     who can act at each meaningful transition. -->
+
+```mermaid
+stateDiagram-v2
+  [*] --> Draft
+  Draft --> Active: user starts
+  Active --> Complete: result accepted
+  Active --> NeedsAttention: blocked or failed
+  NeedsAttention --> Active: user recovers
+```
+
+## Identity, access, and shared use
+
+<!-- Explain sign-in assumptions, workspace or tenant boundaries, permissions,
+     multi-user expectations, and what an unauthorised person experiences.
+     Write not_applicable with a reason when the product is intentionally
+     single-user and has no identity surface. -->
+
+## Data, privacy, retention, and audit expectations
+
+<!-- Describe what users expect to persist, what may be ephemeral, what can be
+     exported or deleted, what sensitive content exists, and which actions need
+     an audit trail. Link technical enforcement instead of redefining it. -->
+
+| Expectation | User-visible meaning | Product maturity | Architecture or policy owner |
 |---|---|---|---|
-| | | | |
-
-## Product promise
-
-| Promise | User-visible meaning | What is not promised | Owner / evidence |
-|---|---|---|---|
-| | | | |
-
-## Product boundary
-
-| Boundary | In scope | Out of scope | Why / tradeoff |
-|---|---|---|---|
-| | | | |
+| | | current / limited / target / out | |
 
 ## Product language
 
-| Term | Product meaning | Avoid saying | Evidence |
+<!-- Define repository-specific terms in one positive sentence, then name the
+     nearest term a newcomer might confuse with it. -->
+
+| Term | Product meaning | Easily confused with | Distinction |
 |---|---|---|---|
 | | | | |
 
-## Long-term product tradeoffs
+## Durable product trade-offs
 
-| Tradeoff | Chosen side | Rejected side | Why / revisit condition |
+<!-- Explain the pressure on both sides before recording the chosen posture.
+     A trade-off is useful only when it guides future product decisions. -->
+
+| Tension | Chosen posture | User benefit | Cost or limitation | Revisit signal |
+|---|---|---|---|---|
+| | | | | |
+
+## Product-to-architecture handoff
+
+| Product constraint | Why users care | Architecture owner | Open implementation gap |
 |---|---|---|---|
-| | | | |
-
-## Architecture owner links
-
-| Product constraint | Architecture owner | Implementation gap |
-|---|---|---|
-| | [../02-architecture/README.md](../02-architecture/README.md) | |
+| | | [Architecture](../02-architecture/README.md) | |

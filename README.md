@@ -33,6 +33,25 @@ This skill applies the same idea to **an agent's memory of a repository**:
 
 **SSOT is not a code substitute.** Code, schema, tests, and runtime behavior remain the source of truth for *current implementation*. `SSOT/` records the durable conclusions *around* the code — the kind of thing that would otherwise be lost when a session ends or a new agent picks up the work.
 
+## Reader-first product and architecture docs
+
+SSOT is useful only when a newcomer can understand it. Product and
+architecture owners therefore follow a reader-first contract: orient the
+reader, explain one concrete current path and its boundaries, then provide
+compact reference tables and evidence. KISS means the shortest reliable path
+to understanding, not the fewest words.
+
+The product spine covers users, real surfaces, object lifecycles, capabilities,
+choice/control/recovery journeys, acceptance, and current-versus-target truth.
+The architecture spine explains the system response through runtime owners and
+six cross-owner questions: operating model, critical journeys, state/data,
+contracts/trust, failure/recovery, and current-target-gap. Machine recovery
+metadata lives in location-specific manifests outside the reader narrative.
+
+Lint prevents heading-only or placeholder-heavy `covered` claims; an
+independent cold-reader review checks actual comprehension. Passing routing or
+link checks alone is not considered readable documentation.
+
 ## Quickstart
 
 Paste this one line into your agent's chat (works for Claude Code, Codex, Cursor, Gemini CLI, …):

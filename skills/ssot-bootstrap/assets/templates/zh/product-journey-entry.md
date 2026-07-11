@@ -1,45 +1,50 @@
-# Journey：<Journey Name>
+---
+intent_recovery: gap
+---
+# 旅程：从示例需求走向结果
 
-<!-- 可选模板。仅当某个 journey 跨多个 capabilities、影响 roadmap/release 决策、拥有独立 product acceptance，或反复驱动产品取舍时，再实例化本模板。 -->
+<!-- 替换标题。按照真实使用者经历的顺序讲故事，使用产品触点与决策；运行时
+     实现放到后面的链接，不要在这里叙述内部调用。 -->
 
-> 行文风格：写给任何冷读者。详见 `ssot-bootstrap` §3.7。
+## 使用者实际经历的过程
 
-## 一名用户从 A 到 B 的真实经过 [MUST]
+<!-- 用几段连贯文字说明触发与目标、起始情境、进入表面、重要选择、进度反馈，
+     以及最终带走的结果。写出每个重要转折点上用户以为系统正在做什么。
+     不要把未来步骤混进当前旅程。 -->
 
-按"一个真实用户从入口到完成"的顺序，用 1–3 段散文叙述一遍整个 journey：他从哪个触发点开始、依次经过哪些触点、在每个触点上他在想什么、最终在什么状态下离开。叙述里至少含一个具体场景（"想象她正在 …"），不能是抽象流程图的文字版。
+## 过程中的决策与控制
 
-叙述完后再用下方"Product journey"表把每一步拆成 step / intent / touchpoint / constraint 做精确索引；表是叙述的索引，不是叙述本身。
+<!-- 解释用户能够选择、暂停、取消、批准、重试或修改什么；产品等待时由谁决定
+     下一步也要写清。 -->
 
-## 为什么独立建立 journey [MUST]
+| 时刻 | 用户目标 | 产品触点 | 选择或控制 | 随后可见状态 |
+|---|---|---|---|---|
+| | | | | |
 
-用 1–2 段说明该 journey 为什么需要从 spine / capability 里拆出来独立 owner：是因为它跨了多个 capabilities、影响 roadmap/release 决策、拥有独立的 product acceptance，还是反复驱动产品取舍？逐条点名，不要笼统说"因为它很重要"。
+## 普通路径中断时
 
-## Product journey（产品旅程）
+<!-- 至少讲一个阻塞、失败、中断或降级场景。说明哪些内容仍然可见、哪些状态
+     被保留、用户有哪些恢复选择，以及恢复后怎样确认旅程完成。 -->
 
-| Step | User / operator intent | Touchpoint | Product constraint |
+## 完成与验收
+
+| 起始条件 | 用户动作 | 可观察结果 | 不可接受结果 | 证据所有者 |
+|---|---|---|---|---|
+| | | | | |
+
+## 边界与变体
+
+<!-- 角色、权限、部署、创建模式、外部渠道或未来变体，只有在会改变体验时才写。
+     同时明确旅程的非目标。 -->
+
+## 能力与运行时链接
+
+| 旅程部分 | 能力所有者 | 架构运行时所有者 | 这条链接为什么重要 |
 |---|---|---|---|
-| | | | |
+| | | [关键旅程](../../02-architecture/views/critical-journeys.md) | |
 
-## Experience 约束
+## 当前方向与缺口
 
-| Constraint | Why it matters | Evidence |
-|---|---|---|
-| | | |
-
-## Product acceptance
-
-| Acceptance | Meaning | Required evidence |
-|---|---|---|
-| | | |
-
-## Capability 链接
-
-| Capability | Role in journey |
-|---|---|
-| | |
-
-## 架构 runtime 链接
-
-| Product journey step | Runtime owner | Failure/recovery / observability link |
-|---|---|---|
-| | | |
+| 主题 | 当前体验 | 预期体验 | 产品成熟度 | 闭合所有者 |
+|---|---|---|---|---|
+| | | | current / limited / target / out | |

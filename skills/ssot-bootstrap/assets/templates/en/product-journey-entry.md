@@ -1,45 +1,54 @@
-# Journey: <Journey Name>
+---
+intent_recovery: gap
+---
+# Journey: Example need to result
 
-<!-- Optional template. Instantiate only when a journey crosses capabilities, affects roadmap/release decisions, has independent product acceptance, or repeatedly drives product tradeoffs. -->
+<!-- Replace the title. Tell the journey in the order a real person experiences
+     it. Use product touchpoints and decisions; link runtime implementation
+     later rather than narrating internal calls here. -->
 
-> Writing style: any cold reader. See `ssot-bootstrap` §3.7.
+## The journey as experienced
 
-## A real user from A to B [MUST]
+<!-- In several paragraphs, name the trigger and goal, starting context, entry
+     surface, meaningful choices, progress feedback, and the result the person
+     carries away. Include what they believe is happening at each important
+     transition. Do not mix target-only steps into a current journey. -->
 
-Walk the entire journey in 1–3 paragraphs of prose, in the order a real user would experience it from entry to completion: where they start, which touchpoints they hit in sequence, what they are thinking at each, and the state in which they leave. Include at least one concrete scene ("imagine her in the middle of …"). This must not be a prose transcription of an abstract flow chart.
+## Decisions and controls along the way
 
-After the narrative, decompose it into the "Product journey" table below — step / intent / touchpoint / constraint — as a precise index. The table is an index of the narrative, not a substitute for it.
+<!-- Explain what the user can choose, pause, cancel, approve, retry, or revise.
+     Name who controls the next step when the product waits. -->
 
-## Why this journey is separate [MUST]
+| Moment | User goal | Touchpoint | Choice or control | Visible state afterwards |
+|---|---|---|---|---|
+| | | | | |
 
-In 1–2 paragraphs, name each reason this journey needs its own owner separate from the spine or a single capability: does it cross multiple capabilities, affect roadmap/release decisions, own independent product acceptance, or repeatedly drive priority tradeoffs? Call out each reason by name; do not say "because it is important" without specifics.
+## When the ordinary path breaks
 
-## Product journey
+<!-- Tell at least one blocked, failed, interrupted, or degraded scene. Explain
+     what remains visible, what state is preserved, which recovery options the
+     user has, and how they know the journey is complete after recovery. -->
 
-| Step | User / operator intent | Touchpoint | Product constraint |
+## Completion and acceptance
+
+| Starting condition | User action | Observable result | Unacceptable result | Evidence owner |
+|---|---|---|---|---|
+| | | | | |
+
+## Boundaries and variants
+
+<!-- Cover role, permission, deployment, creation mode, external channel, or
+     target-only variants only when they change the experience. State explicit
+     non-goals. -->
+
+## Capability and runtime links
+
+| Journey part | Capability owner | Architecture runtime owner | Why the link matters |
 |---|---|---|---|
-| | | | |
+| | | [Critical journeys](../../02-architecture/views/critical-journeys.md) | |
 
-## Experience constraints
+## Current direction and gaps
 
-| Constraint | Why it matters | Evidence |
-|---|---|---|
-| | | |
-
-## Product acceptance
-
-| Acceptance | Meaning | Required evidence |
-|---|---|---|
-| | | |
-
-## Capability links
-
-| Capability | Role in journey |
-|---|---|
-| | |
-
-## Architecture runtime links
-
-| Product journey step | Runtime owner | Failure/recovery / observability link |
-|---|---|---|
-| | | |
+| Topic | Current experience | Intended experience | Product maturity | Closure owner |
+|---|---|---|---|---|
+| | | | current / limited / target / out | |

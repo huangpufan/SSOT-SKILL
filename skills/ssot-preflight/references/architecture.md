@@ -4,7 +4,9 @@ This file owns the `02-architecture/` trunk, recursive decomposition, diagram
 expectations, and coverage depth. Read it during bootstrap, architecture audit,
 major refactor, or architecture-domain split/merge.
 
-KISS rule: architecture is first a mental model, not a section checklist. A
+KISS rule: architecture is first a mental model, not a section checklist. KISS
+removes duplication and shortens the path to understanding; it does not cap the
+explanation before a reader understands the system. A
 reader should understand what the system is, what runtime owners matter, who
 owns state/contracts/failure/trust, and where evidence lives before seeing any
 matrix.
@@ -24,7 +26,7 @@ surface.
 
 Every architecture surface has three layers:
 
-1. **Mental model**: a short prose explanation of the system, view, or domain.
+1. **Mental model**: a self-contained prose explanation of the system, view, or domain.
    It names the main path, why the boundary exists, and what future agents must
    preserve.
 2. **Owner boundary**: the unique place that owns each long-lived fact. Root and
@@ -49,6 +51,9 @@ SSOT/02-architecture/
     README.md
     operating-model.md
     critical-journeys.md
+    state-and-data-lifecycle.md
+    contracts-and-trust-boundaries.md
+    failure-and-recovery.md
     current-target-gap.md
   NN-<domain>/
     README.md
@@ -72,7 +77,8 @@ rewriting product promises.
 ### Root
 
 `02-architecture/README.md` should let a new agent build the system goal, main
-path, core invariants, and next reading path within one minute.
+path, core invariants, and next reading path without consulting code or
+reconstructing the story from tables.
 
 Default root content:
 
@@ -102,9 +108,10 @@ design appears inside the manifest table cells, Doctor reports
 
 ### Views
 
-Views answer cross-owner technical questions. Keep only views that truly cross
-runtime owners: critical runtime flows, contract map, failure/recovery map, and
-global current/target/gap index. A view explains why it exists, which domains it
+Views answer cross-owner technical questions. The default non-trivial set
+covers operating model, critical runtime flows, state/data lifecycle,
+contracts/trust boundaries, failure/recovery, and global current/target/gap. A
+view explains why it exists, which domains it
 synthesizes, what design intent or constraint crosses domains, and where
 current/target/gap evidence lives. Views do not take over domain-owned state,
 resource, contract, failure, lifecycle, or verification detail.
@@ -123,13 +130,14 @@ Domains are the stable owner for architecture facts that have their own state,
 contract, failure, lifecycle, trust, verification, or evolution semantics. A
 domain must answer why it is separate before it lists parts.
 
-**Domain README intent triad** (v2.43): every architecture domain README
-must open with three named H2 sections in this order, before the
-runtime-owner / state / contract / lifecycle body —
-`## Why`, `## 失败模式 (Failure Modes)`, `## 关闭条件 (Closing Conditions)`.
-See [`area-model.md §2.2`](area-model.md#22-architecture). Doctor
-`[INTENT-OWNER]` (14W) gates this. Lightweight-mode single-level
-`02-architecture/README.md` (see §11) is exempt.
+**Domain reader surface** (v2.59): every architecture domain opens with a
+mental model, a why/boundary explanation, and a first-screen component diagram.
+Every covered domain displays this minimum boundary picture; a domain that
+cannot yet do so remains `partial`. It explains a canonical current flow before
+reference tables. Runtime failure/recovery remains in the prose body;
+document-self drift and retirement conditions live in the
+`architecture-domain` manifest. See
+[`reader-quality.md §4`](reader-quality.md#4-architecture-completeness).
 
 **Apex maxim and apex invariant single-owner rule** (v2.43): when an
 architecture domain README owns an apex behavior maxim
@@ -145,19 +153,22 @@ by link — they do not restate the body. Doctor `[CORE-REF-PROSE]` (14Z)
 catches body duplication; `[FORK]` (15D) catches the architecture-domain
 ↔ architecture-domain subset.
 
-Default domain content:
+Default domain questions (combine them into a readable narrative; do not copy
+them as a universal heading checklist):
 
 - boundary and why separate;
 - owned state/resources;
 - contract surfaces;
 - lifecycle and failure boundary;
 - invariants only when load-bearing;
-- **symbols** (v2.39) — `path:src/...:LNN` or `tests/...::test_*` anchor for each invariant / contract row, so a cold agent can hop in one read; doctor `[SYMBOL-PIN]` (14S) gates this;
+- **symbols** (v2.39) — `path:src/...::symbol`, route/SQL/selector identifier,
+  or `tests/...::test_*` anchor for each invariant / contract row. A line number
+  may be auxiliary but must not be the only stable anchor; Doctor
+  `[SYMBOL-PIN]` (14S) gates this;
 - **surface anchors** (v2.39) — for each contract row, name the user-observable surface: API route + handler, SQL identifier, DOM selector + component + Playwright test, or CLI command location; doctor `[SURFACE-PIN]` (14T) gates this;
 - **failure trace** (v2.39) — for each failure / recovery row, name the regression test or `BUG-NNNN` entry that owns it; doctor `[FAILURE-TRACE]` (14U) gates this;
 - **state tags** (v2.39) — every invariant / contract row carries `state: contract | design | poc | debt` inline (see `ssot-bootstrap` §3.7); doctor `[STATE-TAG]` (14V) gates this;
-- **playbook** (v2.39) — when the domain owns ≥3 mechanical task branches (e.g. "add a new SDK adapter", "migrate a schema column"), the domain ships a sibling `playbook.md` modeled on `SSOT/02-architecture/NN-<domain>/playbook.md`; the README stays thin and links it. Doctor `[PLAYBOOK]` (14R) gates this;
-- verification/evidence;
+- **playbook** (v2.39) — when the domain owns ≥3 mechanical task branches (e.g. "add a new SDK adapter", "migrate a schema column"), the domain ships a sibling `playbook.md` modeled on `SSOT/02-architecture/NN-<domain>/playbook.md`; the README explains the runtime and links the operational procedure instead of duplicating it. Doctor `[PLAYBOOK]` (14R) gates this;
 - local Current / Target / Gap;
 - verification and evidence.
 
@@ -283,9 +294,10 @@ exports are derived artifacts. Externally generated diagrams, screenshots, IDE
 dependency diagrams, and auto dependency graphs are candidates until rewritten
 as maintainable Mermaid with evidence.
 
-Default required diagram: a boundary/context view at root or domain level when
-the boundary is non-obvious. Additional diagrams are required when they explain
-non-obvious or risky:
+Every covered runtime-owner domain requires one first-screen boundary/context
+diagram; the architecture root requires a context diagram when its external or
+owner boundary is non-obvious. Additional diagrams are required only when they
+explain non-obvious or risky:
 
 - decomposition/domain ownership;
 - runtime flow;
@@ -346,7 +358,7 @@ Lightweight mode still needs:
 - stop reason;
 - evidence summary;
 - coverage depth/scope;
-- boundary/context diagram when the boundary is not obvious;
+- boundary/context diagram when claiming a domain is covered;
 - stop review.
 
 When new independent state, contract, lifecycle, trust, failure, or verification

@@ -1,4 +1,4 @@
-# Intent Ownership Protocol (v2.43)
+# Intent Ownership Protocol (v2.43; reader orientation revised v2.59)
 
 This file is the semantic owner of three intersecting rules introduced in
 the v2.43 intent-recoverability cycle:
@@ -25,7 +25,7 @@ Read this file when:
   CORE-REF" or detecting that the body lives in both.
 - Deciding which DISC entry, capability invariant section, or architecture
   domain invariant should own a specific maxim.
-- Verifying compliance with doctor rows `14W [INTENT-OWNER]`,
+- Verifying compliance with doctor rows `14W [OWNER-ORIENTATION]`,
   `14X [MAXIM-OWNER]`, and `14Z [CORE-REF-PROSE]`.
 
 ## Table of contents
@@ -221,11 +221,12 @@ architecture-domain ↔ CORE-REF duplication of an invariant body is
 
 | Doctor row | What it catches | Owner |
 |---|---|---|
-| `14W [INTENT-OWNER]` | Architecture domain README missing `## Why` / `## 失败模式` / `## 关闭条件` triad | `area-model.md §2.2`, this file §2 |
+| `14W [OWNER-ORIENTATION]` | Covered architecture domain does not teach its mental model, boundary, and one canonical current flow before reference tables, or leaves document-self drift/retirement machinery in reader prose | `reader-quality.md §4`, `area-model.md §2.2` |
 | `14X [MAXIM-OWNER]` | Apex maxim lacks a unique SSOT owner, or its body is recopied into a non-owner DISC / capability / architecture file | this file §1 |
 | `14Z [CORE-REF-PROSE]` | Apex invariant body maintained in ≥2 SSOT body locations, or CORE-REF holds the body instead of the one-line summary, or `Capability → Surface registry` rows duplicated across architecture-domain ↔ product-capability ↔ product-journey | this file §2, §3 |
 
-These three rows are the v2.43 intent-recoverability cycle's
-enforcement surface for the prose-fork and apex-maxim findings; they
-work alongside the legacy `[FORK]` (15D), `[OWNER-ANCHOR]` (14F), and
-`[FIRST-DAY]` (15E) rows rather than replacing them.
+These rows are the intent-recoverability enforcement surface for owner
+orientation, prose forks, and apex-maxim findings. Since v2.59, 14W judges
+reader meaning rather than an exact heading triad; document-self invalidation
+and retirement conditions live in the matching domain manifest. The rows work
+alongside `[FORK]` (15D), `[OWNER-ANCHOR]` (14F), and `[FIRST-DAY]` (15E).

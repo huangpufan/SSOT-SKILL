@@ -1,28 +1,41 @@
-# Product journey index
+---
+intent_recovery: gap
+---
+# Product journeys
 
-> Writing style: any cold reader. See `ssot-bootstrap` §3.7.
+<!-- Explain the recurring situations represented here and how the journey set
+     covers the product's ordinary, choice, control, recovery, and diagnosis
+     paths. Do not treat one UI click sequence as a durable journey. -->
 
-> Product journey owner index. Do not duplicate journey fact content in this file. Architecture critical journeys own runtime execution, lifecycle, failure/recovery, observability and diagrams.
+This directory keeps the end-to-end experiences that need independent product ownership:
 
-## Split criteria
+```text
+├── NN-example-journey.md
+└── _manifest.md
+```
 
-Before creating `journeys/<journey>.md`, at least one stable product-boundary signal must hold:
+## The experience set
 
-- The journey crosses multiple capabilities.
-- The journey affects roadmap/release decisions.
-- The journey has independent product acceptance.
-- The journey repeatedly drives priority tradeoffs.
+<!-- Tell the primary happy path first, then explain which choices, user
+     controls, recovery paths, or operator diagnosis paths materially change
+     the experience. Keep target-only journeys visibly separate. -->
 
-Do not create a journey file for an implementation flow, test script, single UI path, or one-off ticket.
-
-## Journey owner index
-
-| Journey | Owner | Why separate | Product acceptance | Capability links | Architecture runtime link |
+| Journey | Trigger and user goal | Important decision or failure | Completion meaning | Product maturity | Owner |
 |---|---|---|---|---|---|
-| | `NN-<journey>.md` | | [../roadmap-and-acceptance.md](../roadmap-and-acceptance.md) | | [../../02-architecture/views/critical-journeys.md](../../02-architecture/views/critical-journeys.md) |
+| | | | | current / limited / target / out | |
 
-## Rejected splits
+## How journeys cross capabilities
 
-| Candidate | Why not separate | Current owner |
-|---|---|---|
-| | | [../prd.md](../prd.md) / [../product-model.md](../product-model.md) |
+| Journey | Capabilities involved | Why a separate journey owner is useful | Runtime view |
+|---|---|---|---|
+| | | | [Critical journeys](../../02-architecture/views/critical-journeys.md) |
+
+## Coverage gaps
+
+<!-- Name any applicable user choice, control, recovery, diagnosis, or external
+     channel that lacks a journey owner. Use a reasoned not_applicable only
+     when the class truly does not exist. -->
+
+| Missing journey class | Present user experience | Risk of omission | Closure owner |
+|---|---|---|---|
+| | | | |

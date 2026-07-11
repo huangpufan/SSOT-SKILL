@@ -1,130 +1,92 @@
+---
+intent_recovery: gap
+---
 # 架构
 
-> 行文风格：写给任何冷读者。每节先散文后表格；表格是索引而非段落。
-> Walkthrough / Easily confused with / Out of scope / See also 是面向读者的结构槽位 ——
-> 要么填写，要么显式 `not_applicable: <原因>`。详见 `ssot-bootstrap` §3.7
-> 以及 `SKILL_STYLE.md` reader-scaffolds 章节。
+<!-- 先教会读者系统怎样工作，再提供索引。从一条用户或操作者能够感知的当前
+     请求到结果故事起笔：工作从哪里进入、哪些所有者改变状态、结果怎样返回，
+     以及一次有代表性的失败在哪里被发现和恢复。 -->
 
-> 架构 root 是 Runtime Owner Map。它建立技术心智模型、核心不变量、跨 owner 视角路由、runtime owner domain 路由和证据方向。产品承诺、用户、路线图、非目标和验收语义归 `../01-product/`；architecture 只链接这些 owner，并记录实现响应或实现 gap。
+## 从请求走到可见结果
 
-## 设计简报
+<!-- 写成几段相连的因果叙事，只引入理解过程所必需的系统概念；路径和符号留给
+     所有者的证据附录。不要把未来设计混进当前故事。 -->
 
-用 1-3 段说明这个系统是什么、最关键的运行路径是什么、哪些约束让架构可安全演进，以及未来 Agent 必须保持什么。可以命名主要 product owner 链接，但不要在这里重新定义产品承诺。
+架构区域把跨所有者解释与运行时所有者细节分开：
 
-## 设计意图与设计真相
+```text
+├── views/
+├── NN-example-owner/
+└── _manifest.md
+```
 
-在任何密集 owner map 或恢复清单前写 2-5 段短散文，从第一性原理解释：为什么选择当前 runtime-owner 拆分轴、今天哪些设计真相已经被执行、哪些仍是 design/debt/Out、哪些近似但非核心的实现清单被刻意排除，以及需要细节时先读哪个 view/domain。
+## 系统所处的环境
 
-本节只综合 owner，不替代 view/domain 正文。
-
-## Runtime Owner Map
-
-每行把读者路由到状态、资源、契约、生命周期、失败/恢复或验证的 owner。行只做路由，不维护正文事实。
-
-| 读者问题 | Runtime owner | First stop | Evidence direction | Stop condition / risk |
-|---|---|---|---|---|
-| 哪个进程拥有写入和生命周期？ | `<owner>` | [NN-owner/README.md](./NN-<owner>/README.md) | code / config / schema / tests | 读者能定位写入 owner 与生命周期边界 |
-| `<surface>` 的契约由谁维护？ | `<owner>` | [NN-owner/README.md](./NN-<owner>/README.md) | API / SDK / protocol / schema / tests | 读者能定位兼容语义 |
-
-## 核心不变量
-
-只列跨 runtime owner 生效的不变量。Domain 本地不变量写在 domain README。
-
-| 不变量 | Owner | 为什么存在 | 证据 |
-|---|---|---|---|
-| | [NN-owner/README.md](./NN-<owner>/README.md) | | |
-
-## 视角
-
-只有真正跨 runtime owner 的问题才保留为 view。常见有效 view：critical runtime flows、contract map、failure/recovery map、global current/target/gap index。
-
-| 视角 | 路径 | 跨 owner 问题 | 状态 | 证据 |
-|---|---|---|---|---|
-| 运行模型 | [views/operating-model.md](./views/operating-model.md) | 跨 owner 的技术运行约束 | gap / covered / stale / unknown | |
-| 关键运行流 | [views/critical-journeys.md](./views/critical-journeys.md) | 承重 flow 如何跨 owner | gap / covered / stale / unknown | |
-| 契约地图 | `views/contract-map.md` when needed | 哪些 owner 暴露哪些 contract | gap / covered / stale / unknown | |
-| 失败 / 恢复地图 | `views/failure-recovery-map.md` when needed | failure 如何跨 owner 并恢复 | gap / covered / stale / unknown | |
-| Current / Target / Gap | [views/current-target-gap.md](./views/current-target-gap.md) | 全局迁移姿态和 gap index | gap / covered / stale / unknown | |
-
-## Domains
-
-Domain 拥有详细 runtime 事实。Domain 名称应对齐 runtime owner 边界，不按源码目录机械命名。
-
-| Domain | 路径 | 为什么独立 | 拥有的事实 | Owns surfaces | 状态 | 证据 |
-|---|---|---|---|---|---|---|
-| `<owner>` | [NN-owner/README.md](./NN-<owner>/README.md) | | state / resource / contract / lifecycle / failure / verification | routes / SQL identifiers / DOM selectors / CLI commands handled by this owner | gap / covered / stale / unknown | |
-
-`Owns surfaces` 列出本 domain 拥有的 route 前缀、SQL identifier、DOM selector root 或 CLI command；doctor `[FORK]` (14W) 把跨行重叠视为 fork 信号。
-
-## 架构图
-
-Mermaid fenced block 是权威图。导出的图片只是派生产物。Root 图停留在 owner-map 层；详细 flow/state/failure 图归 views 或 domains。
-
-### 图索引
-
-| Diagram ID | 状态 | 覆盖范围 | 权威位置 | 证据 |
-|---|---|---|---|---|
-| `<ARCH-OWNER-MAP-CURRENT>` | current / target / stale | runtime owners and cross-owner edges | this file | |
-
-<!-- 图类型标注（v2.51）：本文件每个 Mermaid 块 SHOULD 携带
-     `<!-- diagram_type: component|sequence|state|flow -->` 注释，且一块一类
-     不混用。子系统页面 SHOULD 在第一屏（任何表格之前）出现 component 图。
-     Doctor 15U / 15V 检查这条。 -->
-
-### Current Runtime Owner Map
-
-- **Diagram ID**: `<ARCH-OWNER-MAP-CURRENT>`
-- **状态**: `current`
-- **覆盖范围**: runtime owners and cross-owner edges。
-- **证据**:
+<!-- 说明系统周围的人、上游调用者、运行进程、存储与外部服务。写清部署假设和
+     最重要的信任边界。 -->
 
 ```mermaid
 <!-- diagram_type: component -->
 flowchart LR
-  caller["<caller>"] --> ownerA["<runtime owner A>"]
-  ownerA --> ownerB["<runtime owner B>"]
+  person["用户或操作者"] --> entry["产品入口"]
+  entry --> coordinator["工作协调者"]
+  coordinator --> owner["运行时所有者"]
+  owner --> store[("持久状态")]
+  owner --> external["外部依赖"]
+  owner --> entry
 ```
 
-## Current / Target / Gap
+## 为什么系统这样划分
 
-Root 只保留全局迁移姿态和 gap index 链接。详细 CTG 归相关 view 或 domain。
+<!-- 先用正文介绍运行时所有者划分。解释哪项状态、生命周期、契约或失败边界
+     让每个所有者可以独立变化。源码目录和团队名称本身不是充分理由。 -->
 
-| Gap | Owner | Current | Target | Next evidence |
+| 运行时所有者 | 在主故事中的责任 | 拥有的状态或资源 | 失败边界 | 详细所有者 |
 |---|---|---|---|---|
-| | [views/current-target-gap.md](./views/current-target-gap.md) | | | |
+| | | | | |
 
-## decomposition_basis
+## 全局不变量与背后的压力
 
-- **选择的拆分轴**: `runtime-owner-map` / `single-level`
-- **为什么选择此轴**:
-- **Runtime owners**:
-- **被拒绝的轴**:
-- **Owner anchor**: root 只做路由；domains 拥有 runtime 事实；views 拥有跨 owner 综合。
-- **覆盖深度**: `deep` / `sampled` / `inferred` / `unknown`
-- **覆盖范围**:
-- **停止审查**: `<reviewer>` 返回 `no-more-required-changes` / `needs-fix`。
+<!-- 这里只保留跨所有者规则。说明每条规则由什么压力产生，避免了怎样的用户或
+     操作者伤害。局部规则留在对应领域。 -->
 
-## 走查（Walkthrough）
-<!-- 用一段完整的散文描述本 owner 端到端的一次具体工作；不要用表格。
-     若 owner 本质是索引（如 SSOT/README.md 不是系统而是索引），显式写
-     `not_applicable: <原因>` 跳过。 -->
+| 不变量 | 回应的压力 | 涉及所有者 | 破坏后的后果 | 证据方向 |
+|---|---|---|---|---|
+| | | | | |
 
-## 容易混淆（Easily confused with）
-<!-- 1-3 个最容易被冷读者混淆的兄弟 owner；每条一行：
-     `**[兄弟 owner]** — [区分边界的一句话]`。 -->
+## 按问题阅读系统
 
-## 不回答（Out of scope）
-<!-- 一句话说明本 owner 不回答什么，指向回答它的 owner。
-     即便没有也必须显式写（如 `none — covers complete intent`）。 -->
+<!-- 先解释六个视图怎样互补。视图综合跨所有者事实，不复制领域内部细节。 -->
 
-## 延伸阅读（See also）
-<!-- 3-7 条向外的链接花束；本节存在后，正文中不应再出现纯导航链接。
-     每条链接附一句话说明读者为什么要去那里。 -->
+| 想回答的问题 | 阅读视图 |
+|---|---|
+| 哪些压力与取舍塑造了设计？ | [运行模型](./views/operating-model.md) |
+| 关键请求怎样跨越所有者？ | [关键旅程](./views/critical-journeys.md) |
+| 状态存在哪里、怎样变化、保留、过期和恢复？ | [状态与数据生命周期](./views/state-and-data-lifecycle.md) |
+| 哪些契约跨越信任边界，如何保护？ | [契约与信任边界](./views/contracts-and-trust-boundaries.md) |
+| 失败、取消、重启与诊断怎样处理？ | [失败与恢复](./views/failure-and-recovery.md) |
+| 哪些已实现、哪些只是意图、哪些仍有缺口？ | [当前、目标与缺口](./views/current-target-gap.md) |
 
-## Source Material Pointers
+## 当前姿态与重要缺口
 
-完整 inventory 在 `SSOT/STATUS.md`。本 root 只链接已拥有 architecture durable technical fact 的 source。
+<!-- 只摘要那些能防止读者误把目标当当前的全局事实。详细缺口链接到演进视图
+     或领域所有者。 -->
 
-| Source material | Lifecycle / classification | Authoritative owner | Status / conflict |
+| 主题 | 当前架构 | 预期姿态 | 风险或缺口 | 所有者 |
+|---|---|---|---|---|
+| | | | | |
+
+## 细节放在哪里
+
+<!-- 说明怎样选择领域：跟随状态、资源、兼容承诺或恢复边界的所有者。随后给出
+     简短索引。 -->
+
+| 领域 | 独立存在的原因 | 拥有什么 | 何时阅读 |
 |---|---|---|---|
-| | working/* / historical/* / external/source-material / public/thin-entry; absorb / link-only / stale/conflict / obsolete | | |
+| | | | |
+
+## 证据线索
+
+| 资料主题 | 处置 | 架构所有者 | 稳定证据方向 |
+|---|---|---|---|
+| | absorbed / linked / rejected-stale / gap | | |

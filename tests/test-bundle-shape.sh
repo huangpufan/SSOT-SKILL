@@ -190,9 +190,14 @@ for lang in en zh; do
   if grep -qE '02-architecture/domains/|02-architecture/<domain>|\./domains/' "$TPL_DIR/$lang/architecture-readme.md"; then
     ROOT_LINK_FAILS+=("$lang architecture domains are not direct numbered children")
   fi
-  if grep -qE '\| v2\.48 \| 2026-06 \|' "$TPL_DIR/$lang/_manifest.md"; then
-    ROOT_LINK_FAILS+=("$lang manifest hard-codes an old protocol/date")
-  fi
+  for manifest_template in product-root-manifest.md product-collection-manifest.md architecture-root-manifest.md architecture-views-manifest.md architecture-domain-manifest.md; do
+    if [[ ! -f "$TPL_DIR/$lang/$manifest_template" ]]; then
+      ROOT_LINK_FAILS+=("$lang missing $manifest_template")
+    elif grep -qE '\| v2\.[0-9]+ \| 20[0-9]{2}-[0-9]{2} \|' "$TPL_DIR/$lang/$manifest_template"; then
+      ROOT_LINK_FAILS+=("$lang $manifest_template hard-codes a protocol/date")
+    fi
+  done
+  [[ ! -f "$TPL_DIR/$lang/_manifest.md" ]] || ROOT_LINK_FAILS+=("$lang still ships universal _manifest.md")
 done
 if [[ ${#ROOT_LINK_FAILS[@]} -eq 0 ]]; then
   pass "root links and direct numbered architecture-domain paths are canonical"

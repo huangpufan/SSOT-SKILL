@@ -1,27 +1,41 @@
-# Product capability 索引
+---
+intent_recovery: gap
+---
+# 产品能力
 
-> 行文风格：写给任何冷读者。详见 `ssot-bootstrap` §3.7。
+<!-- 开头先解释本集合负责哪些持久用户结果，以及这些结果怎样共同兑现产品承诺。
+     不要把本页写成单纯的文件清单。 -->
 
-> Capability owner 索引。不要在本文件复制 capability 事实正文。
+本目录为每个稳定的用户结果保留一个所有者：
 
-## 拆分标准
+```text
+├── NN-example-capability.md
+└── _manifest.md
+```
 
-创建 `capabilities/<capability>.md` 前必须满足至少一个稳定产品边界信号：
+## 各项能力怎样配合
 
-- 持久用户价值和独立产品边界。
-- 独立非目标、acceptance meaning 或 roadmap state。
-- 继续留在 `prd.md` 或 `product-model.md` 会让 spine 难以阅读。
+<!-- 讲清用户通常先遇到哪项能力、哪些能力互相依赖或补充，以及哪些仍受限或
+     只属于未来。读者应在打开索引前就理解能力组合。 -->
 
-不要为一次性 feature、ticket、UI script、测试用例或 implementation flow 创建 capability 文件。
+## 能力地图
 
-## Capability owner 索引
-
-| Capability | Owner | Why separate | Product status | Acceptance link | Architecture link |
+| 能力 | 用户得到的结果 | 产品成熟度 | 重要边界 | 验收所有者 | 架构响应 |
 |---|---|---|---|---|---|
-| | `NN-<capability>.md` | | current / target / gap / obsolete | [../roadmap-and-acceptance.md](../roadmap-and-acceptance.md) | [../../02-architecture/README.md](../../02-architecture/README.md) |
+| | | current / limited / target / out | | [验收](../roadmap-and-acceptance.md) | [架构](../../02-architecture/README.md) |
 
-## 已拒绝拆分
+## 覆盖范围与明确排除
 
-| Candidate | Why not separate | Current owner |
+<!-- 解释哪些看似功能的内容并不是独立能力，以及它们的产品事实实际由谁负责。
+     一项能力只有在具有持久价值，并且有独立边界、验收含义或路线图姿态时，
+     才值得拆成单独所有者。 -->
+
+| 未拆分候选 | 不是独立能力的原因 | 当前所有者 |
 |---|---|---|
-| | | [../prd.md](../prd.md) / [../product-model.md](../product-model.md) |
+| | | [产品简介](../prd.md) 或 [产品模型](../product-model.md) |
+
+## 已知缺口
+
+| 缺失或不确定的用户结果 | 对用户的影响 | 当前处理方式 | 闭合所有者 |
+|---|---|---|---|
+| | | | |

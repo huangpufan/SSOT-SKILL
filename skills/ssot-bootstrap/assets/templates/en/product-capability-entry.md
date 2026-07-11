@@ -1,53 +1,66 @@
-# Capability: <Capability Name>
+---
+intent_recovery: gap
+---
+# Capability: Example outcome
 
-<!-- Optional template. Instantiate only when a capability has durable product value, boundaries, non-goals, acceptance meaning, or roadmap state that would bloat the product spine. -->
+<!-- Replace the title. Begin with one sentence: this capability lets a named
+     kind of user, in a named situation, achieve a visible result. Then tell a
+     short current scene before introducing status or evidence. -->
 
-> Writing style: any cold reader. See `ssot-bootstrap` §3.7.
+## The outcome in a real situation
 
-## Tell this capability in one breath [MUST]
+<!-- Walk one person from need to result through the surfaces available today.
+     Include an important choice or control, what progress looks like, and the
+     result they leave with. If the capability is target-only, tell the current
+     workaround first and keep the target scene separate. -->
 
-Write three layers in order:
+## What users can rely on
 
-1. **One-sentence summary**: in plain language, what this capability means to the user ("X lets a certain kind of user, in situation Y, do Z").
-2. **One concrete scene**: in 2–4 sentences, describe a concrete usage scene ("imagine a user at the moment they …") so a reader who has never seen the product immediately gets a picture.
-3. **Why an independent owner**: in 1–2 paragraphs, explain why its product boundary deserves to be split out of the spine and maintained independently (durable user value / independent non-goals / independent acceptance / independent roadmap state). If the reason is only "we wanted to write it up at length", merge it back into the spine.
+<!-- Explain current behaviour, quality boundaries, permissions, and the
+     visible response to partial or failed work in prose. -->
 
-## Product boundary
+| Promise or limit | User-visible meaning | Product maturity | Evidence fidelity |
+|---|---|---|---|
+| | | current / limited / target / out | browser / integration / unit / static / missing |
 
-| In scope | Out of scope | Why |
-|---|---|---|
-| | | |
+## Boundary and non-goals
 
-## User value
+| Included experience | Deliberately excluded | Why the boundary exists | Alternative or linked owner |
+|---|---|---|---|
+| | | | |
 
-| User / operator | Value | Evidence |
-|---|---|---|
-| | | |
+## Failure and recovery experience
 
-## Acceptance meaning
+<!-- Describe at least one representative failure: what the user sees, what
+     remains safe, whether they can retry, resume, cancel, or seek operator
+     help, and what completion means after recovery. -->
 
-| Acceptance | Product meaning | Evidence / testing link |
-|---|---|---|
-| | | |
+## State, access, and lifecycle constraints
 
-## Roadmap state
+<!-- Use user language. Mention object state, permission, retention, or shared
+     use only when it changes this capability's promise. -->
 
-| Phase | Status | Notes |
-|---|---|---|
-| | planned / active / deferred / shipped / obsolete | |
+## Acceptance example
 
-## Architecture owner links
+<!-- Give a concrete, falsifiable product scenario. Name the starting
+     conditions, user action, visible result, and unacceptable outcome. -->
 
-| Product constraint | Architecture owner | Implementation gap |
-|---|---|---|
-| | | |
+| Scenario | Observable success | Required evidence | Acceptance owner |
+|---|---|---|---|
+| | | | [Roadmap and acceptance](../roadmap-and-acceptance.md) |
 
-## Capability → Surface registry
+## Current direction and gaps
 
-Use this table only for rows this capability owns. If the architecture runtime
-owner owns the route/component/test row, link to that owner instead of copying
-it here. A `contract`-state row that does not name a Playwright test is
-doctor-blocked.
-
-| Surface | Route or module | Component | Test | state |
+| Topic | Current behaviour | Intended posture | User impact | Closure owner |
 |---|---|---|---|---|
+| | | | | |
+
+## Evidence and implementation links
+
+<!-- Keep implementation detail in linked owners. This appendix should let a
+     maintainer reach the responsible architecture and test evidence without
+     making the product narrative depend on paths or symbols. -->
+
+| Product claim | Architecture owner | Test or runtime evidence |
+|---|---|---|
+| | [Architecture](../../02-architecture/README.md) | |

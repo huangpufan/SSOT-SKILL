@@ -10,6 +10,52 @@ files.
 
 ## Version Ledger
 
+### v2.59
+
+**Upgrade goal**: make product and architecture owners understandable and
+complete for a cold reader, not merely routable and mechanically recoverable.
+Earlier versions established owner maps, directory maps, compact intent
+narratives, and recovery manifests, but they could still mark a heading/table
+skeleton as `covered`. They also imposed exact scaffold headings that encouraged
+universal checklists, and used one manifest shape for unrelated owner levels.
+v2.59 replaces that compression bias with a reader-quality contract: KISS is
+the shortest reliable path to understanding; product intent precedes the
+architecture response; narrative explanation precedes reference tables; five
+location-specific manifests replace the universal manifest; and routing tests
+are supplemented by independent comprehension review.
+
+**Impact**: `semantic_impact=high` -- changes the product/architecture
+completeness model, templates, manifest contract, Doctor hard blockers, and
+cold-reader acceptance. A consumer must independently review the rewritten
+reader surface before advancing `tracked_skill_version` to `2.59`.
+
+**Impact checklist**:
+
+| Check | Affected area | Audit action | Done criterion |
+|---|---|---|---|
+| Reader path | `01-product/`, `02-architecture/`, `SSOT/README.md` | Read the actual Markdown in first-day order: positioning, product intent/current surface, architecture response, view/domain owner, STATUS. Hide tables and confirm the causal story remains understandable. | Product and system can be explained back without reconstructing prose from table cells. |
+| Product completeness | Product brief/model, capability and journey sets, roadmap/acceptance | Inventory real pages, entry modes, controls, settings, integrations, diagnostics, identity/privacy expectations, primary/choice/control/recovery/diagnosis journeys, and product maturity separately from evidence fidelity. | Every applicable surface/question has an owner; omissions are explicit gap or `not_applicable`, never silence. |
+| Architecture completeness | Architecture root, views, runtime-owner domains | Establish a current request-to-result story and context; add/justify the six default views for operating model, critical journeys, state/data, contracts/trust, failure/recovery, and current-target-gap. | State ownership, trust boundaries, failure/recovery, deployment/operations, and current-vs-target truth are locatable without a source-tree tour. |
+| Domain reader surface | Each covered architecture domain | Put a mental model, boundary, first-screen Mermaid diagram, and one canonical current flow before reference inventory. Move document-self invalidation/retirement conditions to the domain manifest. | `[OWNER-ORIENTATION]`, `[NARRATIVE-SUFFICIENCY]`, and `[DIAGRAM-FIRST]` pass; exact H2 scaffold names are not required. |
+| Manifest migration | Product/architecture `_manifest.md` files | Replace the universal template with `product-root`, `product-collection`, `architecture-root`, `architecture-views`, or `architecture-domain`; fill required rows and remove unused sections. | `[MANIFEST-COMPLETENESS]` has no TODO/TBD, empty required cell, wrong archetype, or forbidden cargo. |
+| Default surfaces | Product and architecture roots | Confirm the product spine and all applicable default architecture views exist, or record a visible reasoned exception. | `[SURFACE-COVERAGE]` passes. |
+| Reader-facing hygiene | Product/architecture prose | Remove visible authoring/protocol machinery (`ssot-bootstrap`, `SKILL_STYLE`, Doctor numbers/labels, adoption versions) and move machine recovery content to manifests. | `[META-LEAKAGE]` and table-density review are clean. |
+| Independent comprehension | Actual rendered consumer Markdown | Under the existing `semantic_impact=high` exception in `status-protocol.md §6`, a reviewer other than the author uses the 8-dimension rubric in `reader-quality.md §7`, writes a teach-back, and names factual uncertainty. Repeat after every `needs-fix`. | Score >=14/16, no zero dimension, no factual error, and reviewer result `no-more-required-changes`. |
+| Bundle/version sync | Source bundle, installed copy, consumer waterline | Run document-quality tests, bundle tests, install from the reviewed source, verify installed `VERSION`/metadata, then update consumer `STATUS.md`. | Source and installed bundle report `2.59`; consumer waterline advances only after review. |
+
+**Migration notes**:
+
+- This is a content migration, not a mechanical rename. Do not advance the
+  waterline after only copying new templates or adding missing headings.
+- Exact `Walkthrough` / `Easily confused with` / `Out of scope` headings from
+  v2.51 may remain when natural, but Doctor now judges their meaning rather
+  than their spelling.
+- Existing `current/target/gap` architecture tags remain valid. Product owners
+  instead use the product-maturity axis (`current/limited/target/out`) plus a
+  separate evidence-fidelity axis.
+- Routing and anchor probes still run; they are necessary but cannot substitute
+  for the independent comprehension gate.
+
 ### v2.58
 
 **Upgrade goal**: close consumer-derived reliability gaps across capture,

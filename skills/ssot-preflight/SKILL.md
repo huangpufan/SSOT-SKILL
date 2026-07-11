@@ -2,9 +2,9 @@
 name: ssot-preflight
 description: Repository SSOT preflight before substantive code, config, docs, review, debugging, refactoring, or planning work. Use to check SSOT/STATUS.md, open adjudications, documentation language, protocol version, minimal SSOT read routing, and in-task SSOT write triggers. Do not use for pure operations, trivial format-only edits, or non-repository chat.
 metadata:
-  protocol_version: "2.58"
+  protocol_version: "2.59"
   bundle: "SSOT Skill"
-  semantic_impact: medium
+  semantic_impact: high
 ---
 
 # SSOT Preflight
@@ -132,6 +132,7 @@ file. Detail on the two evidence streams and the move schema lives in
 | Candidate / hypothesis / source-backed knowledge | `references/knowledge-integrity.md` |
 | Architecture root/views/domains, Reader Map, decomposition, coverage depth | `references/architecture.md` |
 | Top-level area responsibilities and task-entry mapping rules | `references/area-model.md` |
+| Product/architecture explanatory depth, completeness, manifests, cold-reader acceptance | `references/reader-quality.md` |
 
 ## Things this gate must not be used for
 

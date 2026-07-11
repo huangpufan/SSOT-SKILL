@@ -1,47 +1,56 @@
+---
+intent_recovery: gap
+---
 # Roadmap and product acceptance
 
-> Writing style: any cold reader. See `ssot-bootstrap` §3.7.
+<!-- Explain why the phases are ordered this way and what observable improvement
+     each phase gives users. This page owns product delivery meaning; technical
+     test commands and implementation migration live with their own owners. -->
 
-> This file owns product phases, roadmap intent, product acceptance gates, and product-level gaps. Test implementation details remain in `03-process/testing/`, and technical current/target/gap remains in `02-architecture/`.
+## From the current experience to the next useful one
 
-## The story from this phase to the next [MUST]
+<!-- Tell the phase story in prose. Name whose problem the current phase solves,
+     the compromise it accepts, the next problem to remove, and why another
+     apparently attractive feature is later or out. -->
 
-Use 1–2 paragraphs of prose to explain the phase logic: whose problem the current phase solves, why this ordering, which user problem the next phase pushes further, and why the boundary between these two phases is drawn as it is.
+## What delivered means
 
-The "Product phase / Roadmap intent" tables below are a timeline-and-status index. The rationale for this path must be told in this prose section.
+<!-- An acceptance gate describes a result a user or product owner can observe
+     and agree is delivered. Explain normal, partial, blocked, failed, and
+     recovery outcomes when they affect that agreement. Technical checks are
+     evidence for the meaning, not a replacement for it. -->
 
-## What acceptance means here [MUST]
-
-Use 1 paragraph to explain that "an acceptance gate is not a test case": it is the language, for the business and the users, that says "when we reach this point, we call it delivered". A gate should allow a product owner and a real user to read it and agree: "yes, when we hit this, we own that it is done."
-
-Technical test pass rates, coverage numbers etc. are supporting evidence for acceptance, not substitutes for the product semantics of acceptance itself. The two are linked via the "Required evidence / Architecture / testing link" columns in the table.
-
-## Product phase
-
-| Phase | Product intent | Entry condition | Exit / acceptance gate | Evidence |
+| Gate | User-observable result | Important conditions | Required evidence | Decision owner |
 |---|---|---|---|---|
 | | | | | |
 
-## Roadmap intent
+## Phase map
 
-| Roadmap item | Product reason | Capability / journey owner | Target posture | Status |
+| Phase | User problem addressed | Entry condition | Exit meaning | Product maturity |
 |---|---|---|---|---|
-| | | | | planned / active / deferred / shipped / obsolete |
+| | | | | current / limited / target / out |
 
-## Product acceptance gate
+## Capability and journey direction
 
-| Gate | Product meaning | Required evidence | Architecture / testing link |
-|---|---|---|---|
-| | | | |
+<!-- Keep a roadmap item only when it changes a durable capability, journey, or
+     product boundary. Link the detailed owner and state what users experience
+     before closure. -->
 
-## Product-level gap
+| Intended change | Product reason | Current experience | Intended experience | Owner | Status |
+|---|---|---|---|---|---|
+| | | | | | planned / active / deferred / delivered / retired |
 
-| Gap | Product impact | Blocking degree | Owner | Technical cascade |
+## Product-level gaps
+
+| Gap | User impact today | Product maturity | Evidence fidelity | Closure condition and owner |
 |---|---|---|---|---|
-| | | blocking / non-blocking | | architecture / testing / tech-debt |
+| | | limited / target | browser / integration / unit / static / missing | |
 
-## Release / roadmap tradeoffs
+## Release choices and rollback meaning
 
-| Tradeoff | Product decision | Why | Revisit condition |
+<!-- Explain any product-level rollout, staged access, compatibility, rollback,
+     or communication promise that changes what users can rely on. -->
+
+| Choice | Why | User-visible consequence | Revisit or rollback signal |
 |---|---|---|---|
 | | | | |

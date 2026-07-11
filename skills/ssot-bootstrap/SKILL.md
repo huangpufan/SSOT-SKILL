@@ -27,4 +27,5 @@ the reviewer policy owned by
 | Bootstrap phases, evidence requirements, exit criteria | `references/bootstrap.md` |
 | README / docs / ADR / PRD classification, absorption rules | `../ssot-preflight/references/source-material.md` |
 | Architecture root / views / decomposition / coverage depth | `../ssot-preflight/references/architecture.md` |
+| Product/architecture explanatory depth, default surfaces, manifest archetypes, cold-reader rubric | `../ssot-preflight/references/reader-quality.md` |
 | Convergence and stop-review checks | `../ssot-doctor/references/doctor.md` |

@@ -1,17 +1,18 @@
-# Cold-Agent Simulation Harness (v2.43)
+# Cold-Agent Simulation Harness (v2.43; comprehension gate added v2.59)
 
 This file is the protocol for the **cold-agent simulation gate** — a reproducible
-black-box test of whether SSOT can route a cold coding agent from a commit's
-user-visible intent to the correct `file:line` / SQL / test / DOM-selector
-anchor in ≤ 5 hops.
+black-box test of two different outcomes: whether SSOT can route a cold coding
+agent from a commit's user-visible intent to the correct stable anchor in ≤ 5
+hops, and whether a different cold reader can understand the product/system
+story in the actual Markdown.
 
 It is the objective judge SSOT-SKILL uses to know when its own protocol is
 sufficient: structural lint (`ssot-lint.sh`) tells you the SSOT is shaped right;
 this harness tells you the SSOT is **useful**.
 
-> Doctor and lint verify whether what is written is correct. The cold-agent
-> simulation verifies whether what is written can answer the questions a real
-> agent will ask.
+> Lint verifies deterministic structure. Routing proves locatability.
+> Comprehension proves that the reader can build the right mental model. None
+> of these gates substitutes for the others.
 
 ## 0. When to run
 
@@ -20,8 +21,9 @@ Run this harness:
 - **Per cycle of an SSOT-SKILL upgrade** (current bundle protocol cadence). The
   cycle gate is the 4-pillar floor defined in §3 (each pillar
   `≥ ceil(0.625·denom)` cells passing plus aggregate ratio `≥ 0.75`) plus
-  zero rows in the `skill-fail` partition and a clean Core recovery manifest
-  sweep for covered product / architecture areas.
+  zero rows in the `skill-fail` partition and a clean recovery-manifest sweep
+  for covered product / architecture areas, plus the v2.59 comprehension
+  gate in §1.9.
 - **After any large architecture-IA reorganization** of a consumer SSOT (domain
   split/merge, capability rewrite, or playbook addition).
 - **On user request** ("does my SSOT actually answer the cold-agent question").
@@ -199,41 +201,71 @@ pillar reserved for this stratum) and gated as a sixth gate condition:
 `pillar_score[glossary_vocab] = 2/2`. A FAIL here is always `doc-fail`
 (the consumer's glossary owes the entry); never `skill-fail`.
 
-### 1.7 Core recovery manifest sweep (v2.45 / v2.46 / v2.47)
+### 1.7 Recovery-manifest sweep (v2.45; five archetypes from v2.59)
 
-Before the §1 commit-derived sample is finalised, the harness reads the
-consumer's Core recovery manifest from `product/README.md` or `product/prd.md`
-and from `architecture/README.md` (defined by
-`ssot-preflight/references/area-model.md §2.0.2`). The manifest produces a
-finite set of mandatory `(core_item, owner, pillar)` cells.
+Before the §1 commit-derived sample is finalised, select the manifest protocol
+from the consumer waterline.
 
-Before row sampling, v2.46 adds one completeness probe per trunk. v2.47 expands
-that probe so the cold agent must recover the prose intent/truth narrative
-before relying on the manifest rows. The probe asks why the listed items are the
-finite core, which product-model / operating-model classes are included, which
-near-miss items are deliberately excluded, what is true today, what is
-design/debt/Out, what wrong product or design conclusion would follow from
-omitting a class, and which owner the reader should inspect next. A missing,
-table-only, or heading-only argument is a mandatory FAIL even when every row has
-an owner.
+- For `tracked_skill_version >= 2.59`, enumerate every
+  `01-product/**/_manifest.md` and `02-architecture/**/_manifest.md`. Require
+  the location-matching YAML `manifest_archetype`: `product-root` at
+  `01-product/_manifest.md`, `product-collection` at capability/journey
+  collections, `architecture-root` at `02-architecture/_manifest.md`,
+  `architecture-views` at `02-architecture/views/_manifest.md`, and
+  `architecture-domain` at each direct numbered domain. A non-empty reader
+  collection/domain with no manifest is itself a mandatory failed cell.
+- For `2.48 <= tracked_skill_version < 2.59`, enumerate the sibling manifests
+  required by the v2.48 separation contract: the product and architecture
+  roots, product capability/journey collections, architecture views, and each
+  direct architecture domain. Grade their Core recovery rows, evidence, and
+  lifecycle conditions, but do not require the five YAML archetype labels that
+  were introduced at v2.59. A non-empty collection/domain with no sibling
+  manifest is a mandatory failed cell.
+- For `2.45 <= tracked_skill_version < 2.48`, run the historical inline probe
+  against the Core recovery manifests in the pre-faceted legacy owners:
+  `product/README.md` or `product/prd.md`, and `architecture/README.md`.
+  Numbered `01-product/` / `02-architecture/` paths arrived at v2.57 and must
+  not be imposed on this branch. Do not require sibling `_manifest.md` files.
 
-For each manifest row:
+Consumers below v2.45 record the manifest sweep as `N/A: pre-manifest
+waterline`; do not retroactively impose a later physical layout.
+
+Each location-specific manifest produces a finite set of mandatory
+`(archetype, core_item, owner, pillar)` cells. Root manifests cover the product
+spine or architecture shape; collection manifests cover every child owner;
+the views manifest covers every applicable cross-owner question; domain
+manifests cover boundary, state/resources, contracts/trust, canonical flow,
+failure/recovery, and stable evidence. A reasoned `not_applicable` row remains
+a cell and must name the reason, evidence, and revisit owner.
+
+Before row sampling, run one completeness probe per manifest and one teach-back
+per product/architecture trunk. The manifest probe asks why its rows are the
+finite set for that archetype, which near-miss items are excluded, whether every
+child/default question is represented, and whether lifecycle/evidence states
+match the linked owners. The teach-back reads the actual prose owner with tables
+hidden and asks what is true today, what is target/debt/out, what wrong
+conclusion an omission would cause, and where to go next. A complete manifest
+cannot rescue a heading/table-only owner; strong prose cannot rescue a missing
+manifest row.
+
+For each mandatory row from every selected manifest:
 
 1. If the row declares a pillar as `not_applicable`, the row is recorded `N/A`
    only when it gives a reason and a revisit owner.
 2. If the row's owner is touched by a commit in the candidate pool, the normal
    commit-derived trial covers that row.
 3. If no candidate commit touches the row, the harness schedules one
-   owner-directed synthetic trial per required pillar. The prompt input is the
-   manifest row's user-visible / design-facing item name and asks the cold
-   agent to recover the row's owner, current truth state, evidence / closure
-   owner, and omission risk. Synthetic trials use the same hop budget and
-   schema, but the `hop2_anchor` is graded against the manifest row or owner
-   body rather than a commit diff hunk.
+   owner-directed synthetic trial per required pillar. The prompt includes the
+   archetype and row's user/design-facing name and asks the cold agent to
+   recover the narrative owner, current truth state, evidence/closure owner,
+   and omission risk. Synthetic trials use the same hop budget and schema, but
+   the `hop2_anchor` is graded against both the manifest row **and** its linked
+   prose owner rather than a commit diff hunk.
 
-The cycle report records a "Core recovery manifest" table with one row per
-mandatory cell plus one `completeness_argument` / `intent_truth_narrative` row
-per trunk. A missing manifest, omitted core item, missing required pillar,
+The cycle report records a "Recovery manifests" table with one row per
+mandatory cell plus one `archetype_completeness` row per manifest and one
+`intent_truth_narrative` row per trunk. A missing/wrong-archetype manifest,
+omitted core item/child/default question, missing required pillar,
 missing completeness argument, unexplained near-miss exclusion, unmapped
 non-protocol state label, state stronger than the owner body (including
 all-`contract` where `mixed` is required), or failed synthetic trial is
@@ -242,7 +274,9 @@ Doctor `[CORE-COVERAGE-MAP]` (15G). A missing/table-only prose narrative routes
 to `[INTENT-TRUTH-NARRATIVE]` (15H); if the same document also omits a manifest
 row or state, report both 15H and 15G. A cycle with any failing mandatory
 manifest or narrative cell cannot support an area-level `intent_recovery:
-covered` claim even if the ordinary 8-commit sample passes.
+covered` claim even if the ordinary 8-commit sample passes. For v2.59, the
+report groups failures by manifest archetype so a root pass cannot hide a
+collection, views, or domain failure.
 
 ### 1.8 Directory-tree routing probe (v2.50, `dir-tree-only`)
 
@@ -266,6 +300,43 @@ directory through Doctor `15N` / `15O` / `15P` / `15Q` depending on the
 `miss_class`. The probe runs whether or not the §1 commit sample fires; it is
 the cheap up-front gate for IA self-display per
 [`bootstrap.md` §3.7 A1](../../ssot-bootstrap/references/bootstrap.md#37-ssot-docs-must-be-readable-cold).
+
+### 1.9 Comprehension probe (v2.59)
+
+Run this probe after routing and manifest checks, against the **actual consumer
+Markdown**, not a synthetic template. Select the reviewer under
+[`status-protocol.md` §6](../../ssot-preflight/references/status-protocol.md#6-stop-review-gate):
+`self-reviewed` is the default, and independent review is required only for
+bootstrap overall `passed`, a `documentation_language` change, a
+`semantic_impact=high` protocol upgrade, or the first
+`coverage_result=converged` declaration. Give that reviewer `SSOT/README.md`,
+then let the documented first-day path route them through product and
+architecture. Do not give code, the author's plan, the expected score, or a
+summary of the intended answer.
+
+The reviewer returns three teach-backs:
+
+1. product — audience/problem, current surfaces, primary and recovery journeys,
+   promise/non-goals, acceptance, target/gaps;
+2. architecture — context/main path, runtime owners, state/write ownership,
+   contracts/trust, failure/recovery, operations, current/target/gap;
+3. one sampled capability and one sampled domain — normal scene, failure scene,
+   boundary, current/target distinction, and evidence direction.
+
+Then score 0–2 on the eight dimensions owned by
+[`reader-quality.md §7`](../../ssot-preflight/references/reader-quality.md#7-cold-reader-acceptance):
+orientation/audience, causal narrative, current truth, target/gaps,
+boundaries/non-goals, normal+failure paths, terminology, owner/evidence
+reachability. Hide tables and repeat the central teach-back; prose must still
+carry the story.
+
+The probe passes only at `>=14/16`, with no zero, no critical truth error, and
+verdict `no-more-required-changes`. A lower score or uncertainty caused by the
+document is `needs-fix`: record the failed dimension and exact reader path,
+rewrite the consumer or protocol root cause, and repeat with the reviewer
+selected under `status-protocol.md` §6. Routing success, a score assumed by the
+author without running this probe, and a clean lint run cannot override the
+recorded result.
 
 ## 3. Grading rubric
 
@@ -297,8 +368,10 @@ Any one failure ⇒ trial fail. Trial vote per `(commit, pillar)`:
 5. `total_score / sum(denominators) ≥ 0.75`, evaluated as a ratio so the rule survives N/A reduction (at full 8×4=32 the ratio collapses to the announced ≥ 24/32 floor; with N/A the same 0.75 floor is enforced against the reduced denominator)
 6. zero rows in the skill-fail partition (§4)
 7. `pillar_score[glossary_vocab] = 2/2` (per §1.6); a FAIL here routes to `STATUS.md ## Pending Captures` as `glossary-gap` doc-fail.
-8. every mandatory Core recovery manifest cell is PASS or `N/A` with a reason
+8. every mandatory recovery-manifest cell is PASS or `N/A` with a reason
    and revisit owner (per §1.7).
+9. the comprehension probe (§1.9) is `>=14/16`, has no zero or
+   critical truth error, and returns `no-more-required-changes`.
 
 When any pillar denominator falls below 4 commits the cycle is
 inconclusive (per the existing rule below); the gate is not evaluated.
@@ -414,9 +487,20 @@ A `(commit, pillar)` row appears once per pillar the commit produces trials in (
 | product_truth | … | … | … | … | PASS / FAIL |
 | **total** | … | …/32 | … | ≥24/32 | PASS / FAIL |
 
-## Core recovery manifest (v2.45 / v2.47)
-| area | core_item | owner | pillar | trial_kind | state | verdict | miss_class | closure_owner |
+## Recovery manifests (v2.45; archetype-aware v2.59)
+| area | archetype | core_item | owner | pillar | trial_kind | state | verdict | miss_class | closure_owner |
 | ...
+
+## Comprehension review (v2.59)
+- Reviewer: <self-reviewed or reviewer id selected under status-protocol §6>
+- Product teach-back: <summary>
+- Architecture teach-back: <summary>
+- Sampled owners: <capability>, <domain>
+| dimension | score (0-2) | evidence or confusion path |
+| ...
+- Total: <n>/16
+- Truth errors: none / <details>
+- Verdict: no-more-required-changes / needs-fix
 
 ## Miss-class distribution (FAIL cells)
 | pillar | missing-owner | prose-fork | broken-ref | glossary-gap |
@@ -431,7 +515,7 @@ A `(commit, pillar)` row appears once per pillar the commit produces trials in (
 | ...
 
 ## Cycle gate
-PASS / FAIL — per §3: `pillar_score[p] ≥ 5/8` for all p ∈ {design_intent, product_intent, design_truth, product_truth} AND `total_score ≥ 24/32` AND `glossary_vocab = 2/2` AND every mandatory Core recovery manifest cell is PASS / reasoned N/A AND zero skill-fail rows. The flat 75% rule from v2.42 does not apply.
+PASS / FAIL — per §3: the routing/pillar floors pass, every mandatory manifest cell passes/is reasoned N/A, the comprehension probe is >=14/16 with no zero/truth error and verdict `no-more-required-changes`, and there are zero skill-fail rows.
 ```
 
 The full transcript of each trial is archived under
@@ -447,8 +531,10 @@ The SSOT-SKILL × consumer-SSOT iterative cycle terminates when **two consecutiv
 4. `pillar_score[product_truth] ≥ ceil(0.625·denom)`, and
 5. `total_score / sum(denominators) ≥ 0.75`, and
 6. `pillar_score[glossary_vocab] = 2/2`, and
-7. every mandatory Core recovery manifest cell is PASS or reasoned N/A, and
-8. zero `skill-fail` rows in either cycle.
+7. every mandatory recovery-manifest cell is PASS or reasoned N/A, and
+8. the §1.9 comprehension probe is `>=14/16`, has no zero or
+   critical truth error, and returns `no-more-required-changes`, and
+9. zero `skill-fail` rows in either cycle.
 
 A single passing cycle is not enough — the gate must be stable across one
 slice rotation to confirm the bundle anticipates rather than memorises.

@@ -1,53 +1,53 @@
-# 架构视角
+---
+intent_recovery: gap
+---
+# 架构视图
 
-> 行文风格：写给任何冷读者。详见 `ssot-bootstrap` §3.7。
+<!-- 解释本系统为什么需要跨所有者视图。先给出一个任何单个运行时所有者都无法
+     独立回答的问题，再说明这些视图怎样让读者追踪流程、状态、信任、恢复与
+     演进，同时不复制领域细节。 -->
 
-> 跨域架构视角。Views 从 domains 进行跨域综合，并吸收源资料中的技术系统目标、运行哲学、runtime journeys 和 implementation current/target/gap；具体所有权、契约、状态和恢复细节必须路由到 domains。产品承诺、capability、journey 和 product acceptance 由 `../../01-product/` 拥有，views 只链接 product owner 并记录实现设计或 gap。
->
-> Views 是 SSOT 的设计意图层，必须包含叙述性的设计思考，不能只有表格。
+本目录包含默认的跨所有者解释：
 
-## 视角索引
+```text
+├── operating-model.md
+├── critical-journeys.md
+├── state-and-data-lifecycle.md
+├── contracts-and-trust-boundaries.md
+├── failure-and-recovery.md
+├── current-target-gap.md
+└── _manifest.md
+```
 
-| 视角 | 路径 | 权威职责 | 源资料输入 | 证据 / 状态 |
-|---|---|---|---|---|
-| 运行模型 | [operating-model.md](./operating-model.md) | 技术使命、运行哲学、原则、实现优先级、技术非目标、technical actors、主要运行路径 | product owner links、设计文档、root README、高层架构文档 | |
-| 关键旅程 | [critical-journeys.md](./critical-journeys.md) | runtime journeys、阶段生命周期、failure/recovery、observability signals | product journey links、设计 walkthrough、runbook、源码轨迹 | |
-| Current / Target / Gap | [current-target-gap.md](./current-target-gap.md) | 已实现状态与目标设计、迁移立场、implementation gaps、product acceptance 实现差距、裁决指针 | product roadmap/acceptance links、ADR、设计文档、源资料、代码证据 | |
+## 这些视图怎样配合
 
-## 跨域快速理解地图 / Reader Map
+<!-- 给出一个简短阅读例子：先沿关键旅程理解请求，再去状态与数据视图查看写入，
+     去契约视图确认信任边界，最后核对失败恢复与当前目标姿态。 -->
 
-> Views 的入口地图只做路由，不承载独立长期事实。具体设计意图、旅程和 gap 必须进入对应 view 正文；状态/资源/契约/恢复细节继续下钻到 domains。
-
-| 读者问题 | First stop | Authoritative owner | Evidence direction | Stop condition / risk |
-|---|---|---|---|---|
-| 理解产品约束如何影响技术设计，技术上优先优化什么 | [operating-model.md](./operating-model.md) | operating-model view + product owner | domains / decisions / product | 原则已链接执行它的 domain owners，产品事实仍在 product |
-| 理解哪些端到端路径决定系统是否可用 | [critical-journeys.md](./critical-journeys.md) | critical-journeys view | domains / tests | 每个阶段都有负责状态/契约/恢复的 domain owner |
-| 区分当前实现、目标设计和迁移 gap | [current-target-gap.md](./current-target-gap.md) | current-target-gap view | domains / decisions / tech-debt | 每个 concrete gap 都链接 domain/decision/debt/adjudication owner |
-
-## 视角规则
-
-- View 不能只有表格。必须有 `为什么这个视角存在` / 叙述章节解释设计意图。
-- Views 回答跨域问题，并从 domain evidence 综合系统意图、旅程和 gap；domains 负责详细状态/资源、契约、不变量、失败恢复和验证。
-- 当总览 Mermaid 图能澄清全系统旅程时，view 可以包含这些图。
-- View 必须链接到负责具体状态/资源/契约/失败细节的 domain owners。
-- Views 必须分离 当前事实 与 目标设计。Current claim 需要代码/配置/schema/test/runtime 证据；target claim 需要 decision、ADR、issue 或 conversation 证据。
-- 当 PRD/产品资料包含当前产品优先级、产品非目标和 product acceptance 时，product 必须先吸收；operating-model 只记录技术响应。
-- Critical-journeys 必须吸收 runtime execution、failure/recovery 与 observability signals，而不是只列 happy-path flow 名称；用户 touchpoints 和 product acceptance 链接 product journey owner。
-- Current-target-gap 必须解释迁移立场和部分落地的意图，而不是只列 gap 行。
-- Reader Map、主题候选和 evidence links 必须来自架构分解、读者问题和仓库证据；每个 view 必须补上设计意图、why、约束、风险和 authoritative owner；Reader Map 不承载独立长期事实，不要把外部主题树当成 view 结构本身。
-
-## 源资料路由
-
-| 源资料内容 | 目标视角 | Domain / 卫星区域后续 |
-|---|---|---|
-| 产品定位、产品目标、产品优先级、产品非目标、产品验收 | `../../01-product/` owner | architecture view 链接 product owner，不复制事实 |
-| 技术系统定位、实现优先级、技术非目标、运行哲学、主要 technical actor、非功能成功标准 | [operating-model.md](./operating-model.md) | 链接执行这些原则的 domains 和相关 product owner |
-| Runtime 主路径、阶段生命周期、failure/recovery、observability signals | [critical-journeys.md](./critical-journeys.md) | 链接负责各阶段/状态/资源/恢复的 domains |
-| Implementation current/target/gap、迁移目标、设计缺口、product acceptance 实现差距 | [current-target-gap.md](./current-target-gap.md) | 链接 product owner、decisions、domains、开放裁决项 |
-| 外部生成图、截图、dependency graph 或自动摘要中的候选线索 | 仅在交叉验证后按语义拆入 operating-model / critical-journeys / current-target-gap | 脚本清单默认来自仓库脚本、manifest、CI 和配置；架构行为再链接 domains |
-
-## 开放视角缺口
-
-| 视角 | Gap / unknown | 所需证据 | 阻塞级别 |
+| 读者的问题 | 视图 | 综合什么 | 细节仍由谁负责 |
 |---|---|---|---|
-| | | | blocking / non-blocking |
+| 设计为什么这样优化？ | [运行模型](./operating-model.md) | 压力、优先级、取舍与技术非目标 | 决策与运行时所有者 |
+| 结果怎样跨所有者产生？ | [关键旅程](./critical-journeys.md) | 当前端到端路径及可见结果 | 产品旅程与运行时所有者 |
+| 信息怎样变化并存续？ | [状态与数据生命周期](./state-and-data-lifecycle.md) | 写入所有权、转移、保留、重建与恢复 | 持久化与运行时所有者 |
+| 谁能调用什么，受怎样保护？ | [契约与信任边界](./contracts-and-trust-boundaries.md) | 对外/内部契约、身份、权限、秘密与脱敏 | 契约与政策所有者 |
+| 工作无法继续时会发生什么？ | [失败与恢复](./failure-and-recovery.md) | 检测、重试、取消、重启、降级与诊断 | 运行时所有者与运维记录 |
+| 哪些设计已落地或仍在移动？ | [当前、目标与缺口](./current-target-gap.md) | 跨所有者实现演进 | 决策、技术债与运行时所有者 |
+
+## 覆盖与例外
+
+<!-- 若合并或增加视图，写出支撑该选择的反复出现的跨所有者问题。沉默不能
+     支持“覆盖完整”的结论。 -->
+
+| 问题类别 | 覆盖状态 | 原因或闭合所有者 |
+|---|---|---|
+| 运行压力与取舍 | covered / gap / not_applicable | |
+| 关键端到端旅程 | covered / gap / not_applicable | |
+| 状态与数据生命周期 | covered / gap / not_applicable | |
+| 契约与信任边界 | covered / gap / not_applicable | |
+| 失败与恢复 | covered / gap / not_applicable | |
+| 当前、目标与缺口 | covered / gap / not_applicable | |
+
+## 证据方向
+
+<!-- 视图只做综合：当前结论链接领域证据，产品含义链接产品所有者，未来意图
+     链接决策。 -->

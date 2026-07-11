@@ -1,71 +1,63 @@
-# Current / Target / Gap
+---
+intent_recovery: gap
+---
+# Current, target, and gap
 
-> Writing style: any cold reader. See `ssot-bootstrap` §3.7.
+<!-- Explain the system's implementation evolution without turning this page
+     into a roadmap or a status dump. Begin with the current baseline, the
+     intended technical direction, and why the transition is staged. -->
 
-> Cross-domain implementation evolution view. This file separates implemented facts from target technical design and explains the migration stance. It synthesizes implementation gaps from domain evidence, decisions, and product owners; it does not own concrete state/contract/failure detail, nor does it redefine the product roadmap or product acceptance. It must not flatten design intent into only a state table.
+## The migration story
 
-## Scope
+<!-- Tell which present forms are intentional, which are transitional, and
+     which target ideas are not implemented. Explain the ordering and rollback
+     posture in prose before the matrix. -->
 
-- **Owns**: global implementation current/target/gap, migration priorities, partially landed technical design intent, implementation gaps against product acceptance, stale/conflicting technical design source material, and open design adjudications.
-- **Links but does not own**: product roadmap, phase intent, product-level gaps, and product acceptance gates; these are owned by `../../01-product/roadmap-and-acceptance.md` or the relevant product owner.
-- **Does not own**: in-domain implementation details. Each concrete gap should link to a domain, decision, bug, gotcha, test, or tech-debt entry.
-- **Primary source material**:
+## How to read architecture state
 
-## Why This View Exists
+<!-- Define the local vocabulary used in this repository. Keep product maturity
+     separate: a target technical design does not make a target product feature
+     current, and strong tests do not turn intent into implementation. -->
 
-Use 1-3 paragraphs to explain the system's current implementation posture: what already holds, what the target technical state is, which product acceptance items still have implementation gaps, and how future Agents should trade off implementation convenience, product constraints, and design direction.
-
-## Narrative / Model
-
-Use natural language to explain the migration model: which current implementations are intentionally preserved, which are transitional, and what future work should prioritize or avoid.
-
-## Design Intent / Constraints
-
-| Intent or constraint | Current relationship | Why it matters | Evidence / decision |
-|---|---|---|---|
-| | implemented / partial / diverged / pending | | |
-
-## Migration Stance
-
-- **Current baseline**:
-- **Product owner links**:
-- **Target technical design**:
-- **Highest-priority gaps**:
-- **Current-stage non-goals**:
-- **Risk tolerance / rollback stance**:
-
-## Current / Target / Gap Matrix
-
-| Area | Current implementation fact | Target technical intent / product constraint | Implementation gap / blocker | Authoritative owner | Evidence |
+| Area | Current implementation | Intended technical posture | Gap or blocker | User or operator consequence | Owner |
 |---|---|---|---|---|---|
-| | | | | product / domain / decision / debt / adjudication | |
+| | | | | | |
 
-## Partially Landed Design Intent
+## Partially landed design
 
-| Intent | Landing status | Missing parts | Decision / source | Required adjudication |
-|---|---|---|---|---|
-| | pending / partial / diverged / implemented | | | |
+<!-- Describe the compatibility seam, temporary duplication, fallback, or
+     ordering constraint that makes partial implementation risky. -->
 
-## Rejected Alternatives / Do Not Revive
-
-| Old form or rejected alternative | Why rejected | Alternative direction | Enforcement location |
-|---|---|---|---|
-| | | | decision / domain / gotcha / test |
-
-## Open Design Questions
-
-| Question | Why it matters | When it is needed | Current default | Links |
+| Intent | Landed portion | Missing portion | Safe next step | Rollback or removal condition |
 |---|---|---|---|---|
 | | | | | |
 
-## Related Domains
+## Decisions not to revive
 
-| Domain owner | Current / target responsibilities | Gap / decision / debt links |
+| Superseded form | Why it was rejected | Supported direction | Evidence owner |
+|---|---|---|---|
+| | | | |
+
+## Open questions and named gaps
+
+<!-- A question is open only when present evidence cannot decide it. State the
+     current default and the evidence that would close the question. -->
+
+| Question or gap | Current default | Why it matters | Closure evidence and owner |
+|---|---|---|---|
+| | | | |
+
+## Relationship to product direction
+
+<!-- Link product roadmap and acceptance owners. Describe only the architecture
+     response or implementation gap here; do not redefine product meaning. -->
+
+Use `../../01-product/roadmap-and-acceptance.md` as the product owner for target
+outcomes and acceptance. This view owns only the architecture response and the
+implementation gap.
+
+## Evidence links
+
+| Claim | Decision, domain, or debt owner | Code, configuration, schema, test, or runtime evidence |
 |---|---|---|
 | | | |
-
-## Evidence
-
-| Claim | Source material / code / runtime evidence | Confidence | Follow-up |
-|---|---|---|---|
-| | | verified / documented / inferred / unknown | |

@@ -1,47 +1,51 @@
-# Roadmap 与产品验收
+---
+intent_recovery: gap
+---
+# 路线图与产品验收
 
-> 行文风格：写给任何冷读者。详见 `ssot-bootstrap` §3.7。
+<!-- 解释阶段为何按这个顺序推进，以及每个阶段给用户带来什么可观察改进。
+     本页拥有产品交付含义；技术测试命令和实现迁移由各自所有者负责。 -->
 
-> 本文件拥有产品 phase、roadmap intent、product acceptance gates 和产品级 gaps。测试实现细节仍在 `03-process/testing/`，技术 current/target/gap 仍在 `02-architecture/`。
+## 从当前体验走向下一个有用结果
 
-## 这一版到下一版的故事 [MUST]
+<!-- 用正文讲清阶段逻辑：当前阶段解决谁的问题、接受了什么折中、下一阶段要
+     消除什么问题，以及为什么另一项看似诱人的能力要延后或不做。 -->
 
-用 1–2 段散文把 phase 推进的逻辑讲清楚：当前 phase 在解决谁的什么问题、为什么是现在这个顺序、下一 phase 把什么用户问题再推进一步、为什么这两步之间是这样的边界。
+## 怎样才算真正交付
 
-下方"产品 phase / Roadmap 意图"表只做时间线和状态索引；为什么走这条路必须在这段散文里说清楚。
+<!-- 验收门槛描述用户或产品负责人能够观察并共同认可的结果。若会影响交付判断，
+     也要说明正常、部分完成、阻塞、失败和恢复的含义。技术检查是证据，不是
+     产品含义的替代品。 -->
 
-## 验收讲的是什么 [MUST]
-
-用 1 段散文解释"acceptance gate 不是测试用例"：它是给业务/用户看的"做到这一步就算交付"的语言。一个 gate 应当能让产品负责人和真实用户读完后形成共识："是的，到这里我们就承认它已经做成了"。
-
-技术测试通过率、覆盖率等指标是 acceptance 的支撑证据，但不能替代 acceptance 本身的产品语义；二者通过表格里的"Required evidence / Architecture / testing link"列互链。
-
-## 产品 phase
-
-| Phase | Product intent | Entry condition | Exit / acceptance gate | Evidence |
+| 门槛 | 用户可观察结果 | 重要条件 | 所需证据 | 决策所有者 |
 |---|---|---|---|---|
 | | | | | |
 
-## Roadmap 意图
+## 阶段地图
 
-| Roadmap item | Product reason | Capability / journey owner | Target posture | Status |
+| 阶段 | 要解决的用户问题 | 进入条件 | 退出或交付含义 | 产品成熟度 |
 |---|---|---|---|---|
-| | | | | planned / active / deferred / shipped / obsolete |
+| | | | | current / limited / target / out |
 
-## 产品 acceptance gate（验收关口）
+## 能力与旅程的推进方向
 
-| Gate | Product meaning | Required evidence | Architecture / testing link |
-|---|---|---|---|
-| | | | |
+<!-- 只有会改变持久能力、旅程或产品边界的事项才进入路线图。链接详细所有者，
+     并写清闭合前用户今天实际经历什么。 -->
 
-## 产品级 gap
+| 预期变化 | 产品原因 | 当前体验 | 预期体验 | 所有者 | 状态 |
+|---|---|---|---|---|---|
+| | | | | | planned / active / deferred / delivered / retired |
 
-| Gap | Product impact | Blocking degree | Owner | Technical cascade |
+## 产品级缺口
+
+| 缺口 | 今天对用户的影响 | 产品成熟度 | 证据保真度 | 闭合条件与所有者 |
 |---|---|---|---|---|
-| | | blocking / non-blocking | | architecture / testing / tech-debt |
+| | | limited / target | browser / integration / unit / static / missing | |
 
-## 发布 / roadmap 取舍
+## 发布选择与回退含义
 
-| Tradeoff | Product decision | Why | Revisit condition |
+<!-- 若分批开放、兼容、回退或沟通承诺会改变用户可以依赖的体验，在此解释。 -->
+
+| 选择 | 原因 | 用户可见后果 | 重新评估或回退信号 |
 |---|---|---|---|
 | | | | |

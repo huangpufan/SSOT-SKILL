@@ -145,7 +145,7 @@ would make the consumer write paragraph-length reasoning inside cells, copy a
 checklist into `STATUS.md`, or produce a document that is easier for grep than
 for a cold reader, fix the reference or template first.
 
-## Reader scaffolds (v2.51)
+## Reader scaffolds (v2.51; de-checklisted v2.59)
 
 KISS is a *subtractive* discipline — it cuts what adds noise. The cold-reader
 problem has a second axis: any reader who lands on a page also needs scaffolds
@@ -153,27 +153,24 @@ that *add* orientation — what concrete thing this owner does, which sibling
 owners it gets confused with, where the boundary stops, where to go next.
 "Reader scaffolds" is the additive complement. Both serve the same cold reader.
 
-Every owner-archetype template in `assets/templates/{en,zh}/` carries six
-reader-facing structural slots. Five are pre-existing (`Lead` opening, runtime
-diagram, owned facts, evidence pointer, source material). Four are new in v2.51
-and required on every owner README:
+Every owner must carry four **semantic roles** in its reader path. They may be
+combined under natural headings; they are not a universal heading checklist:
 
 - **Walkthrough** — one end-to-end concrete prose example of this owner doing
   its job, not a table. Skipped with explicit `not_applicable: <reason>` only
   for purely indexical owners (e.g. `SSOT/README.md`).
-- **Easily confused with** — one to three sibling owners that get confused
+- **Boundary disambiguation** — one to three sibling owners that get confused
   with this one, each with a one-line disambiguating boundary.
-- **Out of scope** — one-line statement of what this owner does NOT answer,
+- **Out-of-scope routing** — what this owner does not answer,
   plus a pointer to the owner that does. Required even when "none" (write
   `none — covers complete intent`).
-- **See also** — forward-link bouquet (three to seven outbound links), each
-  with a one-line hook. Once present, inline body must avoid navigation-only
-  links; this section owns them.
+- **Next-owner routing** — a small set of outbound owner links with a reason
+  to follow each one.
 
-These slots are *structural*. Doctor checks they exist (15R–15V). The
-prose-before-tables, positive-definition, and cell-is-not-a-paragraph
-guardrails still bind whatever fills them. A scaffold cannot smuggle in a
-shadow ledger.
+Doctor checks whether the reader can recover these meanings (15R–15T), not
+whether exact English H2 headings exist. The prose-before-tables,
+positive-definition, and cell-is-not-a-paragraph guardrails still bind the
+result. A scaffold cannot smuggle in a shadow ledger.
 
 **Why not introduce an `archetype:` frontmatter field.** A consumer's SSOT is
 already partitioned by area (product, architecture, development, testing) and

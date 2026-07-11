@@ -1,27 +1,44 @@
-# Product capability index
+---
+intent_recovery: gap
+---
+# Product capabilities
 
-> Writing style: any cold reader. See `ssot-bootstrap` §3.7.
+<!-- Open with a short explanation of the durable outcomes this collection
+     owns and how they combine to fulfil the product promise. Do not reduce the
+     collection to a file inventory. -->
 
-> Capability owner index. Do not duplicate capability fact content in this file.
+This directory contains one owner for each stable user outcome:
 
-## Split criteria
+```text
+├── NN-example-capability.md
+└── _manifest.md
+```
 
-Before creating `capabilities/<capability>.md`, at least one stable product-boundary signal must hold:
+## How the capabilities fit together
 
-- Durable user value and independent product boundary.
-- Independent non-goals, acceptance meaning, or roadmap state.
-- Keeping it in `prd.md` or `product-model.md` would make the spine hard to read.
+<!-- Tell which capability is usually encountered first, which capabilities
+     depend on or complement it, and which are limited or target-only. A reader
+     should understand the portfolio before reading the index. -->
 
-Do not create a capability file for a one-off feature, ticket, UI script, test case, or implementation flow.
+## Capability map
 
-## Capability owner index
-
-| Capability | Owner | Why separate | Product status | Acceptance link | Architecture link |
+| Capability | User outcome | Product maturity | Important boundary | Acceptance owner | Architecture response |
 |---|---|---|---|---|---|
-| | `NN-<capability>.md` | | current / target / gap / obsolete | [../roadmap-and-acceptance.md](../roadmap-and-acceptance.md) | [../../02-architecture/README.md](../../02-architecture/README.md) |
+| | | current / limited / target / out | | [Acceptance](../roadmap-and-acceptance.md) | [Architecture](../../02-architecture/README.md) |
 
-## Rejected splits
+## Coverage and deliberate exclusions
 
-| Candidate | Why not separate | Current owner |
+<!-- Explain which apparent features are not independent capabilities and where
+     their product truth lives instead. A capability deserves its own owner
+     when it has durable value plus an independent boundary, acceptance meaning,
+     or roadmap posture. -->
+
+| Candidate not split out | Why it is not an independent capability | Current owner |
 |---|---|---|
-| | | [../prd.md](../prd.md) / [../product-model.md](../product-model.md) |
+| | | [Product brief](../prd.md) or [Product model](../product-model.md) |
+
+## Known gaps
+
+| Missing or uncertain outcome | User impact | Current handling | Closure owner |
+|---|---|---|---|
+| | | | |

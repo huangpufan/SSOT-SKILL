@@ -102,6 +102,14 @@ The frontmatter value is the lifecycle flag only; long
 `[META-LEAKAGE]` (15I). Doctor `15M` (check 16 in lint) detects missing
 `intent_recovery:` on in-scope files.
 
+**Manifest archetype header (v2.59).** `_manifest.md` is excluded from the
+body-file frontmatter uniformity rule, but its first YAML block declares
+exactly one `manifest_archetype` value: `product-root`, `product-collection`,
+`architecture-root`, `architecture-views`, or `architecture-domain`. Choose by
+directory role; do not copy one manifest shape into every location. Covered
+manifests have no placeholder text or empty required cell. The full content
+contract is owned by `ssot-preflight/references/reader-quality.md §6`.
+
 **Resolved-state preservation.** Once a directory's frontmatter schema is
 established, resolved-state entries (e.g. a fixed bug or a closed debt item)
 do not drop frontmatter fields. They flip the lifecycle flag (`status:
@@ -150,6 +158,7 @@ for cases where the agent has to read the file and decide.
 | 14 | 15K `[NUMBERED-PREFIX]` | FAIL | Files under `01-product/capabilities/` or `01-product/journeys/` follow `NN-` prefix. Ordered direct-domain directory names under `02-architecture/` also follow `NN-` prefix. |
 | 15 | 15L `[H1-LANGUAGE]` | WARN | When `documentation_language=zh`, H1 lines are not pure English. |
 | 16 | 15M `[INTENT-RECOVERY-UNIFORM]` | FAIL | Prose files under `01-product/` and `02-architecture/` (excluding `_manifest.md`, `STATUS.md`, `CHANGELOG.md`) carry an `intent_recovery:` frontmatter key. |
+| quality | 15Z `[MANIFEST-COMPLETENESS]` | FAIL at v2.59 | Product/architecture manifests declare the location-specific archetype and contain no placeholder or empty required cell. |
 
 Doctor L2 owns: whether sibling files use comparable section templates,
 whether mixed-language H1s read naturally, whether a not-yet-numbered

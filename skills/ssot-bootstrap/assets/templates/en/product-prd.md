@@ -1,67 +1,79 @@
-# PRD spine
+---
+intent_recovery: gap
+---
+# Product brief
 
-> Writing style: any cold reader. See `ssot-bootstrap` §3.7.
+<!-- This is the durable product spine, not a compressed copy of an external
+     requirements document. Start with plain prose, one concrete scene, and the
+     user-visible result. Define local terms when first used. -->
 
-> Concise product spine. Do not mirror the full external PRD; keep only long-term product facts, owner links, and the current/target product posture.
+## Why this product exists
 
-## What this product is [MUST]
+<!-- Describe the people and setting, the frustrating job they face today, and
+     why the problem is worth solving. Name the primary user and any secondary
+     operator whose needs materially shape the product. -->
 
-Use 1–3 paragraphs of plain natural language to answer "what is this product, who uses it, what problem does it solve for them". Include at least one concrete usage scene or one-sentence user story ("imagine a user at the moment they …"). Define every term positively the first time it appears ("X is …"); do not open with a negation.
+## The experience available now
 
-## What this phase ships, and what it does not [MUST]
+<!-- Tell a current end-to-end scene: where someone enters, what they can do,
+     what they see while work is in progress, what a successful result looks
+     like, and how a blocked or failed result is presented. Do not mix target
+     steps into this current story. -->
 
-Use 1–2 paragraphs of prose to tell the "current posture → target posture" story: what we can deliver today, which user problem the next phase pushes forward and to what level, and why this ordering.
+## Promise and scope
 
-Non-goals must explain "why not now, and what would make us reconsider"; do not reduce them to four-word phrases or bare identifiers. The "Key non-goals" table below indexes this prose.
+<!-- Explain the promise in prose before the comparison table. A promise is a
+     user-visible result the team will keep stable, not an implementation
+     component. State deployment or organisational assumptions when relevant. -->
 
-## Product posture
-
-- **Current product posture**:
-- **Target product posture**:
-- **Primary users / operators**:
-- **Core product promises**:
-- **Key non-goals**:
-- **Product owner evidence**:
-
-## Core capability map
-
-The `state` tag (`contract | design | poc | debt`) tells a cold agent whether the capability is enforced today or aspirational; see `ssot-bootstrap` §3.7. Doctor `[STATE-TAG]` (14V).
-
-| Capability | User value | Current status | state | Owner | Acceptance link |
-|---|---|---|---|---|---|
-| | | current / target / gap / not_applicable | contract / design / poc / debt | [capabilities/README.md](./capabilities/README.md) or this file | [roadmap-and-acceptance.md](./roadmap-and-acceptance.md) |
-
-## Product scope
-
-| Scope item | In / Out / Later | Why | Owner / evidence |
-|---|---|---|---|
-| | | | |
-
-## Key non-goals
-
-| Non-goal | Why not | Revisit condition | Owner |
-|---|---|---|---|
-| | | | |
-
-## Owner links
-
-| Fact | Owner | Notes |
-|---|---|---|
-| Users / problems / promises | [product-model.md](./product-model.md) | |
-| Roadmap / product acceptance | [roadmap-and-acceptance.md](./roadmap-and-acceptance.md) | |
-| Runtime implementation | [../02-architecture/README.md](../02-architecture/README.md) | Architecture links here; do not duplicate product facts there |
-
-## Capability → Surface registry
-
-Use this table only when the product capability is the chosen owner for the
-surface row. Otherwise link to the architecture-owned row and do not maintain a
-duplicate mirror. See `ssot-preflight/references/architecture.md` §16.
-
-| Capability | Route or module | Component | Test | state |
+| Product promise | User-visible meaning | Product maturity | Important boundary | Owner |
 |---|---|---|---|---|
+| | | current / limited / target / out | | |
 
-## Evidence
+## Surfaces and ways in
 
-| Claim | Source | Confidence | Next action |
+<!-- Cover actual pages, navigation, creation modes, controls, settings,
+     integrations, diagnostics, and external channels that people can reach.
+     Verify current claims against the real mounted entry point. -->
+
+| Surface or entry mode | User goal | What happens today | Product maturity | Evidence fidelity |
+|---|---|---|---|---|
+| | | | current / limited / target / out | browser / integration / unit / static / missing |
+
+## What success means
+
+<!-- Describe the observable outcome, quality bar, and completion meaning.
+     Include the user-visible handling of partial, cancelled, and failed work
+     when those states are possible. -->
+
+| Outcome | Who observes it | Acceptance meaning | Evidence owner |
 |---|---|---|---|
-| | PRD / README / user-provided source / release evidence | verified / documented / inferred / unknown | |
+| | | | [Roadmap and acceptance](./roadmap-and-acceptance.md) |
+
+## Deliberate non-goals
+
+<!-- Explain why each item is excluded now, what users should do instead, and
+     what evidence would justify reconsideration. Avoid bare labels. -->
+
+| Non-goal | Why it is outside the promise | Present alternative | Revisit condition |
+|---|---|---|---|
+| | | | |
+
+## Direction and unresolved questions
+
+<!-- Separate target posture from current truth. Every limited or target item
+     names its current behaviour, user impact, and closure owner. -->
+
+| Topic | Current behaviour | Intended direction | User impact of the gap | Closure owner |
+|---|---|---|---|---|
+| | | | | |
+
+## Ownership and evidence
+
+| Product question | Authoritative owner | Evidence direction |
+|---|---|---|
+| People, objects, access, and language | [Product model](./product-model.md) | Research, support, policy, and real surface evidence |
+| Durable user outcomes | [Capabilities](./capabilities/README.md) | Product acceptance and current surface evidence |
+| End-to-end experiences | [Journeys](./journeys/README.md) | Journey observation and acceptance evidence |
+| Phase and delivery meaning | [Roadmap and acceptance](./roadmap-and-acceptance.md) | Release, acceptance, and gap closure evidence |
+| Runtime implementation response | [Architecture](../02-architecture/README.md) | Code, configuration, schema, tests, and runtime traces |

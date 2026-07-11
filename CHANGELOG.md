@@ -17,6 +17,21 @@ versions. This file only restates headline changes.
 ## [Unreleased]
 
 ### Changed
+- Product and architecture documentation now follow a v2.59 reader-quality
+  contract: KISS means the shortest reliable path to understanding, narrative
+  explanation precedes reference tables, product intent precedes architecture,
+  and exact scaffold-heading checklists are replaced by semantic cold-reader
+  questions. Protocol version `2.58` -> `2.59`.
+- The universal product/architecture manifest template is replaced by five
+  location-specific archetypes (`product-root`, `product-collection`,
+  `architecture-root`, `architecture-views`, `architecture-domain`). Covered
+  claims now fail on placeholder/empty manifests, heading-only narrative,
+  missing default reader surfaces, or missing first-screen domain diagrams.
+- Product completeness now includes real surface inventory, user/object
+  lifecycle, choice/control/recovery/diagnosis journeys, trust/privacy posture,
+  and separate product-maturity versus evidence-fidelity axes. Architecture
+  completeness now includes state/data, contracts/trust, and failure/recovery
+  views in addition to operating model, critical journeys, and current-target-gap.
 - The v2.57 faceted-layout contract is now end-to-end: bootstrap templates and
   current references use numbered physical paths, Doctor resolves and enforces
   canonical facets at the v2.57 waterline, and the migration helper is
@@ -62,6 +77,10 @@ versions. This file only restates headline changes.
   alongside the bundle-wide anti-patterns.
 
 ### Added
+- `ssot-preflight/references/reader-quality.md`, document-quality lint mode,
+  source/rendered template contract tests, and an independent 8-dimension
+  comprehension gate (>=14/16, no zero, no factual error) for high-impact
+  product/architecture upgrades.
 - `ssot-audit/assets/scripts/migrate-faceted-layout.py`, installed with the
   audit skill, migrates legacy consumer `SSOT/` trees to the v2.57 faceted
   layout, rewrites Markdown links/literal paths, preserves legacy domain
