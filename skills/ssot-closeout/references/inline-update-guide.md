@@ -4,6 +4,20 @@ This file serves inline updates: when the agent decides to update SSOT, read thi
 
 **When to read**: not at session start. Read it when `$ssot-preflight` or `$ssot-closeout` identifies that SSOT needs updating and is about to execute writes.
 
+Before declaring the batch aligned, reconcile its diff, conversation decisions,
+user-visible failures, fix/hotfixes, validation caveats, unresolved temporary
+surfaces, and preflight recommendations. Each durable item must update its
+unique owner, create the right record or STATUS gap, or carry a concrete no-op
+reason. Working docs, walkthroughs, plans, handoffs, source inventory, and git
+history are evidence or routes, not durable owners by themselves. If a
+repeatable failure comes from this bundle's protocol, template, or lint, fix
+the bundle and refresh the installed copy before repairing the consumer.
+
+Run the small-window two-stream promotion scan only over rules touched or cited
+by this batch. Route or explicitly defer stale Pending Captures. Use
+[`promotion-rationale.md`](promotion-rationale.md) for move blocks; any move
+from or to apex requires `$ssot-doctor` review.
+
 **Relationship to other reference files**:
 
 | File | Scenario | When to read |
@@ -43,7 +57,7 @@ changes future closure interpretation. If yes, promote it to a durable owner or
 STATUS gap now; `link-only` only inventories the source material and does not
 finish the owner promotion step.
 
-Inline updates are for immediate writes during daily development; commit-audit and conversation-audit use the same owner rules but have different batch inputs and waterline-advance flows.
+Inline updates are for immediate writes during daily development; commit-audit and conversation-audit use the same owner rules but have different batch inputs and tracking-baseline advancement flows.
 
 ---
 
@@ -110,7 +124,7 @@ Before updating any SSOT file, read its current content first to ensure:
 After updating area content, sync STATUS.md:
 
 - Before advancing `tracked_commit` to the current HEAD (if this change is committed), the updater may self-review per the default self-review rule in status-protocol.md §7. Exceptions that require an independent reviewer: (1) bootstrap overall `passed`, (2) `documentation_language` change, (3) protocol upgrade `semantic_impact=high`, (4) first declaration of `coverage_result=converged`.
-- Before advancing `tracked_skill_version` to the current `ssot-preflight` `metadata.protocol_version`, complete the protocol-upgrade review first. Start at the audit router `protocol-upgrades.md`; it points to `current-upgrade.md` or the archive range needed for the project waterline. Upgrades with `semantic_impact=none`, `low`, or `medium` may self-review; `medium` still needs a standalone checklist in the current/archive ledger; `high` requires an independent reviewer returning `no-more-required-changes`.
+- Before advancing `tracked_skill_version` to the current `ssot-preflight` `metadata.protocol_version`, complete the protocol-upgrade review first. Start at the audit router `protocol-upgrades.md`; it points to `current-upgrade.md` or the archive range needed for the project tracking baseline. Upgrades with `semantic_impact=none`, `low`, or `medium` may self-review; `medium` still needs a standalone checklist in the current/archive ledger; `high` requires an independent reviewer returning `no-more-required-changes`.
 - Update affected area state (e.g. `gap` -> `covered`, `covered` -> `stale`); `covered` is a stop conclusion but area-level `covered` defaults to self-review per §7, `coverage_result=converged` is one of the 4 exceptions.
 - Update the source-material absorption matrix: source material read or changed in this run must record classification, authoritative location, absorption state, conflict/adjudication and last check
 - Update the open-gaps list

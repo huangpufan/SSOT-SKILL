@@ -1,17 +1,39 @@
 # 重大决策
 
-> 写作姿态：面向任意陌生读者。见 `ssot-bootstrap` §3.7。
+<!-- 写作对象：implementation-delegator。从具体决策压力路由到唯一条目及其
+     当前后果。 -->
 
-> 架构决策索引。每条记录都说明做出了什么选择、放弃了哪些备选、产生了哪些后果。在做出新的跨 domain 或难以逆转的决策前，先扫一遍本索引获取背景。
+<!-- 完整性权威：reader-quality.md C01-C09、R01-R16 与适用 Q01-Q21。
+     covered 集合使用精确的轻量 R14 索引到条目契约：唯一 ID、双状态轴，以及
+     一个可解析的条目所有者链接。 -->
+
+> 重大决策索引。每条记录都说明做出了什么选择、放弃了哪些备选、产生了哪些后果。
+> 做出新的跨领域或难以逆转的决策前，先扫一遍本索引获取背景。
+
+## 如何使用本索引
+
+先从决策压力定位，再打开唯一条目所有者阅读上下文、事实与理由、备选、影响、
+证据、验证、跟进，以及完成条件或取代关系。本索引只保留路由所需生命周期字段，不复制
+决策正文、当前实现事实或证明流水。
 
 ## 决策索引
 
-| 编号 | 标题 | 状态 | 实现状态 | 日期 | 负责人 / 审阅人 |
-|------|------|------|---------|------|----------------|
-| 0000 | bootstrap recon | archived | superseded | YYYY-MM-DD | |
+| 编号 | 标题 | 记录状态 | 实现状态 | 日期 | 条目所有者 |
+|------|------|---------|---------|------|------------|
+| DEC-NNNN | <标题> | accepted / deprecated / superseded | pending / partial / implemented / diverged / superseded | YYYY-MM-DD | [打开条目](./NNNN-<slug>.md) |
 
-状态：`accepted` / `deprecated` / `superseded`
+没有决策条目时，删掉示例行并显示下面这一行；出现真实条目后立即删掉本行：
 
-实现状态：`pending` → `partial` → `implemented` / `diverged` / `superseded`
+空集合说明：原因=<具体理由>；负责人=[责任所有者](<可解析路径>)；复核条件=<可观察事件>。
 
-字段定义见 [`area-model.md`](https://github.com/huangpufan/SSOT-SKILL/blob/main/skills/ssot-preflight/references/area-model.md#29-decisions)。
+记录状态：`accepted`（已接受）/ `deprecated`（已弃用）/ `superseded`（已被取代）
+
+实现状态：`pending`（待实现）→ `partial`（部分实现）→ `implemented`（已实现）/
+`diverged`（实现已偏离）/ `superseded`（已被取代）
+
+每个真实条目必须且只能出现一行。编号与条目开头的 `id` 相同；“条目所有者”
+必须是指向该文件的 Markdown 链接；两个状态都与条目开头的字段一致。状态理由、
+证据和取代关系仍写在对应决策文件中。
+
+为兼容既有消费者，条目可以同时保留 `status`；保留时必须与 `record_status`
+相同。既有 `implementation_state` 继续作为实现状态字段，不改名。

@@ -1,14 +1,27 @@
 # <runtime owner> Playbook (maintenance / onboarding / verification)
 
-> Architecture-domain operational playbook. Use when the domain owns ≥3 mechanical task branches (e.g. "add a new SDK adapter", "migrate a schema column"). The README owns contract truth; this file owns *procedure*. Render at `SSOT/02-architecture/NN-<domain>/playbook.md`.
+<!-- Writing style: implementation-delegator. State the task decision and safe
+     visible outcome before commands; include failure, recovery, and evidence. -->
+
+<!-- Render at SSOT/02-architecture/NN-<domain>/playbook.md only when the domain
+     has at least three repeatable implementation task branches. -->
+
+> Use this playbook for repeatable implementation tasks in this runtime area,
+> such as adding an adapter or migrating a data field. The local README explains
+> what the area promises and owns; this file explains how to change it safely.
 
 ## 0. Startup check (run every time)
 
-- `$ssot-preflight` and confirm `documentation_language`.
+- Read [SSOT status](../../STATUS.md) and the [SSOT entry](../../README.md).
+  Confirm the current tracking baseline, open gaps, document language, and the
+  owners routed for this task.
 - `git status -s` — record unrelated dirty paths you must NOT stage.
-- Read [`README.md`](./README.md) "Owned State And Resources" + "Contract Surfaces" before acting; this playbook assumes you understand the contract.
+- Read [`README.md`](./README.md) "Owned state and lifecycle" and "Contracts and trust boundaries" before acting; this playbook assumes you understand the current contract and applicable Q01-Q21 risks.
 
 ## 1. Task branch A: <name the most common mechanical task>
+
+State what to delegate, the expected visible result, and when to stop or
+escalate before listing implementation steps.
 
 Pre-conditions:
 - ...
@@ -42,6 +55,7 @@ Walk top-to-bottom; each step proves the previous step was clean:
 - All steps in the active task branch complete.
 - Section §3 gates green; any skip names the missing prerequisite.
 - SSOT updated in the same commit (README contract truth, gotchas / bugs as needed).
+- Applicable Q01-Q21 owner routes and evidence remain correct; a missing control is a named gap.
 - Commit message names: branch chosen, gates run + result, SSOT files updated.
 
 ## 6. Prohibitions

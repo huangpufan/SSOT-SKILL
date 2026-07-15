@@ -3,6 +3,9 @@ intent_recovery: gap
 ---
 # State and data lifecycle
 
+<!-- Writing style: implementation-delegator. Start with what a person expects
+     to survive or change, then ownership, failure/recovery, paths, and proof. -->
+
 <!-- Start with the information a user or operator expects to survive, the
      information that may be ephemeral, and the owner that makes each change.
      Explain the lifecycle as a story before presenting an inventory. -->
@@ -44,12 +47,18 @@ flowchart LR
 
 <!-- Describe transaction boundaries, ordering, idempotency, leases, locks,
      caches, eventual consistency, and replay only where they change the truth
-     a caller can observe. -->
+     a caller can observe. This is the main cross-owner route for applicable
+     Q05 and the state side of Q07, Q09, and Q12. -->
 
 ## Retention, deletion, export, and redaction
 
 <!-- State policies and actual enforcement separately. Link trust/privacy owners
-     and record gaps when retention or deletion semantics are not verified. -->
+     and record gaps when retention or deletion semantics are not verified.
+     Cover applicable Q08, Q13, and Q14: classification, collection purpose,
+     consent, minimisation, lineage, access, export, retention, deletion,
+     backup, restore, corruption, disaster recovery, RPO/RTO, residency, audit,
+     and deletion proof. Route Q20 training/evaluation or output-drift data and
+     Q21 billing/entitlement ledgers here when they are durable state. -->
 
 ## Loss, corruption, and recovery
 

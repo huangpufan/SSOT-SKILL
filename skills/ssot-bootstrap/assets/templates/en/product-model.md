@@ -3,82 +3,89 @@ intent_recovery: gap
 ---
 # Product model
 
+<!-- Writing style: implementation-delegator. Explain people, objects, and
+     states in ordinary language and a concrete situation before internal names. -->
+
 <!-- Explain how users understand the product: who participates, which objects
      they handle, how those objects change, and which visible truth they trust.
      Use product language here; implementation structure belongs in architecture. -->
 
 ## People and their working context
 
-<!-- Describe a typical day or decision pressure for primary users and
-     secondary operators. Explain goals, constraints, skill assumptions, and
-     collaboration needs in prose before summarising them. -->
-
-| Person or role | Situation and goal | Friction or risk today | Product responsibility |
-|---|---|---|---|
-| | | | |
+<!-- Describe the primary user and each secondary operator in prose. For each,
+     explain the situation, desired result, constraint or risk, and the product
+     responsibility created by that pressure. Do not reduce a person to a role
+     label that a cold reader must decode. -->
 
 ## The objects people work with
 
-<!-- Introduce each core product object positively. Tell how a person creates or
-     encounters it, which visible state they rely on, and how it relates to the
-     other objects. Do not substitute database entities for the product model. -->
-
-| Product object | Meaning to a user | Created or entered through | Source of visible truth | Related objects |
-|---|---|---|---|---|
-| | | | | |
+<!-- Give each durable product object its own short subsection. Introduce what
+     it means to a person, how they encounter or create it, which visible state
+     they trust, and how it relates to other objects. Database entities and
+     source types belong in architecture evidence, not in this mental model. -->
 
 ## A lifecycle in user language
 
-<!-- Walk the most important object from entry through progress, completion,
-     cancellation, failure, recovery, and retention where applicable. Explain
-     who can act at each meaningful transition. -->
+<!-- Walk the most important object through entry, progress, completion,
+     cancellation, failure, recovery, retention, and deletion where applicable.
+     Explain who can act at every meaningful transition before summarising it. -->
 
 ```mermaid
+<!-- diagram_type: state -->
 stateDiagram-v2
   [*] --> Draft
-  Draft --> Active: user starts
+  Draft --> Active: person starts
   Active --> Complete: result accepted
   Active --> NeedsAttention: blocked or failed
-  NeedsAttention --> Active: user recovers
+  NeedsAttention --> Active: person recovers
 ```
 
 ## Identity, access, and shared use
 
 <!-- Explain sign-in assumptions, workspace or tenant boundaries, permissions,
-     multi-user expectations, and what an unauthorised person experiences.
-     Write not_applicable with a reason when the product is intentionally
-     single-user and has no identity surface. -->
+     multi-user expectations, and what an unauthorised person experiences. If
+     the product is intentionally single-user, give a named evidence link for
+     why it is not applicable. Cover Q09 isolation and quota where applicable. -->
 
 ## Data, privacy, retention, and audit expectations
 
-<!-- Describe what users expect to persist, what may be ephemeral, what can be
-     exported or deleted, what sensitive content exists, and which actions need
-     an audit trail. Link technical enforcement instead of redefining it. -->
-
-| Expectation | User-visible meaning | Product maturity | Architecture or policy owner |
-|---|---|---|---|
-| | | current / limited / target / out | |
+<!-- Describe what people expect to persist, what may be ephemeral, what can be
+     exported or deleted, what is sensitive, and which actions need an audit
+     trail. Include backup/restore/DR expectations and policy, consent,
+     residency, licensing, or disclosure when applicable (Q08/Q13/Q14). Explain
+     privacy choices and data-governance responsibilities rather than treating
+     a retention table as privacy proof. Keep the expectation here and link its
+     technical enforcement. -->
 
 ## Product language
 
-<!-- Define repository-specific terms in one positive sentence, then name the
-     nearest term a newcomer might confuse with it. -->
+<!-- Define only product concepts needed for this model. Give each one a
+     positive sentence and distinguish the nearest confusing term. Canonical
+     vocabulary has one prose owner in the glossary; secondary mentions here
+     add only the user-facing angle and a link. -->
 
-| Term | Product meaning | Easily confused with | Distinction |
-|---|---|---|---|
-| | | | |
+<!-- Also explain applicable Q01-Q03 and Q12 behaviour in the nearest existing
+     section: accessible/inclusive use, locale/time-zone/format meaning,
+     usability/onboarding/feedback/error prevention, and notification/offline/
+     reconnect/resume/conflict. Route implementation and gaps through STATUS. -->
+
+<!-- Route Q15-Q21 into the nearest existing product story: harmful outcomes
+     and safe limits; human review, accountability, and appeal; fairness,
+     transparency, and explanation; change or retirement promises; environmental
+     lifecycle impact; output validity, uncertainty, robustness, and drift; and
+     price, charge, quota, plan, or entitlement integrity. If a condition is not
+     applicable, STATUS must carry the named reason and evidence. -->
 
 ## Durable product trade-offs
 
-<!-- Explain the pressure on both sides before recording the chosen posture.
-     A trade-off is useful only when it guides future product decisions. -->
+<!-- Give each long-lived tension a short subsection. Explain the pressure on
+     both sides, the chosen posture, the user benefit, the accepted cost, and a
+     signal that would reopen the choice. Do not turn temporary backlog status
+     into a product trade-off. -->
 
-| Tension | Chosen posture | User benefit | Cost or limitation | Revisit signal |
-|---|---|---|---|---|
-| | | | | |
+## Product constraints handed to architecture
 
-## Product-to-architecture handoff
-
-| Product constraint | Why users care | Architecture owner | Open implementation gap |
-|---|---|---|---|
-| | | [Architecture](../02-architecture/README.md) | |
+<!-- In connected prose, name the constraints that materially shape runtime
+     design and why people care. Link each constraint to its unique owner under
+     [Architecture](../02-architecture/README.md); keep implementation details
+     and open technical gaps there. -->

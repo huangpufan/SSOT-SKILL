@@ -1,5 +1,8 @@
 # <Directory Name>
 
+<!-- Writing style: implementation-delegator. Start with the reader's concrete
+     decision, then the owner path, visible result/recovery, and evidence. -->
+
 > One-sentence purpose: what this directory owns, who reads it, when to stop drilling.
 
 ## Directory map

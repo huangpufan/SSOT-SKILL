@@ -3,6 +3,9 @@ intent_recovery: gap
 ---
 # Failure and recovery
 
+<!-- Writing style: implementation-delegator. Begin with a visible symptom and
+     decision, then diagnosis, safe recovery, commands, and evidence. -->
+
 <!-- Start with a representative cross-owner failure and the user or operator
      experience. Explain detection, state preservation, recovery, and diagnosis
      as one causal story before cataloguing failure classes. -->
@@ -33,18 +36,24 @@ flowchart LR
 ## Retry, cancellation, and timeout
 
 <!-- Explain which layer owns each deadline, how duplicate work is prevented,
-     what cancellation propagates to, and which operations are safe to retry. -->
+     what cancellation propagates to, and which operations are safe to retry.
+     Cover applicable Q04-Q06 and Q12 order, backpressure, idempotency, replay,
+     continuity, asynchronous notification, reconnect, resume, and conflict. -->
 
 ## Restart, replay, and repair
 
 <!-- Describe process restart, durable resume, event replay, cache rebuild,
      rollback, reconciliation, and manual repair where applicable. State which
-     internal payload must survive for equivalent recovery. -->
+     internal payload must survive for equivalent recovery. Include Q08 backup,
+     restore, corruption, disaster recovery, RPO, and RTO where applicable. -->
 
 ## Degraded operation and external dependency loss
 
 <!-- Explain fail-open/fail-closed choices, fallback scope, user messaging,
-     capacity shedding, and when an operator must stop the system. -->
+     capacity shedding, and when an operator must stop the system. Include safe
+     fallback and recovery for applicable privacy exposure, harmful or unfair
+     output, missing human review/appeal, drift or invalid output, and incorrect
+     charge or entitlement (Q14-Q17/Q20-Q21). -->
 
 ## Diagnosis and observability
 

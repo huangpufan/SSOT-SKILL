@@ -1,9 +1,16 @@
 # SSOT Status
 
+<!-- Writing style: implementation-delegator. Keep this register short; every
+     label routes to plain-language owner narrative and a concrete next check. -->
+
 > KISS register rule: this file is a state register, not the narrative owner.
 > Cells carry state, owner, date, result, and evidence pointers. Move paragraph
 > reasoning, command output, checklists, and review transcripts to the
 > authoritative owner or evidence artifact.
+
+<!-- Completeness authority: reader-quality.md STATUS S01-S11. At v2.60,
+     normal data cells are at most 180 characters; Source Material Absorption
+     cells may use 320. Split lifecycle/authority/owner/review across columns. -->
 
 ## Event-Source Coverage
 
@@ -23,66 +30,134 @@
 |---|---|---|
 | product | | |
 | architecture | | |
-| glossary | | |
+| process | | Aggregate router; `covered` requires every applicable process child to be `covered` or `not_applicable`. |
 | development | | |
 | testing | | |
 | benchmark | | |
 | deployment | | |
 | release | | |
+| operations | | Conditional; use `not_applicable` only when the lifecycle has no operations concern. A missing owner directory is a `gap`. |
+| security-and-compliance | | Conditional; use `not_applicable` only when the lifecycle has no security/compliance concern. A missing owner directory is a `gap`. |
+| records | | Aggregate router; `covered` requires every applicable record child to be `covered` or `not_applicable`. |
 | decisions | | |
 | research records | | `04-records/research/` |
 | gotchas | | |
 | bugs | | |
 | tech-debt | | |
+| glossary | | |
 
-> Status values and covered preconditions: see
-> `$ssot-preflight references/status-protocol.md`. Notes are one short pointer,
-> not a child-state ledger.
+> These exact baseline rows keep the two aggregate routers and conditional
+> owners visible. Status values, allowed extensions, and covered preconditions:
+> see `$ssot-preflight references/status-protocol.md`. Notes are one short
+> pointer, not a child-state ledger.
+
+## Quality, Risk, and Governance
+
+<!-- This is the Q01-Q21 disposition register, not twenty-one narratives. Keep
+     every cell pointer-sized. Use `applicable` or
+     `not_applicable: <named reason>; [evidence](<owner-path>)`. For an applicable row, each of the three
+     fact/evidence-owner cells is either a resolvable Markdown link or
+     `not_applicable: <layer reason>; [evidence](<owner-path>)`. Gap owner is a
+     resolving link or `none: <why no gap>; [evidence](<owner-path>)`. Missing
+     implementation is a gap, never not_applicable. A globally not-applicable
+     row may use `—` in the remaining cells. Put explanations in linked owners. -->
+
+<!-- The Q01-Q21 meanings are owned by
+     `$ssot-preflight references/reader-quality.md`; use that exact profile
+     when filling this register instead of maintaining a local summary. -->
+
+| Q ID | Applicability | Product owner | Architecture owner | Process/evidence owner | Gap owner |
+|---|---|---|---|---|---|
+| Q01 | applicable / not_applicable: `<named reason>; [evidence](<owner-path>)` | | | | |
+| Q02 | applicable / not_applicable: `<named reason>; [evidence](<owner-path>)` | | | | |
+| Q03 | applicable / not_applicable: `<named reason>; [evidence](<owner-path>)` | | | | |
+| Q04 | applicable / not_applicable: `<named reason>; [evidence](<owner-path>)` | | | | |
+| Q05 | applicable / not_applicable: `<named reason>; [evidence](<owner-path>)` | | | | |
+| Q06 | applicable / not_applicable: `<named reason>; [evidence](<owner-path>)` | | | | |
+| Q07 | applicable / not_applicable: `<named reason>; [evidence](<owner-path>)` | | | | |
+| Q08 | applicable / not_applicable: `<named reason>; [evidence](<owner-path>)` | | | | |
+| Q09 | applicable / not_applicable: `<named reason>; [evidence](<owner-path>)` | | | | |
+| Q10 | applicable / not_applicable: `<named reason>; [evidence](<owner-path>)` | | | | |
+| Q11 | applicable / not_applicable: `<named reason>; [evidence](<owner-path>)` | | | | |
+| Q12 | applicable / not_applicable: `<named reason>; [evidence](<owner-path>)` | | | | |
+| Q13 | applicable / not_applicable: `<named reason>; [evidence](<owner-path>)` | | | | |
+| Q14 | applicable / not_applicable: `<named reason>; [evidence](<owner-path>)` | | | | |
+| Q15 | applicable / not_applicable: `<named reason>; [evidence](<owner-path>)` | | | | |
+| Q16 | applicable / not_applicable: `<named reason>; [evidence](<owner-path>)` | | | | |
+| Q17 | applicable / not_applicable: `<named reason>; [evidence](<owner-path>)` | | | | |
+| Q18 | applicable / not_applicable: `<named reason>; [evidence](<owner-path>)` | | | | |
+| Q19 | applicable / not_applicable: `<named reason>; [evidence](<owner-path>)` | | | | |
+| Q20 | applicable / not_applicable: `<named reason>; [evidence](<owner-path>)` | | | | |
+| Q21 | applicable / not_applicable: `<named reason>; [evidence](<owner-path>)` | | | | |
 
 ## Source Material Absorption
 
-| Source material | Path/source | Lifecycle | Classification | Authority | Owner / absorbed_to | Do not use for | Review |
-|---|---|---|---|---|---|---|---|
-| | path or `pattern=docs/*` | working/research / working/draft / working/proposal / working/experiment / working/poc / working/prototype / working/execution-log / working/closure / working/report / working/handoff / historical/superseded / historical/deprecated / external/source-material / public/thin-entry | absorb / link-only / stale/conflict / obsolete | current / downgraded / external / historical | owner=SSOT/...; absorbed_to=SSOT/... | do_not_use_for=... | review_on=YYYY-MM-DD; status=pending / absorbed / linked / conflict-recorded / obsolete; conflict=none |
+<!-- Real IDs use SRC-YYYYMMDD-NN. Lifecycle, classification, authority, and
+     review states are fixed by status-protocol.md. Durable owner is one
+     resolving Markdown link. A completely empty starter row is allowed. -->
+
+| Source ID | Source material | Path/source | Lifecycle | Classification | Authority | Durable owner / absorbed_to | Do not use for | Review |
+|---|---|---|---|---|---|---|---|---|
+| | | | | | | | | |
 
 ## Source Inventory Exclusions
 
-| pattern | reason | owner | last_checked | review_trigger |
+| Pattern | Reason | Decision owner | Last checked | Review trigger |
 |---|---|---|---|---|
-| | | | YYYY-MM-DD | |
+| | | | | |
 
 ## Core Reference Document Review
 
-| Document | Role | Relation | Status | Evidence/action |
-|---|---|---|---|---|
-| AGENTS.md / CLAUDE.md / Cursor rules | startup / agent-rules / reference / none | thin-adapter / source-material / mixed | covered / stale / conflict / missing / not_applicable | |
+<!-- Role: startup / agent-rules / reference / none. Relation: thin-adapter /
+     source-material / mixed. Status: covered / stale / conflict / missing /
+     not_applicable. Reviewed baseline records commit=<sha>; session=<id-or-none>.
+     Owner/scope and gap/conflict cells carry resolving routes. -->
 
-> Add an appendix only when a startup/reference file needs wider fields such as
-> check scope, last check, detailed action, or conflict links.
+| Document | Role | Relation | Status | Reviewed baseline | Durable owner / scope | Gap / conflict route |
+|---|---|---|---|---|---|---|
+| | | | | | | |
 
 ## Stop Review Gate
 
-| scope | stop_claim | reviewer | reviewed_at | result | evidence | remaining_changes |
-|---|---|---|---|---|---|---|
-| | converged / covered / no-op / tracked_commit / tracked_session / tracked_skill_version / protocol-upgrade / documentation_language | | | no-more-required-changes / needs-fix | | |
+<!-- Stop claim: converged / covered / no-op / tracked_commit / tracked_session /
+     tracked_skill_version / protocol-upgrade / documentation_language. Reviewer
+     role: scoped-self-review / independent-reviewer /
+     independent-cold-reader. Product or architecture high-impact adoption uses
+     independent-cold-reader; other independent-review exceptions use
+     independent-reviewer. Result:
+     no-more-required-changes / needs-fix. Evidence is exactly one Markdown
+     artifact link; Authorises names the exact area or tracking baseline claim. -->
+
+| Scope | Stop claim | Reviewer | Reviewer role | Reviewed at | Result | Evidence | Remaining changes | Authorises |
+|---|---|---|---|---|---|---|---|---|
+| | | | | | | | | |
 
 ## Open Adjudications
 
-| id | status | scope | question | next trigger |
-|---|---|---|---|---|
-| | pending / deferred / resolved / superseded | | | |
+<!-- Real IDs use ADJ-YYYYMMDD-NN. State: pending / deferred / resolved /
+     superseded. Open rows use `none: open` for closure evidence. -->
+
+| ID | State | Affected scope / task | Question / missing evidence | Responsible owner | Blocking / retrigger condition | Resolving route | Closure / supersession evidence |
+|---|---|---|---|---|---|---|---|
+| | | | | | | | |
 
 ## Pending Captures
 
-| id | captured_at | about | altitude_guess | rule | evidence | signal_source | status |
+<!-- Real IDs use CAP-YYYYMMDD-NN. State: pending / routed / absorbed / deferred /
+     expired. Open rows use `none: open` for closure evidence. -->
+
+| ID | Source | Proposed owner | Reason | Priority / trigger | Responsible owner | State | Closure evidence |
 |---|---|---|---|---|---|---|---|
-| CAP-YYYYMMDD-NN | | agent-method / product | apex / authority / inbox | | | user-directive / repo-signal / transcript / tier4-rollup | open / routed / deferred / deferred-export / expired |
+| | | | | | | | |
 
 ## Open Gaps
 
-| Area | Status | Gap description | Blocking level |
-|---|---|---|---|
-| | gap / unknown | | |
+<!-- Real IDs use GAP-YYYYMMDD-NN. State: gap / unknown / resolved / superseded.
+     Open rows use `none: open` for closure evidence. -->
+
+| ID | State | Affected scope / task | Question / missing evidence | Responsible owner | Blocking / retrigger condition | Resolving route | Closure / supersession evidence |
+|---|---|---|---|---|---|---|---|
+| | | | | | | | |
 
 ## Optional Appendices
 

@@ -1,4 +1,4 @@
 interface:
   display_name: "SSOT Audit"
-  short_description: "Catch up SSOT waterlines"
+  short_description: "Bring SSOT tracking up to date"
   default_prompt: "Use $ssot-audit to sync commits, sessions, or protocol versions."

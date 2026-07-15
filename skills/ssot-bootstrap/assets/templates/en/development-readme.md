@@ -1,8 +1,49 @@
 # Development Workflow
 
-> Writing style: any cold reader. See `ssot-bootstrap` §3.7.
+<!-- Writing style: implementation-delegator. Start with the change situation
+     and decision, then path, outcome/recovery, commands, and evidence. -->
+
+<!-- Completeness authority: reader-quality.md C01-C09, PR01-PR16, and applicable
+     Q01-Q21. Covered process owners use the exact strategy and finite-asset
+     contract; give a reason/evidence pointer for every not_applicable item. -->
 
 > This area records how to run the project and the development conventions new Agents must follow when writing code. Only long-lived semantics, prerequisites, and risks are recorded here; the full script source remains in the repository.
+
+## When and for whom
+
+<Explain in plain language which contributor uses this process, what change or
+symptom triggers it, the required repository/runtime environment, and which
+role or permission is needed. Give one concrete first-day scenario.>
+
+## Why this development method
+
+<Explain the strategy before the steps: which conventions and invariants keep
+changes coherent, why this repository uses this sequence, what constraint or
+past failure rules out the nearest alternative, which trade-off is accepted,
+and what evidence would justify changing the method.>
+
+## Canonical path and branches
+
+<Tell the ordered development path as a short story: prepare inputs, start the
+right services, make the change, choose between important branches or
+exceptions, and name any state-changing or irreversible side effect. Explain
+repeat, concurrent, and partial-completion behaviour when it changes safety
+(PR14), and route applicable Q01-Q21 checks through STATUS.>
+
+## Output and acceptance
+
+<Name the observable artifact or result and the checks that make it acceptable.
+A command existing is not acceptance; say what a successful result looks like.>
+
+## Failure, recovery, and handoff
+
+<Explain how failure is detected, when to stop, what may be retried or rolled
+back, what cannot be reversed, and which owner receives an escalation.>
+
+## Reproduce and keep current
+
+<Give the canonical reproducible command path, its evidence source, current
+versus target posture, and the file/event that invalidates this process.>
 
 ## Development at a Glance / Reader Map
 
@@ -22,11 +63,14 @@ Use a short narrative to describe this repository's development path: how depend
 
 ## Scripts / Tool Inventory
 
-> If a scripts directory, package manifest, CI, Makefile, or tool entry in config exists, absorb it semantically. Do not copy script source; only record purpose, when to use, evidence, and risk. If no such scripts exist, write `not_applicable` and the reason.
+> This is the finite inventory of stable scripts and tools the development
+> process creates, reads, changes, verifies, hands off, or retires. Do not copy
+> source. List every real asset once. If none exists, delete the sample row and
+> write: `No stable assets: reason=<specific reason>; owner=[responsible owner](<resolving-path>); review when=<observable event>.`
 
-| Filename | Purpose | Category | When to use | Evidence | Risk or prerequisite | Architecture link if any |
-|---|---|---|---|---|---|---|
-| | | build / dev-server / codegen / lint-format / diagnostics / other | | | | |
+| Asset | Class | Purpose | Selection rule | Owner | Evidence | Risk | Retirement or replacement trigger |
+|---|---|---|---|---|---|---|---|
+| | script / tool / build / dev-server / codegen / lint-format / diagnostics / other | | | | | | |
 
 ## Pattern Language
 

@@ -3,6 +3,9 @@ intent_recovery: gap
 ---
 # Critical journeys
 
+<!-- Writing style: implementation-delegator. Tell the current situation and
+     visible result before paths; include failure, recovery, and fitting proof. -->
+
 <!-- Choose the few current request-to-result paths whose correctness decides
      whether the system delivers a usable outcome. Start with one complete
      causal story; do not open with a catalogue of flows. -->
@@ -38,7 +41,9 @@ flowchart LR
 
 <!-- Cover alternate entry modes, permissions, synchronous/asynchronous paths,
      external integrations, or target-only variants only when they alter owner
-     order, state, contracts, or recovery. -->
+     order, state, contracts, or recovery. Include applicable non-page surfaces
+     and Q01-Q21 effects, particularly accessibility/locale/usability, repeated
+     or concurrent work, notification/offline/reconnect, and isolation. -->
 
 ## Failure and recovery in the journey
 

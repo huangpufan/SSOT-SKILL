@@ -32,7 +32,7 @@ Positioning parallel to Doctor and orthogonal to the three event-source audits:
 
 - `[MUST]` Do not extract long-lived knowledge from conversation and write it into SSOT -- that is the job of [`conversation-audit.md`](../../ssot-audit/references/conversation-audit.md).
 - `[MUST]` Do not validate whether SSOT content matches code -- that is the job of [`doctor.md`](doctor.md).
-- Do not advance any tracked waterline.
+- Do not advance any tracking-baseline field.
 
 **Relationship with CONSUMPTION static check**: check 9 in [`ssot-lint.sh`](../assets/scripts/ssot-lint.sh) and check item C in [`doctor.md`](doctor.md) are the **L1 static consumption chain** (does the adapter write `SSOT/`, does `SSOT/README.md` exist); this file is the **L4 behavioural probe** (was it actually used in real conversation). L1 is a necessary precondition for L4: a broken chain guarantees behaviour fails; an intact chain does not guarantee behaviour is effective.
 

@@ -126,7 +126,7 @@ to cut on the next pass:
 - **Cross-skill routing tables longer than three rows.** Three rows is
   the threshold above which a metaphor or a single "route to the
   matching lifecycle skill" sentence beats the table.
-- **Defensive prose ("Do not advance waterlines without review", "Do not
+- **Defensive prose ("Do not advance tracking baselines without review", "Do not
   copy source documents") repeated in every skill.** Hoist these
   invariants to a single place (`references/` or a shared invariants
   file) and let each skill link, not restate.
@@ -144,6 +144,30 @@ will stay an index after instantiation. If following a reference or template
 would make the consumer write paragraph-length reasoning inside cells, copy a
 checklist into `STATUS.md`, or produce a document that is easier for grep than
 for a cold reader, fix the reference or template first.
+
+### Authority-alignment rule (v2.60)
+
+Shared semantic vocabularies and scoring rubrics have one protocol owner.
+Consumer references state the question they need answered and link that owner;
+they do not copy an enum or create a near-synonym set for convenience. In
+particular, `ssot-preflight/references/reader-quality.md` alone owns product
+maturity, product evidence fidelity, the cold-reader dimensions, and the
+`Q01`-`Q21` quality/risk/governance profile. Product templates never borrow
+architecture lifecycle states, and individual areas do not invent a smaller
+quality checklist. The task harness in
+`ssot-doctor/references/cold-agent-sim.md` owns review execution and artifact
+shape, not the meaning of the dimensions.
+
+When a reference or template changes a reader-facing contract, inspect a
+rendered consumer surface through the task-based cold review. A compact source
+diff is not evidence that the generated prose remains understandable,
+locally-routed, or consistent across owners.
+
+The default consumer is an implementation delegator, not a source-code reader.
+Lead with the scene, decision, delegated action, observable result and evidence,
+then the stop or escalation boundary. Define unavoidable repository terms
+before using them as explanation. Exact symbols and commands preserve
+precision after that ordinary-language model; they do not replace it.
 
 ## Reader scaffolds (v2.51; de-checklisted v2.59)
 

@@ -37,6 +37,7 @@ SSOT/
       state-and-data-lifecycle.md
       contracts-and-trust-boundaries.md
       failure-and-recovery.md
+      deployment-and-observability.md
       current-target-gap.md
     NN-domain/       # Architecture domains of state/contract/failure/verification
       README.md
@@ -47,6 +48,8 @@ SSOT/
     benchmark/       # Benchmark suites and measured floors
     deployment/      # Deploy and distribute
     release/         # Release process
+    operations/      # Conditional: operate, maintain, diagnose, and recover
+    security-and-compliance/ # Conditional: security/compliance control process and evidence
   04-records/        # Historical / emergent records and structured evidence packets
     decisions/       # ADR / major decisions
     gotchas/         # Pitfalls
@@ -60,7 +63,7 @@ Core model:
 - **Product trunk**: `01-product/`. Answers why the product exists, who it serves, what it promises, what it does not do, and how capabilities and journeys are accepted. PRD and product intent default to here.
 - **Technical trunk**: `02-architecture/`. Answers how the system as a whole implements product constraints, how it operates, why it is split this way, and where current implementation differs from target design. Internally divisible into `views/` and direct `NN-<domain>/` owner folders as two types of authoritative locations.
 - **Context areas**: `glossary/`. Help the agent first understand what key terms mean.
-- **Engineering operation areas**: `03-process/development/`, `03-process/testing/`, `03-process/benchmark/`, `03-process/deployment/`, `03-process/release/`. Answer how to run, how to test correctness, how to measure performance/cost/capacity, and how to deliver.
+- **Engineering operation areas**: `03-process/development/`, `03-process/testing/`, `03-process/benchmark/`, `03-process/deployment/`, and `03-process/release/`, plus conditional `03-process/operations/` and `03-process/security-and-compliance/` owners. They answer how to run, test correctness, measure performance/cost/capacity, deliver, operate a live system, and execute security or compliance controls without duplicating product promises or architecture mechanisms.
 - **Emergent/historical areas**: `04-records/decisions/`, `04-records/gotchas/`, `04-records/bugs/`, `04-records/tech-debt/`. Record why, pitfalls, fix knowledge, and debt.
 - **Record packets**: `04-records/research/`. Preserve reproducible
   research/PoC evidence packets and reusable claim rows. They are not
@@ -84,7 +87,7 @@ still follow the source-material lifecycle and downgrade rules.
 
 ### 2.0 Writing posture (shared across every area below)
 
-Every section of every user-facing SSOT body file is first written for the stranger who lands tonight knowing nothing; tables, codes and tags they cannot read are not paragraphs. Three guardrails follow: **prose before tables**, **define every term positively on first use**, and **a cell is not a paragraph**. Full text in [`ssot-bootstrap/references/bootstrap.md`](../../ssot-bootstrap/references/bootstrap.md) §3.7; enforced by Doctor `14I`.
+Every section of every user-facing SSOT body file is first written for the stranger who lands tonight knowing nothing; tables, codes and tags they cannot read are not paragraphs. The unique shared writing floor, body scope, navigation rules, and reader-area profiles live in [`reader-quality.md`](reader-quality.md); `ssot-bootstrap` §3.7 only routes bootstrap authors there. Doctor `14I` and the v2.60 deterministic checks enforce the mechanically decidable part.
 
 KISS is the permanent SSOT design principle. It means the shortest reliable
 path to understanding, not the fewest words. Remove duplicate and machine-only
@@ -92,11 +95,11 @@ material from the reader path, then write enough causal prose for a newcomer to
 teach the product or system back. Tables remain routing, comparison, status, or
 evidence indexes. A table-heavy owner that makes the reader reconstruct the
 story from cells must be fixed before it is marked `covered`. The complete
-product/architecture contract lives in [`reader-quality.md`](reader-quality.md).
+reader contract lives in [`reader-quality.md`](reader-quality.md).
 
 Every user-facing owner is also written as an agent action surface. After the opening explanation, a future agent should be able to answer six questions without reconstructing history from scattered evidence: **when should I read this**, **what current truth does this owner hold**, **where should I inspect first**, **what should I not do**, **what minimal verification or evidence closes the loop**, and (v2.51) **where can I go next, and what does this owner explicitly NOT answer (with a pointer to the owner that does)**. Keep the answers compact; the point is orientation, not a second playbook. If a missing answer is caused by a protocol gap rather than one local document, fix the SSOT Skill protocol first, then update the consumer SSOT from that improved rule.
 
-### 2.0.2 Core recovery manifest (v2.45 / v2.46)
+### 2.0.2 Core recovery manifest (v2.45 / v2.46; authority-aligned v2.60)
 
 `covered` at an area level is unsafe unless the cold reader can see the finite
 set of core things that had to be recovered. A consumer at protocol `>= 2.45`
@@ -110,10 +113,11 @@ architecture trunk:
   deliberately excluded, and what wrong product conclusion a cold reader would
   reach if one class were omitted. The manifest then lists every core product
   posture / model row, capability, and journey that the product expects a cold
-  reader to recover. Each row names the owner, required pillars
-  (`product_intent`, `product_truth`, or `not_applicable` with reason), the
-  current truth state (`contract`, `mixed`, `design`, `debt`, `Out`, or
-  `not_applicable`), and the evidence / closure owner.
+  reader to recover. Each row names one product owner, the product maturity
+  and evidence fidelity defined only in
+  [`reader-quality.md §3`](reader-quality.md#3-product-completeness), and the
+  evidence or closure owner. Product manifests do not use architecture
+  lifecycle states.
 - `02-architecture/README.md` first gives a clear **Core completeness argument**:
   why this set is the project's core design surface, which runtime-owner axis
   and cross-owner views make it complete, what near-miss implementation details
@@ -121,45 +125,49 @@ architecture trunk:
   would reach if one class were omitted. The manifest then lists every core
   runtime owner, cross-owner view, global invariant / operating-model fact, and
   current-target-gap posture that the architecture expects a cold reader to
-  recover. Each row names the owner, required pillars (`design_intent`,
-  `design_truth`, or `not_applicable` with reason), the current truth state
-  (`contract`, `mixed`, `design`, `debt`, `poc`, `Out`, or `not_applicable`),
-  and the evidence / closure owner.
+  recover. Its owner inventory classifies each owner as `runtime`, `support`,
+  or `target`, covers every applicable cross-owner view, and carries one
+  unique technical-surface registry. Architecture lifecycle state and
+  evidence rules come only from
+  [`reader-quality.md §6`](reader-quality.md#6-manifest-archetypes); each row
+  also names the evidence or closure owner.
 
 The manifest is not a new top-level area and it is not a second fact store. It
-is a finite routing and recovery index. The row's state must be no stronger than
-the strongest unresolved child fact: if an owner body still has a `design` /
-`debt` product-truth row, the manifest or parent index must not advertise the
-whole item as all-`contract`; it must name the design/debt row and closure
-owner. Use `mixed` when the core item includes a shipped contract slice plus at
-least one unresolved `design`, `debt`, `Out`, or unsampled slice owned by the
-same row. Silence is not a valid `not_applicable` row.
+is a finite routing and recovery index. A row must never claim stronger
+maturity, evidence, or lifecycle posture than its linked owner. Product rows
+are compared on the two product axes; architecture rows are compared on the
+architecture lifecycle axis. A reasoned non-applicable row names the reason
+and revisit owner; silence is never a disposition.
 
 If a manifest row uses a spine owner such as `01-product/prd.md` instead of a
 dedicated capability or journey file, that spine must expose a same-granularity
 anchor or short subsection for the row. The reader must not have to reverse
 engineer the row from decision files, architecture current-target-gap tables, or
-source material. Index state vocabulary must stay inside the state set above:
-legacy labels such as `current`, `active`, `partial`, or `shipped` may appear
-only as local prose after they have been mapped to `contract`, `mixed`,
-`design`, `debt`, `poc`, `Out`, or `not_applicable`.
+source material. Index vocabulary follows the owner-specific contract in
+`reader-quality.md`; do not translate a product row into architecture state or
+an architecture row into product maturity.
 
 Doctor reports `[CORE-COVERAGE-MAP]` (15G) when a `covered` product or
-architecture area lacks this manifest, omits a core owner, declares the wrong
-pillars, lacks the v2.46 completeness argument, cannot explain near-miss
-exclusions, advertises a state stronger than the owner body, uses unmapped
-non-protocol state vocabulary, or carries an unsampled / failed manifest row
-without a Pending Capture.
+architecture area lacks this manifest, omits a core owner, lacks the v2.46
+completeness argument, cannot explain near-miss exclusions, advertises a
+posture stronger than the owner body, crosses the product/architecture
+vocabulary boundary, or carries an unsampled or failed row without a Pending
+Capture.
 
-### 2.0.3 Intent / truth narrative before manifests (v2.47)
+Historical note: pre-v2.60 manifests used intent/truth pillars and sometimes
+applied architecture state labels to product rows. Existing review artifacts
+may retain those labels as history, but current authors migrate live manifests
+to the owner-specific contracts above instead of producing new pillar rows.
+
+### 2.0.3 Product and architecture narrative before manifests (v2.47; clarified v2.60)
 
 The Core recovery manifest is a recovery index, not the story. A product or
 architecture trunk that makes the reader reconstruct "what matters and why" from
 manifest cells has failed even when every row is accurate. At protocol
 `>= 2.47`, `01-product/README.md`, `01-product/prd.md`, or the consumer's declared
-product trunk owner must expose a self-contained **Product intent and truth** narrative
+product trunk owner must expose a self-contained **product story and current posture** narrative
 before its Core recovery manifest. Likewise, `02-architecture/README.md` must expose
-a self-contained **Design intent and truth** narrative before its Core recovery manifest.
+a self-contained **architecture story and current posture** narrative before its Core recovery manifest.
 
 The narrative is not another fact store. It is the first-principles synthesis of
 the owner facts that already live in the trunk, capability, journey, view, and
@@ -169,8 +177,8 @@ must answer:
 
 - **intent** — why this product or architecture exists, what pressure shaped
   it, and which trade-off future agents must preserve;
-- **truth** — what is true today, what is only design/debt/Out, and where the
-  current evidence or closure owner lives;
+- **current posture** — what is true today, what remains limited or future work
+  under that owner's vocabulary, and where the evidence or closure owner lives;
 - **boundary** — what near-miss interpretation is deliberately excluded and
   what wrong conclusion a cold reader would reach if that class were omitted;
 - **reading path** — which owner a reader should inspect first after the
@@ -182,12 +190,16 @@ classes. For architecture, it must name the runtime-owner axis, cross-owner
 views, apex invariants / operating model, current-target-gap posture, and the
 class of implementation inventory deliberately excluded from the core.
 
-The manifest table follows this narrative and stays narrow: owner, required
-pillars, current truth state, and evidence / closure owner. If the manifest is
+The manifest table follows this narrative and stays narrow: owner, owner-specific
+posture, and evidence / closure owner. If the manifest is
 the only place where a core row's purpose, current truth, or exclusion rationale
 is explained, Doctor reports `[INTENT-TRUTH-NARRATIVE]` (15H). If the narrative
 introduces new facts that contradict the owner body, route to `[OWNER-ANCHOR]`
 or `[PRODUCT-ARCH-DRIFT]` instead of treating prose as authority.
+
+The legacy names "intent/truth pillars" may remain in pre-v2.60 historical
+artifacts. They are not headings, columns, or authoring requirements for a
+current product or architecture owner.
 
 ### 2.0.5 Manifest separation (v2.48)
 
@@ -209,7 +221,7 @@ At protocol `>= 2.48`, covered product and architecture areas therefore
   `01-product/capabilities/*.md`, `01-product/journeys/*.md`, `02-architecture/README.md`,
   `02-architecture/NN-<domain>/README.md`, `02-architecture/NN-<domain>/playbook.md`, and
   `02-architecture/views/*.md`. They keep the product / design narrative, the `§不变量`
-  / `§设计简报` / `§运行模型` / `§[MUST]` prose, capability scope and contract anchors,
+  / `§设计简报` / `§运行模型` / `§[MUST]` prose, capability scope and acceptance anchors,
   and inline CORE-REF anchor links. Frontmatter shrinks to a single
   `intent_recovery: covered|partial|gap` token; evidence strings move out.
 - **Self-maintenance machinery moves to `_manifest.md`** at the area root
@@ -255,16 +267,16 @@ that archetype. Optional sections are omitted, not left as empty cargo.
 
 Repo-wide invariants already declared in a CORE-REF startup file
 (`AGENTS.md`, `CLAUDE.md`, `.cursor/rules/*`, `.windsurf/rules/*`,
-`GEMINI.md`) — for example Web-First, Single Writer, route-only-protocol-
-adapter, SdkAdapter-only, mission-only leaf, replay equivalence, core-call
-traceability — must have **exactly one prose owner** inside SSOT (typically
+`GEMINI.md`) — for example one durable-write owner, a public-adapter boundary,
+or mandatory request correlation — must have **exactly one prose owner** inside SSOT (typically
 `02-architecture/README.md` core-invariants section or the responsible
 architecture domain README) and **exactly one CORE-REF mention**. Other
 SSOT body files (root summary, views, sibling domain READMEs,
 `03-process/development/`, `01-product/`, **and (cycle-2 broadened scope) `glossary/`,
 `04-records/decisions/` (excluding the ADR that originally established the invariant —
 that ADR is the sole exception), `04-records/tech-debt/`, `04-records/bugs/`, `04-records/gotchas/`,
-`03-process/release/`, `03-process/testing/`**) must reference the owner by link plus a one-line
+`03-process/release/`, `03-process/testing/`, `03-process/operations/`,
+`03-process/security-and-compliance/`**) must reference the owner by link plus a one-line
 orientation; they must not restate the invariant body as a paragraph,
 full-clause bullet, or invariant-table cell. CORE-REF mentions of the same
 invariant thin to a one-sentence summary that points at the SSOT owner via
@@ -282,16 +294,14 @@ link the owner instead of recopying its body.
 
 > **Legal** (link + orientation, fires nothing):
 >
-> > Backend runtime is the runtime owner for Single Writer
+> > Persistence runtime is the runtime owner for the durable-write invariant
 > > (`[CORE-REF: ../README.md#core-invariants]`). This domain expands
 > > state / contracts / failure modes along that owner chain.
 >
 > **Illegal** (verb-clause restatement, fires 14Z):
 >
-> > Routes only adapt HTTP/WS/SSE protocols; task-tree state, writes,
-> > scheduling, and completion judgment are not owned by the route layer.
-> > Keep Web-first stewardship, Single Writer, mission leaf execution, and
-> > traceable SDK/control-plane calls.
+> > Every durable write passes through the command service, and transport
+> > handlers may not write storage directly.
 >
 > The test is mechanical: if the sentence has a finite verb predicating
 > what the invariant *does* (`只做`, `不在...拥有`, `保持`, `串行化为`,
@@ -299,7 +309,7 @@ link the owner instead of recopying its body.
 > replaced with `<one-sentence summary> ([CORE-REF: <owner_path#anchor>])`
 > plus the evidence pointer the surrounding section needs. If the
 > sentence merely names the invariant as the reason this owner exists
-> (`本域的存在原因是支撑 Single Writer`), it stays. Wrappers like
+> (`本域的存在原因是支撑 durable-write invariant`), it stays. Wrappers like
 > `本域 contract 一句摘要` / `具体到本域的落地形态` /
 > `domain-form restatement` / `本域如何承接` do NOT exempt the trailing
 > clauses; if a verb predicate inside the wrapper restates what the
@@ -308,45 +318,42 @@ link the owner instead of recopying its body.
 
 > **Illegal — `本域落地形态` / domain-form fork** (cycle-3, fires 14Z):
 >
-> > Backend contract summary: Web-first Single Writer + mission-only leaf
-> > + Core-call traceability — full body lives in the architecture README
+> > Storage contract summary: durable-write ownership + request correlation —
+> > full body lives in the architecture README
 > > core-invariants section (`[CORE-REF]`; this file does not restate it).
-> > Domain-form restatement: REST/SSE/WS routes are protocol adapters, do
-> > not re-own the business state machine; fresh runtime accepts only
-> > `execution_mode='mission'` leaf execution; every core call must leave
-> > correlatable evidence.
+> > Domain-form restatement: transport handlers may only parse requests,
+> > every mutation must pass through the command service, and every call must
+> > leave a correlation record.
 >
 > The opening sentence + `[CORE-REF: ...]` is legal, but the trailing
-> The domain-form-restatement clause restates Routes-as-protocol-adapter
-> ("are protocol adapters", "do not re-own"), Mission-only-leaf ("accepts
-> only mission leaf execution"), and Core-call-traceability ("must leave
-> evidence") using finite verbs predicating what each invariant *does*.
+> domain-form clause restates the transport, write-ownership, and correlation
+> invariants using finite verbs predicating what each invariant *does*.
 > Naming the wrapper
 > `落地形态` / `domain-form` / `具体到本域` does NOT exempt the verb
 > clauses — the mechanical test still fires.
 >
 > **Legal rewrite** (link + per-clause domain anchor, fires nothing):
 >
-> > Backend runtime owns the runtime anchors for Single Writer,
-> > Routes-as-protocol-adapter, Mission-only-leaf, and
-> > Core-call-traceability (`[CORE-REF: ../README.md#core-invariants]`).
+> > Persistence runtime owns the runtime anchors for the durable-write and
+> > request-correlation invariants
+> > (`[CORE-REF: ../README.md#core-invariants]`).
 > > This domain only gives the corresponding `path:LNN` anchors and guards
 > > in state / contract / failure sections; it does not restate the
 > > invariant body.
 
-**Legal vs. illegal glossary cell shape** (for §2.3 hard-list terms or
+**Legal vs. illegal glossary cell shape** (for §2.3 indexed terms or
 repo-wide invariants both):
 
 > **Legal** glossary entry:
 >
-> | Single Writer | The invariant that database writes are serialized only through the Web process. | see [`02-architecture/README.md#single-writer`](#) — `path:src/myapp/web/app.py` |
+> | Durable-write owner | The invariant that one runtime owner coordinates persistent mutations. | see [`02-architecture/README.md#durable-write-owner`](#) — `path:src/storage/writer.ts` |
 >
 > **Illegal** glossary entry (multi-clause verb-bearing cell):
 >
-> | Single Writer | Database writes are serialized through a single Web process / command-layer path, preventing arbitrary runtimes from writing the DB directly. | ... |
+> | Durable-write owner | The command service serializes all mutations and rejects writes from every transport and worker path. | ... |
 >
 > The illegal form fires `[CORE-REF-PROSE]` (14Z) because the cell carries
-> the invariant body. Replace with `Single Writer: see [<owner>]` plus an
+> the invariant body. Replace with `Durable-write owner: see [<owner>]` plus an
 > evidence-pointer column.
 
 Capability → surface registry rows (capability ↔ route + handler
@@ -391,32 +398,21 @@ duplication.
 - Product capability files stay thin. They may link architecture owners, but they do not copy runtime flows, API/SDK/schema details, persistence layout, or implementation listings.
 - Architecture owners may link product constraints, but they do not redefine users, product promises, roadmap, non-goals, or acceptance meaning.
 
-**Product current-truth anchors (v2.44)**:
+**v2.60 product two-axis bridge (replaces the v2.44 legacy shape)**:
 
 A product owner must let a cold reader recover **what the user can rely on
-today**, not only the desired future. Each stable capability / journey row
-that declares user-observable behavior must therefore carry one of these
-current-truth shapes:
+today**, not only the desired future. Every stable capability, journey, and
+user-visible surface records the two independent product axes owned by
+[`reader-quality.md §3`](reader-quality.md#3-product-completeness), plus the
+current user-visible behaviour and evidence or closure owner required there.
+Do not use architecture `state` tags in product documents and do not invent a
+third evidence vocabulary in a template, manifest, or Doctor rule.
 
-- `state: contract` — shipped behavior. The row carries the normal
-  `[SURFACE-PIN]` anchor: route + handler, component / selector, and
-  browser / route / CLI test appropriate to the surface.
-- `state: design` or `state: debt` — promised or known surface that is not
-  contract-level yet. The row names the current user-visible behavior, the
-  missing contract evidence, and a falsifiable closure owner (`DEBT-NNNN`,
-  `ADJ-NNNN`, ADR `closure_condition`, or a named test to add). It must not
-  be silently omitted from the surface registry, and it must not be promoted
-  to `contract` with unit-only evidence.
-- `Out` / `not_applicable` — explicit non-goal or inapplicable surface. The
-  row states the reason and the owner that would have to change before the
-  surface re-enters scope.
-
-This rule exists for `product_truth`: truth includes "this is shipped",
-"this is only design/debt", and "this is deliberately not a product surface".
-The cold-agent-sim harness treats a state-tagged design/debt/out row as a
-valid current-truth anchor when the row is falsifiable and points at its
-closure owner. It treats silence, stale pointers, or an unowned "later" note as
-`truth-state-gap`.
+Pre-v2.60 artifacts may contain architecture-style product state rows. Treat
+them as migration evidence only: recover the current behaviour and closure
+owner, map the row to the two product axes, then remove the legacy state field
+from the live product owner. Silence, stale pointers, and an unowned "later"
+note remain gaps.
 
 **Product intent / truth narrative (v2.47)**:
 
@@ -436,17 +432,24 @@ current product truth are recoverable.
 [`reader-quality.md §3`](reader-quality.md#3-product-completeness). Product
 maturity and evidence fidelity are separate axes. A major audit inventories the
 real mounted routes, navigation, creation modes, controls, settings,
-diagnostics, and external channels instead of assuming an old PRD still
+diagnostics, external channels, commands, public interfaces, output artifacts,
+notifications, and help/onboarding instead of assuming an old PRD still
 describes the current product.
+
+For the shared `Q01`-`Q21` profile, product owns only the user-visible promise,
+limit, choice, feedback, and acceptance meaning. It links the architecture
+mechanism and process/evidence owner or a named gap; it does not copy their
+technical or procedural body. Dispose every Q item, but do not create twenty-one
+fixed product headings.
 
 ### 2.2 02-architecture/
 
-**Responsibility**: System concrete-design trunk. Records current implementation, target design, and gaps; explains system boundaries, runtime owners, design units, runtime flows, architecture views/diagrams, state/data/resource ownership, configuration variability, lifecycle/concurrency model, cross-boundary contracts, invariants, failure recovery, and verification.
+**Responsibility**: System concrete-design trunk. Records current implementation, target design, and gaps; explains system boundaries, runtime owners, design units, runtime flows, architecture views/diagrams, state/data/resource ownership, configuration variability, lifecycle/concurrency model, cross-boundary contracts, invariants, deployment topology, observability and diagnosis, failure recovery, and verification.
 
 **Internal authoritative locations**:
 
 - `02-architecture/README.md`: Quick-mental-model entry, carrying design brief, Reader Map / quick understanding map, technical operating-model summary, major runtime journeys, core invariants, view index, domain index, and implementation Current / Target / Gap summary.
-- `02-architecture/views/`: Technical design-intent layer and cross-domain views, carrying operating model, critical journeys, state/data lifecycle, contracts/trust boundaries, failure/recovery, current-target-gap, and the implementation design of how architecture responds to product constraints.
+- `02-architecture/views/`: Technical design-intent layer and cross-domain views, carrying operating model, critical journeys, state/data lifecycle, contracts/trust boundaries, failure/recovery, deployment/observability, current-target-gap, and the implementation design of how architecture responds to product constraints.
 - `02-architecture/NN-<domain>/`: Concrete architecture domains, carrying domain-level design intent, design constraints, trade-offs/rejected plans, state/resource ownership, contracts, invariants, failure recovery, verification evidence, and intra-domain diagrams. New domains are direct children of `02-architecture/` and carry a two-digit reading-order prefix.
 - Legacy compatibility: existing unnumbered `architecture/<domain>/README.md` or `architecture/domains/<domain>/README.md` can still serve as a domain authoritative location until protocol audit migration runs. New bootstrap must not create `architecture/domains/`.
 
@@ -462,7 +465,7 @@ When `architecture` is marked `covered`, `02-architecture/README.md` must let a
 cold reader recover the design story before any owner-map, apex-index, or Core
 recovery manifest table. The narrative must say why the runtime-owner axis is
 the right decomposition, what current runtime truth is enforced today, which
-parts are target/debt/Out, which near-miss implementation inventories are
+parts remain target, proof-of-concept, or debt, which near-miss implementation inventories are
 excluded from the design core, and which view/domain to inspect first for
 details. A table can then route to owners, but the architecture root must not
 make the reader infer design intent or current design truth solely from row
@@ -480,6 +483,23 @@ answer and the cold-reader gate live in
 [`reader-quality.md §4`](reader-quality.md#4-architecture-completeness); they
 are not a mandatory heading checklist.
 
+**Applicable architecture questions (v2.60)**: the root, views, and domains
+collectively explain deployment units and environments, operator-visible
+health/metrics/logs/traces, and how diagnosis reaches the runtime owner when
+those concerns affect behaviour. They also preserve bidirectional
+product-to-architecture traceability: a technical response links the product
+constraint it implements, while the product owner links the unique technical
+owner or a named gap without copying implementation detail. Missing or
+reasoned non-applicable answers stay visible in the architecture owner
+inventory; they are never inferred from silence.
+
+The shared `Q01`-`Q21` profile in
+[`reader-quality.md §2.4`](reader-quality.md#24-shared-quality-risk-and-governance-profile)
+is handled through disposition and routing, not twenty-one fixed architecture
+headings. Architecture owns the applicable mechanism, boundary, failure, and
+evidence direction; product and process owners keep their own layer of the
+same concern. Missing implementation or proof stays a named gap with an owner.
+
 **Split signal**: See [`architecture.md`](architecture.md). This file only declares the technical-trunk role of `architecture/` in the area model.
 
 ### 2.3 glossary/
@@ -490,60 +510,50 @@ are not a mandatory heading checklist.
 
 **Content requirements**: Record only terms specific to this repo, or terms with special meaning in this repo. Standard industry terms and framework concepts are not recorded if not redefined. Each term contains name, one-sentence definition, optional first-introduced architecture domain or usage context. May group by domain.
 
-**Required canonical vocabulary (v2.43, hard list, overrides split-signal threshold)**:
-Regardless of total term count, when the consumer repository defines any of the
-following four categories at the protocol, apex (`AGENTS.md` / `CLAUDE.md` /
-`SKILL.md`), or schema-enum level, `glossary/` must own a positively-defined
-entry per item with `path:LNN` or schema/enum evidence. A category that does
-not apply must be recorded as an explicit `<category>: not_applicable —
-<reason>` row in `glossary/README.md`; silent omission is a fail.
+**Finite vocabulary inventory (v2.60)**: `glossary/README.md` has exactly one
+inventory schema: the six vocabulary families below. It does not also maintain
+an alphabetical index, an old protocol hard list, or one H2 per category.
+Every real term entry appears exactly once in one family and links its unique
+entry owner. A family with no repository-specific terms carries a reasoned
+`not_applicable` disposition that names what was checked and what change would
+trigger another review. Silence and invented filler terms both fail G08.
 
-1. **Workflow execution-result vocabulary** — every protocol-level workflow
-   result code (e.g. `SUCCESS / FAIL / SEVERE_FAIL / USER_GATE`) declared in
-   `CLAUDE.md`, `AGENTS.md`, the apex `SKILL.md`, or a `domain/workflow/*` enum.
-2. **Task / node lifecycle states** — every persisted lifecycle state value an
-   agent can read or write (e.g. `planned / executing / paused / completed /
-   failed`), keyed to the schema column or Python enum that defines it.
-3. **Agent-tier semantics** — the product/runtime distinction between main
-   agent, sub-agent, runtime-native participant, and any other named agent
-   tier the consumer protocol treats as a first-class observable role.
-4. **Altitude vocabulary** — the consumer's PLTL altitude triad (`apex /
-   authority / inbox`) or whatever altitude names the consumer uses for rule
-   placement, because closeout/audit move blocks are unreadable without it.
-5. **Apex behavior maxim term (cycle-2)** — when the consumer's root
-   constraint file (`AGENTS.md` / `CLAUDE.md` / `.cursor/rules/*` /
-   `.windsurf/rules/*` / `GEMINI.md`) enumerates numbered named rules
-   (e.g. `CLAUDE-MAXIM-N` / `CORE-RULE-N` / `<PROJECT>-MAXIM-N`) codifying
-   failure modes the project must never re-enter, `glossary/README.md` must
-   own a single positively-defined entry that (a) defines what an `apex
-   behavior maxim` is in this repo, (b) lists every currently-numbered rule
-   with its short subject, and (c) maps each rule to its unique SSOT owner
-   per [`intent-ownership.md`](intent-ownership.md) §1 (`DISC-NNNN`,
-   capability invariant section, or architecture domain invariant). Inline
-   mentions of individual maxim numbers inside other glossary entries do
-   not satisfy this — the term itself must have its own row. A consumer
-   whose root constraint file does not enumerate numbered named rules
-   records `apex_behavior_maxim: not_applicable — root constraint file uses
-   only narrative prose, no *-MAXIM-N enumeration`.
-6. **Concurrency-control vocabulary (cycle-3)** — every named
-   scheduling/concurrency control identifier the consumer's apex docs
-   (`AGENTS.md` / `CLAUDE.md`) reference as a noun (e.g. `workspace_path`,
-   `project_limit`, lease keys, queue names). When apex prose says
-   a phrase meaning "limited by X" or "at most N tasks per same X" using
-   a named identifier X,
-   `glossary/` must own a positively-defined entry per identifier with
-   `path:LNN` evidence pointing at the schema column / config field /
-   scheduler module that defines it. A consumer whose apex docs do not
-   name any concurrency identifier records `concurrency_control:
-   not_applicable — apex docs use only narrative descriptions, no named
-   identifiers`.
+1. **Product and user concepts** — repository-specific user or operator roles,
+   problems, promises, capabilities, journeys, plans, entitlements, and visible
+   labels.
+2. **Architecture and runtime concepts** — named runtime owners, components or
+   domains, agent roles, deployable units, contracts, resources, and technical
+   boundaries.
+3. **State, lifecycle, and workflow terms** — persisted states, transitions,
+   workflow-result codes, record states, and repository-specific lifecycle
+   labels.
+4. **Trust, identity, access, and data-governance terms** — named identities,
+   roles, permissions, tenant/workspace boundaries, data classes, consent,
+   privacy, and governance labels.
+5. **Evidence, verification, and operating terms** — repository-specific gates,
+   proof levels, signals, service objectives, operating labels, named rule
+   families, and rule-placement vocabulary.
+6. **Concurrency-control terms** — named queues, leases, locks, scheduler keys,
+   quota keys, and concurrency limits.
 
-**Single-prose-owner rule for canonical vocabulary (cycle-2)**: each
-hard-list term has exactly one prose owner — `glossary/README.md` — once
-it appears in the consumer's apex docs / schema enums / closeout protocol.
+These families are inventory buckets, not six mandatory kinds of terminology.
+Existence triggers coverage. Scan root instructions, product and architecture
+owners, process and record owners, schema/enum/config declarations, source and
+tests. Examples from the retired hard list map into the new families instead
+of creating a second classification: workflow results and task/node states map
+to family 3; agent-tier terms map to family 2; rule-placement/altitude terms and
+an apex-maxim umbrella term map to family 5; named concurrency identifiers map
+to family 6. Other terms follow their meaning. A root file with numbered named
+rules still needs one repository term for that rule family plus unique rule-to-
+owner links under [`intent-ownership.md`](intent-ownership.md) when the project
+actually uses such a term; a repository without that vocabulary simply gives
+family 5 the appropriate evidence-backed disposition.
+
+**Single-prose-owner rule for indexed vocabulary**: each real term listed in
+the six-family inventory has exactly one prose owner in `glossary/`.
 `01-product/product-model.md` product-language section, `02-architecture/views/*`,
 `02-architecture/NN-<domain>/README.md`, and `03-process/development/discipline.md` may
-reference a hard-list term, but only as a thin pointer row containing **at
+reference an indexed term, but only as a thin pointer row containing **at
 most**: term name, ONE sentence of user-visible / runtime-owner /
 discipline-side angle (no schema-enum repetition, no claim-routing
 consequence list, no string-form / state-transition prose, no `Avoid
@@ -559,80 +569,52 @@ body or `02-architecture/NN-<domain>/README.md` invariants block keyed to a
 non-canonical-vocab capability term, and keep the term row at this
 altitude one-sentence-thin.
 
-Deferring any of these to a future audit batch via `STATUS.md` notes or a
-product/architecture carve-out **does not satisfy** this rule unless
-`glossary/README.md` carries either the entry or the `not_applicable`
-placeholder. This list also overrides the 30-entry split-signal: coverage of
-these categories is required at any term count. Doctor
-`[WORKFLOW-STATE-VOCAB]` (15A) gates the first four categories and (cycle-2)
-the fifth (apex behavior maxim term) jointly with `[MAXIM-OWNER]` (14X) —
-14X enforces single-owner mapping per maxim, 15A enforces glossary
-ownership of the umbrella term and the rule→owner table; doctor
-`[VOCAB-PROSE-FORK]` (15F, cycle-2) gates the single-prose-owner rule for
-all five hard-list categories.
+Deferring a discovered term through `STATUS.md` or another area does not satisfy
+the inventory. The term entry or a reasoned family disposition must be present
+now. Doctor keeps the compatibility labels `[WORKFLOW-STATE-VOCAB]` (15A) and
+`[VOCAB-PROSE-FORK]` (15F), but 15A now checks the one six-family inventory and
+existence-trigger discovery rather than fixed category headings; 15F checks the
+single-prose-owner rule for every indexed term. `[MAXIM-OWNER]` (14X) still
+checks unique owner mapping when numbered maxims actually exist.
 
-#### 2.3.1 Recommended `glossary/README.md` skeleton (cycle-2)
+#### 2.3.1 `glossary/README.md` inventory shape
 
-`glossary/README.md` opens with an **Owner block** declaring the file as
-the single owner of the hard-list categories and pointing other trunks at
-this file via `[CORE-REF: glossary/README.md#<anchor>]`. The body then
-carries one H2 per hard-list category in this order, each opening with one
-short orienting sentence (when to read, what it owns), then a 3-column
-table:
-
-```markdown
-# Glossary
-
-> Owner of the canonical-vocabulary hard list (workflow result codes,
-> task/node lifecycle states, agent-tier semantics, altitude vocabulary,
-> apex behavior maxim term). Other trunks link here via
-> `[CORE-REF: glossary/README.md#<anchor>]` and do not restate these
-> bodies.
-
-## Workflow execution-result codes
-
-The four/five outcomes a leaf/mission can land in. Read this when reading
-`claim_done` payloads, scheduler decisions, or test verdict tables.
-
-| Term | Meaning in this repository | Context / evidence |
-| --- | --- | --- |
-| SUCCESS | … | `path:src/.../enum.py:LNN` |
-| FAIL | … | `path:src/.../enum.py:LNN` |
-| … | … | … |
-
-## Task / node lifecycle states
-
-… (one sentence + 3-col table)
-
-## Agent-tier semantics
-
-… (main agent / sub-agent / runtime-native participant)
-
-## Altitude vocabulary
-
-… (apex / authority / inbox or consumer equivalent)
-
-## Apex behavior maxim term
-
-What an `apex behavior maxim` is in this repo, plus the numbered-rule →
-owner table:
-
-| Maxim | Short topic | SSOT owner |
-| --- | --- | --- |
-| CLAUDE-MAXIM-1 | … | `03-process/development/discipline.md#DISC-NNNN` |
-| CLAUDE-MAXIM-2 | … | `03-process/development/discipline.md#DISC-NNNN` |
-| … | … | … |
-```
-
-This skeleton is prose under §2.3.1 — not a separate asset file — so the
-writing rules and the canonical layout live together. A consumer is free
-to localise headings (e.g. translated H2 names) but must keep the H2-per-
-category, owner-block-on-top, and 3-column-table shape so doctor `15A` /
-`15F` can find the rows mechanically.
+Use the localized `glossary-readme.md` template. The README has one
+`Vocabulary-family coverage` table (or its locked-language heading), exactly
+six family rows, and no second term index or fixed category H2 set. Each
+applicable row links every term-entry owner in that family once. An owner may
+be a dedicated `glossary/<term>.md` file or a unique term H2 anchor in
+`glossary/README.md` or a topic file. Each `not_applicable` row gives a
+repository-specific reason, one resolving evidence-owner link, and an
+observable review trigger. The family table itself never becomes a
+paragraph-sized definition store.
 
 **Split signal**: When terms exceed 30 entries or span multiple distinct business domains, create sub-files by domain.
 
-**v2.51 entry template.** New glossary entries SHOULD render from [`ssot-bootstrap/assets/templates/{en,zh}/glossary-entry.md`](../../ssot-bootstrap/assets/templates/en/glossary-entry.md), which collapses the reader-scaffold slots into per-term form: one-sentence positive definition, `Used in` inverse index, `Not to be confused with` boundary list, and `Source pin`. Pre-v2.51 entries inside `glossary/README.md` may stay as table rows until next touched; touching an entry means migrating it to a `glossary/<term>.md` file rendered from the new template.
+**Entry template.** A dedicated glossary file renders from [`ssot-bootstrap/assets/templates/{en,zh}/glossary-entry.md`](../../ssot-bootstrap/assets/templates/en/glossary-entry.md): one-sentence positive definition, `Used in` inverse index, `Not to be confused with` boundary list, and `Source pin`. Existing README/topic aggregation remains legal when every definition has one unique H2 anchor and the family inventory links that exact anchor once. Split into dedicated files only when the split signal improves reading or maintenance; v2.60 does not force a file-per-term migration.
+
+### 2.3.2 Shared process strategy and asset floor
+
+Every applicable `03-process/` child satisfies PR15 and PR16 in its own domain.
+It first explains why its method is coherent: strategy, conventions, invariants,
+constraints, rationale, nearest meaningful alternative, and accepted trade-off.
+It then keeps one finite inventory of stable assets the process creates, reads,
+changes, verifies, hands off, or retires. Use these fields (localized as needed):
+`Asset`, `Class`, `Purpose`, `Selection rule`, `Owner`, `Evidence`, `Risk`, and
+`Retirement or replacement trigger`. Asset classes are chosen from real
+repository material—scripts, tools, suites, workloads, fixtures, targets,
+artifacts, runbooks, controls, or a clearly named project-specific class.
+
+The inventory is not a run log and does not copy asset contents. Detailed
+command, suite, workload, fixture, or control sections may expand an inventory
+row but do not create a competing list. A covered child has exactly one table
+with the eight fields above and at least one real asset row, or no table data
+row and one visible reasoned-empty sentence with a specific reason, one
+resolving responsible-owner link, and an observable review trigger. It does
+not invent a row for an absent class, and it does not need separate
+not-applicable rows for every possible class. This shared floor applies to
+development, testing, benchmark, deployment, release, and every created
+operations or security/compliance owner.
 
 ### 2.4 03-process/development/
 
@@ -640,7 +622,7 @@ category, owner-block-on-top, and 3-column-table shape so doctor `15A` /
 
 **Applicability**: Always applicable.
 
-**Content requirements**: Summarize common commands and point to `package.json`, `Makefile`, `Dockerfile`, and other source files. Record non-obvious steps and preconditions in the build chain. If there are script/tool directories, package manifests, CI, Makefile, or tool entries in configs, maintain a **script / tool inventory**. Recommended fields: `Filename` / `Purpose` / `Category` / `When to use` / `Evidence` / `Risk or prerequisite` / `Architecture link if any`. Choose categories by project semantics, e.g., build, dev-server, codegen, lint/format, import rewrite, session analysis, diagnostics; do not treat these categories as a new schema, do not copy script source, only explain purpose, constraints, and evidence.
+**Content requirements**: Summarize common commands and point to `package.json`, `Makefile`, `Dockerfile`, and other source files. Record non-obvious steps and preconditions in the build chain. Follow §2.3.2 for strategy rationale and the finite stable-asset inventory. Choose asset classes by project semantics, e.g., build, dev-server, codegen, lint/format, import rewrite, session analysis, diagnostics; do not copy script source, only explain purpose, selection, constraints, evidence, ownership, risk, and retirement.
 
 When the project has coding conventions beyond linter/formatter coverage, also record:
 
@@ -723,9 +705,110 @@ Recommended stable sections:
 
 **Applicability**: Applicable when versions, tags, changelog, release scripts, package publish, or deploy release exist.
 
-**Content requirements**: Summarize and point to release scripts, CI config, or version files. Record the why of versioning strategy. If there are release-adjacent tools like version sync, changelog generation, publish, artifact signing, or import rewriting, maintain a tool inventory. Recommended fields: `Filename` / `Purpose` / `Category` / `Release invariant` / `Evidence` / `Failure mode`. Sync-link consistency scripts that affect architecture current/target/gap to the corresponding architecture domain or decision.
+**Content requirements**: Summarize and point to release scripts, CI config, or version files. Record the why of versioning strategy and follow §2.3.2 for the finite stable-asset inventory. Include release-adjacent assets such as version sync, changelog generation, publish, artifact signing, or import rewriting when they exist. Sync-link consistency assets that affect architecture current/target/gap link to the corresponding architecture domain or decision.
 
 **Split signal**: Split when multiple independently releasable artifacts exist.
+
+### 2.8.1 03-process/operations/
+
+**Responsibility**: How to operate a running system after delivery. Own the
+stable operator path for health assessment, routine maintenance, incident
+triage, capacity or quota response, backup/restore execution, continuity
+drills, and handoff. Deployment owns putting a change into an environment;
+the architecture deployment/observability view owns topology and signal
+meaning; operations owns what an operator repeatedly does with those facts.
+
+**Applicability**: Create this owner when the repository produces a deployed
+service, long-running worker, managed data system, scheduled workload, or any
+runtime with recurring operator duties. A distributable library or one-shot
+tool may omit the directory and use a reasoned process-layer
+`not_applicable` disposition in the STATUS quality register.
+
+**Content requirements**: Explain triggers and authority, the ordinary path,
+expected visible result, repeat/concurrent/partial-completion behaviour,
+stop/escalation conditions, recovery, and fitting evidence. Link the unique
+architecture and deployment owners; do not copy topology, signal definitions,
+or one incident transcript. Cover each applicable `Q04`-`Q09`, `Q12`, and
+`Q18`-`Q21` operating concern by owner or named gap rather than by empty
+headings. For example, this owner may carry capacity response, continuity
+drills, decommissioning, environmental operating evidence, model/data-drift
+response, or billing and entitlement reconciliation when those are recurring
+operator duties; it must not claim that every repository needs all of them.
+
+**Split signal**: Split only when environments, runtime units, or operator
+roles have materially different triggers, authority, recovery, or evidence.
+
+### 2.8.2 03-process/security-and-compliance/
+
+**Responsibility**: How the repository executes recurring security, privacy,
+compliance, licensing, and disclosure controls. Own assessment and review
+cadence, vulnerability or dependency response, access review, audit-evidence
+collection, security-incident handoff, and customer or regulator notification
+duties. Product owns user promises and consent meaning; architecture owns
+trust boundaries and mechanisms; this process owner explains how controls are
+performed and proved.
+
+**Applicability**: Create this owner when the repository handles authentication
+or authorization, personal/sensitive/regulated data, tenant isolation,
+untrusted public input, signed or distributed artifacts, material dependency
+or license obligations, or customer/regulatory duties. Otherwise omit the
+directory and record a reasoned process-layer disposition; do not create an
+empty compliance page.
+
+**Content requirements**: Name scope, roles and authority, inputs, ordered
+control path, evidence and retention, exposure and notification boundaries,
+stop/escalation, and recheck triggers. Route applicable `Q09`-`Q11` and
+`Q13`-`Q17` concerns to product, architecture, process/evidence, and gap owners
+without copying their narratives. When an evaluation limit (`Q20`) or a paid
+action (`Q21`) creates a recurring security, privacy, compliance, approval, or
+disclosure duty, route that duty here while keeping technical validity and
+commercial transaction correctness in their respective owners.
+
+**Split signal**: Split only when independent regimes or control programs have
+different owners, evidence, or notification paths.
+
+### 2.8.3 Shared record index and state contract
+
+The five record collections use the same lightweight R03/R14 shape without
+forcing the same domain vocabulary. Every real entry has one stable ID. The
+entry owner may be an independent file or, for an existing topic-aggregated
+collection, one unique `## <ID>` heading anchor. The collection index contains
+that entry exactly once, links the precise file or anchor with an `Entry owner`
+Markdown link, mirrors both state axes, and keeps narrative reasons in the
+entry. A covered collection has no orphan entry, unresolved link, duplicate ID,
+or index/entry state mismatch.
+
+The collection-root `README.md` is the one complete ID-and-state index for that
+record type, including entries stored in subfolders. A nested `README.md` may
+explain a subgroup and link its children, but it must not repeat the full state
+rows or create a second index for the same IDs. This gives a reader one place
+to answer "what records exist and what state is each one in?" while still
+allowing large collections to have useful local navigation.
+
+For topic-aggregated gotchas, every `## GOT-NNNN` block carries an explicit
+**Record status / hazard state** line with `current` / `active` (localized
+equivalently) before the next H2. Legacy “status and trigger” text aliases only
+the hazard axis and cannot stand in for `record_status`.
+
+| Record type | Record lifecycle axis | Separate domain axis | Compatibility |
+|---|---|---|---|
+| Decision | `record_status`: `accepted / deprecated / superseded` | `implementation_state`: `pending / partial / implemented / diverged / superseded` | legacy `status` mirrors `record_status` |
+| Research | `record_status`: `draft / validated / stale / superseded` | `adoption_state`: `unpromoted / partial / promoted / rejected` | legacy `status` mirrors `record_status`; `promotion_state` aliases `adoption_state` |
+| Bug | `record_status`: `current / archived / superseded` | `failure_state`: `open / fixed / recurred` | legacy `status` mirrors `failure_state` |
+| Gotcha | `record_status`: `current / archived / superseded` | `hazard_state`: `active / resolved` | legacy `status` mirrors `hazard_state` |
+| Technical debt | `record_status`: `current / archived / superseded` | `repayment_state`: `active / resolved / obsolete` | legacy `status` mirrors `repayment_state` |
+
+Every record answers two different questions. First: "Is this document still a
+valid source of guidance?" That is `record_status`. Second: "What has happened
+to the decision, finding, failure, hazard, or debt described by the document?"
+That is the type-specific domain axis. An accepted decision can still be
+unimplemented. Validated research can still be unpromoted. A current bug record
+can describe a failure that has been fixed, and a current gotcha can describe a
+hazard that has been resolved but remains worth remembering. Keeping the two
+answers separate stops document lifecycle from being mistaken for real-world
+progress. Existing consumers may keep only a documented compatibility field
+until the entry is touched or the collection is advanced to the v2.60 covered
+contract; do not force meaningless file splits merely to migrate metadata.
 
 ### 2.9 04-records/decisions/
 
@@ -733,9 +816,12 @@ Recommended stable sections:
 
 **Applicability**: Always applicable. Initially may be empty, grows with repo evolution.
 
-**Content requirements**: `README.md` serves as the decisions index, containing at least `status` and `implementation_state`. Each major decision is an independent file containing background, decision, consequences, scope of impact, and lifecycle fields:
+**Content requirements**: `README.md` serves as the decisions index and follows
+§2.8.3. Each major decision is an independent file containing background,
+decision, consequences, scope of impact, and lifecycle fields:
 
-- `status`: `accepted` / `deprecated` / `superseded`
+- `record_status`: `accepted` / `deprecated` / `superseded`
+- `status`: compatibility mirror of `record_status` when retained
 - `implementation_state`: `pending` / `partial` / `implemented` / `diverged` / `superseded`
 - `created_on`: ISO date (`YYYY-MM-DD`) the decision file was first written. Required. Anchors the decision in time so `status: deprecated` / `superseded_by` chains and conflict adjudications keep their temporal context.
 - `updated_on`: ISO date of the most recent material edit to the decision body (status flip, implementation_state change, consequence rewrite). Required from the first edit after creation; equals `created_on` if untouched.
@@ -770,11 +856,18 @@ tree.
 
 **Applicability**: Always applicable. Initially may be empty, grows with stepped-on-mine experience.
 
-**Content requirements**: `README.md` serves as the pitfall index, containing at least `status`. Each pitfall explains what it is, why it is dangerous, and scope of impact. Mitigation `[SHOULD]` be given in pairs of "do not do X + do Y instead" to make entries actionable rather than only record failure stories -- a gotcha that only describes failure symptoms without an alternative has very low value. Optional additions:
+**Content requirements**: `README.md` follows §2.8.3 and indexes each pitfall by
+unique ID, record lifecycle, hazard state, trigger, and exact entry-owner link.
+An entry may be its own file or a unique `## GOT-NNNN` anchor in a topic file.
+Each pitfall explains what it is, why it is dangerous, and scope of impact.
+Mitigation `[SHOULD]` be given in pairs of "do not do X + do Y instead" to make
+entries actionable rather than only record failure stories -- a gotcha that
+only describes failure symptoms without an alternative has very low value.
+Optional additions:
 
 - **Trigger** `[SHOULD]`: Describe "when the agent does what operation it should first check this gotcha". Format is task type or file/module path matching. Examples: `Trigger: when modifying any file under src/auth/`, `Trigger: when adding a new database migration`. Triggers let the reading protocol route precisely -- the agent proactively drills into the gotcha before executing matching operations, rather than relying on the generic "read gotchas when changing code" rule. A cross-task procedural rule that applies regardless of file scope (e.g., "always run real SDK integration suite before claiming a fix done") is not a gotcha; route it to `03-process/development/` discipline (see §2.4) so future agents can find it via task-pattern routing rather than per-file gotcha scan.
 
-Status:
+Hazard state (`hazard_state`; legacy `status` mirrors it):
 
 - `active`: The pitfall still exists.
 - `resolved`: The pitfall no longer holds due to architecture change or fix; attach invalidation reason and related decision/change.
@@ -785,34 +878,59 @@ Resolved entries remain in the document as historical reference, but the index m
 
 ### 2.11 04-records/bugs/
 
-**Responsibility**: Bug-fix records. What problem was encountered, what is the root cause, how was it fixed, what was learned.
+**Responsibility**: Durable defect records. What is failing, who or what is
+affected, what is known versus still uncertain, what action comes next, how the
+failure was fixed when a fix exists, and what should be remembered.
 
-**Applicability**: Always applicable. Initially may be empty, grows with fix history.
+**Applicability**: Always applicable. Initially may be empty; grows when a
+confirmed failure has cross-session value because its trigger, impact,
+diagnosis, remediation, or prevention must remain findable.
 
-**Content requirements**: `README.md` serves as the fix-record index, containing at least `status` and `severity`.
+**Content requirements**: `README.md` follows §2.8.3 and indexes each preserved
+failure mode by unique ID, record lifecycle, failure state, severity, and exact
+entry-owner link.
 
-- `critical` / `major`: Independent file containing symptom, root-cause analysis, fix plan, scope of impact, takeaway/pattern, prevention, related areas, external references.
-- `minor`: A single summary row in the index table suffices, containing symptom, root cause, and fix commit/PR reference.
+- `critical` / `major`: Independent file containing symptom, established or
+  still-uncertain cause, remediation plan, scope of impact, takeaway/pattern,
+  prevention or containment, related areas, and external references.
+- `minor`: A trivial fix with no reusable lesson need not be indexed. Once
+  indexed, it still needs one lightweight entry owner (file or unique anchor);
+  do not hide the root-cause narrative in the index row.
 
 Agent quick entry:
 
-- `critical`, `major`, `recurred`, active, or repeatedly referenced bug entries should start with a compact quick-entry surface before the full post-mortem.
+- `critical`, `major`, `open`, `recurred`, or repeatedly referenced bug entries
+  should start with a compact quick-entry surface before the full analysis.
 - The quick entry answers: symptom/trigger signature, first places to inspect, do-not-do boundary, minimal verification/preventive test, and current status/evidence pointer.
 - The quick entry does not replace root-cause analysis or recurrence timeline. It is the first screen for a future agent touching the related code.
 
 Regression Granularity Rule:
 
-- `critical`, `major`, `recurred` bugs cannot be recorded only as broad topics; they must be split to failure-mode-level entries.
-- A single record must answer trigger condition, symptom, root cause, fix pattern, preventive test, related gotcha / architecture / decision.
+- `critical`, `major`, `open`, or `recurred` bugs cannot be recorded only as
+  broad topics; they must be split to failure-mode-level entries.
+- A single record must answer trigger condition, symptom, known or suspected
+  cause, next remediation or fix pattern, current validation/containment, and
+  related gotcha / architecture / decision. Unknown cause or fix is written as
+  `unknown` with an owner and the evidence that would resolve it, never guessed.
 - Same symptom with multiple root causes must be split into multiple entries; same root cause recurring multiple times may append a recurrence timeline in the same entry.
 - `minor` or trivial bugs do not enforce a full post-mortem unless they recur, escalate to major, or expose architecture/test gaps.
 
-Status:
+Failure state (`failure_state`; legacy `status` mirrors it):
 
+- `open`: The failure is confirmed and has not yet been fixed. Record the
+  current containment if any, remediation owner, next falsifiable action, and
+  what evidence would allow `fixed`.
 - `fixed`: Already fixed.
-- `recurred`: Previously believed fixed but recurred; attach recurrence reason and new fix record link.
+- `recurred`: Previously believed fixed but observed again. Link the earlier
+  fix, explain the recurrence evidence, and name the next action and owner. If
+  a new fix has not yet been verified, say so and record the evidence needed to
+  return to `fixed`; do not invent a fix reference.
 
-When a fix reveals a gotcha, tech debt, decision, or architecture defect, sync-update the corresponding area. SSOT does not replace Issue Tracker; Issue Tracker manages lifecycle; `04-records/bugs/` only records long-lived knowledge after fix completion.
+When a failure or fix reveals a gotcha, tech debt, decision, product gap, or
+architecture defect, sync-update the corresponding area. SSOT does not replace
+an issue tracker: the tracker owns scheduling and delivery workflow, while this
+record owns durable failure knowledge and its current `open`, `fixed`, or
+`recurred` truth. Do not create an SSOT entry for every transient issue.
 
 **Split signal**: When entries exceed 15, group by architecture domain or time period.
 
@@ -822,23 +940,25 @@ When a fix reveals a gotcha, tech debt, decision, or architecture defect, sync-u
 
 **Applicability**: Always applicable. Initially may be empty.
 
-**Content requirements**: `README.md` serves as the debt index, containing at
-least `status`. Each debt item records what it is, why it was incurred, scope of
+**Content requirements**: `README.md` follows §2.8.3 and indexes each debt by
+unique ID, record lifecycle, repayment state, priority, and exact entry-owner
+link. Each debt item records what it is, why it was incurred, scope of
 impact, repayment plan, priority, and the next concrete action or retrigger that
-prevents the debt from becoming silent backlog. Status:
+prevents the debt from becoming silent backlog. Repayment state
+(`repayment_state`; legacy `status` mirrors it):
 
 - `active`: The debt still exists.
 - `resolved`: Debt repaid; attach resolution method and related change/decision.
 - `obsolete`: Debt no longer relevant due to architecture change; attach reason and related decision.
 
-Required lifecycle fields for `active` entries (v2.43, YAML frontmatter,
-alongside `status` and `priority`):
+Required lifecycle fields for active repayment entries (YAML frontmatter,
+alongside `record_status`, `repayment_state`, and `priority`):
 
 - `closure_condition`: a falsifiable predicate a future agent or Doctor can
   evaluate to flip this debt from `active` to `resolved` without re-debating
   intent — e.g. `tests/integration/test_engine_dfs_mission_only.py passes
   AND src/myapp/engine/planner.py is absent`,
-  `02-architecture/NN-backend-runtime/current-target-gap.md row R-NNN deleted`,
+  `02-architecture/NN-storage-runtime/current-target-gap.md row R-NNN deleted`,
   `BUG-NNNN closed and regression test green`,
   `grep -nR 'TODO(DEBT-0001)' src/ returns no match`. Narrative such as
   "synchronize when advancing X" or "review periodically" is not a
@@ -849,7 +969,7 @@ alongside `status` and `priority`):
   file patterns, test names, or named events are acceptable; "when
   relevant" is not.
 
-Both fields are required on every `status: active` entry. `resolved` and
+Both fields are required on every `repayment_state: active` entry. `resolved` and
 `obsolete` entries do not require these fields once closed (the closure
 record itself supersedes them); historical entries imported during
 bootstrap or audit may carry `closure_condition: not_applicable_imported`
@@ -913,12 +1033,16 @@ that is too valuable to discard but is not itself a stable product or
 architecture fact. Do not create the directory merely because source-material
 rows mention research. Do not create a top-level `SSOT/research/`.
 
-**Content requirements**: `README.md` is only the index. Entries are independent
-files named `NNNN-<slug>.md`. Each entry records the research question, method,
+**Content requirements**: `README.md` is only the index and follows §2.8.3.
+Entries normally use independent files named `NNNN-<slug>.md`. Each entry has a
+unique ID, `record_status`, and `adoption_state`, then records the research question, method,
 inputs, environment or source set, artifacts, observations, known limitations,
 `do_not_use_for` boundary, reusable claim rows, `promotion_targets`, and
 `recheck_trigger`. Claim rows should be distilled enough to promote one by one:
-claim, evidence packet anchor, confidence, boundary, and target owner.
+claim, evidence packet anchor, confidence, boundary, and target owner. Existing
+`promotion_state` is a compatibility alias for `adoption_state`; when both are
+present they must match. The old overloaded `status: promoted` migrates to
+`record_status: validated` plus `adoption_state: promoted`.
 
 **Authority boundary**: Research records are not authority mirrors. They do not
 own product promises, architecture contracts, decision outcomes, testing policy,
@@ -952,18 +1076,26 @@ SSOT/02-architecture/
     README.md
     operating-model.md
     critical-journeys.md
+    state-and-data-lifecycle.md
+    contracts-and-trust-boundaries.md
+    failure-and-recovery.md
+    deployment-and-observability.md
     current-target-gap.md
-  domains/
+  10-query-engine/
     README.md
-    query-engine/
-      README.md
-      parser.md
-      planner.md
-    storage-engine/
-      README.md
-      buffer-manager.md
-      page-format.md
+    _manifest.md
+    parser.md
+    planner.md
+  20-storage-engine/
+    README.md
+    _manifest.md
+    buffer-manager.md
+    page-format.md
 ```
+
+Architecture domains are direct, two-digit-numbered children of
+`02-architecture/`. Do not reintroduce a `domains/` wrapper in a recursive
+example; the number gives a cold reader the intended owner order.
 
 Do not mechanically create SSOT hierarchy for source directories, package names, class names, or team names. A split must improve readability, explain independent boundaries, or reduce maintenance conflict.
 
@@ -994,18 +1126,29 @@ When a durable fact emerges from conversation or change review but does not clea
 
 | Signal | Drop target | Rationale |
 |---|---|---|
+| User problem, product promise, visible entry/action/result, product boundary, or acceptance meaning | The matching `01-product/` spine, capability, or journey owner | Product intent and user-visible truth belong with the product; link technical delivery instead of replacing the promise with code facts. |
+| Current runtime behaviour, state owner, contract, trust/config boundary, deployment shape, failure, or recovery mechanism | The matching `02-architecture/` root, view, or direct numbered owner | Architecture owns how the current system responds; keep intended-but-unlanded product meaning in product and mark implementation gaps honestly. |
+| Ordinary repeatable work path for developing, testing, measuring, deploying, releasing, operating, or assessing controls | The matching `03-process/` child owner | A normal procedure is broader than a development-discipline imperative; route by the result the contributor or operator must produce. |
 | Imperative-procedural rule ("always X before Y", "never Z because the real service disagrees with the mock", "from now on, do W first") | `03-process/development/` discipline entry | Cross-task procedural rules owned by development practice. Do not collapse into a single bug entry. |
+| Recurring live-operation rule (health, maintenance, incident, quota, backup/restore, continuity, or recovery handoff) | Conditional `03-process/operations/` owner | Operator procedure after delivery; link deployment and architecture signal/state owners instead of copying them. |
+| Recurring security/privacy/compliance control or evidence duty | Conditional `03-process/security-and-compliance/` owner | Control execution and evidence process; link the product promise and architecture mechanism. |
 | File/module-scoped trap ("do not call function A from module B", "config C has a quirk") | `04-records/gotchas/` entry | Scoped to a concrete code surface; future agents read by path trigger. |
 | Trade-off or design constraint ("we chose X over Y because Z", "must not exceed N") | `04-records/decisions/` entry | Long-lived why record; future agents need the rationale to avoid re-litigation. |
 | Bug root cause, symptom, and prevention ("the crash in component C was because...") | `04-records/bugs/<entry>.md` takeaway section | Fix history; high-severity entries carry a takeaway/prevention field and may cross-link to `03-process/development/` discipline if a recurring procedural gap is confirmed. |
+| Bounded investigation, POC, measured trial, or reusable source comparison that is not yet current authority | `04-records/research/` entry | Preserve question, method, evidence, limits, and promotion route without pretending the packet is current product or architecture truth. |
+| Known compromise, temporary path, incomplete migration, or refactor with a repayment route | `04-records/tech-debt/` entry | Keep impact, repayment state, closure condition, review trigger, owner, and guard visible. |
+| Repository-specific word, state label, role, code, or abbreviation whose meaning changes a decision | One glossary owner linked once from the six-family inventory: a dedicated `glossary/<term>.md` file or a unique H2 anchor in the glossary README/topic file | Define the term once and link consumers; do not spread competing definitions across product, architecture, process, or records. |
 
-When unsure between `04-records/gotchas/` and `03-process/development/` discipline, apply the boundary principle from §2.4: if the rule is scoped to a file/module and a future agent's first failure mode is reaching for the wrong API, write a gotcha; if the failure mode is following an insufficient workflow, write a discipline entry. **Never create a new top-level area** to absorb unrouted knowledge — `03-process/development/`, `04-records/gotchas/`, `04-records/decisions/`, and `04-records/bugs/` cover all durable knowledge origins defined in the protocol.
+When unsure between `04-records/gotchas/` and `03-process/development/` discipline, apply the boundary principle from §2.4: if the rule is scoped to a file/module and a future agent's first failure mode is reaching for the wrong API, write a gotcha; if the failure mode is following an insufficient workflow, write a discipline entry. **Never create a new top-level area** to absorb unrouted knowledge. The product, architecture, process, records, and glossary routes above form the complete fallback classifier; choose the earliest semantic owner and link the others instead of inventing a miscellaneous bucket.
 
 ## 5. Not-applicable areas
 
 `01-product/`, `02-architecture/`, `glossary/`, `04-records/decisions/`, `04-records/gotchas/`, `04-records/bugs/`, and `04-records/tech-debt/` are always applicable.
 
-Engineering operation areas (e.g., `03-process/benchmark/`, `03-process/deployment/`, `03-process/release/`) may be not applicable to certain repos; in that case still create the folder and `README.md` with the following content format:
+Default engineering operation areas (e.g., `03-process/benchmark/`,
+`03-process/deployment/`, `03-process/release/`) may be not applicable to
+certain repos; in that case still create the folder and `README.md` with the
+following content format:
 
 ```markdown
 # <Area name>
@@ -1016,5 +1159,11 @@ This area is not applicable to the current repository.
 ```
 
 This ensures the structure is complete and unambiguous, and the agent will not mistakenly assume some area is "not filled in yet". `not_applicable` is a legal state, but must give a reason; if used for stop conclusion or `covered`-equivalent judgment, still requires an independent stop review.
+
+`03-process/operations/` and `03-process/security-and-compliance/` are
+conditional owners: create them only when their applicability signals fire.
+When absent, the STATUS `Q01`-`Q21` register still records a named process-layer
+`not_applicable` reason and a resolving boundary-evidence or owner link in the
+same pointer-sized cell, so omission cannot be mistaken for an unaudited gap.
 
 ---

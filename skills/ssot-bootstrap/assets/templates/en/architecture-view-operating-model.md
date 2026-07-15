@@ -3,9 +3,13 @@ intent_recovery: gap
 ---
 # Operating model
 
+<!-- Writing style: implementation-delegator. Begin with a recognisable pressure
+     and decision, then the system response, trade-off, failure, and evidence. -->
+
 <!-- Start with the pressures that shaped the architecture: workload, latency,
      consistency, safety, cost, deployment, team operation, or product
-     constraints. Explain the chosen posture as a causal story. -->
+     constraints. Check all applicable STATUS Q01-Q21 concerns, especially Q04,
+     Q06, Q09, Q10, and Q11. Explain the chosen posture as a causal story. -->
 
 ## The pressures the design must absorb
 
@@ -15,7 +19,10 @@ intent_recovery: gap
 ## How the system responds
 
 <!-- Explain the order of priorities and the major trade-offs. Connect each
-     principle to a concrete part of the main runtime story. -->
+     principle to a concrete part of the main runtime story. State the few
+     global invariants that every owner must preserve, and explain why the
+     chosen owner decomposition fits the drivers and state/failure boundaries
+     better than the nearest alternative. This is the A18 owner. -->
 
 | Design principle | Pressure it answers | Practical consequence | Enforcement owners |
 |---|---|---|---|
@@ -44,7 +51,7 @@ intent_recovery: gap
 
 <!-- Describe deployment shape, capacity assumptions, observability,
      maintenance, and change safety when they influence cross-owner design.
-     Link the detailed owners. -->
+     Link the detailed owners, process/evidence route, and any Q gap owner. -->
 
 ## Current direction and gaps
 

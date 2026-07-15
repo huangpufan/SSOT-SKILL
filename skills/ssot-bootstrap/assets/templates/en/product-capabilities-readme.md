@@ -3,6 +3,9 @@ intent_recovery: gap
 ---
 # Product capabilities
 
+<!-- Writing style: implementation-delegator. Route from a concrete desired
+     result to one capability, its boundary, failure/recovery, and acceptance. -->
+
 <!-- Open with a short explanation of the durable outcomes this collection
      owns and how they combine to fulfil the product promise. Do not reduce the
      collection to a file inventory. -->
@@ -38,6 +41,10 @@ This directory contains one owner for each stable user outcome:
 | | | [Product brief](../prd.md) or [Product model](../product-model.md) |
 
 ## Known gaps
+
+<!-- Use STATUS Q01-Q21 to check whether an outcome is missing an applicable
+     quality/risk/governance meaning or owner. Link the existing capability or
+     gap owner; do not create placeholder capabilities merely to fill a Q item. -->
 
 | Missing or uncertain outcome | User impact | Current handling | Closure owner |
 |---|---|---|---|

@@ -54,6 +54,7 @@ SSOT/02-architecture/
     state-and-data-lifecycle.md
     contracts-and-trust-boundaries.md
     failure-and-recovery.md
+    deployment-and-observability.md
     current-target-gap.md
   NN-<domain>/
     README.md
@@ -110,8 +111,8 @@ design appears inside the manifest table cells, Doctor reports
 
 Views answer cross-owner technical questions. The default non-trivial set
 covers operating model, critical runtime flows, state/data lifecycle,
-contracts/trust boundaries, failure/recovery, and global current/target/gap. A
-view explains why it exists, which domains it
+contracts/trust boundaries, failure/recovery, deployment/observability, and
+global current/target/gap. A view explains why it exists, which domains it
 synthesizes, what design intent or constraint crosses domains, and where
 current/target/gap evidence lives. Views do not take over domain-owned state,
 resource, contract, failure, lifecycle, or verification detail.
@@ -172,8 +173,17 @@ them as a universal heading checklist):
 - local Current / Target / Gap;
 - verification and evidence.
 
+The shared `Q01`-`Q21` profile in `reader-quality.md` is an audit and routing
+surface, not a universal domain outline. Each applicable concern points to the
+domain/view that owns its mechanism and failure boundary, the product owner for
+the user-visible promise, the process/evidence owner for operating proof, or a
+named gap. Combine related concerns into the mental model and canonical flow;
+do not add twenty-one empty headings.
+
 Do not leave empty `not_applicable` sections everywhere. If several concerns are
-absent, one short "Non-applicable concerns" appendix can say so.
+absent, one short "Non-applicable concerns" appendix can explain them and link
+their boundary evidence; the STATUS Q register keeps only pointer-sized
+dispositions back to that owner.
 
 ## 4. Owner Anchors
 
@@ -187,7 +197,9 @@ Each key claim has one owner:
 | Trust boundary, permission, secret, feature flag, environment difference | architecture domain trust/config section or deployment owner with architecture link |
 | Technical system goals, priorities, non-goals, NFRs | `02-architecture/views/operating-model.md` or explicitly labeled legacy root compensation |
 | Cross-domain runtime journey and observability/recovery signal | `02-architecture/views/critical-journeys.md` with domain links |
+| Runtime topology, environment variants, health/telemetry meaning, alert-to-diagnosis, restart, rollback, and recovery proof | `02-architecture/views/deployment-and-observability.md`, linking `03-process/deployment/` or `03-process/operations/` for procedures |
 | Implementation current/target/gap and migration stance | `02-architecture/views/current-target-gap.md` with domain/decision/debt/product links |
+| Recurring security/privacy/compliance control procedure and evidence collection | `03-process/security-and-compliance/`, linking the architecture trust owner and product promise |
 | Product promises, users, capabilities, journeys, acceptance | `01-product/` owners |
 | Long-lived design trade-off | `04-records/decisions/` with architecture back-link |
 | Apex behavior maxim from project root constraints (e.g. `CLAUDE.md` `CLAUDE-MAXIM-N`, `AGENTS.md`-style numbered named rules) | unique `03-process/development/discipline.md#DISC-NNNN` entry, capability invariant section, or architecture domain invariant; root constraint file holds only a one-line `[CORE-REF: ...]` link to the owner |
@@ -325,8 +337,8 @@ order:
 
 1. Domains or single-level root confirm state/resource owners, contracts,
    runtime flows, failure/recovery, verification, and triggered diagrams.
-2. Views synthesize operating model, critical journeys, and current/target/gap
-   across domains.
+2. Views synthesize operating model, critical journeys, deployment and
+   observability, and current-versus-target gaps across domains.
 3. Root updates the Reader Map, core invariants, indexes, and summaries.
 
 Forbidden: writing broad root conclusions first and making domains fit them

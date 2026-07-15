@@ -165,7 +165,7 @@ Before writing, obey the documentation language lock: if `STATUS.md` lacks `docu
 
 In proactive catch-up, conversation audit and commit audit can run independently or together:
 
-- **Independent execution**: each advances its own waterline (`tracked_commit` / `tracked_session`) through its own independent stop review
+- **Independent execution**: each advances its own tracking baseline (`tracked_commit` / `tracked_session`) through its own independent stop review
 - **Joint execution**: during a full audit, catch up the backlog of both event sources simultaneously
 - **Cross-validation**: changes discussed in conversation are usually landed via commit -- the two event sources can corroborate each other
 

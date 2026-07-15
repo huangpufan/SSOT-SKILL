@@ -1,83 +1,136 @@
-# Benchmark 策略
+# 基准测试策略
 
-> 行文风格：写给任何冷读者。详见 `ssot-bootstrap` §3.7。
+<!-- 行文对象：implementation-delegator。先写决定与可识别 workload，再写路径、
+     结果/恢复，最后给命令与证据。 -->
 
-> 本区域记录稳定的 benchmark suites、canonical workloads、metrics、environments、floors、comparison rules、trend interpretation 和 decision links。Benchmark run output 是 evidence，不是 benchmark fact；不要在这里维护按日期排列的运行流水账。
+<!-- 完整性权威：reader-quality.md C01-C09、PR01-PR16 与适用 Q01-Q21。
+     covered 流程使用精确的策略说明与有限资产清单；不适用项写原因和证据指针。 -->
 
-## Benchmark 一眼看懂 / Reader Map
+> 基准测试用于在固定条件下比较性能、容量或成本。本区域记录稳定的测试套件、
+> 标准工作负载、指标、环境、门槛、比较规则、趋势解释和决策链接。单次运行输出
+> 只是证据，不是长期事实；不要在这里维护按日期排列的运行流水账。
 
-| 读者问题 | First stop | Authoritative owner | Evidence direction | Stop condition / risk |
+## 何时由谁使用
+
+<说明什么性能、成本、容量或服务提供方决策会触发基准测试，谁可以运行或解释，
+以及哪些工作负载和环境前置条件能保证结果可比较。>
+
+## 为什么采用这套基准测试方法
+
+<解释为什么这些工作负载、环境、归一化规则和门槛能回答仓库的决定，而不是只
+产生一组数字。写清保持比较一致的约定与不变量、最接近但被拒绝的方法、接受的
+成本/精度取舍，以及什么证据足以改变方法。>
+
+## 标准路径与分支
+
+<按顺序讲测试套件与工作负载选择、预热、测量、归一化、比较，以及噪声过大、
+不可比较或环境变化时的分支；说明付费或有状态副作用，并从 STATUS 路由适用
+Q04/Q06/Q09/Q11 限制。>
+
+## 产物与验收
+
+<说明输出产物、指标与不确定性、可支持哪个门槛或决策闸门，以及什么结果不足以
+更新基线。>
+
+## 失败、恢复与交接
+
+<说明如何发现无效运行、何时停止、可否重跑或重置、哪些成本/数据无法恢复，
+以及结论应交给哪个产品、架构、发布、技术债或研究所有者。>
+
+## 怎样复现，以及何时重新检查
+
+<给出可复现的运行命令和固定环境、当前/目标/缺口、证据所有者，以及工作负载、
+硬件、服务提供方、指标或门槛的复核触发器。>
+
+## 基准测试一眼看懂
+
+| 读者问题 | 先读哪里 | 权威所有者 | 证据方向 | 停止条件或风险 |
 |---|---|---|---|---|
-| 性能、成本或容量改动后该跑哪个 benchmark？ | [Benchmark suites](#benchmark-suites) | this file | benchmark scripts / CI performance jobs / profiling config | |
-| 哪个 workload、metric 和 environment 才是 canonical？ | [Canonical workloads and environments](#canonical-workloads-and-environments) | this file | fixtures / datasets / provider or hardware config | |
-| 哪个 floor 或 regression threshold 重要？ | [Metrics and floors](#metrics-and-floors) | this file | latest baseline-changing commit / CI artifact / release gate | |
-| 两次结果如何比较才不过度解读噪声？ | [Comparison rules](#comparison-rules) | this file | runner docs / historical variance / benchmark research packet | |
-| 哪些 product、architecture、release 或 debt decisions 消费 benchmark 结论？ | [Decision links](#decision-links) | this file plus linked owners | product / architecture / release / decisions / tech-debt | |
+| 性能、成本或容量改动后该跑哪个基准测试？ | [基准测试套件](#基准测试套件) | 本文件 | 基准测试脚本、CI 性能任务、性能分析配置 | |
+| 哪个工作负载、指标和环境才是标准条件？ | [标准工作负载与环境](#标准工作负载与环境) | 本文件 | 测试数据、数据集、服务提供方或硬件配置 | |
+| 哪个门槛或回归阈值重要？ | [指标与门槛](#指标与门槛) | 本文件 | 最近改变基线的提交、CI 产物、发布闸门 | |
+| 两次结果如何比较才不会过度解读噪声？ | [比较规则](#比较规则) | 本文件 | 运行说明、历史波动、基准研究记录 | |
+| 哪些产品、架构、发布或技术债决策会使用结论？ | [决策链接](#决策链接) | 本文件及链接的所有者 | 产品、架构、发布、决策、技术债 | |
 
-## Benchmark Suites
+## 基准测试套件
 
-先用散文说明稳定 suite 集合。若没有 benchmark，写 `not_applicable`、原因和风险。
+先用正文说明稳定的测试套件。若没有基准测试，写 `not_applicable`、原因和风险。
 
-| Suite | Purpose | Runner command | Required setup | Evidence | Owner / consumer |
+## 稳定基准资产清单
+
+这是本流程使用的稳定脚本、工具、套件、工作负载、测试数据、目标、产物、操作
+说明和控制措施的有限路由表。每个真实资产只写一次；下文套件、工作负载和指标
+可以展开它，但不得再建第二份清单。一次运行结果属于证据。
+
+确实一个都没有时，删除示例行并写：`无稳定资产：原因=<具体理由>；负责人=[责任所有者](<可解析路径>)；复核条件=<可观察事件>。`
+
+| 资产 | 类别 | 用途 | 选择规则 | 所有者 | 证据 | 风险 | 退役或替换触发条件 |
+|---|---|---|---|---|---|---|---|
+| | script / tool / suite / workload / fixture / target / artifact / runbook / control / other | | | | | | |
+
+| 套件 | 用途 | 运行命令 | 必需准备 | 证据 | 所有者或使用方 |
 |---|---|---|---|---|---|
-| | latency / throughput / memory / capacity / provider-cost / model-token / other | | | benchmark script / CI job / config | |
+| | 延迟 / 吞吐量 / 内存 / 容量 / 服务成本 / 模型 token / 其它 | | | 基准脚本 / CI 任务 / 配置 | |
 
-## Canonical Workloads and Environments
+## 标准工作负载与环境
 
-记录结果必须使用什么 workload 和 environment，才可以更新 floor 或支持 decision。
+记录结果必须使用什么工作负载和环境，才可以更新门槛或支持决策。
 
-| Workload | Data shape / fixture | Environment | Warmup / cache rule | Evidence | Known limit |
+| 工作负载 | 数据形状或测试数据 | 环境 | 预热或缓存规则 | 证据 | 已知限制 |
 |---|---|---|---|---|---|
-| | | local / CI / staging / production-sampled / provider-specific | | | |
+| | | 本地 / CI / 预发布 / 生产抽样 / 特定服务提供方 | | | |
 
-## Metrics and Floors
+## 指标与门槛
 
-记录稳定 benchmark 预期。只有 floor、baseline、threshold 或 owner 变化时才更新。
+记录稳定的基准测试预期。只有门槛、基线、阈值或所有者变化时才更新。
 
-| Metric | Current floor / baseline | Regression threshold | Evidence | Last floor-changing change | Risk |
+| 指标 | 当前门槛或基线 | 回归阈值 | 证据 | 最近改变门槛的改动 | 风险 |
 |---|---|---|---|---|---|
-| p50 / p95 / throughput / memory / tokens / cost / capacity | | | CI artifact / commit / research packet | | |
+| p50 / p95 / 吞吐量 / 内存 / token 数 / 成本 / 容量 | | | CI 产物 / 提交 / 研究记录 | | |
 
-## Comparison Rules
+## 比较规则
 
-先用散文解释比较规则：哪些结果能直接比较、哪些需要归一化、哪些噪声太大不能作为 decision signal。
+先用正文解释比较规则：哪些结果能直接比较、哪些需要归一化、哪些噪声太大而不能作为决策信号。
 
-| Rule | Applies when | Required normalization | Decision use | Evidence |
+| 规则 | 适用情形 | 必需的归一化 | 决策用途 | 证据 |
 |---|---|---|---|---|
-| | branch-to-branch / release-to-release / hardware change / provider change / workload change | | blocking / advisory / research-only | |
+| | 分支间 / 发布版本间 / 硬件变化 / 服务提供方变化 / 工作负载变化 | | `blocking`（阻断）/ `advisory`（建议）/ `research-only`（仅研究） | |
 
-## Trend Interpretation
+## 趋势解释
 
-| Trend signal | Meaning | Action | Evidence owner |
+| 趋势信号 | 含义 | 动作 | 证据所有者 |
 |---|---|---|---|
-| sustained regression / one-off spike / variance increase / capacity headroom / cost drift | | update floor / open debt / release gate / research packet / no-op | |
+| 持续回退 / 单次尖峰 / 波动增加 / 容量余量 / 成本漂移 | | 更新门槛 / 登记技术债 / 发布闸门 / 研究记录 / 无需动作 | |
 
-## Decision Links
+## 决策链接
 
-| Benchmark conclusion | Consuming owner | How it is used | Evidence |
+| 基准测试结论 | 使用结论的所有者 | 使用方式 | 证据 |
 |---|---|---|---|
-| | product / architecture / release / decisions / tech-debt | promise / design choice / release gate / accepted debt | |
+| | 产品 / 架构 / 发布 / 决策 / 技术债 | 承诺 / 设计选择 / 发布闸门 / 接受的债务 | |
 
-## Known Gaps
+## 已知缺口
 
-| Gap / unknown | Required evidence | Blocking level | Owner / trigger |
+| 缺口或未知项 | 所需证据 | 阻断级别 | 所有者或触发条件 |
 |---|---|---|---|
-| | | blocking / non-blocking | |
+| | | `blocking`（阻断）/ `non-blocking`（不阻断） | |
 
 ## 不是运行流水账
 
-不要把按日期排列的运行表、命令转录、原始 profiler dump 或一次性 benchmark 对比写进本文件。可复用的一次性研究放入 `04-records/research/`；批次 proof 放入最终回复、CI artifacts、release notes、stop-review evidence 或 commit notes。本文件只保存稳定 benchmark method、floors、comparison rules、trends、gaps 和 decision links。
+不要把按日期排列的运行表、命令转录、原始性能分析转储或一次性基准对比写进本文件。
+可复用的一次性研究放入 `04-records/research/`；本批次证明放入最终回复、CI 产物、
+发布说明、停止评审证据或提交说明。本文件只保存稳定的基准方法、门槛、比较规则、
+趋势、缺口和决策链接。
 
-## 走查（Walkthrough）
+## 走查
 <!-- 用一段具体散文说明：某个改动触及 performance/cost/capacity 路径，读者如何选择 suite、运行 canonical workload、对照 floor，并跳到 consuming owner。 -->
 
-## 容易混淆（Easily confused with）
+## 容易混淆
 <!-- 建议边界：
      **[testing/](../testing/README.md)** — 负责 correctness strategy 与 pass/fail gates；benchmark 负责 measured workload、metric、floor 和 interpretation。
      **[04-records/research/](../../04-records/research/README.md)** — 负责一次性 benchmark studies，直到稳定 method 或 floor 被提升到这里。 -->
 
-## 不回答（Out of scope）
+## 不回答的范围
 <!-- 一句话说明本 owner 不回答什么，并指向回答它的 owner。 -->
 
-## 延伸阅读（See also）
+## 延伸阅读
 <!-- 3-7 条链接并附一句说明，通常包含 03-process/testing/、03-process/release/、02-architecture/、01-product/、04-records/decisions/、04-records/tech-debt/ 与 04-records/research/。 -->

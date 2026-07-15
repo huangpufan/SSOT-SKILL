@@ -1,4 +1,4 @@
 interface:
   display_name: "SSOT Closeout"
-  short_description: "Absorb changes into SSOT"
+  short_description: "Record durable changes before done"
   default_prompt: "Use $ssot-closeout before final response, claim_done, or commit."

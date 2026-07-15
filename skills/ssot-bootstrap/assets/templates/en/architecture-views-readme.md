@@ -3,6 +3,9 @@ intent_recovery: gap
 ---
 # Architecture views
 
+<!-- Writing style: implementation-delegator. Route from a concrete cross-owner
+     question to a plain-language story before diagrams, labels, or evidence. -->
+
 <!-- Explain why cross-owner views are needed in this system. Name a question
      that no single runtime owner can answer, then describe how the views let a
      reader follow flow, state, trust, recovery, and evolution without copying
@@ -16,6 +19,7 @@ This directory contains the default cross-owner explanations:
 ├── state-and-data-lifecycle.md
 ├── contracts-and-trust-boundaries.md
 ├── failure-and-recovery.md
+├── deployment-and-observability.md
 ├── current-target-gap.md
 └── _manifest.md
 ```
@@ -33,12 +37,15 @@ This directory contains the default cross-owner explanations:
 | How does information change and survive? | [State and data lifecycle](./state-and-data-lifecycle.md) | Write ownership, transitions, retention, rebuild, and recovery | Persistence and runtime owners |
 | Who may call what, with which protection? | [Contracts and trust boundaries](./contracts-and-trust-boundaries.md) | Public/internal contracts, identity, permissions, secrets, and redaction | Contract and policy owners |
 | What happens when work cannot continue? | [Failure and recovery](./failure-and-recovery.md) | Detection, retry, cancellation, restart, degradation, and diagnosis | Runtime owners and operational records |
+| Where does it run and how do operators know its state? | [Deployment and observability](./deployment-and-observability.md) | Runtime topology, change delivery, configuration, health, logs, metrics, traces, and rollback | Runtime owners and release/deployment owners |
 | Which design is current or still moving? | [Current, target, and gap](./current-target-gap.md) | Cross-owner implementation evolution | Decisions, debt, and runtime owners |
 
 ## Coverage and exceptions
 
 <!-- Name any merged or additional view and give the recurring cross-owner
-     question that justifies it. Silence cannot support complete coverage. -->
+     question that justifies it. Use STATUS Q01-Q21 to route applicable
+     cross-owner concerns into the nearest existing view and domain owners;
+     do not create twenty-one fixed views. Silence cannot support complete coverage. -->
 
 | Question class | Coverage | Reason or closure owner |
 |---|---|---|
@@ -47,9 +54,11 @@ This directory contains the default cross-owner explanations:
 | state and data lifecycle | covered / gap / not_applicable | |
 | contracts and trust boundaries | covered / gap / not_applicable | |
 | failure and recovery | covered / gap / not_applicable | |
+| deployment and observability | covered / gap / not_applicable | |
 | current, target, and gap | covered / gap / not_applicable | |
 
 ## Evidence direction
 
 <!-- Views are synthesis. Current claims link to domain evidence; product
-     meaning links to product owners; intended design links to decisions. -->
+     meaning links to product owners; intended design links to decisions.
+     Every applicable Q synthesis links back to its STATUS owner route. -->

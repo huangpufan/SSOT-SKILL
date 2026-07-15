@@ -3,18 +3,14 @@ intent_recovery: gap
 ---
 # Product
 
+<!-- Writing style: implementation-delegator. Begin with a recognisable need and
+     result, then concrete surfaces, incomplete outcomes/recovery, and evidence. -->
+
 <!-- Open with two or three paragraphs. Name the people this product serves,
      the situation that brings them here, the result they need, and what they
      can rely on today. Use one concrete scene. Do not begin with an inventory. -->
 
-## What a new reader should understand
-
-<!-- Explain the product in ordinary language. Distinguish the current
-     experience from the intended direction, and name the most important
-     limitation or uncertainty. A reader should understand this section even
-     if every table below is hidden. -->
-
-The product area is organised by the question each child answers:
+The product area gives each recurring reader question one nearby owner:
 
 ```text
 ├── prd.md
@@ -25,47 +21,55 @@ The product area is organised by the question each child answers:
 └── _manifest.md
 ```
 
+## What a new reader should understand
+
+<!-- Explain the product in ordinary language. Distinguish the current
+     experience from the intended direction, and name the most important
+     limitation or uncertainty. This section must stand on its own when every
+     table and every linked file is hidden. -->
+
 ## A representative experience
 
 <!-- Walk one real user or operator from their starting pressure to a visible
      result. Mention the entry surface, the important choice or control, what
      completion looks like, and what happens when the ordinary path cannot
-     finish. Link the detailed journey after telling the story. -->
+     finish. Link the detailed journey only after telling the story. -->
 
 ## What people can use today
 
-<!-- Inventory mounted pages, entry modes, primary controls, settings,
-     integrations, and diagnostic surfaces. Explain the overall shape in prose
-     first. Use product maturity and evidence fidelity as separate columns. -->
+<!-- Describe the reachable product shape in prose: pages, entry modes,
+     controls, settings, integrations, diagnostics, external channels,
+     commands, public interfaces, output artifacts, notifications, and help or
+     onboarding.
+     Name the primary surfaces a reader needs to recognise, but do not repeat
+     the status matrix here. The exhaustive list, stable Surface IDs, maturity,
+     evidence fidelity, and unique owners live in the
+     [product surface inventory](./_manifest.md#product-surface-inventory). -->
 
-| Surface or entry mode | Who uses it and why | Product maturity | Important limit | Evidence fidelity | Owner |
-|---|---|---|---|---|---|
-| | | current / limited / target / out | | browser / integration / unit / static / missing | |
+## Where each product question is answered
 
-## Product landscape
+<!-- Introduce the hand-off in prose. Each fact has one narrative owner; these
+     links route readers to it instead of restating its status or evidence. -->
 
-<!-- Introduce the relationship among product brief, model, capabilities,
-     journeys, and acceptance before using this routing table. -->
+- [Product brief](./prd.md) owns purpose, current promise, scope, success, and non-goals.
+- [Product model](./product-model.md) owns people, product objects, lifecycle, access, language, and durable trade-offs.
+- [Capabilities](./capabilities/README.md) own stable user outcomes and their boundaries.
+- [Journeys](./journeys/README.md) own how people move from need to result, including recovery.
+- [Roadmap and acceptance](./roadmap-and-acceptance.md) owns phase intent, acceptance gates, and named product gaps.
 
-| Reader question | Continue with | What that owner explains |
-|---|---|---|
-| Why does the product exist and what does it promise? | [Product brief](./prd.md) | Purpose, current scope, promise, and non-goals |
-| Who uses it and how do its objects behave? | [Product model](./product-model.md) | People, objects, lifecycle, access, language, and trade-offs |
-| What durable outcomes can users achieve? | [Capabilities](./capabilities/README.md) | Stable user value and its boundaries |
-| How does a person move from need to result? | [Journeys](./journeys/README.md) | Happy, choice, control, recovery, and diagnosis paths |
-| What comes next and what counts as delivered? | [Roadmap and acceptance](./roadmap-and-acceptance.md) | Phase intent, gates, and named gaps |
+Use the [STATUS Q register](../STATUS.md#quality-risk-and-governance) for
+Q01-Q21. For each applicable item, the linked product owner must explain the
+person's expectation, visible success/failure/recovery, and acceptance in plain
+language. Missing implementation is a gap, not a reason to omit product meaning.
 
 ## Boundaries and uncertainty
 
 <!-- State what the product deliberately does not promise. For each limited or
-     target surface, say what happens today and point to a falsifiable closure
-     owner. Silence is not a boundary. -->
+     target experience, say what happens today, how that affects the user, and
+     where the gap is closed. Silence is not a boundary. -->
 
-## Evidence trail
+## Source and confidence note
 
-<!-- Keep this appendix short. Dispose each material source as absorbed,
-     linked, rejected-stale, or gap; link to the owner rather than copying it. -->
-
-| Material topic | Disposition | Product owner | Evidence or closure |
-|---|---|---|---|
-| | absorbed / linked / rejected-stale / gap | | |
+<!-- In one short paragraph, name the source families used for this overview,
+     the last user-visible check, and the most important unsampled area. Keep
+     detailed source disposition and review evidence in `_manifest.md`. -->

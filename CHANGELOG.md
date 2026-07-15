@@ -17,6 +17,105 @@ versions. This file only restates headline changes.
 ## [Unreleased]
 
 ### Changed
+- Lifecycle `SKILL.md` bodies are distilled back to activation prompts (60
+  words or fewer outside the preflight router), while the detailed v2.60
+  procedures remain in on-demand references. The active bundle and generated
+  reader surfaces now use one STATUS term, `tracking baseline` / `追踪基线`,
+  instead of forking that concept across coverage and waterline synonyms.
+- A cross-layer `Q01`-`Q21` quality, risk, and governance profile now prevents
+  silent omissions across accessibility, locale, usability, performance/cost,
+  concurrency/consistency, continuity, compatibility/migration, data recovery,
+  isolation, threats/abuse, supply chain, offline delivery, compliance,
+  privacy/data governance, safety/harm, human oversight, fairness/transparency,
+  maintainability, environmental impact, output validity, and
+  commercial/financial/entitlement integrity.
+  `STATUS.md` keeps the pointer-sized disposition register; product,
+  architecture, process/evidence, and record owners keep the facts. Doctor
+  rejects missing rows, unresolved applicable layers, and misuse of
+  `not_applicable` for unimplemented behaviour.
+- The reader contract now explicitly serves an implementation delegator who
+  may not read source code. Common, process, record, glossary, root, STATUS,
+  and product profiles gain the missing plain-language scene, delegated action,
+  retry/concurrency, affected-scope, exposure, naming, acceptance-route,
+  disposition, and non-page-surface questions. The `LA` family is renamed
+  `Plain-language clarity` to avoid confusing prose readability with product
+  accessibility.
+- Process, records, glossary, the SSOT root, and STATUS now have exact
+  lightweight review profiles of 46, 46, 38, 37, and 32 items. A passing
+  artifact gives every exact row a plain answer and preserves a finite target
+  matrix for every real process child, record collection and entry/anchor,
+  glossary term owner, root, or STATUS target. Current scope, Area Status, and
+  Q fingerprints, complete target coverage, fitting evidence, and stated limits
+  prevent row counts or resolving links from creating a false-green `covered`
+  claim.
+- Durable records now keep two independent state axes: whether the knowledge
+  record itself is current, and whether the decision, research adoption, bug,
+  hazard, or debt it describes is still active. Collection indexes mirror both
+  axes and route every ID exactly once to its unique entry owner, including
+  stable anchors for topic-aggregated gotchas.
+- Bug failure truth now includes `open` beside `fixed` and `recurred`, so a
+  confirmed unresolved defect keeps an honest failure owner instead of being
+  mislabeled as technical debt.
+- Process owners now explain the method, nearest rejected alternative,
+  invariants, rationale, and accepted trade-offs before commands. They also
+  keep a finite eight-field inventory of stable assets they create, read,
+  change, verify, hand off, or retire. The glossary uses one six-family
+  inventory with exact entry routing instead of overlapping hard-coded lists.
+- The seventh architecture view is now wired through preflight structure,
+  bootstrap creation/fill order, template inventory, and Doctor rather than
+  existing only in the view template and covered-scope lint.
+- A real consumer cold read exposed a STATUS false-green: a gap could be named
+  without telling a non-coding reader whether their task was affected, when it
+  became blocking, or where ownership lived. The STATUS profile now includes
+  `S08`; the exact bilingual Open Gaps schema records affected scope/task,
+  blocking or retrigger condition, responsible owner, and resolving route; and
+  Doctor enforces `[STATUS-GAP-ACTIONABILITY]` for real v2.60 gap rows while
+  preserving empty starter rows. Owner and route must be clickable Markdown
+  links or explicit `$ssot-*` routes; a bare record ID is not actionable.
+- `STATUS.md` now follows one exact `S01`-`S11` register contract. It records
+  the tracking baseline, all 17 area states, source absorption, reviewed startup
+  references, stop authorisations, actionable adjudications and gaps,
+  `Q01`-`Q21`, pending captures, and deliberate source exclusions. Cells remain
+  pointer-sized; passing process, records, and glossary rows link exactly one
+  current scope artifact, while convergence additionally requires matching
+  root and STATUS artifacts.
+- The same consumer run exposed four over-broad generic heuristics. STATUS
+  Notes-ledger detection now reads only the `Notes/备注` cell, not an explicit
+  Date column; aggregate contradictions read only declared stop/summary
+  surfaces, not Open Gaps rows; and README derived-state detection distinguishes
+  explicit latest-verification mirrors from narrative use of a literal image
+  tag such as `latest`. Generic KISS table-density warnings now exclude
+  protocol-owned `_manifest.md` registers, which remain governed by their
+  dedicated completeness and inventory checks.
+- Reader-quality protocol v2.60 closes the false-`covered` path exposed by real
+  consumer regeneration: product maturity/evidence semantics now have one live
+  owner, cold review uses six exact tasks, 16 scored leaves, five cold proofs,
+  and exact completeness profiles (>=29/32 plus family and
+  implementation-delegator floors). A failed reader surface must be repaired
+  bottom-up and re-reviewed until source, installed bundle, manifests, prose,
+  and consumer tracking baseline agree.
+  Protocol version `2.59` -> `2.60`.
+- Covered product roots now carry a finite, stable-ID inventory across twelve
+  classes: pages, navigation, entry modes, controls, settings, diagnostics,
+  external channels, commands, public interfaces, output artifacts,
+  notifications, and help/onboarding. Covered architecture roots classify every direct owner, register
+  unique technical surfaces, bridge product surfaces to runtime owners, and
+  include deployment/observability in the default cross-owner route.
+- Document-quality lint no longer accepts a linked file merely because it
+  contains `no-more-required-changes`. When `tracked_skill_version` is `2.60`, it validates the
+  review scope/version/probes/score/verdict and body evidence, plus product
+  `[SURFACE-INVENTORY]` and architecture `[OWNER-INVENTORY]` completeness.
+  Review artifacts now carry a separate normalized STATUS-Q fingerprint, so a
+  Q disposition change expires both product and architecture reviews while an
+  unrelated STATUS tracking-baseline edit does not. Architecture kind dispositions
+  must name the exact registered surfaces of that kind; unknown, wrong-kind,
+  duplicate, and omitted IDs are rejected.
+- Product/architecture review evidence is now path-bound and authority-bound:
+  exact frontmatter identifies the reviewer and authorised area, every target
+  and evidence link stays inside consumer SSOT and outside review artifacts,
+  visible verdict and required changes agree, and one matching STATUS stop row
+  closes a passing covered claim. Absolute, missing, symlinked, self-referential,
+  comment-only, or fenced-code evidence cannot produce a pass.
 - Product and architecture documentation now follow a v2.59 reader-quality
   contract: KISS means the shortest reliable path to understanding, narrative
   explanation precedes reference tables, product intent precedes architecture,
@@ -77,10 +176,30 @@ versions. This file only restates headline changes.
   alongside the bundle-wide anti-patterns.
 
 ### Added
+- Conditional bilingual `03-process/operations/` and
+  `03-process/security-and-compliance/` templates separate day-two service
+  operation and recurring security/compliance evidence from deployment and
+  architecture mechanism owners. Small repositories must record a named
+  non-applicability disposition instead of silently omitting either concern.
+- Ten dedicated English/Chinese process, deployment, records, glossary,
+  gotcha, bug, and technical-debt templates. They lead with the
+  implementation-delegator's decision and next action, keep protocol guidance
+  in author-only comments, preserve table-independent narrative, and route
+  indexes to unique entry owners. Phase 1 now creates the complete
+  `03-process/`, `04-records/`, and `glossary/` root/index skeleton while
+  deferring record and term entries until concrete evidence exists.
+- Paired English/Chinese deployment-and-observability view and structured
+  cold-reader review templates, with regression fixtures for forged verdicts,
+  scope drift, below-threshold scores, and missing owner/surface inventories.
+- Paired English/Chinese exact-scope review templates for process, records,
+  glossary, root, and STATUS, including current-content fingerprints, exact
+  completeness rows, semantic truth samples, required-change accounting, and
+  claim-specific STATUS authorisation.
 - `ssot-preflight/references/reader-quality.md`, document-quality lint mode,
-  source/rendered template contract tests, and an independent 8-dimension
-  comprehension gate (>=14/16, no zero, no factual error) for high-impact
-  product/architecture upgrades.
+  source/rendered template contract tests, and task-based product/architecture
+  comprehension gates: six exact tasks, sixteen scored leaves, five hard
+  proofs, a score of at least 29/32, family and implementation-delegator floors,
+  no critical truth error, and no unresolved required change.
 - `ssot-audit/assets/scripts/migrate-faceted-layout.py`, installed with the
   audit skill, migrates legacy consumer `SSOT/` trees to the v2.57 faceted
   layout, rewrites Markdown links/literal paths, preserves legacy domain
@@ -197,7 +316,8 @@ future-work wording without owner/reference or retrigger signals.
 ## [2.52] - 2026-06-30
 
 `semantic_impact: medium` — adds the **open-risk and temporary-surface floor**.
-Preflight now surfaces task-relevant active debt, gotchas, bugs, and open gaps;
+Preflight now surfaces task-relevant active debt and gotchas, open or recurred
+bugs, and open gaps;
 closeout must either close, defer with owner/trigger/guard, or create a next
 action. Temporary fallback, compat shim, later-remove, TODO/FIXME/HACK, and
 waiver surfaces must be registered with owner, reason, closure condition,

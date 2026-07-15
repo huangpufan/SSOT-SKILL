@@ -3,6 +3,9 @@ intent_recovery: gap
 ---
 # 产品旅程
 
+<!-- 写作对象：implementation-delegator。从人的情境与决定路由到当前旅程、
+     可见结果与恢复路径。 -->
+
 <!-- 解释这里记录哪些反复出现的真实情境，以及旅程集合怎样覆盖普通、选择、
      控制、恢复与诊断路径。一次界面点击序列并不是持久旅程。 -->
 
@@ -30,8 +33,10 @@ intent_recovery: gap
 
 ## 覆盖缺口
 
-<!-- 写出任何尚无所有者但实际存在的用户选择、控制、恢复、诊断或外部渠道。
-     只有该类别确实不存在时才能写不适用，并说明原因。 -->
+<!-- 写出缺少 owner 的适用用户选择、控制、恢复、诊断、external-channel、
+     command、public-interface、output-artifact、notification 或 help-onboarding
+     路径，并检查 STATUS 中适用 Q01-Q21。not_applicable 必须有具体理由与可解析
+     证据链接；尚未实现仍是 gap。 -->
 
 | 缺失的旅程类别 | 用户今天的体验 | 遗漏风险 | 闭合所有者 |
 |---|---|---|---|

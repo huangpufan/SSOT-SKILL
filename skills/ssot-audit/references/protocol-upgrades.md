@@ -30,10 +30,10 @@ version through the current upgrade file.
 
 | File | Read when | Contents |
 |---|---|---|
-| [`current-upgrade.md`](current-upgrade.md) | Current or recent project waterline | Current protocol entry and the most recent standalone entries |
-| [`archive/index.md`](archive/index.md) | Waterline is older than the current file floor, or missing | Range map and complete-version coverage index |
+| [`current-upgrade.md`](current-upgrade.md) | Current or recent project tracking baseline | Current protocol entry and the most recent standalone entries |
+| [`archive/index.md`](archive/index.md) | Tracking baseline is older than the current file floor, or missing | Range map and complete-version coverage index |
 | [`archive/v2.22-v2.34.md`](archive/v2.22-v2.34.md) | Project has unapplied versions in `2.22` through `2.34` | Older medium entries plus explicit low/no-op entries that were previously CHANGELOG-only |
-| [`archive/v2.6-v2.21.md`](archive/v2.6-v2.21.md) | Project has unapplied versions in `2.6` through `2.21`, or no waterline | Original baseline protocol entries plus v2.20 installer-only coverage |
+| [`archive/v2.6-v2.21.md`](archive/v2.6-v2.21.md) | Project has unapplied versions in `2.6` through `2.21`, or no tracking baseline | Original baseline protocol entries plus v2.20 installer-only coverage |
 
 ## Execution Rules
 
@@ -49,7 +49,7 @@ version through the current upgrade file.
 6. For no-impact items, explicitly record no-op; for impact items, update only
    affected authoritative locations.
 7. Review scope: `semantic_impact=high` upgrades require an independent
-   reviewer before the waterline can advance. `none`, `low`, and `medium`
+   reviewer before the tracking baseline can advance. `none`, `low`, and `medium`
    upgrades use self-review per `status-protocol.md §6`; `medium` entries
    still require a standalone impact checklist.
 
@@ -59,6 +59,13 @@ Provisional agent-method rule captures destined for SSOT-SKILL bundle apex
 (`AGENTS.md` or a specific `SKILL.md`). Sourced from consumer repos'
 `deferred-export` rows during the audit protocol-upgrades cadence; `$ssot-audit`
 emits the move block that promotes a row into its apex destination.
+
+During a deliberate catch-up, run the large-window two-stream scan across the
+segmented commit/session range; cross-batch incident concentration and
+apex/authority drift are invisible to one-batch closeout. Harvest each
+consumer's `deferred-export` rows into this bundle inbox. If an expected
+transcript is unavailable, keep the missing evidence visible in a deferred
+CAP row instead of inventing or silently skipping the signal.
 
 | id | captured_at | about | altitude_guess | rule | evidence | signal_source | status |
 |---|---|---|---|---|---|---|---|

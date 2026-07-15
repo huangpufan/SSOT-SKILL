@@ -16,7 +16,7 @@
 
 ---
 
-SSOT Skill turns your repository's long-lived facts — product intent, architecture boundaries, decisions, pitfalls, test policy — into a reviewable Markdown `SSOT/` directory. Any agent (Claude Code, Codex, Cursor, Windsurf, Gemini CLI, …) reads the same waterline before starting work, instead of reconstructing context from scratch every session.
+SSOT Skill turns your repository's long-lived facts — product intent, architecture boundaries, decisions, pitfalls, test policy — into a reviewable Markdown `SSOT/` directory. Any agent (Claude Code, Codex, Cursor, Windsurf, Gemini CLI, …) reads the same **tracking baseline** before starting work: the commit, session, and protocol version that the documentation has actually reviewed. The agent does not have to reconstruct context from scratch every session.
 
 > `SSOT/` is **agent long-term memory**, not a substitute for code. Code, schema, tests, and runtime behavior remain the source of truth for current implementation; SSOT records the durable conclusions around them.
 
@@ -29,28 +29,56 @@ This skill applies the same idea to **an agent's memory of a repository**:
 - **One place per fact.** Product intent, architecture boundaries, key decisions, known pitfalls, and test policy each live in one Markdown file under `SSOT/` — not scattered across chat logs, PR descriptions, or different agents' private caches.
 - **Reviewable.** Plain Markdown, version-controlled with the repo. You can diff it, review it in PRs, and roll it back.
 - **Cross-tool.** Claude Code, Codex, Cursor, Windsurf, Gemini CLI, … all read the **same** `SSOT/`. No agent maintains a parallel memory that drifts from the others.
-- **Verifiable.** The six lifecycle skills (`$ssot-preflight` / `$ssot-bootstrap` / `$ssot-closeout` / `$ssot-audit` / `$ssot-doctor` / `$ssot-skill`) and the bundled lint rules keep `SSOT/` honest as the repo evolves.
+- **Verifiable.** Five lifecycle skills (`$ssot-preflight` / `$ssot-bootstrap` / `$ssot-closeout` / `$ssot-audit` / `$ssot-doctor`), one legacy-routing shim (`$ssot-skill`), and the bundled lint rules keep `SSOT/` honest as the repo evolves.
 
 **SSOT is not a code substitute.** Code, schema, tests, and runtime behavior remain the source of truth for *current implementation*. `SSOT/` records the durable conclusions *around* the code — the kind of thing that would otherwise be lost when a session ends or a new agent picks up the work.
 
-## Reader-first product and architecture docs
+## SSOT must make sense even if you do not read code
 
-SSOT is useful only when a newcomer can understand it. Product and
-architecture owners therefore follow a reader-first contract: orient the
-reader, explain one concrete current path and its boundaries, then provide
-compact reference tables and evidence. KISS means the shortest reliable path
-to understanding, not the fewest words.
+SSOT is useful only when a newcomer can understand it. Every reader-facing body
+therefore follows one shared contract: orient the reader, explain one concrete
+current path, causal boundary, failure/recovery posture, and current-versus-
+target truth, then provide compact reference tables and evidence. KISS means
+the shortest reliable path to understanding, not the fewest words. A **fact
+authority** is the file or section that explains and maintains one fact. A
+**runtime responsibility boundary** is the system part that handles a request
+or owns state. A **responsible person or approving role** is a human role; it
+must not be inferred from either kind of technical authority.
+
+The default reader is an **implementation delegator**: someone who may not
+write or read the code themselves, but must still tell an Agent what outcome to
+produce, recognise the visible result and fitting evidence, and know when to
+stop or escalate. SSOT therefore introduces unavoidable terms only after a
+plain-language scene and causal explanation.
 
 The product spine covers users, real surfaces, object lifecycles, capabilities,
 choice/control/recovery journeys, acceptance, and current-versus-target truth.
-The architecture spine explains the system response through runtime owners and
-six cross-owner questions: operating model, critical journeys, state/data,
-contracts/trust, failure/recovery, and current-target-gap. Machine recovery
-metadata lives in location-specific manifests outside the reader narrative.
+The architecture spine explains the system response through runtime
+responsibility boundaries and seven questions that cross those boundaries:
+operating model, critical journeys, state/data,
+contracts/trust, failure/recovery, deployment/observability, and
+current-target-gap. Machine recovery metadata lives in location-specific
+manifests outside the reader narrative. A **manifest** is a machine-facing
+recovery and validation index, not the explanation a reader must reconstruct.
 
-Lint prevents heading-only or placeholder-heavy `covered` claims; an
-independent cold-reader review checks actual comprehension. Passing routing or
-link checks alone is not considered readable documentation.
+Checks reject headings, placeholders, and link lists that only look complete.
+For both product and architecture, a newcomer must complete six real tasks.
+The review separately works through all 53 product and 48 architecture
+completeness questions, so a good story cannot hide a missing boundary.
+Process, records, glossary, the root, and STATUS use smaller reviews matched to
+their actual contents. Before approving delegated work, every review helps a
+reader ask four plain questions:
+
+1. Who may be excluded, confused, treated unfairly, or harmed?
+2. What happens under load, overlap, failure, disconnection, upgrade, or recovery?
+3. Who controls data, identity, permissions, money, and external obligations?
+4. What evidence shows the result is valid, affordable, maintainable, and recoverable?
+
+Each applicable concern links its fact authority, runtime responsibility
+boundary, process evidence, responsible role when one is known, or a named gap.
+Nothing is silently assumed away, and a working link alone is not proof that
+the linked explanation is true. The exact review IDs, counts, and stop rules
+live in the [reader-quality protocol](./skills/ssot-preflight/references/reader-quality.md).
 
 ## Quickstart
 
@@ -115,11 +143,14 @@ bash install.sh --uninstall --agent <key> --scope <global|project> --yes
 
 `<key>` is the canonical agent key you installed into (e.g. `claude-code`, `codex`, `cursor`). The installer also supports `--upgrade` (re-scan all detected installs and reinstall) and `--version`.
 
-## The Six Lifecycle Skills
+## The Six SSOT Skills
+
+Five skills own the lifecycle. `$ssot-skill` is only a compatibility route for
+older prompts.
 
 | Skill | When to use |
 |---|---|
-| `$ssot-preflight` | Before any substantive code task — reads waterline, open adjudications, routes you to the minimal SSOT files |
+| `$ssot-preflight` | Before any substantive code task — reads the tracking baseline and open adjudications, then routes you to the minimal SSOT files |
 | `$ssot-bootstrap` | First time on a repo with no `SSOT/`, or bootstrap is incomplete |
 | `$ssot-closeout`  | Before final response / `claim_done` / commit — decides whether durable facts need absorbing |
 | `$ssot-audit`     | Catch up commits, sessions, or protocol upgrades in segments |
@@ -130,27 +161,46 @@ The protocol version is single-sourced in [`skills/ssot-preflight/SKILL.md`](./s
 
 ## How It Fits Together
 
-```
-┌─────────────────────────┐    install.sh    ┌────────────────────────────────┐
-│  SSOT-SKILL (this repo) │ ───────────────▶ │  PROJECT scope (default):      │  ← agent loads
-│  installer · 6 skills   │                  │    .claude/skills/...          │     these at startup
-│  protocol · templates   │                  │    .agents/skills/...  (Codex, │
-│                         │                  │      Cursor, Gemini CLI, …)    │
-│                         │                  │  GLOBAL scope (opt-in):        │
-│                         │                  │    ~/.claude/skills/...        │
-│                         │                  │    ~/.codex/skills/...         │
-└─────────────────────────┘                  └──────────────┬─────────────────┘
-                                                            │ skills run inside
-                                                            ▼
-                                              ┌────────────────────────────────┐
-                                              │  your-repo/SSOT/               │  ← long-term memory
-                                              │  product / architecture        │     of your repo
-                                              │  testing / benchmark /         │
-                                              │  development                   │
-                                              └────────────────────────────────┘
+```text
+SSOT-SKILL --install.sh--> agent-local skills --run in repository--> SSOT/
 ```
 
-Three layers, one purpose: keep agent memory of a repository **reviewable**, **verifiable**, and **portable across tools**.
+The installed skills create and maintain this complete repository memory:
+
+```text
+your-repo/SSOT/
+├── README.md                    Start here: what the repository is and where each question goes
+├── STATUS.md                    What is trusted, missing, stale, or awaiting a decision
+├── 01-product/                  Users, promises, visible results, and acceptance
+│   ├── prd.md
+│   ├── product-model.md
+│   ├── roadmap-and-acceptance.md
+│   ├── capabilities/
+│   └── journeys/
+├── 02-architecture/             How the system produces results and handles state, trust, and failure
+│   ├── views/                   Seven questions that cross system parts
+│   └── NN-domain/               One clear runtime, state, or contract owner per domain
+├── 03-process/                  How work is done, checked, delivered, and operated
+│   ├── development/
+│   ├── testing/
+│   ├── benchmark/
+│   ├── deployment/
+│   ├── release/
+│   ├── operations/              Included when day-two operation applies
+│   └── security-and-compliance/ Included when that lifecycle applies
+├── 04-records/                  Why choices were made and what history remains actionable
+│   ├── decisions/
+│   ├── research/
+│   ├── gotchas/
+│   ├── bugs/
+│   └── tech-debt/
+├── glossary/                    Repository-specific words, aliases, and meanings
+└── .bootstrap/                  Review and recovery evidence; ordinary readers may skip it
+```
+
+Three layers — source bundle, installed skills, and repository `SSOT/` — serve
+one purpose: keep agent memory **reviewable**, **verifiable**, and **portable
+across tools**.
 
 ## Common Flows
 

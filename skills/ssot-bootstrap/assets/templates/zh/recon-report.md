@@ -1,6 +1,6 @@
 # 侦察报告
 
-> Bootstrap 临时文件。Phase 0 只记录供后续阶段路由使用的观察。Bootstrap
+> 初始化临时文件。第 0 阶段只记录供后续阶段路由使用的观察。初始化
 > 完成且停止审查通过后随 `.bootstrap/` 一起清理。
 
 ## 文档语言
@@ -8,8 +8,8 @@
 | 字段 | 值 |
 |---|---|
 | 探测结果 | `<documentation_language>` / `unknown` / `mixed` |
-| 证据 | README / docs / ADR / runbook / 子系统 README / 用户资料 |
-| 是否询问用户 | yes / no |
+| 证据 | README / 文档 / ADR / 运维手册 / 子系统 README / 用户资料 |
+| 是否询问用户 | `yes`（是）/ `no`（否） |
 | 写入 STATUS 字段 | `documentation_language`, `documentation_language_evidence` |
 
 > 语言证据混杂、不足或缺失时，先询问用户；不要用当前对话语言兜底。
@@ -19,54 +19,55 @@
 | 字段 | 值 |
 |---|---|
 | 规模等级 | `S` / `M` / `L` / `XL` |
-| 拓扑 | monolith / monorepo-workspaces / monorepo-services / library/tooling / kernel or infrastructure |
+| 拓扑 | 单体 / 单仓多工作区 / 单仓多服务 / 库或工具 / 内核或基础设施 |
 | 入口点 | |
-| Workspaces/deployable units | |
+| 工作区或可部署单元 | |
 
 ## 观察
 
-只记录后续阶段需要用来路由工作的内容。每行包含一个观察、证据指针、可能 owner、置信度/gap 和下一步检查。
+只记录后续阶段需要用来路由工作的内容。每行包含一个观察、证据指针、可能所有者、
+置信程度或缺口，以及下一步检查。
 
-| Observation | Evidence | Likely route | Confidence/gap | Next check |
+| 观察 | 证据 | 可能路由 | 置信程度或缺口 | 下一步检查 |
 |---|---|---|---|---|
-| | | product / architecture / development / testing / benchmark / release / deployment / decisions / research / gotchas / bugs / tech-debt / link-only | verified / documented / inferred / unknown | |
+| | | 产品 / 架构 / 开发 / 测试 / 基准测试 / 发布 / 部署 / 决策 / 研究 / 陷阱 / 缺陷 / 技术债 / 只链接 | `verified`（已验证）/ `documented`（有文档）/ `inferred`（推断）/ `unknown`（未知） | |
 
-## Architecture 假设
-
-| 字段 | 值 |
-|---|---|
-| Likely split axis | |
-| Why | |
-| Candidate owners | |
-| Open risks/gaps | |
-| Next architecture check | |
-
-> 这不是正式 `decomposition_basis`。只有确实需要时，才在 appendix 写完整 signal matrix。
-
-## Product 假设
+## 架构假设
 
 | 字段 | 值 |
 |---|---|
-| Product posture / PRD spine | |
-| Users/operators | |
-| Promise / boundary | |
-| Capability or journey splits that may be stable | |
-| Open product gaps | |
+| 可能的拆分轴 | |
+| 原因 | |
+| 候选所有者 | |
+| 开放风险或缺口 | |
+| 下一项架构检查 | |
+
+> 这不是正式的 `decomposition_basis`（拆分依据）。只有确实需要时，才在附录写完整信号矩阵。
+
+## 产品假设
+
+| 字段 | 值 |
+|---|---|
+| 产品姿态或 PRD 主干 | |
+| 用户或操作者 | |
+| 承诺或边界 | |
+| 可能稳定的能力或旅程拆分 | |
+| 开放产品缺口 | |
 
 ## 推荐策略
 
 - **区域顺序调整**：
-- **需要特别关注的 architecture owners**：
+- **需要特别关注的架构所有者**：
 - **可快速完成的区域**：
-- **预计 sessions**：
+- **预计会话数**：
 - **其它说明**：
 
 ## 可选附录
 
 仅在侦察确实需要时创建：
 
-- `## Appendix: architecture candidates`：记录 candidate axes、signal matrix、predicted diagrams、stop/recursion challenge。
-- `## Appendix: product candidates`：记录 product-dimension matrix。
-- `## Appendix: design-intent candidates`：记录 technical mission、priorities、runtime journeys、migration stance 和 rejected alternatives。
-- `## Appendix: source inventory`：记录详细 source-material lifecycle、降权字段、audited exclusions 与 classification。
-- `## Appendix: readability/evidence candidates`：记录 Reader Map、script/tool、diagram 或 claim-to-evidence candidates。
+- `## Appendix: architecture candidates`：记录候选拆分轴、信号矩阵、预计需要的图、停止或递归挑战。
+- `## Appendix: product candidates`：记录产品维度矩阵。
+- `## Appendix: design-intent candidates`：记录技术使命、优先级、运行时旅程、迁移姿态和被拒绝的备选。
+- `## Appendix: source inventory`：记录详细的源资料生命周期、降权字段、已审查排除项与分类。
+- `## Appendix: readability/evidence candidates`：记录阅读地图、脚本/工具、图或结论到证据的候选关系。

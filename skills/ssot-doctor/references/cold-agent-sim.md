@@ -1,543 +1,513 @@
-# Cold-Agent Simulation Harness (v2.43; comprehension gate added v2.59)
+# Task-Based Cold-Reader Review (v2.60)
 
-This file is the protocol for the **cold-agent simulation gate** — a reproducible
-black-box test of two different outcomes: whether SSOT can route a cold coding
-agent from a commit's user-visible intent to the correct stable anchor in ≤ 5
-hops, and whether a different cold reader can understand the product/system
-story in the actual Markdown.
+This file owns execution of the cold-reader gate. It does not own or fork the
+artifact schema. [`reader-quality.md §7`](../../ssot-preflight/references/reader-quality.md#7-cold-reader-acceptance)
+owns the fields, exact task classes, 16 scored leaves, completeness IDs, cold
+proofs, thresholds, and six H2 sections. Lint proves deterministic structure;
+this review proves that an implementation delegator can route, understand,
+check, decide, and act without reading code or receiving the author's private
+context. The delegator must be able to tell an implementation Agent what to
+change, name the visible result and evidence they expect back, and know when to
+stop or escalate.
 
-It is the objective judge SSOT-SKILL uses to know when its own protocol is
-sufficient: structural lint (`ssot-lint.sh`) tells you the SSOT is shaped right;
-this harness tells you the SSOT is **useful**.
+The review is task-based. It no longer treats recent commits or abstract
+intent/truth pillars as the reader's job.
 
-> Lint verifies deterministic structure. Routing proves locatability.
-> Comprehension proves that the reader can build the right mental model. None
-> of these gates substitutes for the others.
+Before execution, load the unique definitions this harness applies rather than
+guessing from template placeholders: `reader-quality.md` §§2.1-2.4, 3, 4, and 7
+for the common/scope/Q IDs, six exact task classes, cold proofs, fingerprints,
+scores, and artifact schema; then load `status-protocol.md` §6 for reviewer and
+Stop Review authority. If either owner is unavailable, the review is blocked;
+this harness deliberately does not copy their vocabularies.
 
 ## 0. When to run
 
-Run this harness:
+Run the gate:
 
-- **Per cycle of an SSOT-SKILL upgrade** (current bundle protocol cadence). The
-  cycle gate is the 4-pillar floor defined in §3 (each pillar
-  `≥ ceil(0.625·denom)` cells passing plus aggregate ratio `≥ 0.75`) plus
-  zero rows in the `skill-fail` partition and a clean recovery-manifest sweep
-  for covered product / architecture areas, plus the v2.59 comprehension
-  gate in §1.9.
-- **After any large architecture-IA reorganization** of a consumer SSOT (domain
-  split/merge, capability rewrite, or playbook addition).
-- **On user request** ("does my SSOT actually answer the cold-agent question").
+- during the reader-surface regeneration loop in bootstrap;
+- after a large product or architecture rewrite, split, merge, or protocol
+  upgrade that changes the generated reader surface;
+- before a covered/converged claim whose scope has no current v2.60 artifact;
+- when the user asks whether SSOT is useful to a cold reader.
 
-Do **not** run it on every commit; it is a quality gate, not lint.
+Do not run it on every commit. A focused task review may cover one changed
+owner; a bootstrap or high-impact protocol review covers both trunks and uses
+the reviewer role required by `status-protocol.md §6`.
 
-## 1. Sampling
+## 1. Freeze the review inputs
 
-| Field | Rule |
+Record before prompting the reviewer:
+
+- `tracked_commit`, `tracked_skill_version`, and documentation language;
+- the product surface inventory and its source pins;
+- the architecture owner inventory, including `runtime`, `support`, and
+  `target` classifications, applicable cross-owner views, and the unique
+  technical-surface registry;
+- the `STATUS.md` `Q01`-`Q21` quality, risk, and governance dispositions and
+  every linked product, architecture, process/evidence, or gap owner used by
+  the mandatory tasks or finite target population;
+- the shared reader-surface content fingerprint and normalized STATUS-Q
+  disposition fingerprint defined by `reader-quality.md`;
+- a resolvable repository commit that is ancestor-or-equal to `HEAD`;
+- the review id, review type, deterministic sample seed, rotation id, stable
+  reviewer identity, reviewer role, and the exact proposed authorisation:
+  `area:product:covered` or `area:architecture:covered`;
+- the one current `STATUS.md` Stop Review Gate row that will close the covered
+  claim, or the explicit fact that no such row exists yet.
+
+If either inventory is missing, do not invent tasks from memory. Report the
+matching inventory failure, build the inventory from real evidence, and restart
+the review from the frozen inputs.
+
+### 1.1 Task set
+
+A product review runs the six exact `product-*` classes in
+`reader-quality.md §7.2`; an architecture review runs the six exact
+`architecture-*` classes there. Do not merge, rename, omit, or pad the set.
+Each prompt names a real reader decision and uses a deterministic inventory row
+from the complete target register. The orientation task tests first-day comprehension; the
+journey/request tasks test observable outcomes; control/failure tasks test
+side effects and recovery; inventory tasks test finite disposition and evidence;
+boundary/owner tasks test authority and trust; trace tasks cross product and
+architecture in both directions without redefining either owner.
+
+The exact product profile is `C01-C09 + P01-P23 + Q01-Q21`; the exact
+architecture profile is `C01-C09 + A01-A18 + Q01-Q21`. The shared Q rows are
+dispositions, not twenty-one mandatory prose headings. For each applicable Q
+item, the reviewer follows the layer owner or named gap and checks that missing
+implementation was not relabelled `not_applicable`.
+
+Before selecting deeper evidence, build one finite target population from the
+frozen consumer SSOT:
+
+- product: every product-spine, capability, and journey reader owner; every
+  product-surface inventory row; and every product-to-architecture bridge row;
+- architecture: every root, view, and domain reader owner; every direct owner
+  classification; every applicable cross-owner view or reasoned merge/exception;
+  every technical-surface row; and every bridge row;
+- both scopes: every reasoned `not_applicable`, merged, target, support, or gap
+  disposition that participates in the covered claim.
+
+Give every target a stable ID and one target kind: `reader-owner`,
+`product-surface`, `technical-surface`, `cross-owner-view`, or `bridge`. The same
+file may own several distinct targets, but every target ID appears exactly once.
+Use the inventory's exact `surface:<slug>` and `tech:<slug>` IDs. Give the other
+classes deterministic IDs: `owner:<SSOT-relative-path#anchor>`, `view:<slug>`,
+and `bridge:<surface-id>`. Do not combine IDs, ranges, globs, or comma-separated
+name lists in one target row.
+
+Target kind says what is being reviewed; it is not lifecycle or applicability.
+Record the exact frozen disposition in its own column—for example product
+`current|limited|target|out`, architecture `runtime|support|target`, view
+`applicable|merged|not_applicable`, or a named `gap`. Do not encode `target`,
+`support`, `gap`, or `not_applicable` as a new target kind, and do not silently
+translate one scope's disposition into another scope's vocabulary.
+
+Before the target rows, reconcile these source populations separately:
+`product-reader-owner`, `product-surface`, and `product-bridge` for product;
+`architecture-reader-owner`, `architecture-direct-owner`,
+`architecture-view`, `technical-surface`, and `architecture-bridge` for
+architecture. Link the frozen source inventory, count its applicable and
+reasoned-disposition rows, count the matching target rows, and require equality
+with `pass`. This count does not prove meaning; it prevents a polished subset
+from masquerading as the finite population.
+
+Assign every target to at least one of the six mandatory tasks and record, in
+ordinary language, the decision it informs, what an implementation Agent would
+be asked to do, and the visible result used for acceptance. A passing review has
+no missing, duplicated, unassigned, deferred, or failed target.
+
+This is complete owner/target coverage, not complete low-level evidence
+inspection. Deeper code, configuration, test, or runtime checks may rotate when
+the population is large, provided all high-consequence targets are selected and
+the saved evidence rows state what was not checked. Rotation may change evidence
+depth; it must never make an owner, surface, view, bridge, or reasoned boundary
+disappear from the review.
+
+### 1.2 Bounded reading set and hops
+
+Each task declares its reading boundary before the reviewer starts:
+
+| Boundary | Rule |
 |---|---|
-| Sample size | 8 commits per run |
-| Stratification | 2 architecture-core + 2 product-surface + 2 operational + 2 cross-cutting |
-| Source | `git log --no-merges -n 30` (most recent 30 non-merge commits on the audited branch) |
-| Exclusions | Pure SSOT-only commits (`SSOT/...` paths only); pure SSOT-SKILL bundle commits (`projects/SSOT-SKILL/...` paths only). These do not stress the SSOT-as-router question. |
-| Determinism | `git log --no-merges -n 30 --format="%H %s" \| shuf --random-source=<(yes <cycle-id>)` ensures the same `<cycle-id>` reproduces the same sample |
-| Strata definitions | architecture-core = touches `engine/`, `persistence/`, `domain/`, `web/app.py`/`services.py`/`deps.py`; product-surface = touches `frontend/`, `web/routes/`, capability/journey-bound code; operational = touches scripts, CI, deploy, test infra; cross-cutting = touches ≥2 strata at once |
+| Entrypoint | One reader-facing file named by the normal first-day or task route |
+| Reader files | At most five reader-facing Markdown files per task: the entrypoint plus up to four linked owners |
+| Route hops | At most four followed owner links; exceeding the budget is a task failure even when the answer is eventually found |
+| Locality | The core answer appears in the expected owner within two hops; a remote grep hit or protocol/meta detour does not satisfy locality |
+| Machine files | `_manifest.md`, `STATUS.md`, and `.bootstrap/` do not enter the first teach-back; they are checked after prose comprehension |
+| Source evidence | Code/config/schema/test or the real product surface is opened only during the later evidence sample and only through cited anchors |
 
-When fewer than 30 commits exist, take all non-merge commits and stratify
-best-effort; document the relaxed split in the report.
+Searching inside the declared files is allowed. Repository-wide grep may help
+diagnose a failure after the trial, but it cannot turn the trial into a pass.
+The artifact records the exact files opened and hops used, not only the cap.
 
-## 2. Cold agent setup
+The finite target sweep runs only after the first tables-hidden teach-back. It
+is separate from the six cold-route hop budgets: record its owner reads in the
+finite target table, but never use the later sweep to repair a failed route or
+rewrite the teach-back. Assigning a target to a mandatory task states which
+reader decision it supports; it does not silently enlarge that task's bounded
+read set.
 
-Spawn a `general-purpose` subagent with these constraints, **not** the project's
-default agent (it has too much priming):
+### 1.3 Reviewer setup
 
-| Constraint | Rule |
-|---|---|
-| Read scope | `SSOT/**` and `projects/SSOT-SKILL/skills/**` only |
-| Forbidden | Reading `src/`, `tests/`, `frontend/`, `docs/`, `poc/`, anything outside SSOT — the goal is to test SSOT, not the agent's code-reading ability |
-| Tools | `Read`, `Grep`, `Glob` over the allowed scope; **no** `Bash`, **no** web/MCP, **no** other agents |
-| Model | Pinned per cycle (record in report) |
-| Temperature | `0` |
-| Hop budget | **5** SSOT reads per trial (hard cap; exceeding the budget is fail even if the answer is correct — the harness measures locating efficiency, not exhaustive search) |
-| Prompt input | Commit subject line plus the first paragraph of the commit body. **Not** the diff, file list, or hint about which area to read |
-| Output schema | `{intent: str, pillar: "design_intent" \| "product_intent" \| "design_truth" \| "product_truth", hop1_path: str, hop2_anchor: str, hops_used: int, verdict: "PASS" \| "FAIL", miss_class: "missing-owner" \| "prose-fork" \| "broken-ref" \| "glossary-gap" \| "truth-state-gap" \| null, reasoning: str}` where `pillar` classifies what the cold agent was asked to recover (see §2.1); `hop2_anchor` is one of `file:line`, `tests/...::test_name`, `SQL identifier`, `DOM selector`, `route + handler path:line`, or `product-owner state row + closure owner`. `verdict` is the cold agent's own assessment of whether SSOT routed it successfully; `miss_class` is `null` when `verdict=PASS` and required when `verdict=FAIL` (see §3.1); `reasoning` is one short paragraph (≤80 words) explaining why. See "Routing-only mandate" below for what `verdict=FAIL` means. |
+For `high-impact-adoption`, use an independent cold reader who has not authored
+the reviewed slice. A `routine` review may use `scoped-self-review` only when
+`status-protocol.md §6` permits it. Keep this reviewer role separate from the
+mandatory `implementation-delegator` reader profile. Give the reviewer only:
 
-### Routing-only mandate (v2.42)
+- the realistic task prompt;
+- the declared entrypoint and reading boundary;
+- access to the frozen consumer SSOT;
+- the output schema below.
 
-The cold agent's job is **routing**, not validation. The prompt input gives
-the user-visible intent; the agent's task is to find where SSOT documents
-the change. It is not asked to judge whether the commit is correct,
-well-designed, or aligned with SSOT consensus — those judgements are out
-of scope and produce false-FAIL drift.
+Do not give the author plan, a summary of the intended answer, the expected
+score, or source evidence before the first teach-back. Pin and record the model
+or reviewer identity when the environment supports it. The artifact always
+records a stable reviewer ID. A high-impact adoption records
+`reviewer_role: independent-cold-reader`; a display name or generic word such as
+“reviewer” is not a stable identity.
 
-Concretely:
+### 1.4 Artifact link and visible-content boundary
 
-- Return `verdict=PASS` when a `hop2_anchor` is found that resolves per §3's
-  grading rubric, regardless of whether the underlying commit "looks right"
-  relative to SSOT history.
-- Return `verdict=FAIL` only when SSOT cannot be routed — i.e. no file under
-  the allowed scope provides a `file:line` / `tests/...::test_name` / SQL
-  identifier / DOM selector / route+handler anchor for the commit's intent
-  within the 5-hop budget. In that case `reasoning` must name the missing
-  SSOT anchor (which file would have needed the row, what kind of anchor) —
-  not a critique of the commit text against SSOT history.
-- "The commit text and SSOT consensus disagree" is **not** a routing
-  failure; it is a content concern out of harness scope. If the cold agent
-  finds the anchor, record `verdict=PASS`; any content disagreement belongs
-  to a separate review.
+A durable review must remain understandable and checkable after it moves to
+another machine. A link that works only because it names the reviewer's absolute
+workspace path proves nothing about the consumer SSOT.
 
-Cycles 3 and 4 surfaced ~25-30% of trials drifting from "route to owner"
-into "validate commit text against SSOT consensus" mode under the prior
-ambiguous prompt. Cycle 5 regression with this mandate explicitly restated
-at trial-prompt time tests whether schema-deviation drops below 10%.
+Every owner or evidence link saved in the review artifact therefore:
 
-### 2.1 Pillar assignment (v2.43)
+1. uses a relative Markdown link from the artifact;
+2. resolves, after normalising the path, to a regular Markdown file inside the
+   current consumer `SSOT/` tree;
+3. does not traverse a symbolic link and does not land in `SSOT/.bootstrap/`,
+   another review artifact, the current artifact itself, or a path outside the
+   consumer SSOT;
+4. resolves its fragment to a real heading or explicit anchor when a fragment is
+   present.
 
-The trial harness derives `pillar` from the commit's user-visible intent
-before issuing the prompt:
+Reject absolute paths, `file://` or web URLs, bare paths presented as evidence,
+and links whose visible label hides an out-of-scope target. The reviewer may
+inspect source, configuration, tests, or runtime evidence named by a consumer
+SSOT owner, but the artifact's durable evidence link points to that SSOT owner
+or exact owner anchor; record the lower-level check and its result in plain text.
 
-- **`design_intent`** — the commit changes architectural invariants,
-  runtime ownership, decomposition basis, or CTG. Cold agent is asked
-  "why does this commit exist architecturally" and must land on
-  `architecture/` root|view|domain narrative + decomposition or invariant
-  evidence.
-- **`product_intent`** — the commit changes a product promise,
-  capability scope, journey, or acceptance. Cold agent is asked "what
-  does this commit promise the user" and must land on `product/`
-  capability or journey narrative + acceptance row.
-- **`design_truth`** — the commit moves a code anchor a design invariant
-  points at. Cold agent is asked "which architecture anchor changed"
-  and must land on a `[SYMBOL-PIN]` `path:LNN` or `[FAILURE-TRACE]`
-  regression test.
-- **`product_truth`** — the commit moves or clarifies current
-  user-observable product reality: a shipped surface (route, handler,
-  component, selector), a product gap, a design/debt state, or an explicit
-  Out / not-applicable boundary. Cold agent is asked "what can the user
-  rely on today, and what surface or gap owner proves it". It must land on
-  either a `[SURFACE-PIN]` route + component + browser / route / CLI test
-  for `state: contract`, or a product-owner state row that names
-  `state: design` / `state: debt` / `Out` / `not_applicable` plus its
-  closure owner (`DEBT-NNNN`, `ADJ-NNNN`, ADR closure condition, or named
-  test-to-add). Product truth is current truth; it is not allowed to infer
-  "not shipped yet" from silence.
+Only visible Markdown satisfies the artifact contract. Ignore headings, tables,
+links, verdicts, and field-like text inside HTML comments or fenced code. A
+passing artifact contains no authoring comment, placeholder, TODO/TBD marker, or
+unreplaced angle-bracket token. A code fence may preserve supporting output, but
+it cannot supply a required H2, table row, evidence link, or verdict.
 
-A commit may produce trials in 1–4 pillars depending on its diff.
-Cross-cutting commits (architecture+product) must produce trials in at
-least one `*_intent` and one `*_truth` pillar. Each commit produces ≥3
-trials per pillar (so a 4-pillar commit yields 12 trials; a single-
-pillar commit yields 3 trials).
+## 2. Review probes
 
-**Trial budget (cycle-2)**: the harness must cap total trials at 48 per
-cycle (8 commits × 6 trials average). When a stratified sample produces
-> 48 trials at the `≥3 per (commit, pillar)` rate, the harness reduces
-to exactly 3 trials per `(commit, pillar)` cell and skips the over-quota
-cells in this priority order: `product_truth` cross-cutting >
-`design_truth` cross-cutting > `product_intent` operational >
-`design_intent` operational. Skipped cells are recorded `N/A` in §5
-results with `skipped_reason: budget-cap`; they do not count toward gate
-denominators. A cycle that hits budget-cap on ≥2 pillars is flagged
-inconclusive and the next cycle must re-stratify with fewer cross-cutting
-commits. N/A cells from `budget-cap` are separable from N/A cells from
-`pillar-not-applicable-to-commit` in the results table; the §3
-inconclusive threshold (denom < 4) counts both.
+Run the probes in this order so later evidence cannot mask a weak reader path.
 
-**Pillar-roundtrip enforcement (v2.43, cycle-3).** The harness embeds
-the assigned `pillar` value into the trial prompt as a fixed field
-(e.g. `pillar_assigned: design_intent`) and instructs the cold agent to
-echo it back unchanged. A trial whose returned `pillar` does not match
-the harness-assigned `pillar` is recorded `verdict=FAIL` with the
-synthetic class `pillar-mismatch` in the §5 results table; such trials
-count toward the failing-cell denominator but are also flagged in §5
-"Schema deviation" as a separate diagnostic and (when ≥ 10% of trials
-in a cycle exhibit `pillar-mismatch`) escalate to `skill-fail` per §4
-(the prompt template failed to constrain pillar labelling). The
-per-pillar denominator in §3 is computed from harness-assigned pillars
-only; agent-returned pillars are used solely for the roundtrip check.
+### 2.1 Route probe
 
-### 1.5 Owner-pillar coverage requirement (v2.43, cycle-3)
+From the declared entrypoint, ask the reviewer to name the next owner and why.
+The route passes when the owner is authoritative, is reached within budget,
+and does not require opening a machine-only file. For directory routing, the
+reviewer may see the tree and the first screen of the immediate README; opening
+one child README is the second and final routing hop.
 
-Before the §1 stratified sample is finalised, the harness reads every
-owner's `intent_recovery_pillars: [..]` declaration (per
-`knowledge-integrity.md §1.1`) and computes the (owner, declared_pillar)
-coverage matrix the cycle must hit. For each declared pillar of every
-owner that is touched by ≥ 1 commit in the candidate sample, the cycle
-MUST schedule ≥ 1 trial in that pillar against ≥ 1 such commit. When
-the §1 stratified sample does not naturally satisfy this matrix, the
-harness:
+The full review includes generic route questions for product promise, current
+surface, architecture response, known bugs, development workflow, and whether
+to open `_manifest.md`, plus questions generated from the consumer's actual
+owner names. At least 80% must pass and no mandatory route may fail.
 
-1. First, swaps in commits that touch the under-sampled owner's
-   declared pillar (re-stratify within the candidate pool of 30).
-2. If no candidate commit touches the under-sampled owner in the
-   missing pillar, records the (owner, declared_pillar) pair as
-   `pillar-not-applicable-to-cycle` in §5 results and carries it as an
-   open `STATUS.md ## Pending Captures` row "owner X awaiting cycle
-   that touches its declared pillar Y".
-3. The pair is excluded from the multi-pillar `covered` gate per
-   `knowledge-integrity.md §1.1` for this cycle; the owner remains
-   `partial` until a future cycle's organic sample touches it.
+### 2.2 Tables-hidden teach-back
 
-The cycle report's §5 "Per-pillar score" table must include a new row
-"declared-pillar coverage" listing how many declared (owner, pillar)
-pairs were sampled vs. deferred. A cycle deferring ≥ 30% of declared
-pairs is flagged inconclusive (the bundle protocol failed to drive
-enough sampling pressure).
+Hide tables, manifests, code fences, HTML author comments, Doctor labels, and
+protocol metadata. Using only narrative prose in the bounded reader files, the
+reviewer teaches back:
 
-### 1.6 Canonical-vocab spot-check (v2.43.1, cycle-3)
+- the product audience, problem, current entry choices, normal and recovery
+  experience, boundaries, acceptance, and future gap;
+- the architecture context, request-to-result path, runtime owners, state/write
+  ownership, trust/contracts, failure/recovery, deployment/diagnosis when
+  applicable, and evolution gap;
+- the product and technical owners reached by the six bounded tasks, including
+  their boundary and evidence direction;
+- the product-to-architecture traces reached by those tasks in both directions.
 
-In addition to the §1 commit-derived stratified sample, every cycle
-adds a **vocab spot-check** stratum: 2 synthetic trials drawn from the
-consumer's canonical-vocabulary registry (`glossary/README.md` + any
-`[WORKFLOW-STATE-VOCAB]` (15A) targets) and from any term used
-normatively in apex constraint files (e.g. `CLAUDE.md` / `AGENTS.md`)
-but absent from `glossary/`. Selection is deterministic: the harness
-greps the apex constraint files for typographic markers (\``\`-fenced
-identifiers and `MUST/SHOULD/MAY` neighbourhoods), filters out terms
-already glossary-defined, and picks the 2 with the highest reference
-count. The trial prompt for these synthetic spot-checks is: "What does
-<term> mean in this SSOT and where is its authoritative definition?".
+The teach-back also names the applicable quality/risk constraints that change
+the reader's decision. It explains them in the natural product or system story;
+it does not recite `Q01`-`Q21` or depend on the STATUS register as prose.
 
-The 2 spot-check trials are scored under the same §3 / §3.1 rules as
-commit trials; FAIL with `miss_class=glossary-gap` is the expected
-catch. Spot-check trials are tagged `pillar=glossary_vocab` (a fifth
-pillar reserved for this stratum) and gated as a sixth gate condition:
-`pillar_score[glossary_vocab] = 2/2`. A FAIL here is always `doc-fail`
-(the consumer's glossary owes the entry); never `skill-fail`.
+Restore tables only after this answer is recorded. A table may improve lookup,
+but it cannot repair a missing causal story. If hiding tables changes a central
+conclusion, record `table-dependence` and fail the task.
 
-### 1.7 Recovery-manifest sweep (v2.45; five archetypes from v2.59)
+### 2.3 Cross-owner truth consistency
 
-Before the §1 commit-derived sample is finalised, select the manifest protocol
-from the consumer waterline.
+Compare every statement used in the teach-back across its unique prose owner,
+root synthesis, linked view/domain or capability/journey, and manifest row.
+Check that:
 
-- For `tracked_skill_version >= 2.59`, enumerate every
-  `01-product/**/_manifest.md` and `02-architecture/**/_manifest.md`. Require
-  the location-matching YAML `manifest_archetype`: `product-root` at
-  `01-product/_manifest.md`, `product-collection` at capability/journey
-  collections, `architecture-root` at `02-architecture/_manifest.md`,
-  `architecture-views` at `02-architecture/views/_manifest.md`, and
-  `architecture-domain` at each direct numbered domain. A non-empty reader
-  collection/domain with no manifest is itself a mandatory failed cell.
-- For `2.48 <= tracked_skill_version < 2.59`, enumerate the sibling manifests
-  required by the v2.48 separation contract: the product and architecture
-  roots, product capability/journey collections, architecture views, and each
-  direct architecture domain. Grade their Core recovery rows, evidence, and
-  lifecycle conditions, but do not require the five YAML archetype labels that
-  were introduced at v2.59. A non-empty collection/domain with no sibling
-  manifest is a mandatory failed cell.
-- For `2.45 <= tracked_skill_version < 2.48`, run the historical inline probe
-  against the Core recovery manifests in the pre-faceted legacy owners:
-  `product/README.md` or `product/prd.md`, and `architecture/README.md`.
-  Numbered `01-product/` / `02-architecture/` paths arrived at v2.57 and must
-  not be imposed on this branch. Do not require sibling `_manifest.md` files.
+- product maturity/evidence follows the product contract in
+  `reader-quality.md`, while architecture lifecycle state stays in
+  architecture;
+- product and architecture link across the constraint/technical-response
+  boundary without copying or changing each other's facts;
+- root and views synthesize rather than strengthen a child owner's posture;
+- inventory rows, owner bodies, and evidence/closure pointers agree;
+- deployment, observability, and failure claims name the same runtime owner.
 
-Consumers below v2.45 record the manifest sweep as `N/A: pre-manifest
-waterline`; do not retroactively impose a later physical layout.
+A contradiction about current user behaviour, ownership, trust, persistence,
+failure handling, or deployment is a critical truth error. Do not average it
+away with strong prose scores.
 
-Each location-specific manifest produces a finite set of mandatory
-`(archetype, core_item, owner, pillar)` cells. Root manifests cover the product
-spine or architecture shape; collection manifests cover every child owner;
-the views manifest covers every applicable cross-owner question; domain
-manifests cover boundary, state/resources, contracts/trust, canonical flow,
-failure/recovery, and stable evidence. A reasoned `not_applicable` row remains
-a cell and must name the reason, evidence, and revisit owner.
+### 2.4 Evidence sampling
 
-Before row sampling, run one completeness probe per manifest and one teach-back
-per product/architecture trunk. The manifest probe asks why its rows are the
-finite set for that archetype, which near-miss items are excluded, whether every
-child/default question is represented, and whether lifecycle/evidence states
-match the linked owners. The teach-back reads the actual prose owner with tables
-hidden and asks what is true today, what is target/debt/out, what wrong
-conclusion an omission would cause, and where to go next. A complete manifest
-cannot rescue a heading/table-only owner; strong prose cannot rescue a missing
-manifest row.
+After the teach-back, sample the cited evidence most likely to falsify it. A
+full review records one evidence row per mandatory task. Across those six rows,
+cover a real user-visible surface, a product boundary or recovery claim, a
+state/contract/flow claim, a failure/deployment/diagnosis claim, and both ends
+of the product-to-architecture trace. Across the same rows, sample the
+highest-consequence applicable Q dispositions and their named gaps. Do not
+replace task coverage with an arbitrary maximum number of convenient links.
+The evidence sample adds depth to the finite target table; it does not decide
+which owners or targets exist.
 
-For each mandatory row from every selected manifest:
+Open only the cited route/handler, selector/component, schema/symbol, test,
+config, or runtime surface needed for the sample. In the durable table, link the
+consumer SSOT owner or exact owner anchor that states the claim and pins that
+evidence; describe the lower-level item actually checked, observed result, and
+limit in the surrounding cells. Record claim, evidence,
+fitness/fidelity/freshness, result, and limit. Path existence alone does not
+prove path semantics or a visible label. Record whether browser proof used a
+real backend/runtime or a rendered mock, and whether identity/audit evidence
+identifies a human, service, session, or actor token. Evidence weakness does
+not silently change product maturity; it creates the evidence or closure gap
+defined by the product owner contract.
 
-1. If the row declares a pillar as `not_applicable`, the row is recorded `N/A`
-   only when it gives a reason and a revisit owner.
-2. If the row's owner is touched by a commit in the candidate pool, the normal
-   commit-derived trial covers that row.
-3. If no candidate commit touches the row, the harness schedules one
-   owner-directed synthetic trial per required pillar. The prompt includes the
-   archetype and row's user/design-facing name and asks the cold agent to
-   recover the narrative owner, current truth state, evidence/closure owner,
-   and omission risk. Synthetic trials use the same hop budget and schema, but
-   the `hop2_anchor` is graded against both the manifest row **and** its linked
-   prose owner rather than a commit diff hunk.
+### 2.5 Finite owner and inventory probes
 
-The cycle report records a "Recovery manifests" table with one row per
-mandatory cell plus one `archetype_completeness` row per manifest and one
-`intent_truth_narrative` row per trunk. A missing/wrong-archetype manifest,
-omitted core item/child/default question, missing required pillar,
-missing completeness argument, unexplained near-miss exclusion, unmapped
-non-protocol state label, state stronger than the owner body (including
-all-`contract` where `mixed` is required), or failed synthetic trial is
-`miss_class=missing-owner` or `truth-state-gap` as appropriate and routes to
-Doctor `[CORE-COVERAGE-MAP]` (15G). A missing/table-only prose narrative routes
-to `[INTENT-TRUTH-NARRATIVE]` (15H); if the same document also omits a manifest
-row or state, report both 15H and 15G. A cycle with any failing mandatory
-manifest or narrative cell cannot support an area-level `intent_recovery:
-covered` claim even if the ordinary 8-commit sample passes. For v2.59, the
-report groups failures by manifest archetype so a root pass cannot hide a
-collection, views, or domain failure.
+Reconcile the finite target table against the frozen inventories before grading
+individual prose. The product side passes only when every real or reasoned
+non-applicable surface, reader owner, and bridge row appears once, routes to its
+unique product owner, and states current user-visible behaviour or an honest
+boundary. The architecture side passes only when every reader owner, direct
+owner classification, applicable view or reasoned exception, technical surface,
+and bridge row appears once; each technical surface routes to exactly one
+classified owner; and support/target rows cannot masquerade as current runtime
+owners.
 
-### 1.8 Directory-tree routing probe (v2.50, `dir-tree-only`)
+Then read every linked owner body far enough to verify the target's decision,
+delegated action, visible result, and boundary. This is a semantic check, not a
+row-count or long-string check. A table cell containing many owner names does
+not prove that any linked page teaches the target. Inventory completeness is
+structural; truth and explanation remain semantic. One strong owner or one deep
+evidence sample cannot rescue an omitted, duplicated, unassigned, or unread
+target.
 
-Before the §1 commit-derived sample, the harness runs one routing-only probe
-that gives the cold agent only `tree SSOT/ -L 3` output plus the first 40 lines
-of the relevant directory README. Reading file bodies is forbidden — the test
-is whether directory names, file names, and the README directory map are
-enough to route the agent to the right owner.
+## 3. Scoring and verdict
 
-| Field | Rule |
-|---|---|
-| Input | `tree SSOT/ -L 3` output (or `ls -R SSOT/` if `tree` unavailable) + first 40 lines (≈ one terminal screen) of `SSOT/README.md` and, when the question scopes deeper, the first 40 lines of the immediate parent directory README. **No file body reads.** |
-| Hop budget | 2 (open at most one sub-directory README's first screen) |
-| Question pool | Routing prompts the harness samples 5–8 per cycle; mandatory questions every cycle: (a) "I want to understand what the product promises the user — where do I go?", (b) "I want to read the front-end implementation — where do I go?", (c) "Should I open `_manifest.md`?", (d) "What's the relation between `control-plane` and `control-plane-benchmark` (or your closest equivalent pair)?", (e) "There are multiple files under `capabilities/` — which one do I read first?", (f) "I want to see known bugs — which directory?", (g) "I want to see the development workflow — which directory?". Add 2–4 questions sampled from the consumer's actual recent confusion log. |
-| Verdict | `PASS` if the agent names the correct directory path and (when applicable) the correct file or file ordinal; `FAIL` otherwise. |
-| `miss_class` (extends §3.1) | `navigation-gap` — the directory name itself does not display its role; `boundary-gap` — sibling directories' boundaries are not displayed (e.g. `bugs/` vs `tech-debt/` vs `gotchas/`); `meta-routing-gap` — the reader cannot tell whether to open `_manifest.md` (or any `_*.md`) from the map; `read-order-gap` — multiple peer files but the map does not name a reading order. |
+Map every mandatory task to its applicable leaves, score the task/leaf pairs,
+then derive each of the 16 leaf scores as the minimum applicable task score.
+Keep family, leaf ID, dimension name, `/32` threshold, family floors, and the
+implementation-delegator hard floor verbatim from `reader-quality.md §7`; this
+harness does not redefine them.
 
-Aggregate rule: at least 80% of the question pool must `PASS`. A FAIL on any
-mandatory question (a)–(g) is a cycle-level signal — route the affected
-directory through Doctor `15N` / `15O` / `15P` / `15Q` depending on the
-`miss_class`. The probe runs whether or not the §1 commit sample fires; it is
-the cheap up-front gate for IA self-display per
-[`bootstrap.md` §3.7 A1](../../ssot-bootstrap/references/bootstrap.md#37-ssot-docs-must-be-readable-cold).
+A task passes only when it stays within its bounded read set/hops, gives the
+tables-hidden teach-back, has no unresolved route/truth/evidence failure, and
+does not depend on a non-owner copy. The whole review passes only when all are
+true:
 
-### 1.9 Comprehension probe (v2.59)
+1. all score, family, leaf, and persona floors in `reader-quality.md §7.3` pass;
+2. every leaf is non-zero and every applicable task score is recorded;
+3. cold proofs `CP-D`, `CP-R`, `CP-T`, `CP-E`, and `CP-C` pass; `CP-D`
+   explicitly proves the implementation request, visible result/evidence, and
+   stop/escalation decision without source reading;
+4. `critical_truth_errors = 0` and `unresolved_required_changes = 0`;
+5. all six mandatory tasks and the exact `C + scope + Q` completeness profile pass;
+6. every finite owner/target row is present once, assigned, read, and passing;
+7. exactly one current STATUS stop row matches the artifact's reviewer, role,
+   review date, verdict, artifact pointer, and authorisation;
+8. `verdict = no-more-required-changes`.
 
-Run this probe after routing and manifest checks, against the **actual consumer
-Markdown**, not a synthetic template. Select the reviewer under
-[`status-protocol.md` §6](../../ssot-preflight/references/status-protocol.md#6-stop-review-gate):
-`self-reviewed` is the default, and independent review is required only for
-bootstrap overall `passed`, a `documentation_language` change, a
-`semantic_impact=high` protocol upgrade, or the first
-`coverage_result=converged` declaration. Give that reviewer `SSOT/README.md`,
-then let the documented first-day path route them through product and
-architecture. Do not give code, the author's plan, the expected score, or a
-summary of the intended answer.
+Any other result is `needs-fix`. Lint, an author-assigned score, or a high
+aggregate cannot override a failed mandatory task, truth conflict, or zero
+dimension.
 
-The reviewer returns three teach-backs:
+### 3.1 Miss classes
 
-1. product — audience/problem, current surfaces, primary and recovery journeys,
-   promise/non-goals, acceptance, target/gaps;
-2. architecture — context/main path, runtime owners, state/write ownership,
-   contracts/trust, failure/recovery, operations, current/target/gap;
-3. one sampled capability and one sampled domain — normal scene, failure scene,
-   boundary, current/target distinction, and evidence direction.
+Every failed task records one primary miss class and may list secondary ones:
 
-Then score 0–2 on the eight dimensions owned by
-[`reader-quality.md §7`](../../ssot-preflight/references/reader-quality.md#7-cold-reader-acceptance):
-orientation/audience, causal narrative, current truth, target/gaps,
-boundaries/non-goals, normal+failure paths, terminology, owner/evidence
-reachability. Hide tables and repeat the central teach-back; prose must still
-carry the story.
+| Miss class | Meaning | Usual fix owner |
+|---|---|---|
+| `missing-owner` | No authoritative prose owner answers the task | Consumer SSOT owner/inventory |
+| `surface-inventory-gap` | A real user surface is absent, duplicated, or has no product disposition | Product root manifest/inventory |
+| `owner-inventory-gap` | A technical surface, owner classification, or cross-owner view is absent or ambiguous | Architecture root manifest/inventory |
+| `quality-disposition-gap` | An applicable Q dimension, layer owner, evidence process, or named gap is silent or mislabeled non-applicable | STATUS register plus the missing layer owner |
+| `broken-ref` | The owner exists but a link or evidence anchor is stale | Linked consumer owner |
+| `prose-fork` | The reviewer lands on a non-owner copy or two owners maintain the fact | Unique prose owner |
+| `truth-conflict` | Linked owners disagree about a current or target fact | Owners in conflict plus adjudication if needed |
+| `table-dependence` | Narrative prose cannot carry the teach-back without tables | Reader-facing prose owner |
+| `reader-locality-gap` | The answer exists only outside the bounded local owner path | Reader Map or expected owner |
+| `evidence-sample-gap` | A sampled claim lacks, contradicts, or overstates its cited evidence | Claim owner and closure record |
+| `glossary-gap` | A repository-specific term cannot be understood or has conflicting definitions | Glossary owner |
+| `comprehension-gap` | The route is correct but the reader cannot explain the causal story or boundary | Reader-facing prose owner |
 
-The probe passes only at `>=14/16`, with no zero, no critical truth error, and
-verdict `no-more-required-changes`. A lower score or uncertainty caused by the
-document is `needs-fix`: record the failed dimension and exact reader path,
-rewrite the consumer or protocol root cause, and repeat with the reviewer
-selected under `status-protocol.md` §6. Routing success, a score assumed by the
-author without running this probe, and a clean lint run cannot override the
-recorded result.
+## 4. Failure partition
 
-## 3. Grading rubric
-
-Each commit gets ≥3 trials per pillar with majority vote (best-of-3, ≥2
-trials must succeed) per `(commit, pillar)` cell. A trial is `pass` only
-when:
-
-1. `hop1_path` is a real file under `SSOT/` (Reader-Map / domain README / capability / playbook acceptable).
-2. `hop2_anchor` resolves: the file:line lands inside the commit's diff hunk **±10 lines** (or is named anywhere in the diff); the test name appears in the diff or is the regression test the diff explicitly cites; the DOM selector / route / SQL identifier appears verbatim in the diff.
-3. Hops used ≤ 5.
-4. Output is well-formed (matches the schema; no "I cannot find" answer).
-
-Any one failure ⇒ trial fail. Trial vote per `(commit, pillar)`:
-- ≥ 2 of 3 trials pass → that `(commit, pillar)` cell scores 1/1.
-- otherwise → that `(commit, pillar)` cell scores 0/1.
-
-**Cycle scoring (v2.43, per-pillar plus aggregate, on an 8-commit × 4-pillar grid)**:
-
-- `pillar_score[p] = sum of (commit, pillar=p) cells / 8 commits`, per
-  pillar `p ∈ {design_intent, product_intent, design_truth, product_truth}`.
-- `total_score = sum of pillar_score[p] over all 4 pillars`, max `32/32`.
-
-**Cycle gate (all conditions must hold)**:
-
-1. `pillar_score[design_intent] ≥ ceil(0.625 · denominator[design_intent])` cells passing, denominator ≥ 4 (else inconclusive per §3 closing paragraph)
-2. `pillar_score[product_intent] ≥ ceil(0.625 · denominator[product_intent])`, denominator ≥ 4
-3. `pillar_score[design_truth] ≥ ceil(0.625 · denominator[design_truth])`, denominator ≥ 4
-4. `pillar_score[product_truth] ≥ ceil(0.625 · denominator[product_truth])`, denominator ≥ 4
-5. `total_score / sum(denominators) ≥ 0.75`, evaluated as a ratio so the rule survives N/A reduction (at full 8×4=32 the ratio collapses to the announced ≥ 24/32 floor; with N/A the same 0.75 floor is enforced against the reduced denominator)
-6. zero rows in the skill-fail partition (§4)
-7. `pillar_score[glossary_vocab] = 2/2` (per §1.6); a FAIL here routes to `STATUS.md ## Pending Captures` as `glossary-gap` doc-fail.
-8. every mandatory recovery-manifest cell is PASS or `N/A` with a reason
-   and revisit owner (per §1.7).
-9. the comprehension probe (§1.9) is `>=14/16`, has no zero or
-   critical truth error, and returns `no-more-required-changes`.
-
-When any pillar denominator falls below 4 commits the cycle is
-inconclusive (per the existing rule below); the gate is not evaluated.
-
-The per-pillar floor (`5/8`) prevents a strong pillar from masking a
-collapsed pillar; the aggregate floor (`24/32`) prevents four borderline
-pillars from all sitting at `5/8` (which would average 62.5% — below the
-prior 75% bar). When a commit produces no trials in a pillar (e.g. a
-pure architecture-core commit has no `product_truth` trial), that cell
-is recorded as `N/A` and the pillar denominator drops accordingly; if
-any pillar denominator falls below 4 commits the cycle is inconclusive
-and the sample must be re-stratified.
-
-The §0 "When to run" reference to `pass rate ≥ 75% (≥ 6/8 trials)` from
-v2.42 is superseded by this 4-pillar rule.
-
-### 3.1 Miss-class taxonomy (v2.43)
-
-Every FAIL trial must record exactly one `miss_class` drawn from the
-closed set below. The cold agent emits `miss_class` in the trial output
-(extending the §2 schema; `null` is required for `verdict=PASS` and
-forbidden for `verdict=FAIL`):
-
-| miss_class | Definition | Trial signature | Routing fix layer |
-|---|---|---|---|
-| `missing-owner` | No SSOT file claims authority over the commit's pillar-appropriate intent/truth. The cold agent exhausted the hop budget without finding any candidate file whose body would house the answer. | hop1 fails: every Reader Map / index points to areas that disclaim ownership; or grep over `SSOT/` for the intent's keywords yields zero authoritative-body hits. | New owner row in architecture/domain README, product capability file, or `decisions/` entry. Often surfaces a `[PRODUCT-OWNER]` or `[ARCH-DOMAINS]` gap. |
-| `prose-fork` | The fact exists in ≥2 SSOT locations with overlapping prose, and the cold agent landed on the non-authoritative copy (anchor was stale or partial). Same root cause as Doctor `[FORK]` (15D) but observed from the routing side. | hop2 anchor resolves but the resolved file has been demoted to a thin link OR the diff hunk is owned by a sibling file the cold agent did not visit within budget OR hop2 anchor resolves but post-trial `ssot-lint.sh` reports the resolved file is the non-authoritative copy of a forked fact (see §3.2). | Migrate the fact to its unique runtime owner; non-owners become single-line links. Always pairs with a `[FORK]` (15D) or `[CORE-REF-PROSE]` (14Z) doctor row. |
-| `broken-ref` | The owner exists and points at the right anchor kind, but the pointer itself is stale: `path:LNN` drifted, symbol renamed, route moved, test renamed, or capability surface registry row out of date. The cold agent did not exceed budget — the pointer just resolved to the wrong line/symbol or to a deleted file. | hop2 anchor matches the schema but ±10-line check fails OR target file does not exist OR named symbol/test/selector is not in the diff. | Update the pointer (`[SYMBOL-PIN]` / `[SURFACE-PIN]` / `[FAILURE-TRACE]` anchor refresh). Lint script `ssot-lint.sh` #2 catches the mechanical case; semantic drift needs Doctor row 20 `[CORE-REF]` / `[SYMBOL-PIN]` (14S). |
-| `glossary-gap` | The intent prompt uses a term that has no positive-definition-on-first-use anywhere in SSOT (or has multiple inconsistent definitions across owners). The cold agent could not disambiguate which owner the term routed to. | Multiple hop1 candidates each plausibly own the term; OR no file defines the term and the cold agent cannot map the user-visible word to an SSOT entity. | Add the term to `glossary/` with a positive definition and a unique owner pointer. Often surfaces a `[READABILITY]` (14I) negation-only definition or an undefined product-capability noun, or a missing `[WORKFLOW-STATE-VOCAB]` (15A) canonical-vocabulary entry. |
-| `truth-state-gap` (v2.44) | The product owner names a current/planned user-observable surface but does not state whether today's truth is shipped contract, design/debt, Out, or not applicable; OR it records `state: design` / `state: debt` / "later" without a falsifiable closure owner. | `product_truth` trial reaches the right capability/journey but the row has no `state`, no current user-visible behavior, no missing-evidence description, or no `DEBT/ADJ/ADR/test` closure pointer. | Add a product current-truth row per `area-model.md §2.1`: `state: contract` + `[SURFACE-PIN]`, or `state: design/debt/Out/not_applicable` + current behavior + closure owner. This is a doc-fail unless the bundle protocol omitted the row shape. |
-| `pillar-mismatch` (cycle-3) | The agent-returned `pillar` does not equal the harness-assigned `pillar`. Indicates prompt-template instability rather than a routing or owner failure. | `pillar` field in trial output ≠ `pillar_assigned` field in trial prompt. | Tighten the §2.1 prompt template; this is a `skill-fail` when ≥10% of trials in a cycle exhibit it. |
-
-Fail rows extend the §4 schema to `(commit_sha, pillar, hop_died_at,
-miss_class, expected_anchor_kind, actual_anchor_kind,
-proposed_fix_owner)`. Cycle reports must group fails by
-`(pillar, miss_class)` so cycles can detect convergence (same pair
-appearing two cycles in a row escalates from doc-fail to skill-fail per
-§4 tie-breaker logic).
-
-### 3.2 Authoritative-owner check (v2.43.1, cycle-3)
-
-A `verdict=PASS` trial is downgraded to `verdict=FAIL` with
-`miss_class=prose-fork` whenever the resolved `hop2_anchor` lives in a
-file that doctor row `15D [FORK]` or `14Z [CORE-REF-PROSE]` would flag
-against the same fact in the same cycle. Concretely, after the cold
-agent emits its trial output, the harness runs `ssot-lint.sh` against
-the resolved file and the canonical owner (located via the Reader-Map
-/ glossary lookup); if the lint reports that the resolved file's body
-duplicates prose owned by another file, the trial is recorded as
-`prose-fork` regardless of the agent's self-assessment.
-
-This closes the silent-pass path that lets a forked fact satisfy §3
-grading without surfacing the fork. It is the only place where harness
-post-processing overrides the agent's `verdict`; in all other cases
-`verdict` is taken at face value per the routing-only mandate
-(§2 routing-only mandate).
-
-## 4. Failure partition (skill-fail vs doc-fail)
-
-The judgement that fixes SSOT-SKILL versus the judgement that fixes the
-consumer SSOT must be split, or the skill never converges:
+Keep consumer-document failure separate from bundle-protocol failure:
 
 | Partition | Definition |
 |---|---|
-| `doc-fail` | The bundle protocol already requires the anchor type the cold agent needed (e.g. `[SYMBOL-PIN]`, `[SURFACE-PIN]`, `[FAILURE-TRACE]`) but the consumer SSOT did not provide it. Doctor on the same slice flags it. → routed to consumer's `STATUS.md ## Pending Captures` for the next cycle's doc rewrite phase. |
-| `skill-fail` | The bundle protocol does **not** require the anchor type the cold agent needed (or required it only at WARN level, never as a hard gate). Doctor on the same slice is clean but the cold agent still fails. → routed to `projects/SSOT-SKILL/skills/ssot-audit/references/protocol-upgrades.md ## Bundle Captures` for the next cycle's skill phase, prioritised before doc work. |
-| Tie-breaker | If doctor is dirty *and* the cold agent fails on the same row, treat as `doc-fail` first — the doc fix may also fix the cold agent fail. Re-classify on the next cycle if it persists. |
+| `doc-fail` | The current bundle requires the missing inventory, owner, prose, route, or evidence shape, but this consumer does not provide it. Route to `STATUS.md ## Pending Captures`. |
+| `skill-fail` | Doctor and the bundle contract are clean, yet the realistic task still fails because the protocol never required the needed shape. Route to the bundle's protocol capture owner. |
+| Tie-breaker | When Doctor is dirty on the same row, repair the consumer first. If the same miss survives the next rotated review, reclassify it as `skill-fail`. |
 
-Each fail row records: `(commit_sha, pillar, hop_died_at, miss_class,
-expected_anchor_kind, actual_anchor_kind, proposed_fix_owner)` per §3.1.
-Subsequent cycles group related fails by `(pillar, miss_class)`; a pair
-appearing in two consecutive cycles escalates the row from `doc-fail` to
-`skill-fail` automatically (the bundle protocol failed to gate what the
-consumer SSOT failed to provide twice in a row, so the responsibility
-crosses the partition boundary). The legacy `missing_evidence_kind` field
-is retired — `miss_class` carries the same information with a closed
-vocabulary.
+Each fail row names `task_id`, `miss_class`, `hop_died_at`, expected owner or
+evidence kind, actual result, partition, and proposed fix owner.
 
-## 5. Reproducibility
+## 5. Durable review evidence
 
-Each run produces:
-`projects/SSOT-SKILL/skills/ssot-doctor/assets/cold-agent-sim/cycle-example.md`
+Write a durable Markdown artifact under `SSOT/.bootstrap/` for each full review.
+Use the exact frontmatter schema and result values owned by
+[`reader-quality.md §7`](../../ssot-preflight/references/reader-quality.md#7-cold-reader-acceptance),
+using the paired `reader-review.md` template. The rendered artifact contains
+exactly the 29 scalar fields shown there, once each, with no aliases or extra
+keys. In addition to the existing review fields, it records `reviewer` as a
+stable identity and `authorises` as exactly `area:product:covered` or
+`area:architecture:covered`, matching scope and profile. L1 rejects
+missing/duplicate/extra fields, scope or tracking baseline mismatch, template
+placeholders, an unbounded route, a stale shared-surface fingerprint, a
+non-resolvable or non-ancestor commit, a missing per-task evidence sample, an
+incomplete finite target/profile set, or a dimension table whose 16 canonical
+leaf minima do not sum to the declared score and meet every family/persona
+floor.
 
-With these sections:
+The artifact also records the frozen inventory/content identifiers, sample
+seed, exact task prompts, opened files and hops, teach-backs, per-task verdicts,
+miss classes/partitions, the complete finite target table, deeper-evidence
+rotation, and next rotation. A passing artifact has no deferred target; only
+deeper evidence may be deferred with a named limit. A link to chat or a bare
+"reviewed" sentence is not durable evidence. Apply the relative, in-SSOT,
+regular-Markdown, non-symlink, non-review, non-self link boundary in §1.4 to
+every owner/evidence link.
+
+The six machine-checked H2 sections are:
 
 ```markdown
-# Cycle <N> Cold-Agent Simulation Report
+# Reader Review <id>
 
-## Setup
-- Commit pool: <git rev range>
-- Sampling cycle-id: <id>
-- Model: <pinned id>
-- Trials per commit: 3
-- Hop budget: 5
-- Run date: <ISO>
-
-## Sample (8 commits)
-| # | SHA | Stratum | Subject |
-| ...
-
-## Results (per (commit, pillar) cell, v2.43)
-| # | SHA | pillar | trial-1 | trial-2 | trial-3 | cell_score (0/1) | hop_died_at | miss_class | partition |
-| ...
-
-A `(commit, pillar)` row appears once per pillar the commit produces trials in (1–4 rows per commit). `cell_score` is 1 when ≥2 of 3 trials pass per §3, else 0. `miss_class` is `null` when `cell_score=1`; required and drawn from §3.1's closed set otherwise.
-
-## Per-pillar score
-| pillar | passing cells | denominator | pillar_score | floor (≥5/8 = 0.625) | gate |
-|---|---|---|---|---|---|
-| design_intent | … | … | … | … | PASS / FAIL |
-| product_intent | … | … | … | … | PASS / FAIL |
-| design_truth | … | … | … | … | PASS / FAIL |
-| product_truth | … | … | … | … | PASS / FAIL |
-| **total** | … | …/32 | … | ≥24/32 | PASS / FAIL |
-
-## Recovery manifests (v2.45; archetype-aware v2.59)
-| area | archetype | core_item | owner | pillar | trial_kind | state | verdict | miss_class | closure_owner |
-| ...
-
-## Comprehension review (v2.59)
-- Reviewer: <self-reviewed or reviewer id selected under status-protocol §6>
-- Product teach-back: <summary>
-- Architecture teach-back: <summary>
-- Sampled owners: <capability>, <domain>
-| dimension | score (0-2) | evidence or confusion path |
-| ...
-- Total: <n>/16
-- Truth errors: none / <details>
-- Verdict: no-more-required-changes / needs-fix
-
-## Miss-class distribution (FAIL cells)
-| pillar | missing-owner | prose-fork | broken-ref | glossary-gap |
-| ...
-
-## Skill-fail rows (route to bundle captures)
-| commit | pillar | expected_anchor_kind | actual_anchor_kind | miss_class | proposed_fix_owner | proposed bundle change |
-| ...
-
-## Doc-fail rows (route to consumer Pending Captures)
-| commit | pillar | expected_anchor_kind | actual_anchor_kind | miss_class | proposed_fix_owner | proposed doc change |
-| ...
-
-## Cycle gate
-PASS / FAIL — per §3: the routing/pillar floors pass, every mandatory manifest cell passes/is reasoned N/A, the comprehension probe is >=14/16 with no zero/truth error and verdict `no-more-required-changes`, and there are zero skill-fail rows.
+## Bounded reading set
+## Teach-back
+## Consistency and evidence sample
+## Dimension scores
+## Completeness profile
+## Required changes and verdict
 ```
 
-The full transcript of each trial is archived under
-`assets/cold-agent-sim/transcripts/cycle-<N>/<commit-sha>-trial-<n>.md`.
+Use the corresponding locked-language headings from the paired template. Put
+the route probe inside `Bounded reading set`. Put frozen inventories, task
+prompts, route/locality results, truth samples, failure partitions, and the
+verdict inside those sections as prose or H3 subsections; adding a seventh H2
+such as `Route probe` would fork the artifact protocol.
 
-## 6. Termination
+Keep trial transcripts beside the artifact only when needed to reproduce a
+failure. The artifact itself must be sufficient for Doctor to locate every
+claim that supports the verdict.
 
-The SSOT-SKILL × consumer-SSOT iterative cycle terminates when **two consecutive cycles** simultaneously satisfy the §3 cycle gate in full:
+### 5.1 Product/architecture covered-claim closure
 
-1. `pillar_score[design_intent] ≥ ceil(0.625·denom)` cells passing, and
-2. `pillar_score[product_intent] ≥ ceil(0.625·denom)`, and
-3. `pillar_score[design_truth] ≥ ceil(0.625·denom)`, and
-4. `pillar_score[product_truth] ≥ ceil(0.625·denom)`, and
-5. `total_score / sum(denominators) ≥ 0.75`, and
-6. `pillar_score[glossary_vocab] = 2/2`, and
-7. every mandatory recovery-manifest cell is PASS or reasoned N/A, and
-8. the §1.9 comprehension probe is `>=14/16`, has no zero or
-   critical truth error, and returns `no-more-required-changes`, and
-9. zero `skill-fail` rows in either cycle.
+A product or architecture artifact proposes one covered claim through its exact
+`authorises` value. A `no-more-required-changes` artifact closes that claim only
+when `STATUS.md` has exactly one current Stop Review Gate row for the same scope
+and authorisation. Compare all of these values, not merely the artifact link:
 
-A single passing cycle is not enough — the gate must be stable across one
-slice rotation to confirm the bundle anticipates rather than memorises.
-The pre-v2.43 flat-75% rule does not satisfy termination even when both
-cycles report ≥ 75% aggregate; a collapsed single pillar blocks
-termination even if the other three carry the average.
+- stable reviewer identity;
+- reviewer role;
+- reviewed date (the date portion of STATUS reviewed time);
+- `no-more-required-changes` or `needs-fix` result;
+- STATUS Evidence resolving to this exact artifact;
+- `area:product:covered` or `area:architecture:covered` authorisation.
+
+Record the comparison in the template's visible STATUS closure table. Do not
+self-link the artifact from that table; link the consumer STATUS section and
+state whether its evidence resolves back to the current artifact. Multiple
+current rows, an older competing row, any field mismatch, or a missing row makes
+the proposed covered claim `needs-fix`.
+
+A `needs-fix` artifact remains valid evidence of failure even when no STATUS row
+exists—that missing row may be the failure. Record the exact visible sentinel
+`none: needs-fix does not authorise covered` and closure result
+`not-authorised`. It may instead link one diagnostic `needs-fix` stop row when
+the project records failed reviews, but every populated field must match. It
+must never leave a passing current row that still authorises the failed covered
+claim.
+
+For `high-impact-adoption`, both the artifact and STATUS row use the same stable
+reviewer and `reviewer_role: independent-cold-reader`. Routine review may use
+`scoped-self-review` only where `status-protocol.md §6` allows it.
+
+The final H2 ends with exactly one visible `Final verdict:` line (localized by
+the template). That value always equals frontmatter `verdict` and the
+required-changes calculation. For `no-more-required-changes`, it also equals the
+required STATUS row result. For `needs-fix`, it equals a linked diagnostic stop
+row when one exists; otherwise the closure table uses the `not-authorised`
+sentinel above. `no-more-required-changes` requires zero unresolved rows and the
+single `none` sentinel or resolved rows only. `needs-fix` requires the unresolved
+count to equal all `pending`, `required`, and `open` rows. A verdict hidden in a
+comment or code fence is not a verdict.
+
+### 5.2 Lightweight exact-scope evidence
+
+Process, records, glossary, root, and STATUS use `scope-review.md`, not the six
+task rows or sixteen-leaf score above. Follow the exact artifact schema in
+`reader-quality.md §7.7`. A passing artifact proves both completeness and a
+bounded check against repository truth:
+
+1. disposition every exact profile ID once and link one reachable owner or
+   evidence route;
+2. pass the three review-basis checks for current fingerprint, route
+   resolution, and STATUS authority;
+3. save one semantic-truth sample from every profile family, and—when both
+   appear—at least one `covered` and one `not_applicable` sample;
+4. for each sample, record `Item ID`, the exact owner/body claim checked, one
+   resolving non-review repository/evidence link, `Truth result`, and the
+   limit of what the sample does not prove;
+5. leave no unresolved required change and make frontmatter, final verdict,
+   Area Status, and Stop Review Gate agree.
+
+Open the linked body and the smallest fitting code, schema, configuration,
+test, runtime, or source-material evidence. Confirm the disposition, boundary,
+ordinary-language narrative, and claimed evidence depth; path existence is not
+truth. Every truth result in a passing artifact is `pass`. A 46/46, 38/38, or
+similar row count with no saved semantic sample is a false green.
+
+## 6. Regeneration and termination
+
+On `needs-fix`, classify the miss, update the evidence inventory when needed,
+repair unique owners bottom-up, regenerate indexes/views/root synthesis, and
+rerun the affected full or lightweight review with a reviewer chosen under
+`status-protocol.md §6`. For process also recheck its method and stable assets;
+for records, both state axes and exact indexes; for glossary, all six families;
+for root, task routes; and for STATUS, every exact register. Do not patch only
+the score or disposition table.
+
+One passing artifact can support its scoped covered claim. A protocol-upgrade
+or SSOT-SKILL × consumer optimization campaign terminates only after two
+consecutive review rounds pass across every affected scope, with different
+deterministic owner/surface or semantic-sample rotations and zero `skill-fail`
+rows. Product and architecture use their full reviews; the other five scopes
+use exact-scope reviews. This shows the protocol generalises beyond one
+memorised sample. In each product/architecture round, the complete finite
+owner/target population still appears and passes; rotation changes only the
+deeper evidence selected from that population.
+
+## 7. Historical compatibility
+
+Protocols v2.43–v2.58 used commit-derived intent/truth pillars and per-pillar
+floors. v2.59 added an eight-dimension `/16` comprehension probe. Those reports
+remain valid historical evidence at their recorded tracking baseline; do not rewrite
+them or claim they used v2.60.
+
+For a consumer tracked below v2.60, Doctor interprets the existing artifact
+under the recorded protocol. Advancing to v2.60 requires the inventories and a
+new task-based `/32` artifact; legacy pillar declarations, scores, or production
+evidence labels cannot satisfy the new gate.
+
+For `2.45 <= tracked_skill_version < 2.48`, the historical compatibility sweep
+reads the inline manifests only in `product/README.md` and
+`architecture/README.md`. Do not require sibling `_manifest.md` files.

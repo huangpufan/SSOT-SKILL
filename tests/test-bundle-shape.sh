@@ -52,6 +52,45 @@ for skill in "${SKILLS[@]}"; do
   fi
 done
 
+# 3b. Non-router SKILL bodies stay as activation prompts. Detailed manuals
+# belong in references; ssot-preflight alone owns the bundle routing exception.
+for skill in ssot-bootstrap ssot-closeout ssot-audit ssot-doctor ssot-skill; do
+  SKILL_MD="$PROJECT_ROOT/skills/$skill/SKILL.md"
+  BODY="$(awk 'BEGIN{fences=0} /^---[[:space:]]*$/{fences++;next} fences>=2{print}' "$SKILL_MD")"
+  BODY_WORDS="$(printf '%s\n' "$BODY" | wc -w | tr -d '[:space:]')"
+  if [[ "$BODY_WORDS" -le 60 ]]; then
+    pass "$skill: SKILL.md body stays within the 60-word activation budget ($BODY_WORDS)"
+  else
+    fail "$skill: SKILL.md body exceeds the 60-word activation budget ($BODY_WORDS)"
+  fi
+  if printf '%s\n' "$BODY" | grep -qE '^\|'; then
+    fail "$skill: SKILL.md body contains a routing/manual table"
+  else
+    pass "$skill: SKILL.md body delegates detailed routing to references"
+  fi
+done
+
+# 3c. STATUS has one reader-facing name. Historical CHANGELOG/archive entries
+# may preserve old language, but active protocol and shipped surfaces may not
+# invent synonyms for the same tracking-baseline concept.
+BASELINE_OWNER="$PROJECT_ROOT/skills/ssot-preflight/references/status-protocol.md"
+if grep -qF 'The canonical reader-facing name is **tracking baseline**' "$BASELINE_OWNER" &&
+   grep -qF '“追踪基线”' "$PROJECT_ROOT/skills/ssot-bootstrap/assets/templates/zh/ssot-readme.md"; then
+  pass "status-protocol owns the canonical tracking-baseline name"
+else
+  fail "status-protocol does not own the canonical tracking-baseline name"
+fi
+BASELINE_SYNONYM_HITS="$({
+  printf '%s\n' "$PROJECT_ROOT/AGENTS.md" "$PROJECT_ROOT/README.md" "$PROJECT_ROOT/README.zh.md"
+  find "$PROJECT_ROOT/skills" -type f ! -path '*/references/archive/*' ! -name 'CHANGELOG.md' -print
+} | xargs rg -n -i 'waterline|coverage baseline|coverage baselines|事实覆盖基线|覆盖基线' 2>/dev/null || true)"
+if [[ -z "$BASELINE_SYNONYM_HITS" ]]; then
+  pass "active protocol and shipped surfaces use only tracking baseline / 追踪基线"
+else
+  fail "active protocol or shipped surface forks the tracking-baseline vocabulary"
+  printf '%s\n' "$BASELINE_SYNONYM_HITS"
+fi
+
 # 4. Each skill has agents/openai.yaml
 for skill in "${SKILLS[@]}"; do
   YAML="$PROJECT_ROOT/skills/$skill/agents/openai.yaml"
@@ -136,11 +175,23 @@ if [[ -d "$TPL_DIR/en" && -d "$TPL_DIR/zh" ]]; then
   else
     fail "stray templates at root: $STRAY"
   fi
+
+  # Authoring-only reader guidance is allowed in template comments, but the
+  # same template pairs must carry it in both shipped languages.
+  EN_AUTHORING_NOTES="$(rg -l 'Writing style:|Reader profile authority:' "$TPL_DIR/en"/*.md 2>/dev/null | xargs -r -n1 basename | sort)"
+  ZH_AUTHORING_NOTES="$(rg -l '行文风格：|行文对象：|写作对象(默认)?(是|：)|写作姿态：|读者画像权威：' "$TPL_DIR/zh"/*.md 2>/dev/null | xargs -r -n1 basename | sort)"
+  if [[ "$EN_AUTHORING_NOTES" == "$ZH_AUTHORING_NOTES" ]]; then
+    pass "template authoring-note en/zh file parity"
+  else
+    fail "template authoring-note en/zh file parity diverges"
+    echo "    en-only: $(comm -23 <(printf '%s\n' "$EN_AUTHORING_NOTES") <(printf '%s\n' "$ZH_AUTHORING_NOTES"))"
+    echo "    zh-only: $(comm -13 <(printf '%s\n' "$EN_AUTHORING_NOTES") <(printf '%s\n' "$ZH_AUTHORING_NOTES"))"
+  fi
 else
   fail "templates en/ and zh/ dirs not both present"
 fi
 
-# 6a. Current protocol and rendered templates use the v2.57 numbered
+# 6a. Current protocol and rendered templates use the numbered
 # faceted layout. Unnumbered paths are permitted only where protocol prose
 # explicitly labels them as legacy, migration input, deprecated, or archived.
 CURRENT_PATH_FILES=(
@@ -218,7 +269,85 @@ else
   echo "    unknown in index: $(comm -13 <(printf '%s\n' "$ACTUAL_TEMPLATE_NAMES") <(printf '%s\n' "$INDEXED_TEMPLATE_NAMES") | tr '\n' ' ')"
 fi
 
-# 6b. Protocol-upgrade ledger layering
+# 6b. Process/records/glossary use dedicated bilingual templates and Phase 1
+# wires only their roots/indexes. Entry templates remain event-driven.
+SPECIALIZED_TEMPLATES=(
+  process-readme.md
+  deployment-readme.md
+  operations-readme.md
+  security-and-compliance-readme.md
+  records-readme.md
+  glossary-readme.md
+  gotchas-readme.md
+  gotcha-entry.md
+  bugs-readme.md
+  bug-entry.md
+  tech-debt-readme.md
+  tech-debt-entry.md
+)
+SPECIALIZED_TEMPLATE_FAILS=()
+for template in "${SPECIALIZED_TEMPLATES[@]}"; do
+  for lang in en zh; do
+    [[ -f "$TPL_DIR/$lang/$template" ]] || SPECIALIZED_TEMPLATE_FAILS+=("$lang missing $template")
+  done
+  grep -qF "| \`$template\` |" "$TEMPLATE_INDEX" || SPECIALIZED_TEMPLATE_FAILS+=("index missing $template")
+done
+
+for lang in en zh; do
+  for template in process-readme.md deployment-readme.md operations-readme.md security-and-compliance-readme.md; do
+    grep -qF 'C01-C09' "$TPL_DIR/$lang/$template" || SPECIALIZED_TEMPLATE_FAILS+=("$lang $template common profile IDs")
+    grep -qF 'PR01-PR16' "$TPL_DIR/$lang/$template" || SPECIALIZED_TEMPLATE_FAILS+=("$lang $template process profile IDs")
+    grep -qF 'Q01-Q21' "$TPL_DIR/$lang/$template" || SPECIALIZED_TEMPLATE_FAILS+=("$lang $template quality profile IDs")
+  done
+  grep -qF '(../01-product/README.md)' "$TPL_DIR/$lang/process-readme.md" || SPECIALIZED_TEMPLATE_FAILS+=("$lang process-to-product link")
+  grep -qF '(../02-architecture/README.md)' "$TPL_DIR/$lang/process-readme.md" || SPECIALIZED_TEMPLATE_FAILS+=("$lang process-to-architecture link")
+  grep -qF '(../04-records/README.md)' "$TPL_DIR/$lang/process-readme.md" || SPECIALIZED_TEMPLATE_FAILS+=("$lang process-to-records link")
+  grep -qF '(../01-product/README.md)' "$TPL_DIR/$lang/records-readme.md" || SPECIALIZED_TEMPLATE_FAILS+=("$lang records-to-product link")
+  grep -qF '(../02-architecture/README.md)' "$TPL_DIR/$lang/records-readme.md" || SPECIALIZED_TEMPLATE_FAILS+=("$lang records-to-architecture link")
+  for template in records-readme.md decisions-readme.md decision-entry.md research-readme.md research-entry.md gotchas-readme.md gotcha-entry.md bugs-readme.md bug-entry.md tech-debt-readme.md tech-debt-entry.md; do
+    grep -qF 'C01-C09' "$TPL_DIR/$lang/$template" || SPECIALIZED_TEMPLATE_FAILS+=("$lang $template common profile IDs")
+    grep -qF 'R01-R16' "$TPL_DIR/$lang/$template" || SPECIALIZED_TEMPLATE_FAILS+=("$lang $template record profile IDs")
+  done
+  grep -qF 'C01-C09' "$TPL_DIR/$lang/glossary-readme.md" || SPECIALIZED_TEMPLATE_FAILS+=("$lang glossary common profile IDs")
+  grep -qF 'G01-G08' "$TPL_DIR/$lang/glossary-readme.md" || SPECIALIZED_TEMPLATE_FAILS+=("$lang glossary profile IDs")
+  grep -qF 'C01-C09' "$TPL_DIR/$lang/glossary-entry.md" || SPECIALIZED_TEMPLATE_FAILS+=("$lang glossary entry common profile IDs")
+  grep -qF 'G01-G08' "$TPL_DIR/$lang/glossary-entry.md" || SPECIALIZED_TEMPLATE_FAILS+=("$lang glossary entry profile IDs")
+done
+
+BOOTSTRAP_REF="$PROJECT_ROOT/skills/ssot-bootstrap/references/bootstrap.md"
+SKELETON_PATHS=(
+  SSOT/03-process/README.md
+  SSOT/03-process/development/README.md
+  SSOT/03-process/testing/README.md
+  SSOT/03-process/benchmark/README.md
+  SSOT/03-process/release/README.md
+  SSOT/03-process/deployment/README.md
+  SSOT/03-process/operations/README.md
+  SSOT/03-process/security-and-compliance/README.md
+  SSOT/04-records/README.md
+  SSOT/04-records/decisions/README.md
+  SSOT/04-records/research/README.md
+  SSOT/04-records/gotchas/README.md
+  SSOT/04-records/bugs/README.md
+  SSOT/04-records/tech-debt/README.md
+  SSOT/glossary/README.md
+)
+for path in "${SKELETON_PATHS[@]}"; do
+  grep -qF "$path" "$BOOTSTRAP_REF" || SPECIALIZED_TEMPLATE_FAILS+=("bootstrap missing $path")
+done
+for template in "${SPECIALIZED_TEMPLATES[@]}"; do
+  grep -qF "$template" "$BOOTSTRAP_REF" || SPECIALIZED_TEMPLATE_FAILS+=("bootstrap missing $template")
+done
+grep -qF 'Phase 1 must not create empty `04-records/*/NNNN-<slug>.md` entries.' "$BOOTSTRAP_REF" || SPECIALIZED_TEMPLATE_FAILS+=("bootstrap permits empty record entries")
+grep -qF 'do not create empty term files' "$BOOTSTRAP_REF" || SPECIALIZED_TEMPLATE_FAILS+=("bootstrap permits empty glossary entries")
+
+if [[ ${#SPECIALIZED_TEMPLATE_FAILS[@]} -eq 0 ]]; then
+  pass "specialized process/records/glossary templates and skeleton wiring"
+else
+  fail "specialized template contract failed: ${SPECIALIZED_TEMPLATE_FAILS[*]}"
+fi
+
+# 6c. Protocol-upgrade ledger layering
 AUDIT_REF="$PROJECT_ROOT/skills/ssot-audit/references"
 CURRENT_UPGRADE="$AUDIT_REF/current-upgrade.md"
 ARCHIVE_INDEX="$AUDIT_REF/archive/index.md"

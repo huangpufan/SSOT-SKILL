@@ -88,10 +88,33 @@ A new bootstrap by default evaluates the `views/ + direct numbered domains` stru
 - Which durable/ephemeral state, write ownership, retention and rebuild facts enter `views/state-and-data-lifecycle.md`.
 - Which public/internal contracts, authentication, permissions, secrets and external trust boundaries enter `views/contracts-and-trust-boundaries.md`.
 - Which cross-owner detection, retry, cancellation, rollback, restart and degradation paths enter `views/failure-and-recovery.md`.
+- Which runtime topology, environment variants, deployment units, health and
+  telemetry meaning, alert-to-diagnosis routes, restart, rollback, and recovery
+  proof enter `views/deployment-and-observability.md`.
 - Which implementation current-target-gap, migration intent and implementation gaps of product acceptance enter `views/current-target-gap.md`.
 - Which state/contract/failure details enter direct numbered `NN-<domain>/README.md` owners.
 
 Bootstrap may extract readability candidates from repository evidence and ordinary source material: Reader Map topics, claim-to-evidence assertions, script/tool inventory and diagram candidates. The recommended main axis must be cross-validated by code, config, schema, test, runtime behaviour or design-intent material; do not copy an external auto topic tree or add a parallel auto-generated knowledge surface, schema or new top-level area.
+
+**Reader evidence inventories (v2.60).** Recon also produces three finite inputs
+for writing and review:
+
+- a product surface inventory sampled from real routes, navigation, entry
+  modes, controls, settings, diagnostics, external entry channels, commands,
+  public interfaces, output artifacts, notifications, and help/onboarding;
+  every row routes to one product owner or a reasoned non-product disposition;
+- an architecture owner inventory that classifies runtime, support, and target
+  owners, lists the applicable cross-owner views, and assigns every technical
+  surface to one unique owner. Deployment shape, observability/diagnosis, and
+  the product constraint implemented by each technical owner are explicit
+  questions whenever they apply.
+- the exact `Q01`-`Q21` applicability and owner/gap dispositions required by
+  `reader-quality.md`; recon identifies candidate owners and missing evidence,
+  but does not create twenty-one fixed document sections.
+
+The root manifests own these inventories or one stable pointer to their unique
+owner. A source tree, old PRD, or architecture diagram is evidence input, not a
+substitute for either inventory.
 
 When producing Phase 2 output, absorb three classes of native architecture capabilities: Reader Map / quick-understanding map for navigation at root/views/domain entries; Readable Authority / readable authoritative body for evidence, why, risk, constraints, owner and current/target/gap separation of key claims; authoritative owner anchor to ensure each key long-lived claim has a single owner. Reader Map must be generated from architecture decomposition, reader questions and evidence; it only does reader route and does not carry independent long-lived facts. Also initially inventory required Mermaid diagrams: boundary/context, domain decomposition (if any), current flow diagram for each Runtime Flow, and applicable state/resource, lifecycle/concurrency, failure/recovery, trust/config diagrams. L/XL repos should also give an initial coverage-depth prediction and a sampling/uncovered plan. Detailed rules in [`references/architecture.md`](../../ssot-preflight/references/architecture.md).
 
@@ -117,7 +140,7 @@ exclusion. Pattern-level rows are allowed for large research/history trees when
 they declare lifecycle, owner, authority, absorbed target, do-not-use boundary,
 review date, and review trigger.
 
-Repository scripts and utilities are by default first identified from repo script directories, package manifests, CI, Makefile, config and actual run commands, and routed to `03-process/development/`, `03-process/testing/`, `03-process/release/` or `03-process/deployment/`; only when scripts carry model-generation pipelines, session analysis, release consistency, state migration or other architectural behaviour, they are synced into the related architecture view/domain.
+Repository scripts and utilities are by default first identified from repo script directories, package manifests, CI, Makefile, config and actual run commands, and routed to `03-process/development/`, `03-process/testing/`, `03-process/release/`, `03-process/deployment/`, or the conditional `03-process/operations/` and `03-process/security-and-compliance/` owners; only when scripts carry model-generation pipelines, session analysis, release consistency, state migration or other architectural behaviour, they are synced into the related architecture view/domain.
 
 `STATUS.md` must keep the source-material absorption matrix; during bootstrap also sync into `SSOT/.bootstrap/manifest.md`.
 
@@ -141,13 +164,22 @@ Create the SSOT directory structure and state-tracking file. The skeleton struct
 2. `SSOT/README.md` (opens with one-sentence repository positioning ("what this repo is, who it serves, what it does") before the Reader Map and area index; if recon found high-frequency/high-risk development task clusters, add the task-entry map thin index. Include a `First-day reading order` section — positioning → product brief/model → architecture response/runtime-owner map → task-relevant process/records → STATUS gates. Product intent precedes the architecture response for first-day understanding; task-level preflight may still route directly to a runtime owner. The reading order is ordered links plus one-line reasons; do not copy body content from area READMEs.) -- template in [`assets/templates/{en,zh}/ssot-readme.md`](../assets/templates/en/ssot-readme.md)
 3. `SSOT/STATUS.md` (tracked_commit set to current HEAD, tracked_skill_version set to current `ssot-preflight` `metadata.protocol_version`, documentation_language / documentation_language_evidence set to Phase 0 lock result, coverage_result set to `bootstrap`, all area states set to gap or unknown) -- template in [`assets/templates/{en,zh}/status.md`](../assets/templates/en/status.md)
 4. `SSOT/01-product/` product trunk folder, by default create `01-product/README.md`, `01-product/prd.md`, `01-product/product-model.md`, `01-product/roadmap-and-acceptance.md`, `01-product/capabilities/README.md` and `01-product/journeys/README.md`. Templates in [`assets/templates/{en,zh}/product-readme.md`](../assets/templates/en/product-readme.md), [`assets/templates/{en,zh}/product-prd.md`](../assets/templates/en/product-prd.md), [`assets/templates/{en,zh}/product-model.md`](../assets/templates/en/product-model.md), [`assets/templates/{en,zh}/product-roadmap-and-acceptance.md`](../assets/templates/en/product-roadmap-and-acceptance.md), [`assets/templates/{en,zh}/product-capabilities-readme.md`](../assets/templates/en/product-capabilities-readme.md), [`assets/templates/{en,zh}/product-journeys-readme.md`](../assets/templates/en/product-journeys-readme.md). Optional entry templates in [`assets/templates/{en,zh}/product-capability-entry.md`](../assets/templates/en/product-capability-entry.md) and [`assets/templates/{en,zh}/product-journey-entry.md`](../assets/templates/en/product-journey-entry.md)
-5. `SSOT/02-architecture/` trunk folder and satellite area folders, each with a `README.md`; new bootstrap by default creates `02-architecture/views/README.md`, `02-architecture/views/operating-model.md`, `02-architecture/views/critical-journeys.md`, `02-architecture/views/state-and-data-lifecycle.md`, `02-architecture/views/contracts-and-trust-boundaries.md`, `02-architecture/views/failure-and-recovery.md`, `02-architecture/views/current-target-gap.md`, and one or more direct `02-architecture/NN-<domain>/README.md` owners justified by recon. Root template in [`assets/templates/{en,zh}/architecture-readme.md`](../assets/templates/en/architecture-readme.md), views index template in [`assets/templates/{en,zh}/architecture-views-readme.md`](../assets/templates/en/architecture-views-readme.md), individual view templates in [`assets/templates/{en,zh}/architecture-view-operating-model.md`](../assets/templates/en/architecture-view-operating-model.md), [`assets/templates/{en,zh}/architecture-view-critical-journeys.md`](../assets/templates/en/architecture-view-critical-journeys.md), [`assets/templates/{en,zh}/architecture-view-state-and-data-lifecycle.md`](../assets/templates/en/architecture-view-state-and-data-lifecycle.md), [`assets/templates/{en,zh}/architecture-view-contracts-and-trust-boundaries.md`](../assets/templates/en/architecture-view-contracts-and-trust-boundaries.md), [`assets/templates/{en,zh}/architecture-view-failure-and-recovery.md`](../assets/templates/en/architecture-view-failure-and-recovery.md), [`assets/templates/{en,zh}/architecture-view-current-target-gap.md`](../assets/templates/en/architecture-view-current-target-gap.md), domain README template in [`assets/templates/{en,zh}/architecture-domain-readme.md`](../assets/templates/en/architecture-domain-readme.md), and optional domain playbook template in [`assets/templates/{en,zh}/architecture-domain-playbook.md`](../assets/templates/en/architecture-domain-playbook.md). Engineering operation areas may use [`assets/templates/{en,zh}/development-readme.md`](../assets/templates/en/development-readme.md), [`assets/templates/{en,zh}/testing-readme.md`](../assets/templates/en/testing-readme.md), [`assets/templates/{en,zh}/benchmark-readme.md`](../assets/templates/en/benchmark-readme.md), [`assets/templates/{en,zh}/release-readme.md`](../assets/templates/en/release-readme.md)
-6. Product and architecture manifests selected by owner type: `product-root-manifest.md`, `product-collection-manifest.md`, `architecture-root-manifest.md`, `architecture-views-manifest.md`, or `architecture-domain-manifest.md`. Do not copy a universal manifest into every owner. Instantiate only the sections that archetype owns; every required row must be complete before `covered`.
-7. `SSOT/04-records/research/README.md` research/POC record index -- template in [`assets/templates/{en,zh}/research-readme.md`](../assets/templates/en/research-readme.md). The skeleton creates the README only; do not create `SSOT/04-records/research/NNNN-<slug>.md` until a concrete research, spike, benchmark, or proof-of-concept record exists. Entry template: [`assets/templates/{en,zh}/research-entry.md`](../assets/templates/en/research-entry.md)
-8. `SSOT/.bootstrap/recon.md` (already produced in Phase 0)
-9. `SSOT/.bootstrap/manifest.md` (coordination layer: global state + area assignment) -- template in [`assets/templates/{en,zh}/bootstrap-manifest.md`](../assets/templates/en/bootstrap-manifest.md)
-10. `SSOT/.bootstrap/sessions/` (log layer: one file per exploration unit) -- template in [`assets/templates/{en,zh}/bootstrap-session.md`](../assets/templates/en/bootstrap-session.md)
-11. Optional thin-adapter files (AGENTS.md, CLAUDE.md, GEMINI.md, etc.) -- generated only when recon finds the repo already has or needs agent instruction files. Single template in [`assets/templates/{en,zh}/adapter-thin.md`](../assets/templates/en/adapter-thin.md): keep the optional `Key Reminders` section for files read proactively on startup (CLAUDE.md, GEMINI.md), drop it for files only read on demand (AGENTS.md). Before generating, check whether the target file already exists and is not SSOT-generated (no generated marker); on conflict, report rather than overwrite. See [`adapter-strategy.md`](../../ssot-doctor/references/adapter-strategy.md)
+5. `SSOT/02-architecture/` trunk folder and satellite area folders, each with a `README.md`; new bootstrap by default creates `02-architecture/views/README.md`, `02-architecture/views/operating-model.md`, `02-architecture/views/critical-journeys.md`, `02-architecture/views/state-and-data-lifecycle.md`, `02-architecture/views/contracts-and-trust-boundaries.md`, `02-architecture/views/failure-and-recovery.md`, `02-architecture/views/deployment-and-observability.md`, `02-architecture/views/current-target-gap.md`, and one or more direct `02-architecture/NN-<domain>/README.md` owners justified by recon. Root template in [`assets/templates/{en,zh}/architecture-readme.md`](../assets/templates/en/architecture-readme.md), views index template in [`assets/templates/{en,zh}/architecture-views-readme.md`](../assets/templates/en/architecture-views-readme.md), individual view templates in [`assets/templates/{en,zh}/architecture-view-operating-model.md`](../assets/templates/en/architecture-view-operating-model.md), [`assets/templates/{en,zh}/architecture-view-critical-journeys.md`](../assets/templates/en/architecture-view-critical-journeys.md), [`assets/templates/{en,zh}/architecture-view-state-and-data-lifecycle.md`](../assets/templates/en/architecture-view-state-and-data-lifecycle.md), [`assets/templates/{en,zh}/architecture-view-contracts-and-trust-boundaries.md`](../assets/templates/en/architecture-view-contracts-and-trust-boundaries.md), [`assets/templates/{en,zh}/architecture-view-failure-and-recovery.md`](../assets/templates/en/architecture-view-failure-and-recovery.md), [`assets/templates/{en,zh}/architecture-view-deployment-and-observability.md`](../assets/templates/en/architecture-view-deployment-and-observability.md), [`assets/templates/{en,zh}/architecture-view-current-target-gap.md`](../assets/templates/en/architecture-view-current-target-gap.md), domain README template in [`assets/templates/{en,zh}/architecture-domain-readme.md`](../assets/templates/en/architecture-domain-readme.md), and optional domain playbook template in [`assets/templates/{en,zh}/architecture-domain-playbook.md`](../assets/templates/en/architecture-domain-playbook.md)
+6. Product and architecture manifests selected by owner type: `product-root-manifest.md`, `product-collection-manifest.md`, `architecture-root-manifest.md`, `architecture-views-manifest.md`, or `architecture-domain-manifest.md`. Do not copy a universal manifest into every owner. Instantiate only the sections that archetype owns; the product root carries or points to the surface inventory, while the architecture root carries or points to the classified owner inventory and unique technical-surface registry. Every required row must be complete before `covered`.
+7. `SSOT/03-process/` engineering-process trunk. The default skeleton creates `SSOT/03-process/README.md`, `SSOT/03-process/development/README.md`, `SSOT/03-process/testing/README.md`, `SSOT/03-process/benchmark/README.md`, `SSOT/03-process/release/README.md`, and `SSOT/03-process/deployment/README.md`. When recon finds the applicability signals in `area-model.md`, also create `SSOT/03-process/operations/README.md` and/or `SSOT/03-process/security-and-compliance/README.md`; otherwise leave the conditional directory absent. Record the whole-area `not_applicable` reason and its one resolving boundary-owner link in the matching **Area Status** row. Separately update the process/evidence disposition in every affected Q row; if the Q concern itself is globally inapplicable, use the global Q `not_applicable` contract from `status-protocol.md`. Do not combine these two decisions into one cell. The root is a bounded router; child pages own their commands, gates, side effects, verification, recovery, and handoff. Templates: [`process-readme.md`](../assets/templates/en/process-readme.md), [`development-readme.md`](../assets/templates/en/development-readme.md), [`testing-readme.md`](../assets/templates/en/testing-readme.md), [`benchmark-readme.md`](../assets/templates/en/benchmark-readme.md), [`release-readme.md`](../assets/templates/en/release-readme.md), [`deployment-readme.md`](../assets/templates/en/deployment-readme.md), [`operations-readme.md`](../assets/templates/en/operations-readme.md), and [`security-and-compliance-readme.md`](../assets/templates/en/security-and-compliance-readme.md)
+8. `SSOT/04-records/` records trunk. The default skeleton creates `SSOT/04-records/README.md` plus the five index files `SSOT/04-records/decisions/README.md`, `SSOT/04-records/research/README.md`, `SSOT/04-records/gotchas/README.md`, `SSOT/04-records/bugs/README.md`, and `SSOT/04-records/tech-debt/README.md`. Templates: [`records-readme.md`](../assets/templates/en/records-readme.md), [`decisions-readme.md`](../assets/templates/en/decisions-readme.md), [`research-readme.md`](../assets/templates/en/research-readme.md), [`gotchas-readme.md`](../assets/templates/en/gotchas-readme.md), [`bugs-readme.md`](../assets/templates/en/bugs-readme.md), and [`tech-debt-readme.md`](../assets/templates/en/tech-debt-readme.md). These README files are index-only routes: lifecycle reasons, evidence, action, and closure remain in one entry owner.
+9. Record entry templates are event-driven, not skeleton files. Use [`decision-entry.md`](../assets/templates/en/decision-entry.md), [`research-entry.md`](../assets/templates/en/research-entry.md), [`gotcha-entry.md`](../assets/templates/en/gotcha-entry.md), [`bug-entry.md`](../assets/templates/en/bug-entry.md), or [`tech-debt-entry.md`](../assets/templates/en/tech-debt-entry.md) only after a concrete decision, research packet, pitfall, confirmed open/fixed/recurred failure, or debt exists. Phase 1 must not create empty `04-records/*/NNNN-<slug>.md` entries.
+10. `SSOT/glossary/README.md` repository-vocabulary root -- template in [`assets/templates/{en,zh}/glossary-readme.md`](../assets/templates/en/glossary-readme.md). The skeleton creates the root only. Use [`glossary-entry.md`](../assets/templates/en/glossary-entry.md) only when a real repository-specific or redefined term exists; do not create empty term files.
+11. `SSOT/.bootstrap/recon.md` (already produced in Phase 0)
+12. `SSOT/.bootstrap/manifest.md` (coordination layer: global state + area assignment) -- template in [`assets/templates/{en,zh}/bootstrap-manifest.md`](../assets/templates/en/bootstrap-manifest.md)
+13. `SSOT/.bootstrap/sessions/` (log layer: one file per exploration unit) -- template in [`assets/templates/{en,zh}/bootstrap-session.md`](../assets/templates/en/bootstrap-session.md)
+14. Optional thin-adapter files (AGENTS.md, CLAUDE.md, GEMINI.md, etc.) -- generated only when recon finds the repo already has or needs agent instruction files. Single template in [`assets/templates/{en,zh}/adapter-thin.md`](../assets/templates/en/adapter-thin.md): keep the optional `Key Reminders` section for files read proactively on startup (CLAUDE.md, GEMINI.md), drop it for files only read on demand (AGENTS.md). Before generating, check whether the target file already exists and is not SSOT-generated (no generated marker); on conflict, report rather than overwrite. See [`adapter-strategy.md`](../../ssot-doctor/references/adapter-strategy.md)
+
+Phase 1 creates no passing review artifact. During Phase 3, use
+[`reader-review.md`](../assets/templates/en/reader-review.md) for product and
+architecture. Use [`scope-review.md`](../assets/templates/en/scope-review.md) for
+process, records, glossary, root, and STATUS. The latter is a lightweight exact
+profile gate and must not copy the product/architecture 16-leaf score.
 
 ### Language discipline when instantiating templates
 
@@ -155,7 +187,7 @@ When rendering any template from `assets/templates/{en,zh}/`, pick the variant m
 
 ### Skeleton adaptation
 
-For L/XL-size repos, the skeleton creation can pre-build direct numbered domains under `02-architecture/` (e.g. `01-query-engine/`, `02-storage-engine/`, `03-control-plane/`) and the default views based on recon results, reducing structural work during later fill. But do not fill content during the skeleton phase; explicit gap placeholders are allowed only while `coverage_result=bootstrap` and must be removed or completed before `covered`. Existing unnumbered `SSOT/architecture/domains/` and `SSOT/architecture/<domain>/` trees are legacy migration inputs; migrate them before writing current owners.
+For L/XL-size repos, the skeleton creation can pre-build direct numbered domains under `02-architecture/` (e.g. `01-query-engine/`, `02-storage-engine/`, `03-api-gateway/`) and the default views based on recon results, reducing structural work during later fill. But do not fill content during the skeleton phase; explicit gap placeholders are allowed only while `coverage_result=bootstrap` and must be removed or completed before `covered`. Existing unnumbered `SSOT/architecture/domains/` and `SSOT/architecture/<domain>/` trees are legacy migration inputs; migrate them before writing current owners.
 
 ---
 
@@ -209,6 +241,7 @@ Tier 1 (context + root/view synthesis) -- establish the entry; re-check finally 
   02-architecture/views/state-and-data-lifecycle.md  durable/ephemeral state, write owners, transitions, retention, rebuild and recovery
   02-architecture/views/contracts-and-trust-boundaries.md  public/internal contracts, authentication, permissions, secrets, redaction and external trust
   02-architecture/views/failure-and-recovery.md  cross-owner detection, retry, cancellation, rollback, restart, degradation and operator diagnosis
+  02-architecture/views/deployment-and-observability.md  runtime topology, deployment/environment variants, health and telemetry meaning, alert-to-diagnosis, restart, rollback and recovery proof
   02-architecture/views/current-target-gap.md  implementation Current / Target / Gap, migration lines, implementation gaps of product acceptance, partially-landed technical intents
 
 Tier 2 (architecture-domain evidence) -- supports views/root synthesis
@@ -221,6 +254,8 @@ Tier 3 (engineering operation layer) -- depends on understanding of architecture
   03-process/benchmark     benchmark suites, workloads, floors, and comparison rules
   03-process/deployment    deployment and distribution
   03-process/release       release process
+  03-process/operations    recurring operation, maintenance, incident, continuity and recovery procedure when applicable
+  03-process/security-and-compliance  recurring security/privacy/compliance control and evidence procedure when applicable
 
 Tier 4 (emergent/historical layer) -- not proactively "filled", accumulates naturally during Tier 1-3 exploration
   04-records/decisions    major decisions
@@ -255,16 +290,18 @@ Information for each area is hidden in different places. The following table gui
 | benchmark | Benchmark scripts, benchmark config, CI performance jobs, profiling/cost reports with stable method | One-off research packets, performance dashboards, release-gate docs | `benchmark`, `bench`, `perf`, `performance`, `latency`, `throughput`, `capacity`, `cost`, `baseline`, `floor`, `regression` |
 | deployment | Dockerfile, k8s/, terraform/, CI/CD config, docker-compose | Deployment docs, release scripts | -- |
 | release | CHANGELOG, release scripts, version files, CI release steps | tag rules, publish config | `version`, `release`, `changelog` |
+| operations (conditional) | Runbooks, health/alert config, on-call or maintenance automation, backup/restore and continuity scripts | Incident reviews, operator docs, capacity/quota dashboards | `health`, `ready`, `alert`, `incident`, `maintenance`, `backup`, `restore`, `failover`, `runbook`, `quota` |
+| security-and-compliance (conditional) | Security policy/config, access-review or vulnerability automation, audit/export controls, signing/SBOM/license tooling | Threat models, privacy/compliance plans, customer or regulator duties | `security`, `threat`, `abuse`, `privacy`, `consent`, `audit`, `sbom`, `sign`, `license`, `residency`, `disclosure` |
 | decisions | ARCHITECTURE.md, ADR directory, design docs | PR descriptions, "why" in commit messages | -- |
 | research | Research notes, POC reports, benchmark summaries, spike docs, reproducibility notes | Code experiments, issue discussions, external papers/docs supplied by the user | `research`, `poc`, `spike`, `experiment`, `benchmark`, `prototype`, `hypothesis` |
 | gotchas | Code comments, bug-fix commits, workaround code | Issue tracker | `TODO`, `FIXME`, `HACK`, `WORKAROUND`, `XXX`, `NOTE` |
-| bugs | Bug-fix commits, root-cause analysis in PR descriptions, Issue tracker; cluster repeated fix/revert/hotfix by failure mode | Fix descriptions in code comments, CHANGELOG | `fix`, `bugfix`, `hotfix`, `revert`, `Fixes #` |
+| bugs | Confirmed failure evidence, issue tracker, bug-fix commits, and root-cause analysis in PR descriptions; cluster repeated fix/revert/hotfix by failure mode | Fix descriptions in code comments, CHANGELOG | `bug`, `failure`, `fix`, `bugfix`, `hotfix`, `revert`, `Fixes #` |
 | tech-debt | Code comments, legacy code patterns, deprecated markers | debt/refactor labels in Issue tracker | `TODO`, `FIXME`, `deprecated`, `legacy`, `TECH_DEBT` |
 | architecture (external deps/integration) | API client, SDK calls, retry/timeout config, error-handling branches in code | Integration notes in README, external API doc links, known-limit records, user-provided material | `client`, `sdk`, `api`, `timeout`, `retry`, `rate_limit`, `workaround`, `vendor`, `external` |
 
 This table is a guide, not a checklist -- the agent should flexibly adjust by the repo's tech stack and organization. Different languages and frameworks have different conventions.
 
-When recon finds tool entries in script directories, package manifest, CI, Makefile or config, Tier 3 areas should absorb their scannable form: development/testing/release/deployment README may use structured directories like `Filename / Purpose / Category / When to use / Evidence / Risk or prerequisite`, and route build/test/codegen/session-analysis/version-sync/import-rewrite scripts to the corresponding area by semantics. The fields are a recommended structure, not a new schema. If a script maintains an architectural invariant or generates a runtime contract, link from the engineering-operation area back to the architecture domain, view or decision.
+When recon finds tool entries in script directories, package manifest, CI, Makefile or config, Tier 3 areas should absorb their scannable form: development/testing/release/deployment and applicable operations/security-and-compliance READMEs may use structured directories like `Filename / Purpose / Category / When to use / Evidence / Risk or prerequisite`, and route build/test/codegen/session-analysis/version-sync/import-rewrite/maintenance/control scripts to the corresponding area by semantics. The fields are a recommended structure, not a new schema. If a script maintains an architectural invariant or generates a runtime contract, link from the engineering-operation area back to the architecture domain, view or decision.
 
 ### 3.4 Evidence trustworthiness and exploration efficiency
 
@@ -334,137 +371,24 @@ Tag format is not mandated -- inline annotation, footnote or entry metadata are 
 
 ### 3.7 SSOT docs must be readable cold
 
-This floor applies to every SSOT area the bundle generates -- `01-product/`, `02-architecture/` (root, views, direct numbered domains), `03-process/development/`, `03-process/testing/`, `03-process/benchmark/`, `03-process/release/`, `03-process/deployment/`, `04-records/decisions/`, `04-records/research/`, `04-records/gotchas/`, `04-records/bugs/`, `04-records/tech-debt/`, `glossary/` and the root `SSOT/README.md`. Infra-only files (`STATUS.md`, anything under `.bootstrap/`, and thin adapters) are out of scope.
+This section is a bootstrap routing adapter, not a second writing standard.
+Before rendering any reader-facing owner, read and apply the complete shared
+body scope, plain-language floor, information-architecture rules, profiles,
+manifest archetypes, and regeneration loop in
+[`reader-quality.md`](../../ssot-preflight/references/reader-quality.md). That
+file is the unique authority; do not copy its rules or profile vocabularies
+into bootstrap instructions.
 
-KISS is the permanent SSOT design principle. The reader should get the mental
-model from prose and use tables only to route, compare, or locate evidence.
-If a table is the only place where the document explains itself, the document
-has failed even if every row is accurate.
-
-KISS removes duplication, protocol machinery, and unnecessary hops; it does
-not minimise word count. Product and architecture owners also follow the
-explanatory-depth, archetype completeness, surface coverage, manifest, and
-cold-reader rules in
-[`reader-quality.md`](../../ssot-preflight/references/reader-quality.md).
-
-> Every section is first written for the stranger who lands tonight knowing nothing; tables, codes and tags they cannot read are not paragraphs.
-
-Three guardrails follow. Trust your defaults on everything else. Doctor `14I` (see [`doctor.md`](../../ssot-doctor/references/doctor.md) §2.2) enforces them as a stop-conclusion gate.
-
-1. **Prose before tables.** Open every section with the natural-language conclusion; tables come after as index or comparison.
-2. **Define every term positively on first use.** "X is …" -- never introduce a term with "X is not Y" or "X is unlike Z" first.
-3. **A cell is not a paragraph.** If a cell holds 3+ cross-references, nested clauses, or a `BUG-####` / `DEC-####` / `ADJ-####` reference plus a full verb clause, lift it into prose and leave the 1–2 most useful comparison dimensions in the cell.
-
-**Intent / truth narrative (v2.47).** Product and architecture trunks must not
-make the Core recovery manifest do the work of explanation. Before the manifest
-or any dense owner map, write a self-contained narrative that answers from first
-principles:
-
-- product: who the product serves, what problem it solves, what current promise
-  and target posture it carries, what is out of scope, what "acceptance" means,
-  and which product owner to read first for details;
-- architecture: why the runtime-owner axis is the right decomposition, what
-  current design truth is enforced today, what remains design/debt/Out, what
-  near-miss implementation inventories are deliberately excluded from the core,
-  and which architecture owner to read first for details.
-
-The manifest table follows as a finite recovery index. If a cold reader must
-derive the product or design story from table cells, Doctor reports
-`[INTENT-TRUTH-NARRATIVE]` (15H). If the narrative copies facts owned by another
-file instead of synthesizing and linking them, route the problem through the
-single-owner checks.
-
-**Architecture state-tag protocol (v2.39, product split v2.59).** Every
-architecture invariant and contract row carries an inline `state` tag so a
-cold agent can tell at a glance whether the row is enforced today or
-aspirational. The four legal values:
-
-| `state` | Meaning | Cold-agent expectation |
-|---|---|---|
-| `contract` | Enforced today; a regression breaks the contract. The row links a `path:LNN` symbol or `tests/...::test_*` that proves enforcement. | Trust as current authority. |
-| `design` | Intended target. Not enforced yet. Row links the next-step evidence (decision, debt, gap entry). | Treat as direction, not current truth. |
-| `poc` | Lives only inside `poc/` or behind a feature flag. Row links the flag/path. | Do not generalise; expect breakage outside the flag. |
-| `debt` | Known violation. Row links the `DEBT-NNNN` entry. | Read the debt entry before acting. |
-
-`design`, `poc`, `debt` rows must point to follow-up evidence; otherwise they
-are indistinguishable from gaps. Doctor `[STATE-TAG]` (14V) gates this; missing
-or invalid tags block `covered`.
-
-Product owners use two independent fields instead: product maturity
-(`current | limited | target | out`) and evidence fidelity (`production |
-integration | unit | static | missing`). Verification weakness must not turn a
-shipped surface into a target feature, and a unit test must not turn a target
-into current product truth. See `reader-quality.md §3`.
-
-Infra registers still obey a lighter KISS floor. `STATUS.md`, bootstrap
-manifest/session files, promotion blocks, and protocol ledgers may use fixed
-tables because they are state registers, but each cell must stay pointer-sized:
-state, owner, date, result, and evidence pointer only. Any paragraph-length
-reasoning, command transcript, checklist, or proof-of-work belongs in the
-authoritative owner, final response, commit/release note, CI artifact, bug
-entry, or other evidence surface, with only a pointer left in the register.
-
-**Information-architecture self-display (v2.50).** The cold reader's first
-touch is `ls`/`tree`, not `cat`. Directory names, grouping structure, and file
-name prefixes must carry the bulk of the routing burden so a stranger reading
-the tree (and at most a directory README's first screen) can pick the right
-file without parsing prose. Text — the README directory-map annotations and at
-most one sentence at the top of an authority file — only fills the gap where
-the name alone is ambiguous. Doctor `15N`–`15Q` enforce this floor; failing any
-sub-rule blocks the affected area from `covered`.
-
-A1.1 **Directory README = directory map.** Every SSOT directory that holds at
-least two sub-directories or two files (excluding `_manifest.md`) must open its
-`README.md` with an ASCII tree of its immediate children plus a one-sentence
-plain-language annotation per row (zero undefined jargon). The tree is the
-first content after the H1; long-running maintenance ledgers, capability
-registries, and stop-review notes go below the map.
-
-A1.2 **Numeric prefix for read-ordered directories.** When children have a
-recommended reading order (architecture sub-domains by runtime dependency,
-product spine by intent → boundary → roadmap, capability/journey numbered
-sets), use the two-digit `NN-` prefix established by
-[`formatting-conventions.md` §1](formatting-conventions.md#1-naming-conventions).
-When children are peers with no canonical order, the prefix is optional but the
-README must include a "recommended reading order" line under the map naming the
-first 2–3 entries to read.
-
-A1.3 **File names spoken in plain words where stability allows.** Team jargon
-file names (`sdk-agent-runtime`, `control-plane-benchmark`, etc.) may stay to
-avoid churning citations, but the README directory-map annotation row for each
-must translate the name into a plain-language sentence ("the layer that
-normalises calls to the AI model" rather than "the SDK agent runtime
-adapter"). New files prefer
-plain-language slugs; renames of long-cited files require a dedicated commit
-plus full repo-wide reference sweep.
-
-A1.4 **Meta files routed explicitly.** Any file whose name starts with `_`
-(currently `_manifest.md`) is for the SSOT self-maintenance machine, not the
-cold reader. The parent directory map must label such a row with a fixed marker
-("machine-only, skip") so the cold reader knows not to
-open it.
-
-The README map and the annotation row together carry the routing weight. The
-guardrails above (prose-before-tables, positive-definition, cell-is-not-a-
-paragraph) still apply to the annotation rows: each row gets one sentence, no
-embedded BUG/DEC/ADJ chains, no jargon that the map has not already defined.
-A reader who only sees the tree and the map annotations must be able to answer
-"where do I go for X" with ≥80% accuracy on the routing questions in
-[`cold-agent-sim.md`](../../ssot-doctor/references/cold-agent-sim.md) §1.8
-`dir-tree-only` probes.
-
-**Reader scaffolds (v2.51, de-checklisted v2.59).** Every owner still answers
-four questions: show one concrete walkthrough, distinguish likely sibling
-owners, state what the owner does not answer, and give the next reading path.
-They are semantic roles, not four mandatory H2 headings. Combine them with the
-opening mental model, boundary section, and final evidence/next-reading section
-when that reads better. Directory indexes keep explicit routing; runtime owners
-keep a first-screen component diagram and a canonical flow. Doctor grades the
-answers through the comprehension rubric rather than accepting empty headings.
-
-The prose-before-tables, positive-definition, and cell-is-not-a-paragraph
-guardrails still bind every scaffold. A walkthrough written as a table fails
-the same reader-quality gate as any table-disguised paragraph.
+During bootstrap, render the locked-language template, replace or remove every
+authoring comment and starter token, and route each fact to one narrative
+owner. `STATUS.md`, `_*.md`, `.bootstrap/` artifacts, and thin adapters stay
+register-only and pointer-sized. Product and architecture additionally run the
+full task-based cold-review gate defined by `reader-quality.md`. Before a
+process, records, glossary, root, or STATUS scope can support `covered` or
+`converged`, it uses the lightweight exact-scope artifact from the same owner.
+Phase 1 creates no passing artifact: render and verify the bodies first, then
+create review evidence from the frozen consumer content during Phase 3. File
+naming and frontmatter remain in §3.8 below.
 
 ### 3.8 SSOT document naming and formatting conventions
 
@@ -490,14 +414,15 @@ Verify SSOT content is consistent with code state, with no omission and no stale
 ### Flow
 
 ```text
-1. Independent reviewer (not the filler/coordinator) reads `SSOT/README.md`, `02-architecture/README.md`, `02-architecture/views/README.md`, every direct `02-architecture/NN-<domain>/README.md`, and all top-level area indexes
-2. Compare against the code state corresponding to tracked_commit, the skill protocol rules corresponding to tracked_skill_version, and the language lock corresponding to `documentation_language`
-3. Compare source-material classification and `STATUS.md` source-material absorption: has `absorb` entered an authoritative location? Has `stale/conflict` adjudicated the current fact, entered Current / Target / Gap or entered the adjudication queue? Are README/docs only thin documentation? Do the SSOT body, headings, table labels use the locked language?
-4. Per-area judgement: is content accurate, complete, free of stale info?
-5. Recursive product/architecture review uses `reader-quality.md`: the product spine covers users, problems, real current surfaces and entry choices, product objects/lifecycle, maturity, capabilities, journeys, acceptance, non-goals, trust/privacy posture and gaps; architecture explains a current request-to-result story, context, runtime owners, state/data lifecycle, contracts/trust, failure/recovery, operations and runtime CTG; each domain explains its mental model, canonical flow, state/contracts, runtime failure/recovery and local evolution without becoming a universal checklist. Run the comprehension teach-back against the actual Markdown; structure and anchor checks alone cannot support `covered`.
-6. Challenge all `done`, `passed`, `covered`, `single-level`, stop-decomposition and "no update needed" conclusions, and check whether the manifest/session/architecture README records stop-review evidence
-7. If no area needs updating -> reviewer outputs `no-more-required-changes`; only then may the corresponding segment be marked `passed`
-8. If some areas need updates -> reviewer outputs `needs-fix` and remaining changes; coordinator fixes and re-checks
+1. Freeze `tracked_commit`, `tracked_skill_version`, the language lock, the product surface inventory, the architecture owner inventory, and the exact `Q01`-`Q21` STATUS disposition register.
+2. A reviewer permitted by `status-protocol.md §6` derives realistic tasks from those inventories and assigns each task a bounded reader-facing file set and hop budget per `cold-agent-sim.md`; the reviewer is not given the author's outline or expected answer. High-impact adoption and first convergence use the required independent role.
+3. First run the teach-back against actual Markdown with tables, manifests, code blocks, and author comments hidden. Then restore the full document only for routing and evidence pointers.
+4. Compare sampled claims against the frozen code/config/schema/test or real product surface. Check cross-owner truth consistency, reader locality, deployment/observability when applicable, product-to-architecture traceability, and whether every applicable Q row reaches product, architecture, process/evidence, and gap dispositions without duplicated narrative.
+5. Score the 16 leaves owned by `reader-quality.md` from task-level 0–2 results. Passing requires `>=29/32`, no zero, all family and implementation-delegator floors, five cold proofs, and the exact scope completeness profile: product has 53 dispositions (`C01`-`C09`, `P01`-`P23`, `Q01`-`Q21`); architecture has 48 (`C01`-`C09`, `A01`-`A18`, `Q01`-`Q21`).
+6. For process, records, glossary, root, and STATUS, create the lighter exact-scope artifact from `scope-review.md`: dispose the exact 46/46/38/37/32 profile with a plain answer for every ID, bind current scope, Area Status, and Q fingerprints, cover the finite real target set for that scope, resolve every owner/evidence link, and keep required changes consistent with the verdict. Do not add the 16-leaf score.
+7. Record each durable review using the schema owned by `reader-quality.md §7`. A covered process/records/glossary Area Status row and its Stop Review Gate row point to the same artifact; convergence additionally links the root and STATUS artifacts. Structure, lint, or anchor checks alone cannot support `covered` or `converged`.
+8. Challenge all `done`, `passed`, `covered`, `single-level`, stop-decomposition, and "no update needed" conclusions against the task results and the exact profiles.
+9. On `needs-fix`, apply the reader-surface regeneration loop in `reader-quality.md §8` to the failed slice and repeat. Only the passing artifact may support the corresponding segment's `passed` mark.
 ```
 
 ### Segmented convergence for large repos
@@ -541,7 +466,7 @@ After bootstrap completes (convergence check passed and the independent reviewer
    - Confirm the source-material absorption matrix contains material read during bootstrap that still has long-lived value, plus each material's authoritative location / absorption state / conflict adjudication
    - Update each area's state
    - Clean up resolved entries in open gaps
-   - Transcribe the final stop-review summary as evidence for `converged` and `tracked_commit` / `tracked_session` / `tracked_skill_version` waterlines
+   - Transcribe the final stop-review summary as evidence for `converged` and the `tracked_commit` / `tracked_session` / `tracked_skill_version` baselines
 
 **Rationale (v2.12)**: recon.md contains long-lived decision evidence such as "why architecture was decomposed into these N domains" and "why certain source material was marked as stale". Previously requiring overall deletion of `.bootstrap/` after convergence caused this archaeological information to be lost permanently, leaving future maintainers without context when facing architectural reorganization. manifest and session logs are still cleaned -- they are process coordination logs and have lower long-lived value than decision records.
 
@@ -566,6 +491,14 @@ Three roles exist during bootstrap:
 - Writes their own session log (`sessions/NNN-<scope>.md`)
 - Does not edit `manifest.md` directly
 - Reports results to the coordinator on completion
+
+Templates are scaffolding, not evidence: a filled template can pass only when
+its statements were absorbed from current code, configuration, schema, tests,
+runtime evidence, or authoritative source material. Build unique product and
+architecture owners before deriving journeys, views, and roots. Any
+`needs-fix` reader or exact-scope review restarts the regeneration loop in
+`reader-quality.md §8`; deterministic lint alone cannot advance the tracking
+baseline.
 
 **Stop reviewer (independent reviewer)**:
 - Does not write into the reviewed scope; independently reads the related SSOT, code/config/schema/test, source material and session logs

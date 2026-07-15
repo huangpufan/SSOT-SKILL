@@ -1,4 +1,6 @@
 ---
+id: DEC-NNNN
+record_status: accepted
 status: accepted
 implementation_state: pending
 created_on: YYYY-MM-DD
@@ -12,9 +14,28 @@ supersedes:
 
 # <NNNN> <Title>
 
-> Writing style: any cold reader. See `ssot-bootstrap` §3.7.
+<!-- Writing style: implementation-delegator. Start with the decision pressure
+     and current consequence; explain labels before evidence and paths. -->
 
-> Decision record. One file per major decision — why this was chosen over alternatives, what the consequences are, and what it impacts. See `ssot-preflight` area-model §2.9.
+<!-- Completeness authority: reader-quality.md C01-C09, R01-R16, and applicable
+     Q01-Q21. Covered records use the exact lightweight entry/index contract;
+     keep facts, judgment, evidence, both state axes, owner, and closure explicit. -->
+
+> Use one file per major decision. Explain why this option was chosen over the
+> closest alternatives, what changed because of it, and what a future reader
+> must verify before keeping, changing, or replacing it.
+
+## Record orientation
+
+<State the record's purpose and scope, trigger and date/context, current
+lifecycle and implementation status, verified facts versus rationale or
+inference, and the evidence/provenance freshness limit.>
+
+`record_status` says whether this decision is accepted, deprecated, or
+superseded. `implementation_state` separately says whether the decided change
+is pending, partial, implemented, diverged, or superseded. The compatibility
+field `status` mirrors `record_status`; never use it for implementation
+progress.
 
 ## Background
 
@@ -42,4 +63,17 @@ What does this decision change? Both intended effects and side effects. Record t
 - **Product acceptance boundaries**:
 - **Testing / verification implications**:
 - **Migration or compatibility surface**:
+- **Affected versions / platforms / environments / tenants-workspaces / data classes / compatibility window**:
+- **Security / privacy / compliance / customer exposure and notification duty**:
 - **Owner / reviewer**:
+
+## Validation and follow-up
+
+<Explain how the decision or implementation is validated, who owns remaining
+work, the next follow-up trigger, and any reproducible symptom or prevention
+rule that matters.>
+
+## Closure, supersession, and invalidation
+
+<State the falsifiable closure condition, what evidence closes the record,
+what decision supersedes it, and which changed assumption makes it stale.>

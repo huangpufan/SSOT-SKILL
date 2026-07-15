@@ -16,7 +16,7 @@
 
 ---
 
-SSOT Skill 把仓库的长期事实——产品意图、架构边界、决策、陷阱、测试策略——整理成一份可审查的 Markdown `SSOT/` 目录。任何 Agent（Claude Code、Codex、Cursor、Windsurf、Gemini CLI 等）在开始工作前都先读同一份事实水位，而不是每次会话都重新猜测上下文。
+SSOT Skill 把仓库的长期事实——产品意图、架构边界、决策、陷阱、测试策略——整理成一份可审查的 Markdown `SSOT/` 目录。任何 Agent（Claude Code、Codex、Cursor、Windsurf、Gemini CLI 等）在开始工作前都先读同一份追踪基线，也就是文档追踪到哪个提交、会话和协议版本，而不是每次会话都重新猜测上下文。
 
 > `SSOT/` 是 **Agent 长期记忆**，不是代码的替代品。代码、schema、测试和实际运行行为仍然是当前实现事实的证据来源；SSOT 记录围绕这些事实形成的持久结论。
 
@@ -29,17 +29,42 @@ SSOT Skill 把仓库的长期事实——产品意图、架构边界、决策、
 - **一条事实一个位置。** 产品意图、架构边界、关键决策、已知陷阱、测试策略，每一项都落在 `SSOT/` 下的一个 Markdown 文件，而不是散落在对话记录、PR 描述和不同 Agent 的私有缓存里。
 - **可审查。** 全是纯 Markdown，随仓库一起进版本控制——可 diff、可在 PR 里 review、可回滚。
 - **跨工具。** Claude Code、Codex、Cursor、Windsurf、Gemini CLI 等读的是**同一份** `SSOT/`，不会出现某个 Agent 维护一份跑偏的私有记忆。
-- **可验证。** 六个 lifecycle skill（`$ssot-preflight` / `$ssot-bootstrap` / `$ssot-closeout` / `$ssot-audit` / `$ssot-doctor` / `$ssot-skill`）加上 bundle 自带的 lint，保证 `SSOT/` 随仓库演化时不会失真。
+- **可验证。** 五个生命周期 Skill（`$ssot-preflight` / `$ssot-bootstrap` / `$ssot-closeout` / `$ssot-audit` / `$ssot-doctor`）、一个旧提示兼容入口（`$ssot-skill`）和自带的静态检查，共同防止 `SSOT/` 随仓库演化而失真。
 
 **SSOT 不是代码的替代品。** 代码、schema、测试和运行时行为仍然是 *当前实现* 事实的来源；`SSOT/` 记录的是围绕代码的**持久结论**——那些一旦会话结束或换了 Agent 就会丢失的东西。
 
-## 面向读者的产品与架构文档
+## 即使不读代码，也能看懂全部 SSOT
 
-只有新人能读懂，SSOT 才真正有用。因此，产品与架构 owner 先帮助读者建立方向，再用一个具体的当前流程解释因果关系、边界与失败，最后才给出紧凑的参考表和证据。这里的 KISS 是“抵达理解的最短可靠路径”，不是“字数越少越好”。
+只有新人能读懂，SSOT 才真正有用。因此，所有面向读者的正文都先帮助读者建立
+方向，再用一个具体的当前流程解释因果关系、边界、失败与恢复，以及当前状态和
+目标状态的区别，最后才给出紧凑的参考表和证据。这里的 KISS 是“抵达理解的
+最短可靠路径”，不是“字数越少越好”。“事实权威位置”是唯一解释和维护一条
+事实的文件或小节；“运行时责任边界”是实际处理请求或持有状态的系统部分；
+“责任人或批准角色”是有权执行、决定或批准的人，不能从前两者自动推断。
 
-产品主干覆盖用户、真实可见界面、核心对象生命周期、能力、选择/控制/恢复旅程、验收以及当前与目标的区别。架构主干从运行时 owner 出发，回答六类跨 owner 问题：运行模式、关键旅程、状态与数据、契约与信任、失败与恢复、当前/目标/缺口。供机器恢复使用的元数据放在按位置区分的 manifest 中，不挤进读者正文。
+默认读者是**实施委托者**：他们可能已经不亲自写或读代码，但仍要能告诉 Agent 应交付什么结果、识别可见结果与合适证据，并知道何时停止或升级处理。因此，SSOT 先用平实语言讲清场景与因果，再引入不可避免的仓库术语、命令和符号。
 
-Lint 会阻止只有标题、表格或占位符的 `covered` 声明；独立冷读评审再检查真实理解。只通过路由或链接检查，不能证明文档可读。
+产品主干覆盖用户、真实可见界面、核心对象生命周期、能力、选择/控制/恢复旅程、
+验收以及当前与目标的区别。“产品表面”是人能看到、调用或收到的入口、动作和
+结果。架构主干从运行时责任边界出发，回答七类跨边界问题：运行模式、关键旅程、状态与数据、
+契约与信任、失败与恢复、部署与可观测性、当前/目标/缺口。供 Agent 恢复和校验
+使用的清单（manifest）是机器索引，不是让读者反推答案的正文。
+
+静态检查会拦住只有标题、占位符或链接清单的“看起来完整”。产品和架构各要求
+一位没有预备背景的新读者完成 6 个真实任务；同时还要分别逐项处理 53 个产品
+完整性问题和 48 个架构完整性问题，避免一段顺畅的故事掩盖缺失边界。流程、记录、
+术语表、根导航和 STATUS 使用与自身内容相配的较小评审。批准一项委托工作前，
+所有评审都会帮助读者问四个白话问题：
+
+1. 谁可能看不懂、用不了、受到不公平对待或遭受伤害？
+2. 压力、并发、失败、断网、升级或恢复时会发生什么？
+3. 数据、身份、权限、钱和外部规则由谁负责？
+4. 什么证据能证明结果有效、成本可控、可以维护并且能够恢复？
+
+每项适用关注点都要链接事实权威位置、运行时责任边界、流程证据、已知责任角色，
+或一个明确缺口；不能靠沉默表示“不适用”，链接能打开也不能单独证明正文符合
+仓库事实。精确评审编号、数量和停止规则见
+[读者质量协议](./skills/ssot-preflight/references/reader-quality.md)。
 
 ## 快速开始
 
@@ -104,11 +129,13 @@ bash install.sh --uninstall --agent <key> --scope <global|project> --yes
 
 `<key>` 与安装时使用的 canonical Agent key 一致（例如 `claude-code`、`codex`、`cursor`）。安装器同时支持 `--upgrade`（扫描全部已安装位置并重装）和 `--version`。
 
-## 六个 lifecycle Skill
+## 六个 SSOT Skill
+
+其中五个负责生命周期；`$ssot-skill` 只负责把旧提示转到正确 Skill。
 
 | Skill | 何时使用 |
 |---|---|
-| `$ssot-preflight` | 任何实质性代码任务开始前——读取水位、未决裁决，路由到最小必读 SSOT 文件 |
+| `$ssot-preflight` | 任何实质性代码任务开始前——读取追踪基线和未决裁决，路由到最小必读 SSOT 文件 |
 | `$ssot-bootstrap` | 仓库首次没有 `SSOT/`，或 bootstrap 未完成 |
 | `$ssot-closeout`  | 最终回复 / `claim_done` / commit 前——判断本批是否产生了需要吸收的持久事实 |
 | `$ssot-audit`     | 分段补齐 commit、session 或协议升级 |
@@ -119,27 +146,45 @@ bash install.sh --uninstall --agent <key> --scope <global|project> --yes
 
 ## 三层结构
 
-```
-┌─────────────────────────┐    install.sh    ┌────────────────────────────────┐
-│  SSOT-SKILL（本仓库）   │ ───────────────▶ │  PROJECT 范围（默认）：        │  ← Agent 启动时
-│  installer · 6 skills   │                  │    .claude/skills/...          │     加载这些副本
-│  protocol · templates   │                  │    .agents/skills/...（Codex、 │
-│                         │                  │      Cursor、Gemini CLI、…）   │
-│                         │                  │  GLOBAL 范围（可选）：         │
-│                         │                  │    ~/.claude/skills/...        │
-│                         │                  │    ~/.codex/skills/...         │
-└─────────────────────────┘                  └──────────────┬─────────────────┘
-                                                            │ skills 在你的仓库里
-                                                            ▼
-                                              ┌────────────────────────────────┐
-                                              │  your-repo/SSOT/               │  ← 仓库的长期记忆
-                                              │  product / architecture        │
-                                              │  testing / benchmark /         │
-                                              │  development                   │
-                                              └────────────────────────────────┘
+```text
+SSOT-SKILL --install.sh--> Agent 本地 Skill --在仓库中运行--> SSOT/
 ```
 
-三层，一个目标：让 Agent 对仓库的记忆**可审查**、**可验证**、**跨工具可移植**。
+安装后的 Skill 创建并维护下面这套完整仓库记忆：
+
+```text
+your-repo/SSOT/
+├── README.md                    从这里开始：仓库做什么，各类问题去哪里找
+├── STATUS.md                    哪些事实可信、缺失、过时或仍待决定
+├── 01-product/                  用户、当前承诺、可见结果与验收
+│   ├── prd.md
+│   ├── product-model.md
+│   ├── roadmap-and-acceptance.md
+│   ├── capabilities/
+│   └── journeys/
+├── 02-architecture/             系统怎样产出结果，以及怎样处理状态、信任与失败
+│   ├── views/                   七类跨系统部分的问题
+│   └── NN-domain/               每个领域只有一个清楚的运行时、状态或契约所有者
+├── 03-process/                  工作怎样开发、检查、交付和长期运行
+│   ├── development/
+│   ├── testing/
+│   ├── benchmark/
+│   ├── deployment/
+│   ├── release/
+│   ├── operations/              适用于需要长期运行的仓库
+│   └── security-and-compliance/ 适用于存在相应生命周期的仓库
+├── 04-records/                  为什么这样选择，哪些历史事实仍会影响行动
+│   ├── decisions/
+│   ├── research/
+│   ├── gotchas/
+│   ├── bugs/
+│   └── tech-debt/
+├── glossary/                    仓库专用词、别名和统一含义
+└── .bootstrap/                  评审与恢复证据；普通读者可以跳过
+```
+
+源包、安装后的 Skill、仓库里的 `SSOT/` 三层只服务一个目标：让 Agent 对仓库的
+记忆**可审查**、**可验证**、**跨工具可移植**。
 
 ## 常用流程
 

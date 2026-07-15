@@ -1,79 +1,131 @@
 # 测试策略
 
-> 行文风格：写给任何冷读者。详见 `ssot-bootstrap` §3.7。
+<!-- 行文对象：implementation-delegator。先写改动风险与测试决定，再写路径、
+     成功/失败，最后给命令与证据。 -->
 
-> 本区域记录稳定的 correctness test strategy、selection rules、gates、fixture 约束、当前 correctness baseline、已知缺口和高风险回归保护。测试运行结果是 evidence，不是 testing fact；不要在这里维护逐批验证历史。Measured performance、cost 和 capacity floors 属于 [benchmark/](../benchmark/README.md)。
+<!-- 完整性权威：reader-quality.md C01-C09、PR01-PR16 与适用 Q01-Q21。
+     covered 流程使用精确的策略说明与有限资产清单；不适用项写原因和证据指针。 -->
 
-## 测试一眼看懂 / Reader Map
+> 本区域记录稳定的正确性测试策略、选择规则、阻断性质量检查（不通过就不能继续
+> 合并、发布或宣称完成）、测试数据约束、当前正确性
+> 基线、已知缺口和高风险回归保护。单次测试结果只是证据，不是长期测试事实；不要
+> 在这里维护逐批验证历史。可测量的性能、成本和容量门槛属于
+> [基准测试](../benchmark/README.md)。
 
-| 读者问题 | First stop | Authoritative owner | Evidence direction | Stop condition / risk |
+## 何时由谁使用
+
+<说明哪类改动或风险触发本测试流程、谁决定测试深度、环境与数据前置条件，
+以及浏览器、集成、破坏性或外部系统检查所需权限。>
+
+## 标准路径与分支
+
+<从最小适配检查讲到更宽闸门，说明 UI、API、数据结构、迁移、服务提供方或
+文档改动如何分支，以及测试数据或环境会产生什么副作用。纳入适用 Q01-Q21
+覆盖，以及 PR14 要求的重复、并发或部分完成检查。>
+
+## 产物与验收
+
+<说明可观察的通过结果、产物、基线与验收规则；把稳定闸门和某一批次
+的命令流水分开。>
+
+## 失败、恢复与交接
+
+<说明如何发现失败、何时停止、如何安全重试或重置测试数据、破坏性测试如何
+回滚，以及谁决定不稳定或受阻结果可否接受、延期或升级。>
+
+## 怎样复现，以及何时重新检查
+
+<给出规范的可复现命令、证据所有者、当前缺口与目标，以及会使策略失效的
+配置、工作流、测试数据或用户可见入口、动作、结果变化。>
+
+## 测试一眼看懂
+
+| 读者问题 | 先读哪里 | 权威所有者 | 证据方向 | 停止条件或风险 |
 |---|---|---|---|---|
-| 改动后先跑什么测试？ | [测试命令](#测试命令) | this file | package.json / CI / Makefile / test config | |
-| 测试层级为什么这样划分？ | [测试策略](#测试策略) | this file | test config / CI / fixture | |
-| 哪些检查会阻塞 merge、release 或 claim_done？ | [质量闸门](#质量闸门) | this file | CI / release workflow / startup instructions | |
-| 当前预期 correctness baseline 是什么？ | [当前基线](#当前基线) | this file | CI / lint config / snapshot fixture / latest baseline-changing commit | |
-| 哪些测试保护历史 bug？ | [防御性测试来源](#防御性测试来源) | this file | linked bug / gotcha / test code | |
+| 改动后先跑什么测试？ | [测试命令](#测试命令) | 本文件 | `package.json` / CI / `Makefile` / 测试配置 | |
+| 测试层级为什么这样划分？ | [测试策略](#测试策略) | 本文件 | 测试配置 / CI / 测试数据 | |
+| 哪些检查会阻塞合并、发布或 `claim_done`？ | [质量闸门](#质量闸门) | 本文件 | CI / 发布工作流 / 启动说明 | |
+| 当前预期的正确性基线是什么？ | [当前基线](#当前基线) | 本文件 | CI / 检查配置 / 快照测试数据 / 最近改变基线的提交 | |
+| 哪些测试保护历史缺陷？ | [防御性测试来源](#防御性测试来源) | 本文件 | 链接的缺陷 / 陷阱 / 测试代码 | |
 
 ## 测试策略
 
-用短叙述说明测试层级、边界和取舍。若无测试，写 `not_applicable`、原因和风险。
+用短叙述说明测试层级、边界、约定、不变量与取舍。解释为什么这些层级和选择
+规则适合本仓库、哪个看似省事的替代会漏掉失败，以及什么证据足以改变策略。
+若无测试，写 `not_applicable`、原因和风险。
 
-| Test level | 覆盖内容 | 为什么这样划分 | Evidence | Known risk |
+| 测试层级 | 覆盖内容 | 为什么这样划分 | 证据 | 已知风险 |
 |---|---|---|---|---|
-| unit / integration / e2e / contract / manual | | | test config / CI / fixture | |
+| 单元 / 集成 / 端到端 / 契约 / 人工 | | | 测试配置 / CI / 测试数据 | |
 
 ## 测试选择矩阵
 
 记录每类长期改动应运行什么测试。不要为一次性任务批次新增行；只有稳定选择规则变化时才更新本矩阵。
 
-| Change family | Required checks | 为什么跑这些检查 | Required setup | Evidence | Escalation trigger |
+| 改动类别 | 必跑检查 | 为什么跑这些检查 | 必需准备 | 证据 | 升级触发条件 |
 |---|---|---|---|---|---|
-| source / API / schema / UI / docs / release | | | | package manifest / CI / test config | |
+| 源码 / API / 数据结构 / UI / 文档 / 发布 | | | | 包清单 / CI / 测试配置 | |
 
 ## 质量闸门
 
-记录会阻塞 merge、release、claim_done 或其它长期工作流闸门的检查。一次成功运行只是该闸门的 evidence，不是新行。
+记录会阻塞合并、发布、`claim_done` 或其它长期工作流闸门的检查。一次成功运行只是该闸门的证据，不是新行。
 
-| Gate | Blocking condition | Required checks | Evidence owner | Known bypass / risk |
+| 闸门 | 阻断条件 | 必跑检查 | 证据所有者 | 已知绕过或风险 |
 |---|---|---|---|---|
-| PR / release / claim_done / manual approval | | | CI / release workflow / startup instruction | |
+| PR / 发布 / `claim_done` / 人工批准 | | | CI / 发布工作流 / 启动说明 | |
 
 ## 当前基线
 
-记录稳定的 correctness 预期状态，例如 lint warning 数、snapshot baseline、contract fixture state 或已知 flaky suite 状态。只有基线本身变化时才更新。Benchmark floors 和 trend rules 属于 [benchmark/](../benchmark/README.md)。
+记录稳定的正确性预期状态，例如静态检查告警数、快照基线、契约测试数据状态或
+已知不稳定套件状态。只有基线本身变化时才更新。基准测试门槛和趋势规则属于
+[基准测试](../benchmark/README.md)。
 
-| Baseline | Current value | Evidence | Last baseline-changing change | Risk |
+| 基线 | 当前值 | 证据 | 最近改变基线的改动 | 风险 |
 |---|---|---|---|---|
-| | | CI / config / fixture / commit | | |
+| | | CI / 配置 / 测试数据 / 提交 | | |
+
+## 稳定测试资产清单
+
+这是测试流程使用的稳定脚本、工具、套件、工作负载、测试数据、目标、产物、
+操作说明和控制措施的有限路由表。每个真实资产只写一次；下文再展开命令或数据
+约束。一次测试运行属于证据，不是稳定资产。
+
+确实一个都没有时，删除示例行并写：`无稳定资产：原因=<具体理由>；负责人=[责任所有者](<可解析路径>)；复核条件=<可观察事件>。`
+
+| 资产 | 类别 | 用途 | 选择规则 | 所有者 | 证据 | 风险 | 退役或替换触发条件 |
+|---|---|---|---|---|---|---|---|
+| | script / tool / suite / workload / fixture / target / artifact / runbook / control / other | | | | | | |
 
 ## 测试命令
 
-> 若命令来自脚本清单、外部资料或自动摘要，仍需回到 package manifest、CI、测试配置或实际运行验证。
+> 若命令来自脚本清单、外部资料或自动摘要，仍需回到包清单、CI、测试配置或实际运行验证。
 
-| Command | Purpose | Test level | Required setup | Evidence | Known risk |
+| 命令 | 用途 | 测试层级 | 必需准备 | 证据 | 已知风险 |
 |---|---|---|---|---|---|
-| | | unit / integration / e2e / contract / manual | | package.json / CI / Makefile / test config | |
+| | | 单元 / 集成 / 端到端 / 契约 / 人工 | | `package.json` / CI / `Makefile` / 测试配置 | |
 
-## Fixtures / 测试数据
+## 测试数据
 
-| Fixture / 数据源 | 用途 | Owner | 更新风险 | Evidence |
+| 测试数据或数据源 | 用途 | 所有者 | 更新风险 | 证据 |
 |---|---|---|---|---|
 | | | | | |
 
 ## 防御性测试来源
 
-> 只记录删除后会让历史 critical / major / recurred bug 复发的关键测试；不要求穷尽。
+> 只记录删除后会让历史严重、重大或复发缺陷再次出现的关键测试；不要求穷尽。
 
-| 测试 | 防御的 failure mode | 关联 bug / gotcha | Evidence | 删除风险 |
+| 测试 | 防御的失败方式 | 关联缺陷或陷阱 | 证据 | 删除风险 |
 |---|---|---|---|---|
 | | | | | |
 
 ## 开放缺口
 
-| Gap / unknown | 所需证据 | 阻塞级别 |
+| 缺口或未知项 | 所需证据 | 阻断级别 |
 |---|---|---|
-| | | blocking / non-blocking |
+| | | `blocking`（阻断）/ `non-blocking`（不阻断） |
 
 ## 不是验证流水账
 
-不要把单次任务的命令转录、pass/fail 日期、耗时或“最近验证”列表写进本文件。必要时把这些事实保存在最终回复、commit/release note、bug 条目或 stop-review evidence；本区域只保存稳定的测试策略、correctness baseline、缺口、fixture、闸门和防御性映射事实。
+不要把单次任务的命令转录、通过/失败日期、耗时或“最近验证”列表写进本文件。
+必要时把这些事实保存在最终回复、提交或发布说明、缺陷条目或停止评审证据中；
+本区域只保存稳定的测试策略、正确性基线、缺口、测试数据、闸门和防御性映射事实。

@@ -1,35 +1,74 @@
-# 研究与 POC 记录
+# 研究与 POC（概念验证）记录
 
-> 写作姿态：面向任意陌生读者。见 `ssot-bootstrap` §3.7。
+<!-- 写作对象：implementation-delegator。从具体问题路由到唯一有界结果、限制
+     与下一位所有者。 -->
 
-研究记录保存 investigation 中可复用的结论，直到这些结论被提升到 product、architecture、testing、benchmark、decision、gotcha、bug 或 tech-debt owner。这个目录保存证据与边界，不保存没有问题或没有可复现方法的零散猜测。
+<!-- 完整性权威：reader-quality.md C01-C09、R01-R16 与适用 Q01-Q21。
+     covered 集合使用精确的轻量 R14 索引到条目契约：唯一 ID、双状态轴，以及
+     一个可解析的条目所有者链接。 -->
+
+研究记录保存调查中可复用的结论，直到这些结论被提升到产品、架构、测试、
+基准测试、决策、陷阱、缺陷或技术债所有者。这个目录保存证据与边界，不保存
+没有问题或没有可复现方法的零散猜测。
+
+冷读者从问题与触发器出发，只打开一个唯一记录所有者，核对生命周期、事实与
+推测、来源与证据失效条件、影响、方法、验证、所有者/跟进、完成条件/失效，再沿已提升结论
+链接继续。本索引不能把研究记录变成当前权威。
 
 ## 目录地图
 
 ```
 04-records/research/
 ├── README.md              本索引。
-└── NNNN-<slug>.md         每个 research、spike、benchmark study 或 POC 一份记录。
+└── NNNN-<slug>.md         每项研究、设计探索、基准研究或 POC 一份记录。
 ```
 
-Bootstrap 骨架不会创建编号条目。只有存在具体问题、方法、证据和可能的 promotion target 时，才创建条目。
+初始化骨架不会创建编号条目。只有存在具体问题、方法、证据和可能接收结论的
+目标所有者时，才创建条目。
 
 ## 何时创建条目
 
-当一个发现将来可能复用，但还不足以成为 product、architecture、testing、benchmark、decisions、gotchas、bugs 或 tech-debt 的权威正文时，创建 research 条目。常见情况包括 proof-of-concept、一次性 benchmark 对比、外部来源核验、设计 spike、可行性研究，以及能阻止未来 agent 重走旧路的 negative finding。
+当一个发现将来可能复用，但还不足以成为产品、架构、测试、基准测试、决策、
+陷阱、缺陷或技术债的权威正文时，创建研究条目。常见情况包括概念验证、一次性
+基准对比、外部来源核验、设计探索、可行性研究，以及能阻止未来代理重走旧路的
+未成立发现。
 
-普通任务笔记、会议纪要或一次性命令输出不要放入本目录，除非记录中包含可复用 claim 和清晰证据。
+普通任务笔记、会议纪要或一次性命令输出不要放入本目录，除非记录中包含可复用结论和清晰证据。
 
 ## 研究索引
 
-| 编号 | 标题 | 状态 | Kind | Owner | 创建日期 | Promotion targets | Recheck trigger |
-|------|------|------|------|-------|---------|-------------------|-----------------|
-| | | draft / validated / promoted / stale / superseded | research / poc / spike / benchmark / experiment | | YYYY-MM-DD | | |
+记录状态使用 `draft`（草稿）、`validated`（已验证）、`stale`（已过时）或
+`superseded`（已取代）；结论采纳状态另用 `unpromoted`（尚未提升）、`partial`
+（部分提升）、`promoted`（已提升）或 `rejected`（已拒绝）。
 
-`promotion_targets` 写可能接收被提升结论的 SSOT owner，例如 `SSOT/02-architecture/NN-<domain>/README.md`、`SSOT/03-process/testing/README.md` 或 `SSOT/03-process/benchmark/README.md`。
+| 编号 | 标题 | 记录状态 | 结论采纳状态 | 类型 | 创建日期 | 条目所有者 |
+|------|------|---------|-------------|------|---------|------------|
+| RES-NNNN | <标题> | draft / validated / stale / superseded | unpromoted / partial / promoted / rejected | research / poc / spike / benchmark / experiment | YYYY-MM-DD | [打开条目](./NNNN-<slug>.md) |
+
+没有研究条目时，删掉示例行并显示下面这一行；出现真实条目后立即删掉本行：
+
+空集合说明：原因=<具体理由>；负责人=[责任所有者](<可解析路径>)；复核条件=<可观察事件>。
+
+每个真实条目必须且只能出现一行。编号与条目开头的 `id` 相同；“条目所有者”
+链接必须能打开该文件；两个状态都与条目开头的字段一致。`record_status` 描述证据包
+本身，`adoption_state` 描述长期所有者是否采纳了其中的可复用结论。
+
+兼容字段 `status` 可以继续存在，但必须镜像 `record_status`。旧式
+`status: promoted` 把两条轴混在一起；升级时拆成 `record_status: validated` 与
+`adoption_state: promoted`。既有 `promotion_state` 是 `adoption_state` 的兼容
+别名；两者同时存在时必须同值。
+
+`promotion_targets` 表示“提升目标”，填写可能接收结论的 SSOT 所有者，例如
+`SSOT/02-architecture/NN-<domain>/README.md`、`SSOT/03-process/testing/README.md`
+或 `SSOT/03-process/benchmark/README.md`。
 
 ## 提升规则
 
-Research 记录本身不是权威。只有证据足够支撑 durable owner 的 claim row 才能被提升；提升后同步更新条目中的 `Promoted SSOT owners`。一次性 benchmark study 留在这里，直到它的稳定 method、workload、metric、floor、comparison rule 或 trend interpretation 被提升到 `SSOT/03-process/benchmark/`。未提升的 claim 留在 research 记录中，保留边界和 recheck trigger。
+研究记录本身不是权威。只有证据足够支撑长期所有者中的一条结论，才能被提升；
+提升后同步更新条目中的“已提升到的 SSOT 所有者”。一次性基准研究留在这里，
+直到它的稳定方法、工作负载、指标、门槛、比较规则或趋势解释被提升到
+`SSOT/03-process/benchmark/`。未提升的结论留在研究记录中，保留边界和复核触发条件。
 
-如果被提升 owner 后来与 research 记录冲突，以被提升 owner 的 current truth 为准。回头重检本记录，把状态标为 stale 或 superseded，并保留历史证据，不要把它重写成新的结论。
+如果被提升所有者后来与研究记录冲突，以被提升所有者的当前事实为准。回头重检
+本记录，把状态标为 `stale`（已过时）或 `superseded`（已被取代），并保留历史
+证据，不要把它重写成新的结论。

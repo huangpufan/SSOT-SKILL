@@ -30,6 +30,14 @@ hypothesis ──► candidate ──► source-backed ──► verified
 
 States can only be promoted in order, but intermediate states may be skipped (e.g., agent infers and immediately finds code evidence, marks `source-backed` directly). Demotion may go from any state to any lower state or be deleted outright.
 
+Confidence is separate from a bug's failure state. A confirmed failure may be
+`failure_state: open` before its cause or fix is known; unknown cause and
+unverified fix claims remain labeled as inference with fitting confidence.
+`fixed_in` stays `none` until closure evidence names a real change. Do not move
+an unresolved defect into technical debt merely to avoid representing `open`:
+technical debt records an accepted repayment obligation, while the bug entry
+owns the failure fact and its current state.
+
 Research/PoC evidence packets under `SSOT/04-records/research/` usually support
 at most `source-backed` claims. A reproducible packet can raise a distilled
 claim row to `source-backed` when it names the method, inputs, artifacts, and
@@ -39,119 +47,92 @@ requires the relevant product, architecture, decision, testing, bug, gotcha, or
 debt owner to absorb the long-lived fact and a later independent review or
 subsequent session to confirm that owner-level evidence still holds.
 
-### 1.1 Intent-recovery axis (v2.43)
+### 1.1 Product/architecture reader-recovery axis (v2.43; task-based v2.60)
 
-Evidence backing (the confidence state machine above) is orthogonal to
-whether a cold agent can recover the claim from user-visible intent. A
-`verified` claim with sound `path:LNN` evidence can still be unreachable
-from the user's prompt within the 5-hop budget defined in
+Evidence backing (the confidence state machine above) is orthogonal to whether
+a cold reader can recover and use a claim from a realistic task. For v2.60,
+per-file `intent_recovery` and the structured artifact below apply only to
+reader bodies under `01-product/` and `02-architecture/`. A `verified` claim
+there can still be too remote, table-dependent, or contradicted by another
+owner. The reader-recovery axis records this independently through the task protocol in
 [`ssot-doctor/references/cold-agent-sim.md`](../../ssot-doctor/references/cold-agent-sim.md).
-The intent-recovery axis records this independently:
 
-| State | Meaning | Source |
+Root, process, record, and glossary bodies use the same plain-language and
+completeness floor from `reader-quality.md`, but v2.60 does not require or
+permit them to manufacture a product/architecture `intent_recovery` artifact.
+Their coverage is governed by Area Status, confidence, deterministic body
+checks, and a scoped semantic stop review. A future protocol may add structured
+artifacts for those profiles only by defining their complete task matrix and
+validator first.
+
+| State | Meaning | Required evidence |
 |---|---|---|
-| `intent_recovery: covered` | The cold-agent-sim harness routed from at least one user-visible intent prompt to this owner's authoritative anchor within budget, in the most recent cycle that included the owner's slice. The harness recorded `verdict=PASS` for a trial whose `pillar` matches the owner's layer (`design_intent` / `product_intent` / `design_truth` / `product_truth`). | cold-agent-sim cycle report Results table |
-| `intent_recovery: partial` | At least one cold-agent-sim trial in the owner's slice passed AND at least one in the same slice failed; OR the slice has trials in some but not all relevant pillars. The owner is partially routable — typically `[SYMBOL-PIN]` resolves but `[SURFACE-PIN]` does not, or `product_truth` passes while `product_intent` fails. | cold-agent-sim cycle report Skill-fail / Doc-fail rows |
-| `intent_recovery: gap` | No cold-agent-sim trial has covered this owner in the most recent applicable cycle, OR every trial that targeted it failed (`miss_class` ∈ {`missing-owner`, `prose-fork`, `broken-ref`, `glossary-gap`, `truth-state-gap`}). | cold-agent-sim cycle report; or absence of any trial against the owner's slice |
+| `intent_recovery: covered` | The latest applicable task-based cold review includes this owner, stays inside its bounded read set and hop budget, finds no cross-owner truth conflict, and passes the full reader-quality gate. | Durable reader-review artifact and the task row that names this owner |
+| `intent_recovery: partial` | At least one applicable task passes, but another required task, evidence sample, owner link, or locality check is missing or fails. | Durable artifact plus an open `STATUS.md ## Pending Captures` row naming the failed task and closure owner |
+| `intent_recovery: gap` | No applicable task sampled the owner, every applicable task failed, or the latest artifact is stale against the owner/inventory baseline recorded by the review. | Missing or failing task row in the latest artifact |
 
-**Product current-truth clause (v2.44)**: `product_truth` is not limited to
-shipped contract surfaces. A trial PASSes when it routes to the product owner
-and recovers the current state of the promised surface: `state: contract`
-with a `[SURFACE-PIN]` anchor, `state: design` / `state: debt` with the
-current user-visible behavior plus a falsifiable gap / closure owner, or an
-explicit `Out` / `not_applicable` row with reason and revisit owner. A trial
-FAILs with `miss_class=truth-state-gap` when the product owner names a surface
-but does not say whether it is shipped, design/debt, Out, or not applicable;
-when it says "later" without a closure owner; or when the current behavior can
-only be inferred from architecture / tests instead of being stated in product.
+**Product current-posture clause (v2.60).** A product task recovers the current
+user-visible behaviour, product maturity, evidence fidelity, and evidence or
+closure owner according to the vocabulary owned only by
+[`reader-quality.md §3`](reader-quality.md#3-product-completeness). Product
+documents never substitute architecture lifecycle state, and no review rule
+defines a second product evidence vocabulary. If the current behaviour can
+only be inferred from architecture, tests, or silence, the task fails.
 
-**Core recovery manifest binding (v2.45 / v2.46)**: `intent_recovery: covered` for the
-`product` or `architecture` area also requires the area-level Core recovery
-manifest from `area-model.md §2.0.2` to be complete. Every manifest row whose
-required pillar is not `not_applicable` must have a latest applicable PASS or a
-state-tagged deferral with a Pending Capture that names the missing pillar and
-closure owner. A sampled owner body cannot override a missing manifest row: if
-the finite manifest omits a core capability, journey, runtime owner, or
-cross-owner view, the area is `partial` at best. v2.46 also requires the
-manifest's completeness argument to recover why the finite set is complete,
-which product-model / operating-model classes are core, which near-miss items
-are excluded, and what wrong conclusion an omission would cause. If the
-manifest advertises a row as `contract` while the owner body still contains an
-unresolved `design` / `debt` / `Out` current-truth row for that same
-user-visible or design surface, the row is stale and Doctor reports
-`[CORE-COVERAGE-MAP]`. Use `mixed` for core rows that intentionally combine
-shipped contract truth with unresolved design/debt/out truth under the same
-owner.
+**Inventory and manifest binding.** A covered product root needs a complete
+surface inventory; a covered architecture root needs an owner inventory that
+classifies runtime, support, and target owners, includes applicable cross-owner
+views, and routes each technical surface to one owner. The location-specific
+manifests remain finite recovery indexes. A sampled body cannot rescue an
+omitted inventory or manifest row, and a manifest cannot rescue prose that a
+reader cannot teach back with tables hidden.
 
-**Multi-pillar rule (cycle-2)**: when an owner declares
-`intent_recovery_pillars: [..]` with ≥ 2 pillars, `intent_recovery:
-covered` requires `verdict=PASS` in **every** declared pillar of the most
-recent applicable cycle. If the latest cycle PASSed some declared pillars
-and FAILed or did not sample others, the owner is `intent_recovery:
-partial` and must carry an open `STATUS.md ## Pending Captures` row
-naming the unsatisfied pillar(s) and the expected miss_class fix layer
-per [`ssot-doctor/references/cold-agent-sim.md`](../../ssot-doctor/references/cold-agent-sim.md)
-§3.1. A single PASS in a non-declared pillar does not promote the owner
-to `covered`; declared-pillar coverage is what the doctor row 14Y gates.
-A `partial` annotation is also legitimate when the latest cycle's §1.5
-owner-pillar coverage matrix recorded the (owner, pillar) pair as
-`pillar-not-applicable-to-cycle`. The Pending Capture row in that case
-names the missing pillar AND the cycle id that deferred it.
+**Task-coverage rule (v2.60).** Reviews are scheduled from realistic reader
+tasks and the two inventories, not from intent/truth pillars. Every covered
+root must pass the mandatory product, architecture, operations, and
+product-to-architecture trace tasks that apply to it. Every covered child owner
+must appear in a deterministic rotation or a risk-directed sample recorded in
+the review artifact. A task omitted from the current rotation is a named
+deferral, not evidence of coverage.
 
-Default: when a fresh SSOT area has not yet been sampled by any
-cold-agent-sim cycle, treat it as `intent_recovery: gap` — the SSOT cannot
-claim intent-routability without harness evidence (this mirrors the "no
-annotation = verified" default of the confidence axis: there is no
-symmetrical free pass on the intent axis because intent recovery is an
-emergent surface, only knowable from harness behaviour, not from a static
-lint).
+Default: when a fresh product or architecture body has not yet been sampled by a task-based cold
+review, treat it as `intent_recovery: gap`. Reader recovery is an observed
+property; unlike implicit confidence, it gets no free pass from static lint.
 
 The two axes interact via the binding rule:
 
-> A scope marked `covered` (in `STATUS.md` coverage states) cannot
-> coexist with `intent_recovery: gap`. If the cold-agent-sim has not
-> validated intent recovery for the scope, the scope must be `gap` or
-> `unknown` until the next cycle's harness run records a passing trial.
-> Existing `covered` claims demoted by a new harness cycle's failure are
-> downgraded to `unknown` with a `demoted_reason:
-> intent-recovery-gap-cycle-<N>` annotation.
+> A product or architecture scope marked `covered` cannot coexist with
+> `intent_recovery: gap`. If the
+> latest applicable cold review fails or does not sample the scope, demote the
+> scope to `unknown` (or `gap` when retiring it) and record
+> `demoted_reason: reader-review-gap-<review-id>` until a passing task closes
+> the gap.
 
-**Lag-deferral clause (v2.43.1, cycle-3).** A consumer SSOT whose
-`STATUS.md` records `tracked_skill_version < 2.43` and whose
-`coverage_result` is `in_progress` MAY temporarily carry `covered`
-scopes alongside `intent_recovery: gap` for at most one cold-agent-sim
-cycle (the per-area sampling cycle that adopts v2.43). The deferral is
-legitimate only when (a) `STATUS.md` lists every affected scope in a
-single Pending Capture row naming the v2.43 axis-adoption work,
-(b) the next cold-agent-sim cycle's sample includes at least one trial
-per declared pillar of every deferred owner, and (c) `coverage_result`
-does not advance to `converged` while the deferral is open. After that
-one cycle, automatic demotion per the binding rule above applies
-unconditionally; a second consecutive cycle of deferral escalates to
-`skill-fail` per cold-agent-sim §4 tie-breaker.
+**Upgrade compatibility.** Pre-v2.60 pillar-based reports remain historical
+evidence for a consumer whose tracked protocol predates v2.60; do not rewrite
+those artifacts. On advancing the tracking baseline, replace pillar declarations with
+task rows and a durable v2.60 reader-review artifact. An in-progress upgrade
+may defer this for one review cycle only when `STATUS.md` names every affected
+scope and closure task and does not claim `converged`; a second cycle demotes
+the scope under the binding rule.
 
-This rule extends — does not replace — §4's existing
-`hypothesis`/`candidate` block-`covered` rule. A scope must satisfy
-**both**: `confidence ∈ {source-backed, verified}` **and**
-`intent_recovery ∈ {covered, partial}`, with `partial` requiring an open
-Pending Capture entry in the consumer SSOT pointing at the missing pillar.
-The §5 frontmatter format may add (when an owner has been sampled by the
-harness):
+This product/architecture rule extends — does not replace — §4's existing
+`hypothesis`/`candidate` block-`covered` rule. A scope must satisfy both the
+confidence gate and reader recovery, with `partial` requiring a Pending Capture.
+The §5 frontmatter format may add:
 
 ```yaml
 ---
 intent_recovery: covered | partial | gap
-intent_recovery_evidence: "cold-agent-sim cycle-<N> commit-<SHA> pillar-<p> verdict-PASS"
-intent_recovery_pillars: [design_intent, design_truth]
+intent_recovery_evidence: "SSOT/.bootstrap/reader-review-<id>.md#task-<id>"
 ---
 ```
 
-`intent_recovery_evidence` is required when `intent_recovery: covered` or
-`partial`; it points to the row in
-`assets/cold-agent-sim/cycle-<N>.md` Results table that justifies the
-state. Promotion (gap → partial → covered) is a by-product of cold-agent-sim
-cycles, not a separate activity; demotion fires automatically when a new
-cycle records a failure for the slice.
+Do not add this frontmatter to root, process, record, or glossary templates.
+`intent_recovery_evidence` is required when product/architecture
+`intent_recovery` is `covered` or
+`partial`. Promotion and demotion are by-products of task-based review cycles,
+not separate activities.
 
 ---
 
@@ -228,7 +209,7 @@ Specific rules:
 - This means to reach `converged`, all hypothesis/candidate must be resolved -- either find evidence and promote to source-backed or verified, or demote to unknown and enter open gaps, or delete.
 - `source-backed` does not block `covered`. It indicates "evidence exists but not yet independently confirmed", compatible with the meaning of `covered` ("content matches code and has stop review").
 - If the team does not pursue `converged` (script/prototype projects), hypothesis/candidate may persist indefinitely without affecting daily development.
-- (v2.43) `intent_recovery: gap` blocks `covered` for the same scope, even when `confidence` is `verified`. To reach `converged`, every owner in the scope must have at least `intent_recovery: partial` with a Pending Capture for the missing pillar; truly user-irrelevant internal areas may carry `intent_recovery: not_applicable` with reason recorded (e.g. internal-only build script with no user-observable surface). Doctor `[INTENT-RECOVERY]` (14Y) gates this.
+- (v2.60) In product and architecture, `intent_recovery: gap` blocks `covered` for the same scope, even when `confidence` is `verified`. To reach `converged`, every product/architecture owner in the scope must have at least `intent_recovery: partial` with a Pending Capture for the failed or deferred task. Root, process, record, and glossary areas instead use their Area Status row and scoped semantic stop review; they do not carry this frontmatter. Doctor `[INTENT-RECOVERY]` (14Y) gates the product/architecture scope.
 
 ---
 
@@ -279,3 +260,8 @@ The old `confidence: inferred` + `needs_verification: true` format is treated as
 Protocol upgrade review (v2.11) does not require traversing all SSOT files for mechanical replacement of old annotations. Agents handle old formats by the equivalence relation when encountered in daily maintenance.
 
 Similarly, the `path#symbol` evidence anchoring introduced in v2.13 does not require mechanical migration of existing `path:line` pointers; when an agent touches an invalid line-number pointer during inline update or Doctor recheck, change it to symbol anchor in passing.
+
+Pillar-based `intent_recovery_pillars` and evidence strings from protocols
+before v2.60 are also read-only compatibility data. When an owner is next
+reviewed under v2.60, replace them with a task-row pointer to the durable
+reader-review artifact; do not create new pillar declarations.

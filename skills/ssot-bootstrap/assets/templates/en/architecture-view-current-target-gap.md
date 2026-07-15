@@ -3,6 +3,9 @@ intent_recovery: gap
 ---
 # Current, target, and gap
 
+<!-- Writing style: implementation-delegator. Begin with the present consequence
+     and decision; separate current proof, intended change, and closure owner. -->
+
 <!-- Explain the system's implementation evolution without turning this page
      into a roadmap or a status dump. Begin with the current baseline, the
      intended technical direction, and why the transition is staged. -->
@@ -41,7 +44,12 @@ intent_recovery: gap
 ## Open questions and named gaps
 
 <!-- A question is open only when present evidence cannot decide it. State the
-     current default and the evidence that would close the question. -->
+     current default and the evidence that would close the question. Include
+     every applicable Q01-Q21 item whose implementation or proof is missing.
+     Include privacy governance, harm controls, human oversight/appeal, fairness
+     or explanation, maintainability/decommissioning, environmental impact,
+     output validity/drift, and commercial/entitlement integrity. Missing
+     implementation is a gap, not not_applicable. -->
 
 | Question or gap | Current default | Why it matters | Closure evidence and owner |
 |---|---|---|---|

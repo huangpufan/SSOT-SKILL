@@ -3,64 +3,63 @@ intent_recovery: gap
 ---
 # Capability: Example outcome
 
-<!-- Replace the title. Begin with one sentence: this capability lets a named
-     kind of user, in a named situation, achieve a visible result. Then tell a
-     short current scene before introducing status or evidence. -->
+<!-- Writing style: implementation-delegator. Begin with a concrete situation
+     and result, then boundary, failure/recovery, and fitting evidence. -->
+
+<!-- Replace the title. Open with one sentence: this capability lets a named
+     kind of person, in a named situation, achieve a visible result. Then tell
+     a short current scene before introducing boundaries or evidence. -->
 
 ## The outcome in a real situation
 
 <!-- Walk one person from need to result through the surfaces available today.
      Include an important choice or control, what progress looks like, and the
-     result they leave with. If the capability is target-only, tell the current
-     workaround first and keep the target scene separate. -->
+     result they leave with. If this is target-only, tell today's workaround
+     first and keep the target scene separate. -->
 
-## What users can rely on
+## What people can rely on today
 
-<!-- Explain current behaviour, quality boundaries, permissions, and the
-     visible response to partial or failed work in prose. -->
+<!-- Explain current behaviour and its quality boundary in prose. Identify the
+     applicable stable IDs in the [product surface inventory](../_manifest.md#product-surface-inventory)
+     instead of repeating maturity and evidence rows here. Say what is limited
+     and how the limitation changes the result. -->
 
-| Promise or limit | User-visible meaning | Product maturity | Evidence fidelity |
-|---|---|---|---|
-| | | current / limited / target / out | browser / integration / unit / static / missing |
+<!-- Weave in the applicable Q01-Q21 expectations routed here from STATUS.
+     Explain their user consequence, not the protocol ID; link implementation,
+     verification, and unresolved gaps to their separate owners. -->
 
 ## Boundary and non-goals
 
-| Included experience | Deliberately excluded | Why the boundary exists | Alternative or linked owner |
-|---|---|---|---|
-| | | | |
+<!-- State the included experience, the nearest excluded experience, why the
+     boundary exists, and the present alternative or unique owner. -->
 
 ## Failure and recovery experience
 
-<!-- Describe at least one representative failure: what the user sees, what
-     remains safe, whether they can retry, resume, cancel, or seek operator
-     help, and what completion means after recovery. -->
+<!-- Tell at least one representative failure: what the person sees, what
+     remains safe, whether they can retry, resume, cancel, or seek help, and
+     how they know the capability has completed after recovery. Include repeat,
+     concurrent, or partial-completion behaviour when it changes the promise. -->
 
 ## State, access, and lifecycle constraints
 
 <!-- Use user language. Mention object state, permission, retention, or shared
-     use only when it changes this capability's promise. -->
+     use only when it changes this capability's promise. Link the corresponding
+     product-model concept rather than redefining it. -->
 
-## Acceptance example
+## A falsifiable acceptance example
 
-<!-- Give a concrete, falsifiable product scenario. Name the starting
-     conditions, user action, visible result, and unacceptable outcome. -->
+<!-- Write a compact given/when/then scene in prose: starting conditions, user
+     action, observable success, and one unacceptable result. Link the detailed
+     gate in [roadmap and acceptance](../roadmap-and-acceptance.md). -->
 
-| Scenario | Observable success | Required evidence | Acceptance owner |
-|---|---|---|---|
-| | | | [Roadmap and acceptance](../roadmap-and-acceptance.md) |
+## Current direction and required gaps
 
-## Current direction and gaps
+<!-- Keep current behaviour and intended posture in separate paragraphs. Name
+     the user impact and one closure owner for every unresolved required change. -->
 
-| Topic | Current behaviour | Intended posture | User impact | Closure owner |
-|---|---|---|---|---|
-| | | | | |
+## Owner and evidence links
 
-## Evidence and implementation links
-
-<!-- Keep implementation detail in linked owners. This appendix should let a
-     maintainer reach the responsible architecture and test evidence without
-     making the product narrative depend on paths or symbols. -->
-
-| Product claim | Architecture owner | Test or runtime evidence |
-|---|---|---|
-| | [Architecture](../../02-architecture/README.md) | |
+<!-- End with only the links needed to verify this capability: its product
+     acceptance owner, one runtime owner under
+     [Architecture](../../02-architecture/README.md), and evidence at the same
+     user-visible boundary as the claim. Do not copy implementation detail. -->

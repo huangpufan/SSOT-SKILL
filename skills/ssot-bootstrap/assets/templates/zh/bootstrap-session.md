@@ -1,8 +1,9 @@
-# Session NNN: <scope 描述>
+# 会话 NNN：<范围描述>
 
-> Bootstrap 临时文件。每个独立探索单元（一个子 Agent 的一次运行）产出一个 session 文件；最终清理前必须有停止审查通过。
+> 初始化临时文件。每个独立探索单元（一个子代理的一次运行）产出一个会话文件；
+> 最终清理前必须通过停止审查。
 >
-> **写入规则**：每个 Agent 只写自己的 session 文件，不编辑其他 session。
+> **写入规则**：每个代理只写自己的会话文件，不编辑其他会话。
 
 ## 元数据
 
@@ -18,94 +19,109 @@
 ## 探索记录
 
 > 本次实际探索了什么（具体到目录/文件级别）。
-> 记录探索路径和深度，让后续 Agent 知道哪些区域已被覆盖。
+> 记录探索路径和深度，让后续代理知道哪些区域已被覆盖。
 
 ## 源资料处理
 
-| 源资料 | 路径/来源 | Lifecycle | Classification | Authority / downgrade | 权威位置 | 处理结果 |
+生命周期前缀 `working/*` 表示工作材料，`historical/*` 表示历史材料；
+`external/source-material` 表示外部源资料，`public/thin-entry` 表示公开薄入口。
+分类值分别表示吸收、只链接、过时或冲突、失效，表格中保留英文 token 供机器处理。
+
+| 源资料 | 路径/来源 | 生命周期 | 分类 | 权威性或降权 | 权威位置 | 处理结果 |
 |---|---|---|---|---|---|---|
 | | | working/* / historical/* / external/source-material / public/thin-entry | absorb / link-only / stale/conflict / obsolete | authority=...; owner=...; absorbed_to=...; do_not_use_for=...; review_on=... | SSOT/... | |
 
-## Architecture 拆分判断
+## 架构拆分判断
 
-> 如果本次范围涉及 architecture，记录候选拆分轴、evidence-guided signals、最终选择、拒绝原因、owner anchor、bottom-up synthesis notes、覆盖深度、views 吸收范围和 domain 有效性判断。
+> 如果本次范围涉及架构，记录候选拆分轴、证据引导的信号、最终选择、拒绝原因、
+> 所有者锚点、自下而上的综合说明、覆盖深度、视图吸收范围和领域有效性判断。
 
 | 字段 | 值 |
 |---|---|
-| 处理的 architecture 范围 | root / views / domains / legacy direct child-domain |
+| 处理的架构范围 | 根 / 视图 / 领域 / 旧式直接子领域 |
 | 使用的拆分轴 | |
-| Evidence-guided signals | entrypoints, call/dependency edges, shared state/resource, runtime flow, failure/recovery boundary, contract surface, tests, configs, scripts, ADR/source material |
+| 证据引导的信号 | 入口、调用或依赖边、共享状态或资源、运行流程、失败/恢复边界、契约表面、测试、配置、脚本、ADR 或源资料 |
 | 拒绝的替代轴 | |
-| Rejected signals / false friends | |
-| Owner anchors | |
-| Bottom-up synthesis notes | domain evidence -> view synthesis -> root Reader Map |
+| 被拒绝的信号或误导信号 | |
+| 所有者锚点 | |
+| 自下而上的综合说明 | 领域证据 → 视图综合 → 根阅读地图 |
 | 继续递归/停止拆分的理由 | |
 | 覆盖深度 | `deep` / `sampled` / `inferred` / `unknown` |
 | 覆盖范围 / 抽样策略 | |
-| Views 吸收范围 | operating-model / critical-journeys / current-target-gap |
-| 设计意图覆盖 | mission / priorities / non-goals / success standards / journeys / current-target-gap |
-| 必需图清单 | boundary/context, decomposition/domain, runtime flow, state/resource, lifecycle/concurrency, failure/recovery, trust/config |
-| Domain 有效性证据 | why separate + independence signal |
-| 未覆盖 gap | |
-| 停止/递归审查挑战 | reviewer + result (`no-more-required-changes` / `needs-fix`) + 剩余修改项 |
+| 视图吸收范围 | `operating-model` / `critical-journeys` / `current-target-gap` |
+| 设计意图覆盖 | 使命 / 优先级 / 非目标 / 成功标准 / 旅程 / 当前目标缺口 |
+| 必需图清单 | 边界与环境、分解与领域、运行流程、状态与资源、生命周期与并发、失败与恢复、信任与配置 |
+| 领域有效性证据 | 为什么应独立 + 独立性信号 |
+| 未覆盖缺口 | |
+| 停止/递归审查挑战 | 评审者 + 结果（`no-more-required-changes` / `needs-fix`）+ 剩余修改项 |
 
-> 如果本 session 判断 `single-level`、停止拆分、某区域 `done` 或 `无需更新`，必须记录停止审查如何挑战该结论。优先独立 reviewer；不可用时按 `self-reviewed` 降级路径记录范围、依据和跳过项。`needs-fix` 时不得把范围报为完成。
+> 如果本会话判断 `single-level`（单层）、停止拆分、某区域 `done`（完成）或
+> “无需更新”，必须记录停止审查如何挑战该结论。优先独立评审者；不可用时按
+> `self-reviewed`（自审）降级路径记录范围、依据和跳过项。`needs-fix`（需要修改）
+> 时不得把范围报为完成。
 
-## Product 主干判断
+## 产品主干判断
 
-> 如果本次范围涉及 product，记录 PRD、product-model、roadmap-and-acceptance 的覆盖判断，以及 capability / journey 是否需要拆分为独立 owner。产品事实由 product 拥有；architecture 只记录技术响应和实现差距。
+> 如果本次范围涉及产品，记录 PRD、产品模型、路线图与验收的覆盖判断，以及能力/
+> 旅程是否需要拆分为独立所有者。产品事实由产品拥有；架构只记录技术响应和实现差距。
+
+覆盖值 `covered`、`sampled`、`inferred`、`unknown` 分别表示已覆盖、抽样、推断、
+未知；拆分决策 token 保留在表格中，并在同一单元格写明依据与所有者。
 
 | 字段 | 值 |
 |---|---|
-| PRD 覆盖 | covered / sampled / inferred / unknown；核心承诺、用户/操作者、非目标、owner evidence |
-| Product model 覆盖 | covered / sampled / inferred / unknown；users, problems, promises, boundaries, product language |
-| Roadmap / acceptance 覆盖 | covered / sampled / inferred / unknown；phase, roadmap intent, product acceptance, product-level gap |
-| Capability 拆分决策 | keep-in-spine / split-to-capability-owner / no-stable-capability；依据和 owner |
-| Journey 拆分决策 | keep-in-spine / split-to-journey-owner / no-stable-journey；依据和 owner |
-| Rejected product splits | 候选 capability / journey / product file 与拒绝原因 |
-| Product / Architecture 边界决策 | product intent / acceptance / current-target-gap owner；architecture implementation / runtime / technical gap owner |
-| 未覆盖 product gap | |
-| 停止/递归审查挑战 | reviewer + result (`no-more-required-changes` / `needs-fix`) + 剩余修改项 |
+| PRD 覆盖 | covered / sampled / inferred / unknown；核心承诺、用户/操作者、非目标、所有者证据 |
+| 产品模型覆盖 | covered / sampled / inferred / unknown；用户、问题、承诺、边界、产品语言 |
+| 路线图与验收覆盖 | covered / sampled / inferred / unknown；阶段、路线图意图、产品验收、产品级缺口 |
+| 能力拆分决策 | keep-in-spine / split-to-capability-owner / no-stable-capability；依据和所有者 |
+| 旅程拆分决策 | keep-in-spine / split-to-journey-owner / no-stable-journey；依据和所有者 |
+| 被拒绝的产品拆分 | 候选能力、旅程或产品文件与拒绝原因 |
+| 产品/架构边界决策 | 产品意图、验收、当前目标缺口所有者；架构实现、运行时、技术缺口所有者 |
+| 未覆盖产品缺口 | |
+| 停止/递归审查挑战 | 评审者 + 结果（`no-more-required-changes` / `needs-fix`）+ 剩余修改项 |
 
-## Architecture Diagram 处理
+## 架构图处理
 
-### Diagram Index
+### 图索引
 
-| Diagram ID | 架构路径 | 状态 | 覆盖内容 |
+| 图 ID | 架构路径 | 状态 | 覆盖内容 |
 |---|---|---|---|
-| | SSOT/02-architecture/.../README.md | current / target / stale | |
+| | SSOT/02-architecture/.../README.md | `current`（当前）/ `target`（目标）/ `stale`（过时） | |
 
-### Diagram Trace
+### 图证据追踪
 
-| Diagram ID | 证据 | 链接的表格行 | 处理结果 |
+| 图 ID | 证据 | 链接的表格行 | 处理结果 |
 |---|---|---|---|
-| | | 运行流 / 子 Domains / 契约 / 状态 / 生命周期 / 失败 / trust-config | |
+| | | 运行流 / 子领域 / 契约 / 状态 / 生命周期 / 失败 / 信任与配置 | |
 
 ## 产出摘要
 
-> 写入了哪些区域、architecture view 或 architecture domain 文件，核心内容概述。
+> 写入了哪些区域、架构视图或架构领域文件，核心内容概述。
 
-## Tier 4 发现
+## 第四层发现
 
-> 探索过程中发现的 decisions/research/gotchas/bugs/tech-debt 素材，以及需要进入 architecture 约束与 gap 记录的线索。
-> 协调者会从此处汇总到 manifest.md 的 Tier 4 发现汇总中。
+> 探索过程中发现的决策、研究、陷阱、缺陷、技术债素材，以及需要进入架构约束与
+> 缺口记录的线索。协调者会从此处汇总到 `manifest.md` 的第四层发现汇总中。
 
 | 发现 | 类型 | 来源标记 | 来源位置 |
 |---|---|---|---|
-| | gotcha / decision / bug / debt / architecture-constraint | documented / code-comment / code-analysis / git-history | 文件路径或描述 |
+| | `gotcha`（陷阱）/ `decision`（决策）/ `bug`（缺陷）/ `debt`（债务）/ `architecture-constraint`（架构约束） | `documented`（已有文档）/ `code-comment`（代码注释）/ `code-analysis`（代码分析）/ `git-history`（版本历史） | 文件路径或描述 |
 
 ## 阻塞与问题
 
-> 无法继续的点、证据不足的区域、需要其他 Agent 协助的事项。
-> 协调者据此决定是否标记相关区域为 blocked。
+> 无法继续的点、证据不足的区域、需要其他代理协助的事项。
+> 协调者据此决定是否标记相关区域为 `blocked`（受阻）。
 
-## 停止审查记录（Stop Review）
+## 停止审查记录
 
-| scope | stop_claim | reviewer | result | 已审查证据 | 剩余修改项 |
+| 范围 | 停止结论 | 评审者 | 结果 | 已审查证据 | 剩余修改项 |
 |---|---|---|---|---|---|
-| | done / no-op / 无需更新 / single-level / 停止拆分 | | no-more-required-changes / needs-fix | | |
+| | `done`（完成）/ `no-op`（无需动作）/ 无需更新 / `single-level`（单层）/ 停止拆分 | | `no-more-required-changes`（无需再改）/ `needs-fix`（需要修改） | | |
 
-> 高影响 Bootstrap 结论（整体 `passed`、清理 `.bootstrap/`、最终水位推进）不能自审。这里记录的是本 session 相关停止结论的 reviewer challenge 或 `self-reviewed` 降级记录，降级时必须写清已检查项与未检查项；最终全局收敛仍以 manifest 和 STATUS.md 的记录为准。
+> 高影响初始化结论（整体 `passed`、清理 `.bootstrap/`、提高最终追踪基线）不能自审。
+> 这里记录本会话停止结论受到的评审挑战，或 `self-reviewed`（自审）降级记录；
+> 降级时必须写清已检查项与未检查项。最终全局收敛仍以 `manifest.md` 和
+> `STATUS.md` 的记录为准。
 
 ## 下次建议
 

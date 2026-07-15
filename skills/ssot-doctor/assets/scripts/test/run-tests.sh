@@ -10,7 +10,8 @@
 #         table-density WARN heuristics, v2.47 intent/truth narrative WARN,
 #         v2.52 open-risk / temporary-surface checks, v2.53 non-silent
 #         deferral checks, v2.54 research-record checks, v2.55 benchmark-owner
-#         checks, and the clean baseline.
+#         checks, v2.60 STATUS/register heuristic boundaries, and the clean
+#         baseline.
 #
 # Usage:       bash assets/scripts/test/run-tests.sh
 # Exit codes:  0 all pass; 1 some failed.
@@ -37,6 +38,10 @@ assert_exit() { # desc actual expected
   if [[ "$2" == "$3" ]]; then echo "  ok   : $1"; PASS=$((PASS + 1));
   else echo "  FAIL : $1 (exit code $2 != $3)"; FAIL=$((FAIL + 1)); fi
 }
+assert_not_exit() { # desc actual forbidden
+  if [[ "$2" != "$3" ]]; then echo "  ok   : $1"; PASS=$((PASS + 1));
+  else echo "  FAIL : $1 (unexpected exit code $3)"; FAIL=$((FAIL + 1)); fi
+}
 assert_file() { # desc path
   if [[ -f "$2" ]]; then echo "  ok   : $1"; PASS=$((PASS + 1));
   else echo "  FAIL : $1 (missing file: $2)"; FAIL=$((FAIL + 1)); fi
@@ -52,8 +57,8 @@ make_base() { # $1=root — build a clean, all-PASS minimal SSOT project (git re
   printf -- '---\nintent_recovery: gap\n---\n# PRD Spine\n' > "$r/SSOT/product/prd.md"
   printf -- '---\nintent_recovery: gap\n---\n# Product Model\n' > "$r/SSOT/product/product-model.md"
   printf -- '---\nintent_recovery: gap\n---\n# Roadmap And Acceptance\n' > "$r/SSOT/product/roadmap-and-acceptance.md"
-  printf -- '---\nintent_recovery: gap\n---\n# Product Capabilities\n' > "$r/SSOT/product/capabilities/README.md"
-  printf -- '---\nintent_recovery: gap\n---\n# Product Journeys\n' > "$r/SSOT/product/journeys/README.md"
+  printf -- '---\nintent_recovery: gap\n---\n# 产品能力索引\n\n这里列出用户可获得的能力及其事实所有者。它不负责解释运行时实现；这类问题转到[架构所有者](../../architecture/README.md)。\n' > "$r/SSOT/product/capabilities/README.md"
+  printf -- '---\nintent_recovery: gap\n---\n# 用户旅程索引\n\n这里列出用户从开始到结果的主要路径。它不负责重新定义单项能力；这类问题转到[产品所有者](../README.md)。\n' > "$r/SSOT/product/journeys/README.md"
   printf -- '---\nintent_recovery: gap\n---\n# 架构\n\n核心不变量：请求必须经过鉴权。\n\n## Easily confused with\n\n（待补充）\n\n## Out of scope\n\n（待补充）\n' > "$r/SSOT/architecture/README.md"
   printf '# 陷阱索引\n\n- [0001](0001-x.md)\n\n## Easily confused with\n\n（待补充）\n\n## Out of scope\n\n（待补充）\n' > "$r/SSOT/gotchas/README.md"
   printf -- '---\nconfidence: candidate\nsource: code-analysis\ndiscovered_at: 2026-05-29\nevidence: "src/foo.ts#barFunc"\n---\n# 陷阱 X\n' > "$r/SSOT/gotchas/0001-x.md"
@@ -99,6 +104,7 @@ facet_base() { # $1=root — migrate the minimal fixture to the v2.57 physical l
   mv "$r/SSOT/architecture" "$r/SSOT/02-architecture"
   mv "$r/SSOT/gotchas" "$r/SSOT/04-records/gotchas"
   sed -i 's#product/README.md#01-product/README.md#g; s#architecture/README.md#02-architecture/README.md#g' "$r/SSOT/README.md"
+  sed -i 's#../../architecture/README.md#../../02-architecture/README.md#g' "$r/SSOT/01-product/capabilities/README.md"
   set_protocol_version "$r" "2.57"
 }
 
@@ -107,7 +113,7 @@ for skill in ssot-preflight ssot-bootstrap ssot-closeout ssot-audit ssot-doctor 
   assert_file "$skill has SKILL.md" "$SKILLS_DIR/$skill/SKILL.md"
   assert_file "$skill has agents/openai.yaml" "$SKILLS_DIR/$skill/agents/openai.yaml"
 done
-for template in product-readme.md product-prd.md product-model.md product-roadmap-and-acceptance.md product-capabilities-readme.md product-journeys-readme.md product-capability-entry.md product-journey-entry.md benchmark-readme.md; do
+for template in product-readme.md product-prd.md product-model.md product-roadmap-and-acceptance.md product-capabilities-readme.md product-journeys-readme.md product-capability-entry.md product-journey-entry.md benchmark-readme.md operations-readme.md security-and-compliance-readme.md reader-review.md; do
   # Bilingual split: canonical templates live under en/ and zh/.
   assert_file "template en/$template exists" "$SKILLS_DIR/ssot-bootstrap/assets/templates/en/$template"
   assert_file "template zh/$template exists" "$SKILLS_DIR/ssot-bootstrap/assets/templates/zh/$template"
@@ -242,12 +248,42 @@ assert_contains "STATUS notes ledger triggers WARN tag" "$out" "[STATUS-NOTES-LE
 assert_exit "STATUS notes ledger exits 1" "$code" "1"
 rm -rf "$T"
 
+echo "== S14a STATUS Date column is not a Notes ledger =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+sed -i \
+  -e 's/| 区域 | 状态 | 备注 |/| 区域 | 状态 | 日期 | 备注 |/' \
+  -e 's/|---|---|---|/|---|---|---|---|/' \
+  -e 's/| product | gap | |/| product | gap | 2026-07-13 | |/' \
+  -e 's/| architecture | gap | |/| architecture | gap | 2026-07-13 | |/' \
+  "$T/SSOT/STATUS.md"
+out=$(run "$T"); code=$?
+assert_not_contains "explicit STATUS Date column has no Notes-ledger warning" "$out" "[STATUS-NOTES-LEDGER]"
+assert_exit "explicit STATUS Date column exits 0" "$code" "0"
+rm -rf "$T"
+
 echo "== S15 README derived-state warning (check 5b -> INDEX-DERIVED-STATE WARN) =="
 T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
 printf '\n本仓库目前索引 12 条 bug，其中 10 条 fixed、2 条 active。\n' >> "$T/SSOT/product/README.md"
 out=$(run "$T"); code=$?
 assert_contains "README derived state triggers WARN tag" "$out" "[INDEX-DERIVED-STATE]"
 assert_exit "README derived state exits 1" "$code" "1"
+rm -rf "$T"
+
+echo "== S15a release owner may explain the literal latest image tag =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+mkdir -p "$T/SSOT/release"
+printf '# 发布\n\n镜像标签 `latest` 只是可变别名；发布前需要重新拉取验证镜像身份。\n\n## 容易混淆\n\n本页不负责产品验收，另见 product owner。\n\n## 不负责\n\n运行时实现另见 architecture owner。\n' > "$T/SSOT/release/README.md"
+out=$(run "$T"); code=$?
+assert_not_contains "literal latest image tag is not derived-state mirroring" "$out" "[INDEX-DERIVED-STATE]"
+assert_exit "literal latest image tag exits 0" "$code" "0"
+rm -rf "$T"
+
+echo "== S15b explicit latest verification mirror still warns =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+printf '\nLatest verification: smoke passed on 2026-07-13.\n' >> "$T/SSOT/product/README.md"
+out=$(run "$T"); code=$?
+assert_contains "explicit latest verification mirror triggers INDEX-DERIVED-STATE" "$out" "[INDEX-DERIVED-STATE]"
+assert_exit "explicit latest verification mirror exits 1" "$code" "1"
 rm -rf "$T"
 
 echo "== S16 non-owner shadow ledger warning (check 5c -> SHADOW-LEDGER WARN) =="
@@ -295,7 +331,7 @@ assert_contains "overlong line triggers WARN tag" "$out" "[READABILITY-LONG-LINE
 assert_exit "overlong line exits 1" "$code" "1"
 rm -rf "$T"
 
-echo "== S21 table-density warning (check 5g -> KISS-TABLE-DENSITY WARN) =="
+echo "== S21 reader-owner table-density warning (check 5g -> KISS-TABLE-DENSITY WARN) =="
 T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
 {
   printf -- '---\nintent_recovery: gap\n---\n'
@@ -306,6 +342,18 @@ T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
 out=$(run "$T"); code=$?
 assert_contains "table density triggers KISS WARN tag" "$out" "[KISS-TABLE-DENSITY]"
 assert_exit "table density exits 1" "$code" "1"
+rm -rf "$T"
+
+echo "== S21a machine manifest table density is governed by manifest checks =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+{
+  printf -- '---\nmanifest_archetype: architecture-root\nintent_recovery: gap\n---\n'
+  printf '# Architecture registry\n\n| ID | Owner | State |\n|---|---|---|\n'
+  for i in $(seq 1 75); do printf '| tech:%s | owner:runtime | contract |\n' "$i"; done
+} > "$T/SSOT/architecture/_manifest.md"
+out=$(run "$T"); code=$?
+assert_not_contains "machine _manifest.md has no generic KISS table-density warning" "$out" "[KISS-TABLE-DENSITY]"
+assert_exit "machine _manifest.md table density exits 0" "$code" "0"
 rm -rf "$T"
 
 echo "== S22 v2.38 missing source inventory (check 5h -> SOURCE-INVENTORY FAIL) =="
@@ -467,7 +515,7 @@ rm -rf "$T"
 echo "== S31 active debt missing closure fields (check 24 -> DEBT-CLOSURE FAIL) =="
 T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
 mkdir -p "$T/SSOT/tech-debt"
-printf '# Tech debt\n' > "$T/SSOT/tech-debt/README.md"
+printf '# Tech debt\n\n## Easily confused with\n\nThis index does not own implementation detail; see the architecture owner.\n\n## Out of scope\n\nRelease execution belongs to the release owner.\n' > "$T/SSOT/tech-debt/README.md"
 printf -- '---\nid: DEBT-0001\nstatus: active\npriority: high\n---\n# Active debt\n' > "$T/SSOT/tech-debt/0001-active.md"
 out=$(run "$T"); code=$?
 assert_contains "active debt missing closure triggers DEBT-CLOSURE" "$out" "[DEBT-CLOSURE]"
@@ -500,7 +548,19 @@ T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
 printf '\n| last_stop_review | remaining=existing non-blocking gaps only (DEBT-0009) |\n\n## Open Gaps\n\n| Area | Status | Gap description | Blocking level |\n|---|---|---|---|\n| testing | gap | Browser smoke missing | non-blocking |\n| release | gap | Release automation missing | non-blocking |\n' >> "$T/SSOT/STATUS.md"
 out=$(run "$T"); code=$?
 assert_contains "contradictory remaining summary triggers STATUS-AGGREGATE" "$out" "[STATUS-AGGREGATE]"
+assert_contains "contradictory remaining summary emits the aggregate diagnostic" "$out" "stop/status summary claims"
 assert_exit "contradictory remaining summary exits 2" "$code" "2"
+rm -rf "$T"
+
+echo "== S34a actionable Chinese gap text is not a stop summary =="
+T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
+mkdir -p "$T/SSOT/tech-debt"
+printf '# Tech debt\n' > "$T/SSOT/tech-debt/README.md"
+printf '%s\n' '---' 'id: DEBT-0019' 'status: resolved' 'priority: medium' '---' '# Shell integration gap' > "$T/SSOT/tech-debt/0019-shell-integration.md"
+printf '\n## Open Gaps\n\n| Area | Status | Gap description | Blocking level |\n|---|---|---|---|\n| shell integration | gap | 只有单元 harness 时阻断集成正确声明 | [DEBT-0019](tech-debt/0019-shell-integration.md) |\n' >> "$T/SSOT/STATUS.md"
+out=$(run "$T"); code=$?
+assert_not_contains "Open Gaps actionability text is excluded from aggregate summaries" "$out" "stop/status summary claims"
+assert_not_exit "Open Gaps actionability text is not a hard aggregate failure" "$code" "2"
 rm -rf "$T"
 
 echo "== S35 open gap with待立 debt and no owner (check 27 -> GAP-OWNER FAIL) =="
@@ -573,7 +633,7 @@ rm -rf "$T"
 echo "== S39 valid research record passes check 30 =="
 T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
 mkdir -p "$T/SSOT/04-records/research"
-printf '# Research records\n\n- [0001 sandbox options](0001-sandbox-options.md)\n' > "$T/SSOT/04-records/research/README.md"
+printf '# 研究记录\n\n本页只索引有来源的研究证据包。它不负责声明当前产品或运行事实；请转到每条记录列出的 SSOT 事实所有者。\n\n- [0001 sandbox options](0001-sandbox-options.md)\n' > "$T/SSOT/04-records/research/README.md"
 {
   printf -- '---\nstatus: source-backed\nkind: poc\ncreated_on: 2026-06-30\nowner: platform team\npromotion_targets: [SSOT/02-architecture/domains/sandbox/README.md]\nrecheck_trigger: "runtime isolation model changes"\n---\n'
   printf '# Sandbox options\n\n## Question\n\nWhich local execution option is practical?\n\n## Conclusion\n\nUse direct shell first and container isolation only when the run needs it.\n\n## Applicability and boundaries\n\n'
@@ -590,7 +650,7 @@ rm -rf "$T"
 echo "== S40 research record missing required frontmatter fails check 30 =="
 T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
 mkdir -p "$T/SSOT/04-records/research"
-printf '# Research records\n' > "$T/SSOT/04-records/research/README.md"
+printf '# 研究记录\n\n本页只索引有来源的研究证据包。它不负责声明当前产品或运行事实；请转到每条记录列出的 SSOT 事实所有者。\n' > "$T/SSOT/04-records/research/README.md"
 {
   printf -- '---\nstatus: source-backed\nkind: research\ncreated_on: 2026-06-30\nowner: platform team\npromotion_targets: [SSOT/testing/README.md]\n---\n'
   printf '# Missing trigger\n\n## Applicability and boundaries\n\ndo_not_use_for: current production fact.\n'
@@ -721,7 +781,7 @@ rm -rf "$T"
 echo "== S52 long research frontmatter with block promotion_targets passes =="
 T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"
 mkdir -p "$T/SSOT/04-records/research"
-printf '# Research records\n' > "$T/SSOT/04-records/research/README.md"
+printf '# 研究记录\n\n本页只索引有来源的研究证据包。它不负责声明当前产品或运行事实；请转到每条记录列出的 SSOT 事实所有者。\n' > "$T/SSOT/04-records/research/README.md"
 {
   printf -- '---\nstatus: source-backed\nkind: research\ncreated_on: 2026-07-10\nowner: platform team\npromotion_targets:\n  - SSOT/testing/README.md\n'
   for i in $(seq 1 48); do printf 'note_%02d: value\n' "$i"; done

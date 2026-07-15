@@ -5,13 +5,7 @@ description: Legacy compatibility shim for the split SSOT Skill bundle. Use only
 
 # SSOT Skill — compatibility shim
 
-You landed here from a legacy `$ssot-skill` mention. Don't stay. Route to the
-lifecycle skill that matches *when in the task you are right now*:
-
-- before substantive work → `$ssot-preflight`
-- no `SSOT/` yet, or `.bootstrap/` present → `$ssot-bootstrap`
-- before final answer, `claim_done`, or commit → `$ssot-closeout`
-- catching up commits, sessions, or protocol version → `$ssot-audit`
-- verifying health, stop review, CORE-REF / ADAPTER / CONSUMPTION → `$ssot-doctor`
-
-Protocol version lives in `ssot-preflight`. Don't re-decide it here.
+Route immediately by task stage: preflight before work, bootstrap when SSOT is
+missing or incomplete, closeout before done or commit, audit for catch-up, and
+Doctor for health or stop review. Do not execute protocol or own a version in
+this compatibility shim.

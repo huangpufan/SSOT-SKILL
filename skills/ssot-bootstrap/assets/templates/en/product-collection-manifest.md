@@ -4,6 +4,9 @@ intent_recovery: gap
 ---
 # Product collection recovery manifest
 
+<!-- Writing style: implementation-delegator. Keep this index concrete and link
+     to plain-language child narratives before internal labels or evidence. -->
+
 <!-- Render this template as capabilities/_manifest.md or journeys/_manifest.md.
      Keep one row per actual child owner. Replace the initial gap row before
      claiming covered; do not mirror child narrative here. -->
@@ -22,6 +25,10 @@ intent_recovery: gap
 
 ## Cold-reader evidence
 
-| Review | Status | Score | Evidence |
-|---|---|---|---|
-| Sampled child-owner teach-back with tables hidden | needs-review | not-scored | Review after the child set is complete |
+<!-- Render `reader-review.md` under `SSOT/.bootstrap/` after the child set is
+     complete. Sample the index route and representative child owners, including
+     applicable non-page surfaces and Q01-Q21 conditions. -->
+
+| Review scope | Artifact | Score | Critical truth errors | Unresolved required changes | Verdict |
+|---|---|---|---|---|---|
+| Sampled child-owner teach-back with tables hidden | `SSOT/.bootstrap/<review-file>.md` | not-scored /32 | not-counted | not-counted | needs-review |

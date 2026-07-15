@@ -4,11 +4,86 @@ This file holds the current protocol entry and the nearest recent standalone
 entries. If a project already has `tracked_skill_version >= 2.35`, this file is
 the only upgrade ledger the audit needs to read.
 
-For older or missing waterlines, start at [`protocol-upgrades.md`](protocol-upgrades.md)
+For older or missing tracking baselines, start at [`protocol-upgrades.md`](protocol-upgrades.md)
 and follow [`archive/index.md`](archive/index.md) to load only the needed range
 files.
 
 ## Version Ledger
+
+### v2.60
+
+**Upgrade goal**: remove the false-positive path where mechanically complete
+product/architecture Markdown passes lint but a cold reader cannot recover a
+consistent current story. v2.60 makes `reader-quality.md` the unique owner of
+the universal reader floor, completeness profiles, product maturity and
+evidence-fidelity semantics, replaces verdict-string
+review pointers with structured task evidence, inventories finite product and
+technical surfaces, adds deployment/observability and product-to-runtime
+routing, adds an exact cross-layer `Q01`-`Q21` quality/risk/governance
+disposition, and requires a bottom-up regeneration loop after every
+`needs-fix`. Process, records, glossary, root, and STATUS now use exact-scope
+reviews with durable semantic truth samples; records separate knowledge
+lifecycle from the real-world state they describe. It treats the implementation delegator as the default reader:
+ordinary-language explanation, a concrete delegated action, observable result,
+evidence, and stop/escalation boundary come before repository vocabulary.
+
+**Impact**: `semantic_impact=high` -- changes covered-claim evidence,
+product-root and architecture-root manifests, the default architecture view set,
+and cold-reader scoring. The first adoption or repair of a false `covered` claim
+requires an independent cold reader under `status-protocol.md §6`.
+
+**Impact checklist**:
+
+| Check | Affected area | Audit action | Done criterion |
+|---|---|---|---|
+| Unique reader contract | Preflight/bootstrap/Doctor/closeout/audit adapters | Remove live legacy product `contract/design/debt` or `production` interfaces; route the shared writing floor, product maturity, and evidence fidelity to `reader-quality.md`. | Every reader-facing body can reach the shared floor on demand; product/architecture use the full task-based gate, while process/records/glossary/root/STATUS use the exact lightweight gate; adapters do not define a parallel vocabulary. |
+| Universal completeness profiles | Root, process, records, glossary, STATUS and their bilingual templates | Use the exact common/root/process/record/glossary/STATUS IDs owned by `reader-quality.md`, plus `Q01`-`Q21`. For every exact row, write a short plain-language answer or boundary finding instead of an owner-name string. Build the finite target matrix for every applicable process child, record collection and real entry/anchor, glossary term owner, root, and STATUS register; compute the current `area_disposition_fingerprint` beside content and Q fingerprints. | Process and records pass 46-row profiles, glossary 38, root 37, STATUS 32; every exact row has a plain answer and fitting owner/evidence link; every finite target appears once and is semantically checked; content, area-disposition, and Q fingerprints are current; required changes, visible verdict, Area Status, and Stop Review authority agree. |
+| Plain-language delegation | Every reader-facing body | Lead with the reader's scene, decision, delegated action, visible outcome/evidence, and stop/escalation condition; define unavoidable terms before use and keep tables as reference. | The implementation delegator passes `RF1`, `LA2`, `CP-D`, and table-hidden teach-back without reading source. |
+| Process method and assets | Process root and every applicable process owner | Explain the strategy, rationale, invariants, nearest rejected alternative, trade-offs, ordered path, repeat/concurrent/partial behaviour, and recovery before reference commands. Inventory every stable created/read/changed/verified/handed-off/retired asset with class, purpose, selection, owner, evidence, risk, and retirement trigger. | `PR01`-`PR16` all have truthful dispositions; the process review confirms method and finite asset coverage rather than accepting a command list. |
+| Record truth and routing | Decisions, research, gotchas, bugs, technical debt and their indexes | Keep `record_status` separate from implementation/adoption/failure/hazard/repayment state, preserve documented legacy aliases, and link every real ID exactly once to its unique entry or stable topic anchor. A confirmed unresolved defect uses bug `failure_state: open`; it is not disguised as technical debt. | Missing axes, state disagreement, missing/duplicate/orphan index rows, broken anchors, and paragraph-sized index copies fail; `R01`-`R16` pass. |
+| Glossary completeness | Glossary index and entries | Use one six-family inventory for product/user, architecture/runtime, state/workflow, trust/data, evidence/operations, and concurrency-control terms; route every repository-specific term exactly once to a unique entry file or H2 owner. | All six families have entries or a repository-grounded empty reason; aliases, machine/user labels, translations, examples, non-examples, lifecycle, and invalidation remain locatable. |
+| Quality/risk/governance disposition | `STATUS.md`, linked product/architecture/process/record owners | Dispose `Q01`-`Q21` exactly once in the pointer-sized register; link each applicable layer owner or named gap. Missing implementation is not evidence of non-applicability. | `[QUALITY-DISPOSITION]` passes and both product/architecture artifacts include the exact shared Q rows. |
+| Area schema normalization | `STATUS.md ## Area Status` / `## 区域状态` | Rewrite the table to exactly three columns (`Area`, `Status`, `Notes`) and the 17 exact baseline rows: product, architecture, process, development, testing, benchmark, deployment, release, operations, security-and-compliance, records, decisions, research records, gotchas, bugs, tech-debt, glossary. Merge evidence from legacy child rows such as `architecture/views` into the architecture root/views/domain manifests and aggregate review, then delete those child rows. Add only `x-<slug>` extensions with exactly one resolving owner link. | `[AREA-STATUS]` passes; product/architecture child state is synthesised from manifests/reviews rather than mirrored in STATUS, process/records aggregate rows agree with their children, and no legacy child or unknown row remains. |
+| STATUS register boundary | `STATUS.md` | Split paragraph/checklist/command/history cells into owner or appendix evidence and leave state plus pointers; split compound source lifecycle fields across the schema columns. | `[STATUS-REGISTER-CELL]` passes the v2.60 180/320-character and prose-shape gate. |
+| Product surface inventory | `01-product/_manifest.md` | Enumerate stable `surface:<slug>` rows for page, navigation, entry-mode, control, settings, diagnostic, external-channel, command, public-interface, output-artifact, notification, and help-onboarding classes; route each to one product owner or a reasoned `not_applicable`. | `[SURFACE-INVENTORY]` passes and every real page or non-page surface has maturity, fidelity, and stable evidence/closure. |
+| Sustained product value | Product brief and roadmap/acceptance | Define every outcome metric and counter-metric with its audience, observation window, source, privacy boundary, current baseline (`unknown` is valid), feedback route, and exact threshold or event that makes an owner change the roadmap. | P23 can be reviewed without invented numbers: the reader knows what repeated success means, what adverse result balances it, and what decision follows new evidence. |
+| Architecture owner inventory | `02-architecture/_manifest.md` | Classify every direct owner as runtime/support/target; register stable `tech:<slug>` entry, write-store, contract, operator, and external-integration surfaces; make each kind-disposition cell name the exact registered IDs of that kind; add the product-to-architecture bridge. | `[OWNER-INVENTORY]` rejects unknown, wrong-kind, duplicate, or omitted IDs and passes with one narrative owner per row. |
+| Deployment and observability | Architecture views | Add `views/deployment-and-observability.md` or a reasoned exception, then connect topology, health signals, telemetry, alerts, and operator diagnosis to runtime owners. | The view manifest and default reader route include the seventh cross-owner view. |
+| Trust versus deployment configuration | Trust/contracts and deployment/observability views | Keep access, sensitivity, and redaction rules in the trust owner; keep configuration source, loading/reloading, environment variation, rollout, drift detection, and recovery in deployment/observability. Cross-link any setting that affects both. | A08 no longer hides configuration lifecycle inside a generic secrets paragraph, and the deployment view does not redefine access or redaction policy. |
+| Reader locality and consistency | Product/architecture roots and derived summaries | Keep the core story in a bounded first-day route; sweep duplicated current/target summaries for conflicts before review. | The reviewer does not need a collection tour to recover the normal path, visible result, failure posture, and main gaps. |
+| Structured cold review | Durable review artifact linked by covered manifests and STATUS | Start each of six exact scope tasks at `SSOT/README.md`; hide tables; record bounded reads/hops, per-task evidence, five cold proofs, 16 leaf minima, exact `C + scope + Q` completeness dispositions, and the complete finite owner/surface/view/bridge target population. Add the stable `reviewer` and exact `authorises=area:product:covered|area:architecture:covered`, then close the claim through one current STATUS stop row that matches reviewer, role, date, verdict, artifact, and authorisation. | `[READER-REVIEW-EVIDENCE]` passes: every finite target is listed once and semantically read; every owner/evidence link recorded inside the artifact stays inside the consumer SSOT and outside `.bootstrap`, while the matching STATUS Evidence link resolves to this artifact; current shared-surface and normalized STATUS-Q fingerprints match; >=29/32 with no zero and all family/persona floors; no critical truth error; zero unresolved required change; one visible matching final verdict; and result `no-more-required-changes`. |
+| Regeneration loop | Source bundle, installed copy, consumer SSOT | Freeze the failure, map symptoms to protocol, inventory coverage, rewrite unique owners before indexes/views/roots, lint, then run the full or lightweight semantic review required for that scope. On every retry, regenerate exact-row plain answers, the complete finite target matrix, and the `area_disposition_fingerprint`; repeat every `needs-fix` rather than carrying a family sample or old child disposition forward. | Source/installed/consumer all report `2.60`; deterministic gates, product/architecture cold reviews, and all applicable exact-scope reviews pass with no omitted target, no owner-name-only exact row, and fingerprints matching current content, Q disposition, and Area Status. |
+| Validation | Bundle source | Run document-quality contract/lint, bundle-shape, Doctor, installer, and migration regression suites. | All relevant suites pass before commit/push or consumer tracking-baseline advancement. |
+
+**Migration notes**:
+
+- Do not copy new tables into an old summary and call the migration complete.
+  Repair conflicting current truth in the unique capability/domain owner first,
+  then regenerate journeys/views and roots from it.
+- Existing v2.59 prose may remain when it passes the new task-based review, but
+  every `covered` manifest needs a v2.60 structured artifact and the new finite
+  inventories.
+- Rebuild each product/architecture full review with the exact 29-field
+  frontmatter, a stable reviewer ID, scope-matching `authorises`, complete finite
+  target coverage, relative in-SSOT evidence links, one visible final verdict,
+  and one matching current STATUS stop row. High-impact adoption uses an
+  independent cold reader; do not advance the tracking baseline from an old artifact
+  that only contains a verdict string or sampled owner names.
+- A `covered` process, records, or glossary row needs its matching exact-scope
+  artifact. Root and STATUS may receive their own `covered` review before the
+  repository converges; this does not claim that other areas are complete.
+- Migrate record entries and collection indexes together. The record lifecycle
+  and the state of the described decision/research/bug/hazard/debt are different
+  questions, even when an older `status` alias is retained for compatibility.
+- Add the STATUS Q register before claiming completeness. An applicable
+  dimension with no current mechanism becomes a linked gap; it does not become
+  `not_applicable`. Do not create twenty-one empty H2 sections in every owner.
+- Add conditional `03-process/operations/` and
+  `03-process/security-and-compliance/` owners or record named
+  non-applicability; deployment alone does not own day-two operation or
+  recurring security/compliance evidence.
+- Passing deterministic lint is necessary, not sufficient. A `needs-fix`
+  teach-back restarts the loop even when lint is clean.
 
 ### v2.59
 
@@ -41,12 +116,12 @@ reader surface before advancing `tracked_skill_version` to `2.59`.
 | Default surfaces | Product and architecture roots | Confirm the product spine and all applicable default architecture views exist, or record a visible reasoned exception. | `[SURFACE-COVERAGE]` passes. |
 | Reader-facing hygiene | Product/architecture prose | Remove visible authoring/protocol machinery (`ssot-bootstrap`, `SKILL_STYLE`, Doctor numbers/labels, adoption versions) and move machine recovery content to manifests. | `[META-LEAKAGE]` and table-density review are clean. |
 | Independent comprehension | Actual rendered consumer Markdown | Under the existing `semantic_impact=high` exception in `status-protocol.md §6`, a reviewer other than the author uses the 8-dimension rubric in `reader-quality.md §7`, writes a teach-back, and names factual uncertainty. Repeat after every `needs-fix`. | Score >=14/16, no zero dimension, no factual error, and reviewer result `no-more-required-changes`. |
-| Bundle/version sync | Source bundle, installed copy, consumer waterline | Run document-quality tests, bundle tests, install from the reviewed source, verify installed `VERSION`/metadata, then update consumer `STATUS.md`. | Source and installed bundle report `2.59`; consumer waterline advances only after review. |
+| Bundle/version sync | Source bundle, installed copy, consumer tracking baseline | Run document-quality tests, bundle tests, install from the reviewed source, verify installed `VERSION`/metadata, then update consumer `STATUS.md`. | Source and installed bundle report `2.59`; consumer tracking baseline advances only after review. |
 
 **Migration notes**:
 
 - This is a content migration, not a mechanical rename. Do not advance the
-  waterline after only copying new templates or adding missing headings.
+  tracking baseline after only copying new templates or adding missing headings.
 - Exact `Walkthrough` / `Easily confused with` / `Out of scope` headings from
   v2.51 may remain when natural, but Doctor now judges their meaning rather
   than their spelling.
@@ -61,17 +136,17 @@ reader surface before advancing `tracked_skill_version` to `2.59`.
 **Upgrade goal**: close consumer-derived reliability gaps across capture,
 canonical artifacts, installation, and review authority. Earlier versions required explicit closeout
 positions, but still allowed user-visible bug fixes, walkthrough caveats,
-transcript-only blockers, or stale waterlines to stop at `fixed`, `link-only`,
+transcript-only blockers, or stale tracking baselines to stop at `fixed`, `link-only`,
 or generic follow-up prose. v2.58 closes that gap: closeout must adjudicate bug
-packetization, fix-commit disposition, caveat extraction, and overdue waterlines;
+packetization, fix-commit disposition, caveat extraction, and overdue tracking baselines;
 audit must treat fix/hotfix clusters and transcript caveats as durable-capture
 review prompts; doctor/lint must inspect canonical facets, accept valid research
-frontmatter block lists, and reject v2.57 waterlines that still use legacy
+frontmatter block lists, and reject v2.57 tracking baselines that still use legacy
 physical paths. The faceted-layout helper is now idempotent and path-safe on
 canonical trees. The installer ships owned bundle-level companion files without
 overwriting or deleting unrelated shared-root files. Bootstrap and Doctor now
 defer to the review exceptions owned by `status-protocol.md` instead of widening
-independent review to every waterline.
+independent review to every tracking baseline.
 
 **Impact**: `semantic_impact=medium` -- changes closeout/audit/doctor behaviour,
 not the consumer's area model. Consumers self-review per `status-protocol.md §6`; no independent reviewer is required unless the consumer also uses the
@@ -81,12 +156,12 @@ upgrade to claim first-time `converged`.
 
 | Check | Affected area | Audit action | Done criterion |
 |---|---|---|---|
-| Closeout durable disposition | `$ssot-closeout` use | Confirm closeout now forces bug packetization threshold, fix-commit adjudication, caveat extraction, and overdue-waterline notes instead of accepting `fixed` or `link-only` prose alone. | Representative bug-fix / caveat batches route to `bugs/`, `tech-debt`, `testing`, `gotchas/`, `decisions/`, or `STATUS.md` gaps. |
+| Closeout durable disposition | `$ssot-closeout` use | Confirm closeout now forces bug packetization threshold, fix-commit adjudication, caveat extraction, and overdue tracking-baseline fields instead of accepting `fixed` or `link-only` prose alone. | Representative bug-fix / caveat batches route to `bugs/`, `tech-debt`, `testing`, `gotchas/`, `decisions/`, or `STATUS.md` gaps. |
 | Conversation/commit audit prompts | `$ssot-audit` use | Confirm transcript caveats (`unchecked`, `blocked`, `real-provider gated`, etc.) and fix/hotfix clusters are treated as durable-capture review prompts, not transcript/git-only history. | Audits explicitly ask for durable owner disposition when those signals appear. |
 | Canonical artifact contract | Bootstrap templates, migration helper, Doctor | Confirm current templates use numbered facets/direct domains, canonical migration is a no-op, and v2.57+ lint scans and enforces canonical paths. | Template hygiene, migration idempotence, canonical Doctor fixtures, and real-consumer dry-run pass. |
 | Research frontmatter | `04-records/research/*.md` | Confirm inline and block-list `promotion_targets` parse as values while empty forms still fail. | Doctor smoke covers valid block lists and invalid empty values. |
 | Doctor/lint floor | `ssot-doctor` / `ssot-lint.sh` | Confirm placeholder debt / follow-up wording without file-level owner/trigger/guard fails while registered owners and quoted history do not false-fail. | `run-tests.sh` covers positive and negative owner lifecycle paths. |
-| Review authority | Bootstrap / Doctor stop review | Confirm both skills reference the four exceptions in `status-protocol.md §6` and do not claim every waterline requires independent review. | Ordinary waterlines stay explicitly self-reviewed; only the four exceptions route to an independent reviewer. |
+| Review authority | Bootstrap / Doctor stop review | Confirm both skills reference the four exceptions in `status-protocol.md §6` and do not claim every tracking-baseline update requires independent review. | Ordinary tracking-baseline updates stay explicitly self-reviewed; only the four exceptions route to an independent reviewer. |
 | Installer companion files | Installed skill root | Confirm project/global installs include an ownership-marked `SKILL_STYLE.md`, refuse unowned collisions, and remove only owned copies. | Installer E2E covers install, upgrade, collision, owned uninstall, and foreign-file preservation. |
 | Bundle version sync | `VERSION`, `skills/ssot-preflight/SKILL.md` metadata | Confirm both equal `2.58`; rerun bundle-shape, migration, installer, and Doctor tests. | Version mirrors match and the full local validation matrix passes. |
 
@@ -127,7 +202,7 @@ review per `status-protocol.md §6`.
 | Physical layout | `SSOT/` tree | Run `python3 <installed ssot-audit>/assets/scripts/migrate-faceted-layout.py SSOT --dry-run`; if it reports moves and no conflicts, run it without `--dry-run` and review the resulting diff. | Legacy top-level `product/`, `architecture/`, `development/`, `testing/`, `benchmark/`, `deployment/`, `release/`, `decisions/`, `gotchas/`, `bugs/`, `tech-debt/`, and `research/` have moved to `01-product/`, `02-architecture/`, `03-process/*`, or `04-records/*` as applicable. |
 | Architecture domains | `02-architecture/` | Confirm legacy `architecture/domains/<domain>/` entries were flattened to direct numbered domain folders such as `02-architecture/01-runtime/`; inspect numbering if existing numbered domains were already present. | Domains are direct children of `02-architecture/`; legacy `domains/README.md` is preserved as `domain-index.md` when present. |
 | Markdown links and literals | `SSOT/**/*.md` | Review the helper's rewritten Markdown links and literal `SSOT/...` paths. Resolve any ambiguous prose manually instead of doing broad blind replacements. | Links resolve after directory moves and concrete SSOT paths name numbered physical locations. |
-| Conflict handling | Existing mixed layouts | If the helper exits `2`, resolve the named target/source conflict manually before rerunning. Do not advance the waterline while legacy and canonical folders both contain content for the same area. | Helper exits `0` and `git diff --check` passes. |
+| Conflict handling | Existing mixed layouts | If the helper exits `2`, resolve the named target/source conflict manually before rerunning. Do not advance the tracking baseline while legacy and canonical folders both contain content for the same area. | Helper exits `0` and `git diff --check` passes. |
 | Bundle version sync | `VERSION`, `skills/ssot-preflight/SKILL.md` metadata | Confirm both equal `2.57`; rerun `tests/test-bundle-shape.sh` and `tests/test-faceted-layout-migration.sh`. | Bundle-shape and migration helper tests pass. |
 
 **Migration notes**:
@@ -286,8 +361,8 @@ consumer also uses the upgrade to claim first-time `converged`.
 
 | Check | Affected area | Audit action | Done criterion |
 |---|---|---|---|
-| Active recommendation classification | `STATUS.md ## Open Gaps`, active `tech-debt/`, active/recurred `bugs/`, relevant `gotchas/` | During preflight, classify each overlapping entry as `fix-now`, `recommend-now`, `defer-visible`, or `ignore-for-scope`. | The final plan/closeout shows why task-overlapping risks were fixed, recommended, visibly deferred, or excluded. |
-| Non-silent deferral | Deferred open gaps, active debt, active bugs, capture follow-ups | For every deferral, name owner or owner record, reason, closure condition, revisit signal, verification guard, and next concrete action. | No deferred risk relies on bare "later", "someday", "future work", or locked-language equivalent prose. |
+| Active recommendation classification | `STATUS.md ## Open Gaps`, active `tech-debt/`, open/recurred `bugs/`, relevant active `gotchas/` | During preflight, classify each overlapping entry as `fix-now`, `recommend-now`, `defer-visible`, or `ignore-for-scope`. | The final plan/closeout shows why task-overlapping risks were fixed, recommended, visibly deferred, or excluded. |
+| Non-silent deferral | Deferred open gaps, active debt, open/recurred bugs, capture follow-ups | For every deferral, name owner or owner record, reason, closure condition, revisit signal, verification guard, and next concrete action. | No deferred risk relies on bare "later", "someday", "future work", or locked-language equivalent prose. |
 | Closeout disposition | Preflight recommendations and newly discovered risks | Carry each recommendation to `fixed`, `deferred-visible`, `expired/out-of-scope`, or `converted-to-owner`. | Closeout cannot declare aligned while dropping a surfaced recommendation. |
 | Tech-debt first screen | Active high-priority or cross-cutting debt entries | Add or confirm quick entry: trigger/scope, first checks, do-not-do boundary, repayment verification, next action / must-handle condition, status pointer. | Future agents can decide whether the debt overlaps their task without reconstructing history. |
 | Lightweight lint | Current SSOT owners and STATUS registers | Run `ssot-lint.sh SSOT/`; inspect `[SILENT-DEFERRAL]` hits. | Lint reports no vague future-work deferral without owner/reference or retrigger signal. |
@@ -324,7 +399,7 @@ consumer also uses the upgrade to claim first-time `converged`.
 
 | Check | Affected area | Audit action | Done criterion |
 |---|---|---|---|
-| Task-relevant open risks | `STATUS.md ## Open Gaps`, active `tech-debt/`, active/recurred `bugs/`, relevant `gotchas/` | During preflight, surface entries whose trigger/path/capability/failure mode overlaps the task; during closeout, record fixed / deferred-with-reason / next-action. | Closeout cannot end with an overlapped risk silently ignored. |
+| Task-relevant open risks | `STATUS.md ## Open Gaps`, active `tech-debt/`, open/recurred `bugs/`, relevant active `gotchas/` | During preflight, surface entries whose trigger/path/capability/failure mode overlaps the task; during closeout, record fixed / deferred-with-reason / next-action. | Closeout cannot end with an overlapped risk silently ignored. |
 | Temporary-surface registration | Current fallback, compat shim, TODO/FIXME/HACK/WORKAROUND, temporary waiver, later-remove path | Register owner, reason, closure condition, revisit signal, and verification guard in `tech-debt/`, `bugs/`, `decisions/`, or an open STATUS gap. | Doctor/lint finds no hidden temporary surface in covered/current scope. |
 | ADR/debt closure fields | `decisions/`, `tech-debt/` | Confirm pending/partial/diverged ADRs and active debts have falsifiable `closure_condition` and concrete `revisit_signal`; `temporary_surface: true` debt also has `owner`, `reason`, and `verification_guard`. | `ssot-lint.sh SSOT/` reports `[ADR-CLOSURE]`, `[DEBT-CLOSURE]`, and `[TEMP-SURFACE]` clean. |
 | Covered placeholder blocker | Any area marked `covered` | Remove unresolved template residue such as TODO/FIXME, `review-needed`, starter skeleton text, `TBD`, or locked-language placeholder text from user-facing owners; otherwise demote the area. | `[COVERED-PLACEHOLDER]` clean. |
@@ -955,7 +1030,7 @@ or high-impact stop-review trigger).
 | Working/historical downgrade | working, historical, external, public-thin docs | Check for authority, owner, absorbed target, do-not-use boundary, and review date. | Strong current-fact language has `absorbed_to`, `do_not_use_for`, and owner pointers. |
 | Product/architecture boundary | `product/`, `architecture/`, source routing | Check whether product owns intent and architecture owns implementation response. | Product capability docs stay thin; architecture links product owners instead of redefining product facts. |
 | Runtime Owner Map | architecture root/views/domains | Check whether root routes runtime owners and invariants, views are cross-owner, and domains own state/contracts/lifecycle/failure/verification. | Architecture is readable as a runtime owner map, not a universal 20-section checklist. |
-| Lint/Doctor behavior | `ssot-lint.sh`, Doctor output | Run lint after waterline update and inspect new v2.38 tags. | Deterministic failures catch missing inventory/header/exclusion; semantic drift remains reviewer-confirmed. |
+| Lint/Doctor behavior | `ssot-lint.sh`, Doctor output | Run lint after tracking baseline update and inspect new v2.38 tags. | Deterministic failures catch missing inventory/header/exclusion; semantic drift remains reviewer-confirmed. |
 
 **Doctor tags**:
 

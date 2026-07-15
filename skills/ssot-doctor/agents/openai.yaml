@@ -1,4 +1,4 @@
 interface:
   display_name: "SSOT Doctor"
-  short_description: "Verify SSOT health"
+  short_description: "Check whether SSOT is trustworthy"
   default_prompt: "Use $ssot-doctor to check SSOT health or review stop gates."

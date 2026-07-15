@@ -1,8 +1,51 @@
 # Benchmark Strategy
 
-> Writing style: any cold reader. See `ssot-bootstrap` §3.7.
+<!-- Writing style: implementation-delegator. Start with the decision and
+     recognisable workload, then path, outcome/recovery, commands, and evidence. -->
+
+<!-- Completeness authority: reader-quality.md C01-C09, PR01-PR16, and applicable
+     Q01-Q21. Covered process owners use the exact strategy and finite-asset
+     contract; give a reason/evidence pointer for every not_applicable item. -->
 
 > This area records stable benchmark suites, canonical workloads, metrics, environments, floors, comparison rules, trend interpretation, and decision links. Benchmark run output is evidence, not a benchmark fact; do not keep chronological run logs here.
+
+## When and for whom
+
+<Explain which performance, cost, capacity, or provider decision triggers a
+benchmark, who may run or interpret it, and the workload/environment
+prerequisites that make two results comparable.>
+
+## Why this benchmark method
+
+<Explain why these workloads, environments, normalization rules, and floors
+answer the repository's decision rather than merely producing numbers. Name
+the conventions and invariants that keep comparisons coherent, the nearest
+rejected method, the accepted cost/precision trade-off, and the evidence that
+would justify changing the method.>
+
+## Canonical path and branches
+
+<Tell the ordered path from selecting the suite and workload through warmup,
+measurement, normalization, comparison, and the branch for noisy,
+non-comparable, or environment-changing results. Name paid or stateful effects,
+and route applicable Q04/Q06/Q09/Q11 limits through STATUS.>
+
+## Output and acceptance
+
+<Describe the produced artifact, metric and uncertainty, the floor or decision
+gate it can support, and what result is too weak to update a baseline.>
+
+## Failure, recovery, and handoff
+
+<Explain how an invalid run is detected, when to stop, what may be rerun or
+reset, what cost/data cannot be recovered, and which product, architecture,
+release, debt, or research owner receives the conclusion.>
+
+## Reproduce and keep current
+
+<Give the reproducible runner command and environment pin, current/target/gap,
+evidence owner, and change trigger for workload, hardware, provider, metric, or
+floor review.>
 
 ## Benchmark at a Glance / Reader Map
 
@@ -17,6 +60,19 @@
 ## Benchmark Suites
 
 Describe the stable suite set in prose before the table. If no benchmark exists, write `not_applicable`, the reason, and the risk.
+
+## Stable benchmark asset inventory
+
+This is the finite routing list for every stable script, tool, suite, workload,
+fixture, target, artifact, runbook, and control used by this benchmark process.
+List each real asset once. Detailed suite/workload/metric sections may expand
+the row but must not create a second inventory; one run result is evidence.
+
+If none exists, delete the sample row and write: `No stable assets: reason=<specific reason>; owner=[responsible owner](<resolving-path>); review when=<observable event>.`
+
+| Asset | Class | Purpose | Selection rule | Owner | Evidence | Risk | Retirement or replacement trigger |
+|---|---|---|---|---|---|---|---|
+| | script / tool / suite / workload / fixture / target / artifact / runbook / control / other | | | | | | |
 
 | Suite | Purpose | Runner command | Required setup | Evidence | Owner / consumer |
 |---|---|---|---|---|---|

@@ -26,7 +26,10 @@ normal execution path.
    `development/`; file/module traps go to `gotchas/`; root causes go to
    `bugs/`; deferred work goes to `tech-debt/`; adjudicated trade-offs go
    to `decisions/`; research/PoC evidence packets go to
-   `04-records/research/` only when preserving the packet is useful.
+   `04-records/research/` only when preserving the packet is useful; recurring
+   live-system duties go to conditional `03-process/operations/`; recurring security,
+   privacy, compliance, audit-evidence, or disclosure control procedures go to
+   conditional `03-process/security-and-compliance/`.
 5. **What is the impact tier?** Trivial changes usually need no SSOT update;
    localized changes check the direct owner; cross-cutting changes also run the
    cascade path.
@@ -36,15 +39,18 @@ normal execution path.
 If routing remains unclear, use the fallback classifier in
 `ssot-preflight/references/area-model.md §4.1`: imperative rule ->
 `development/`, file-scoped trap -> `gotchas/`, trade-off -> `decisions/`,
-bug-instance takeaway -> `bugs/<entry>.md`. Never create a new top-level area
-just because a fact is hard to route.
+bug-instance takeaway -> `bugs/<entry>.md`, recurring live duty -> conditional
+`03-process/operations/`, and recurring control/evidence duty -> conditional
+`03-process/security-and-compliance/`. Never create a new top-level area just
+because a fact is hard to route.
 
 ## 2. Frequent Routes
 
 **Code changes** usually update architecture only when they change a public
 contract, state/resource ownership, runtime order, persistence, failure or retry
-semantics, trust/config boundary, observability contract, or a domain split. A
-routine internal helper edit usually records no SSOT change.
+semantics, trust/config boundary, observability contract, a shared `Q01`-`Q21`
+mechanism or gap, or a domain split. A routine internal helper edit usually
+records no SSOT change.
 
 **Tests and test results** update `testing/` only when future correctness test
 selection, quality gates, fixtures/test data, correctness baselines, known
@@ -61,9 +67,11 @@ a benchmark fact.
 **README/docs/ADR/runbook/PRD/source material** first goes through source
 material lifecycle and absorption. Product facts enter `product/`; technical
 facts enter the right architecture view/domain, decision, debt, gotcha, bug,
-testing, release, or deployment owner. `STATUS.md` records classification,
-lifecycle, downgrade fields, and pointers only. Working/historical docs may stay
-outside SSOT, but they must not masquerade as current authority.
+testing, release, deployment, `03-process/operations/`, or
+`03-process/security-and-compliance/` owner.
+`STATUS.md` records classification, lifecycle, downgrade fields, and pointers
+only. Working/historical docs may stay outside SSOT, but they must not
+masquerade as current authority.
 
 **Research/PoC output** must receive one closeout disposition before final
 response: create a new `SSOT/04-records/research/NNNN-<slug>.md` packet, update
@@ -76,6 +84,12 @@ reproducible evidence and distilled claims; they are not top-level
 **SSOT readability/actionability gaps** should fix SSOT-SKILL first when the
 repository owns the bundle and the weakness is repeatable across projects. Then
 repair consumer SSOT using the improved rule.
+
+**Quality, risk, or governance changes** use the shared `Q01`-`Q21` register as
+a cascade index, not a new fact owner. Update the user-visible product owner,
+architecture mechanism/boundary owner, process/evidence owner, or named gap
+that actually changed, then refresh only that pointer-sized STATUS row. Do not
+copy the explanation into STATUS or create twenty-one fixed sections.
 
 **Temporary surfaces** -- fallback, compat shim, later-remove path,
 TODO/FIXME/HACK/WORKAROUND, temporary waiver, or deferred cleanup -- route to a
@@ -177,22 +191,24 @@ bundle first.
 | Source code internal logic | Usually no SSOT update unless dedicated phase, state, lock, rollback, persistence, contract, failure, or gotcha semantics changed |
 | Error handling / retry / circuit breaker | `architecture/` failure-recovery model and diagrams |
 | Auth / authorization / permissions | `architecture/` trust boundary and invariants |
-| Logs / metrics / traces | `architecture/` observability or verification evidence |
+| Logs / metrics / traces | `02-architecture/views/deployment-and-observability.md` for cross-owner signal meaning and diagnosis; owning domain for local semantics; `03-process/operations/` for repeatable response procedure |
 | Package manifest / lockfile | `development/`, `architecture/`, `release/` when dependency/runtime/release facts change |
 | Test files / test configuration | `testing/` only for durable testing policy/baseline/gap/fixture/map changes |
 | SSOT Skill protocol, templates, or maintenance scripts | Update SSOT-SKILL first if present; then repair consumer SSOT |
 | SSOT Markdown body or indexes | Update the unique owner; for systemic readability/actionability issues check protocol/template/lint first |
-| CI/CD | `deployment/`, `release/` |
+| CI/CD | `deployment/`, `release/`; `03-process/operations/` or `03-process/security-and-compliance/` when a live-control or security-evidence procedure changes |
 | Dockerfile / k8s / Terraform / infrastructure | `deployment/`, `architecture/` runtime/config model |
 | schema / migration / protobuf / OpenAPI | `architecture/` data/state/contracts |
 | Config / env / feature flags | `architecture/` config/trust model; deployment for environment differences |
-| Monitoring / alerting | `architecture/` observability/verification evidence |
+| Monitoring / alerting | `02-architecture/views/deployment-and-observability.md`, owning runtime domain, and `03-process/operations/` when response procedure changes |
 | README / docs / ADR / runbook / PRD / planning | Source-material absorption; product facts to `product/`; technical facts to owner |
 | Working docs / PoC / closure / report / historical docs | Source-material lifecycle inventory; downgrade fields; absorb durable product/architecture facts only; if a reproducible research/PoC packet is valuable, use `04-records/research/`; stable caveats that affect future agent judgement must not stay `link-only` forever |
 | Generated diagrams / screenshots / dependency graphs / auto-summaries | Source-material/diagram candidates only; facts must be verified and rewritten as maintainable owner content |
 | Deleting legacy surface / retiring compatible paths | `architecture/` evolution/current-target-gap plus gotchas/decisions/testing as linked |
 | Bug fix / hotfix / revert-fix loop | `bugs/`, split by failure mode when critical/major/recurred; when the batch only repairs a caveat or operational trap, also check `gotchas/`, `tech-debt/`, or `decisions/` for the durable disposition |
 | External SDK / third-party API integration | `architecture/`, `development/` discipline, and `bugs/` when a prior recurrence drove the rule |
+| Backup/restore, continuity, maintenance, incident, quota, or on-call automation | `03-process/operations/`, architecture deployment/observability or state owner, and `testing/`/`benchmark/` only when their stable gate changes |
+| Security scanning, signing/SBOM, access review, audit export, consent/privacy control, or disclosure automation | `03-process/security-and-compliance/`, architecture trust/security owner, product owner when a user promise changes, and the matching `Q` row |
 
 ## 8. Appendix B: Conversation Signal Routing Table
 
@@ -206,15 +222,16 @@ bundle first.
 | Temporary fix / later refactor | `tech-debt/` |
 | Fallback / compat shim / later-remove / temporary waiver / TODO left in current code | `tech-debt/` or the owning `bugs/` / `decisions/` entry, with owner + reason + closure condition + revisit signal + verification guard |
 | `unchecked` / `inferred` / `blocked` / `excluded by unrelated state` / `real-provider gated` / `browser smoke blocked` caveat | `testing` gap, `tech-debt`, `gotchas/`, `bugs/`, `decisions/`, or `STATUS.md` open gap; do not leave it as transcript-only evidence when it changes future closure judgement |
-| Technical priorities / non-goals / NFRs | `architecture/views/operating-model.md`, CTG, or `decisions/`; product promises first enter `product/` |
+| Technical priorities / non-goals / NFRs | `02-architecture/views/operating-model.md`, `02-architecture/views/current-target-gap.md`, or `04-records/decisions/`; product promises first enter `01-product/` |
 | Product promises / users / capability / journey / acceptance / roadmap | `product/` |
 | Constraints | architecture operating model/domain constraints; decisions if long-lived trade-off |
 | Design intent / do not revive old approach | architecture CTG/domain trade-offs and `decisions/` |
 | New or corrected terms | `glossary/` |
 | Boundaries, dependencies, runtime flows, state ownership | `architecture/` |
 | Test strategy / coverage goals | `testing/` only if durable policy/baseline/gap/map changes |
-| Deployment or environment differences | `deployment/`, architecture config/trust model |
-| Security / permission / secret model | architecture trust boundary |
+| Deployment or environment differences | `deployment/`, architecture deployment/observability and config/trust owners; `03-process/operations/` when the live procedure differs |
+| Security / permission / secret model | architecture trust boundary; `03-process/security-and-compliance/` when the recurring control or evidence procedure changes |
+| Accessibility, locale/time-zone/format, usability/onboarding, offline/resume, notification, policy/consent/license, or other Q concern | matching product promise, architecture mechanism, process/evidence or gap owner, then the pointer-sized STATUS Q row |
 | Error handling / retry / degradation | architecture failure-recovery |
 | Release/versioning strategy | `release/` |
 | Data model / migration strategy | architecture data/state |
@@ -243,8 +260,8 @@ bundle first.
 | Product promise/capability/journey/acceptance | product, architecture, testing, decisions | product owner, implementation gap, acceptance tests, trade-offs |
 | Product / architecture information architecture drift | product, architecture, SSOT-SKILL if systemic | product intent layer vs architecture implementation response; Runtime Owner Map |
 | SSOT readability/actionability gap | SSOT-SKILL if present, affected owners, STATUS pointers | systemic protocol/template/lint gap before local repair |
-| Security model change | architecture, gotchas | trust boundaries, auth requirements, old gotchas |
-| Error-handling strategy | architecture, deployment | failure/recovery diagrams, health checks, alerts |
+| Security model change | product when a promise changes, architecture, security-and-compliance, gotchas | trust/threat boundaries, auth requirements, control/evidence path, disclosure duty, old gotchas, matching Q row |
+| Error-handling strategy | architecture, deployment, operations | failure/recovery diagrams, health checks, alerts, repeatable operator response |
 | Agent-operation discipline | development, originating bugs/decisions, testing when enforcement test added | discipline rule, back-links, enforcement evidence |
 
 ## 10. Appendix D: Decision-Overturn Checklist

@@ -4,6 +4,9 @@
 
 # <project-name>
 
+<!-- Writing style: implementation-delegator. Keep the route plain and concrete;
+     explain unavoidable labels before paths, commands, or evidence. -->
+
 <repo-positioning-one-liner>
 
 ## SSOT Entry

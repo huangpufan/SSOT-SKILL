@@ -3,6 +3,9 @@ intent_recovery: gap
 ---
 # Product journeys
 
+<!-- Writing style: implementation-delegator. Route from a person's situation
+     and decision to a current journey, visible result, and recovery path. -->
+
 <!-- Explain the recurring situations represented here and how the journey set
      covers the product's ordinary, choice, control, recovery, and diagnosis
      paths. Do not treat one UI click sequence as a durable journey. -->
@@ -33,8 +36,10 @@ This directory keeps the end-to-end experiences that need independent product ow
 ## Coverage gaps
 
 <!-- Name any applicable user choice, control, recovery, diagnosis, or external
-     channel that lacks a journey owner. Use a reasoned not_applicable only
-     when the class truly does not exist. -->
+     channel, command, public interface, output artifact, notification, or help/
+     onboarding path that lacks a journey owner. Check applicable Q01-Q21
+     conditions from STATUS. Use not_applicable only with a named reason and
+     resolving evidence link; missing implementation remains a gap. -->
 
 | Missing journey class | Present user experience | Risk of omission | Closure owner |
 |---|---|---|---|
