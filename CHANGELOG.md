@@ -19,7 +19,9 @@ versions. This file only restates headline changes.
 ### Fixed
 - Project upgrades now recognize the pre-marker `SKILL_STYLE.md` shipped by
   older complete SSOT bundles, adopt it safely, and still refuse unrelated
-  shared-root files with the same name.
+  shared-root files with the same name. The installed Doctor self-test now
+  recognizes the selected-language flattened template layout instead of
+  reporting the absent source-only `en/` and `zh/` directories as failures.
 
 ### Changed
 - Lifecycle `SKILL.md` bodies are distilled back to activation prompts (60

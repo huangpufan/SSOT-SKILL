@@ -113,11 +113,22 @@ for skill in ssot-preflight ssot-bootstrap ssot-closeout ssot-audit ssot-doctor 
   assert_file "$skill has SKILL.md" "$SKILLS_DIR/$skill/SKILL.md"
   assert_file "$skill has agents/openai.yaml" "$SKILLS_DIR/$skill/agents/openai.yaml"
 done
+TEMPLATE_ROOT="$SKILLS_DIR/ssot-bootstrap/assets/templates"
 for template in product-readme.md product-prd.md product-model.md product-roadmap-and-acceptance.md product-capabilities-readme.md product-journeys-readme.md product-capability-entry.md product-journey-entry.md benchmark-readme.md operations-readme.md security-and-compliance-readme.md reader-review.md; do
-  # Bilingual split: canonical templates live under en/ and zh/.
-  assert_file "template en/$template exists" "$SKILLS_DIR/ssot-bootstrap/assets/templates/en/$template"
-  assert_file "template zh/$template exists" "$SKILLS_DIR/ssot-bootstrap/assets/templates/zh/$template"
+  if [[ -d "$TEMPLATE_ROOT/en" || -d "$TEMPLATE_ROOT/zh" ]]; then
+    # Source bundle: canonical templates remain bilingual.
+    assert_file "template en/$template exists" "$TEMPLATE_ROOT/en/$template"
+    assert_file "template zh/$template exists" "$TEMPLATE_ROOT/zh/$template"
+  else
+    # Installed bundle: the selected language is intentionally flattened.
+    assert_file "installed template $template exists" "$TEMPLATE_ROOT/$template"
+  fi
 done
+if [[ "${SSOT_TEST_PACKAGE_SHAPE_ONLY:-0}" == "1" ]]; then
+  echo ""
+  echo "===== summary: PASS=$PASS FAIL=$FAIL ====="
+  [[ "$FAIL" -eq 0 ]] && exit 0 || exit 1
+fi
 
 echo "== S1 clean (all PASS, exit 0) =="
 T=$(mktemp -d); make_base "$T"; add_clean_adapter "$T"

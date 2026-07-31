@@ -66,6 +66,11 @@ if python3 -c "import sys,re; sys.exit(0 if re.search(r'[一-龥]', open(sys.arg
 else
   fail "scenario2: zh templates expected Chinese content"
 fi
+if SSOT_TEST_PACKAGE_SHAPE_ONLY=1 bash "$PROJ_BASE/ssot-doctor/assets/scripts/test/run-tests.sh" >/dev/null 2>&1; then
+  pass "scenario2: installed Doctor package-shape self-test accepts flattened templates"
+else
+  fail "scenario2: installed Doctor package-shape self-test rejects flattened templates"
+fi
 
 # Scenario 3: multiple agents
 SCENARIO3="$WORK_ROOT/scenario3"
