@@ -16,6 +16,11 @@ versions. This file only restates headline changes.
 
 ## [Unreleased]
 
+### Fixed
+- Project upgrades now recognize the pre-marker `SKILL_STYLE.md` shipped by
+  older complete SSOT bundles, adopt it safely, and still refuse unrelated
+  shared-root files with the same name.
+
 ### Changed
 - Lifecycle `SKILL.md` bodies are distilled back to activation prompts (60
   words or fewer outside the preflight router), while the detailed v2.60

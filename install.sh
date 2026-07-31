@@ -952,12 +952,28 @@ bundle_companion_is_owned() {
   [[ -f "$path" ]] && head -n 1 "$path" | grep -qF "$BUNDLE_COMPANION_MARKER"
 }
 
+bundle_companion_is_legacy_owned() {
+  local base="$1" path="$2" skill
+  [[ "$(basename "$path")" == "SKILL_STYLE.md" ]] || return 1
+  [[ -f "$path" ]] || return 1
+  [[ "$(head -n 1 "$path")" == "# SKILL.md Style — the grill-me distillation" ]] || return 1
+  grep -qF 'This file is the acceptance standard for the *prose body* of every `SKILL.md`' "$path" || return 1
+  grep -qF 'in this bundle.' "$path" || return 1
+  for skill in "${BUNDLE_SKILLS[@]}"; do
+    [[ -f "$base/$skill/SKILL.md" ]] || return 1
+  done
+}
+
 guard_bundle_root_files() {
   local base="$1" companion target
   for companion in "${BUNDLE_ROOT_FILES[@]}"; do
     target="$base/$companion"
     if [[ -e "$target" ]] && ! bundle_companion_is_owned "$target"; then
-      die "refusing to overwrite unowned bundle companion: $target"
+      if bundle_companion_is_legacy_owned "$base" "$target"; then
+        warn "migrating legacy bundle companion ownership: $target"
+      else
+        die "refusing to overwrite unowned bundle companion: $target"
+      fi
     fi
   done
 }

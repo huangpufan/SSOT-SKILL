@@ -118,6 +118,38 @@ fi
 assert_grep "scenario5b: foreign companion preserved" "$SCENARIO5B/.claude/skills/SKILL_STYLE.md" "FOREIGN COMPANION"
 assert_no_dir "scenario5b: blocked install writes no skill" "$SCENARIO5B/.claude/skills/ssot-preflight"
 
+# Scenario 5bb: a pre-marker bundle companion is safely adopted during upgrade
+SCENARIO5BB="$WORK_ROOT/scenario5bb"
+mkdir -p "$SCENARIO5BB/.claude/skills"
+for skill in ssot-preflight ssot-bootstrap ssot-closeout ssot-audit ssot-doctor ssot-skill; do
+  mkdir -p "$SCENARIO5BB/.claude/skills/$skill"
+  printf '%s\n' "# legacy $skill" > "$SCENARIO5BB/.claude/skills/$skill/SKILL.md"
+done
+tail -n +3 "$PROJECT_ROOT/skills/SKILL_STYLE.md" > "$SCENARIO5BB/.claude/skills/SKILL_STYLE.md"
+HOME="$SCENARIO5BB" SOURCE_DIR="$PROJECT_ROOT" \
+  bash "$INSTALLER" --non-interactive --agent claude --scope global --lang en --yes \
+  >/dev/null 2>&1 || fail "scenario5bb legacy companion migration exit code"
+assert_grep "scenario5bb: legacy companion receives ownership marker" \
+  "$SCENARIO5BB/.claude/skills/SKILL_STYLE.md" "SSOT-SKILL bundle companion; owned by install.sh"
+assert_grep "scenario5bb: legacy skill bundle is upgraded" \
+  "$SCENARIO5BB/.claude/skills/ssot-preflight/SKILL.md" 'protocol_version: "2.60"'
+
+# Scenario 5bc: the legacy title alone never authorizes takeover
+SCENARIO5BC="$WORK_ROOT/scenario5bc"
+mkdir -p "$SCENARIO5BC/.claude/skills"
+tail -n +3 "$PROJECT_ROOT/skills/SKILL_STYLE.md" > "$SCENARIO5BC/.claude/skills/SKILL_STYLE.md"
+HOME="$SCENARIO5BC" SOURCE_DIR="$PROJECT_ROOT" \
+  bash "$INSTALLER" --non-interactive --agent claude --scope global --lang en --yes \
+  >/dev/null 2>&1
+SCENARIO5BC_RC=$?
+if [[ $SCENARIO5BC_RC -ne 0 ]]; then
+  pass "scenario5bc: legacy-looking companion without bundle skills blocks install"
+else
+  fail "scenario5bc: incomplete legacy signature should block install"
+fi
+assert_no_grep "scenario5bc: blocked legacy-looking file remains unclaimed" \
+  "$SCENARIO5BC/.claude/skills/SKILL_STYLE.md" "SSOT-SKILL bundle companion; owned by install.sh"
+
 # Scenario 5c: uninstall preserves a companion replaced by another owner
 SCENARIO5C="$WORK_ROOT/scenario5c"
 mkdir -p "$SCENARIO5C"
