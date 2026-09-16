@@ -18,6 +18,22 @@ assert_not_contains() {
 assert_exit() {
   if [[ "$2" == "$3" ]]; then pass "$1"; else fail "$1 (exit $2 != $3)"; fi
 }
+# Edit fixture content with the same GNU/BSD sed script; failed edits leave it intact.
+sed_inplace() { # $1=script remaining args=files
+  local script="$1" file temporary code=0
+  shift
+  for file in "$@"; do
+    temporary=$(mktemp) || return $?
+    if sed "$script" "$file" > "$temporary"; then
+      cat "$temporary" > "$file" || code=$?
+    else
+      code=$?
+    fi
+    rm -f "$temporary"
+    [[ "$code" -eq 0 ]] || return "$code"
+  done
+}
+
 run_quality() { bash "$LINT" --check-document-quality "$1/SSOT" 2>&1; }
 run_normal() { bash "$LINT" "$1/SSOT" 2>&1; }
 
@@ -246,8 +262,9 @@ write_process_scope_fixture() {
   mkdir -p "$ssot/03-process" "$ssot/.bootstrap"
   printf '%s\n' '# Repository route' '' 'This route sends a delegated change to its current process owner, evidence, failure boundary, and next safe action.' > "$ssot/README.md"
   printf '%s\n' '# Process owner' '' 'This owner explains who uses the process, why the method fits, the ordered path, visible acceptance result, failure recovery, evidence, and review trigger.' > "$ssot/03-process/README.md"
-  sed -i 's#^| process | gap |.*#| process | covered | [process owner](./03-process/README.md); [scope review](./.bootstrap/scope-review-process.md) |#' "$ssot/STATUS.md"
-  sed -i '/^## Stop Review Gate$/,/^## Open Adjudications$/ { /^| | | | | | | | | |$/a\| process | covered | agent:test | scoped-self-review | 2026-07-13 | no-more-required-changes | [scope review](./.bootstrap/scope-review-process.md) | none | area:process:covered |
+  sed_inplace 's#^| process | gap |.*#| process | covered | [process owner](./03-process/README.md); [scope review](./.bootstrap/scope-review-process.md) |#' "$ssot/STATUS.md"
+  sed_inplace '/^## Stop Review Gate$/,/^## Open Adjudications$/ { /^| | | | | | | | | |$/a\
+| process | covered | agent:test | scoped-self-review | 2026-07-13 | no-more-required-changes | [scope review](./.bootstrap/scope-review-process.md) | none | area:process:covered |
   }' "$ssot/STATUS.md"
   commit=$(fixture_commit "$root")
   scope_hash=$(scope_fingerprint "$ssot" process)
@@ -304,8 +321,9 @@ write_glossary_scope_fixture() {
     '| Evidence, verification, and operating terms | No repository-specific term exists. | not_applicable | reason=no term; checked=[root](../README.md); review when=a term appears |' \
     '| Concurrency-control terms | No repository-specific term exists. | not_applicable | reason=no term; checked=[root](../README.md); review when=a term appears |' \
     > "$ssot/glossary/README.md"
-  sed -i 's#^| glossary | gap |.*#| glossary | covered | [glossary owner](./glossary/README.md); [scope review](./.bootstrap/scope-review-glossary.md) |#' "$ssot/STATUS.md"
-  sed -i '/^## Stop Review Gate$/,/^## Open Adjudications$/ { /^| | | | | | | | | |$/a\| glossary | covered | agent:test | scoped-self-review | 2026-07-13 | no-more-required-changes | [scope review](./.bootstrap/scope-review-glossary.md) | none | area:glossary:covered |
+  sed_inplace 's#^| glossary | gap |.*#| glossary | covered | [glossary owner](./glossary/README.md); [scope review](./.bootstrap/scope-review-glossary.md) |#' "$ssot/STATUS.md"
+  sed_inplace '/^## Stop Review Gate$/,/^## Open Adjudications$/ { /^| | | | | | | | | |$/a\
+| glossary | covered | agent:test | scoped-self-review | 2026-07-13 | no-more-required-changes | [scope review](./.bootstrap/scope-review-glossary.md) | none | area:glossary:covered |
   }' "$ssot/STATUS.md"
   commit=$(fixture_commit "$root")
   scope_hash=$(scope_fingerprint "$ssot" glossary)
@@ -351,7 +369,7 @@ write_records_index_fixture() {
   mkdir -p "$records"/{decisions,research,bugs,gotchas,tech-debt}
   printf '%s\n' '# Repository route' '' 'This route sends record questions to the unique current record owner and its evidence boundary.' > "$ssot/README.md"
   printf '%s\n' '# Records' '' 'This router separates decisions, research, defects, pitfalls, and repayment work, then sends each ID to one narrative owner.' > "$records/README.md"
-  sed -i 's#^| records | gap |.*#| records | covered | [records owner](./04-records/README.md) |#' "$ssot/STATUS.md"
+  sed_inplace 's#^| records | gap |.*#| records | covered | [records owner](./04-records/README.md) |#' "$ssot/STATUS.md"
   printf '%s\n' '# Decisions' '' '## Decision Index' '' '| ID | Title | Record status | Implementation state | Date | Entry owner |' '|---|---|---|---|---|---|' '| DEC-0001 | Choice | accepted | implemented | 2026-07-13 | [entry](./0001-choice.md) |' > "$records/decisions/README.md"
   printf '%s\n' '---' 'id: DEC-0001' 'record_status: accepted' 'status: accepted' 'implementation_state: implemented' 'created_on: 2026-07-13' 'updated_on: 2026-07-13' 'introduced_in: abcdef1' '---' '# Choice' '' 'This accepted decision is implemented and owns its rationale and evidence.' > "$records/decisions/0001-choice.md"
   printf '%s\n' '# Research' '' '## Research Index' '' '| ID | Title | Record status | Adoption state | Kind | Created | Entry owner |' '|---|---|---|---|---|---|---|' '| RES-0001 | Study | validated | promoted | research | 2026-07-13 | [entry](./0001-study.md) |' > "$records/research/README.md"
@@ -370,7 +388,7 @@ write_empty_records_index_fixture() {
   mkdir -p "$records"/{decisions,research,bugs,gotchas,tech-debt}
   printf '%s\n' '# Repository route' '' 'This route sends record questions to the current records owner.' > "$ssot/README.md"
   printf '%s\n' '# Records' '' 'This router owns the finite record collections and their empty dispositions.' > "$records/README.md"
-  sed -i 's#^| records | gap |.*#| records | covered | [records owner](./04-records/README.md) |#' "$ssot/STATUS.md"
+  sed_inplace 's#^| records | gap |.*#| records | covered | [records owner](./04-records/README.md) |#' "$ssot/STATUS.md"
   printf '%s\n' '# Decisions' '' 'Empty collection: reason=no durable decision has been accepted; owner=[records owner](../README.md); review when=a hard-to-reverse choice appears.' '' '## Decision Index' '' '| ID | Title | Record status | Implementation state | Date | Entry owner |' '|---|---|---|---|---|---|' > "$records/decisions/README.md"
   printf '%s\n' '# Research' '' 'Empty collection: reason=no bounded study currently exists; owner=[records owner](../README.md); review when=a reusable evidence question appears.' '' '## Research Index' '' '| ID | Title | Record status | Adoption state | Kind | Created | Entry owner |' '|---|---|---|---|---|---|---|' > "$records/research/README.md"
   printf '%s\n' '# Bugs' '' 'Empty collection: reason=no durable defect has been confirmed; owner=[records owner](../README.md); review when=a reproducible failure appears.' '' '## Bug index' '' '| ID | Failure mode | Record status | Failure state | Severity | Entry owner |' '|---|---|---|---|---|---|' > "$records/bugs/README.md"
@@ -555,7 +573,8 @@ write_v260_review() {
       '|---|---|---|---|---|---|---|---|---|' \
       >> "$ssot_dir/STATUS.md"
   fi
-  sed -i "/^## Stop Review Gate$/,/^## / { /^|---|---|---|---|---|---|---|---|---|$/a\\| $status_scope | covered | agent:test | independent-cold-reader | 2026-01-01 | no-more-required-changes | [reader review](./.bootstrap/reader-review.md) | none | $authorises |
+  sed_inplace "/^## Stop Review Gate$/,/^## / { /^|---|---|---|---|---|---|---|---|---|$/a\\
+| $status_scope | covered | agent:test | independent-cold-reader | 2026-01-01 | no-more-required-changes | [reader review](./.bootstrap/reader-review.md) | none | $authorises |
   }" "$ssot_dir/STATUS.md"
   all_leaf_ids='RF1,RF2,LA1,LA2,LA3,CT1,CT2,CT3,CT4,BC1,BC2,BC3,BC4,RP1,RP2,RP3'
   task_score_2="${task_classes[0]}=2"
@@ -1217,37 +1236,40 @@ assert_not_contains "valid architecture inventory has no owner-inventory failure
 assert_not_contains "valid architecture review has no review-evidence failure" "$out" "[READER-REVIEW-EVIDENCE]"
 
 cp "$T/SSOT/02-architecture/_manifest.md" "$T/architecture-kind-valid"
-sed -i 's/tech:web-entry, tech:cli-entry/tech:missing/' "$T/SSOT/02-architecture/_manifest.md"
+sed_inplace 's/tech:web-entry, tech:cli-entry/tech:missing/' "$T/SSOT/02-architecture/_manifest.md"
 out=$(run_quality "$T")
 assert_contains "unknown kind-disposition surface ID is rejected" "$out" "[OWNER-INVENTORY]"
 cp "$T/architecture-kind-valid" "$T/SSOT/02-architecture/_manifest.md"
 
-sed -i 's/tech:web-entry, tech:cli-entry/tech:runtime-contract/' "$T/SSOT/02-architecture/_manifest.md"
+sed_inplace 's/tech:web-entry, tech:cli-entry/tech:runtime-contract/' "$T/SSOT/02-architecture/_manifest.md"
 out=$(run_quality "$T")
 assert_contains "wrong-kind surface ID is rejected" "$out" "[OWNER-INVENTORY]"
 cp "$T/architecture-kind-valid" "$T/SSOT/02-architecture/_manifest.md"
 
-sed -i 's/tech:web-entry, tech:cli-entry/tech:web-entry, tech:web-entry/' "$T/SSOT/02-architecture/_manifest.md"
+sed_inplace 's/tech:web-entry, tech:cli-entry/tech:web-entry, tech:web-entry/' "$T/SSOT/02-architecture/_manifest.md"
 out=$(run_quality "$T")
 assert_contains "duplicate kind-disposition surface ID is rejected" "$out" "[OWNER-INVENTORY]"
 cp "$T/architecture-kind-valid" "$T/SSOT/02-architecture/_manifest.md"
 
-sed -i 's/tech:web-entry, tech:cli-entry/tech:web-entry/' "$T/SSOT/02-architecture/_manifest.md"
+sed_inplace 's/tech:web-entry, tech:cli-entry/tech:web-entry/' "$T/SSOT/02-architecture/_manifest.md"
 out=$(run_quality "$T")
 assert_contains "omitted same-kind surface ID is rejected" "$out" "[OWNER-INVENTORY]"
 cp "$T/architecture-kind-valid" "$T/SSOT/02-architecture/_manifest.md"
 
-sed -i '/^| surface:page-main |/a\| surface:result-review | page | planned_in: [Product brief](./prd.md#planned-result-review) | prd.md | target | missing | closure: acceptance owner must land a real review surface before current |' "$T/SSOT/01-product/_manifest.md"
+sed_inplace '/^| surface:page-main |/a\
+| surface:result-review | page | planned_in: [Product brief](./prd.md#planned-result-review) | prd.md | target | missing | closure: acceptance owner must land a real review surface before current |' "$T/SSOT/01-product/_manifest.md"
 out=$(run_quality "$T")
 assert_not_contains "planned target with missing fidelity is not an incomplete recovery cell" "$out" "[MANIFEST-COMPLETENESS]"
 assert_contains "product surface omitted from architecture bridge fails exact-set coverage" "$out" "[OWNER-INVENTORY]"
 
-sed -i '/^| surface:page-main | owner:runtime |/a\| surface:result-review | owner:runtime | planned_in: product acceptance owner | [Operations](./views/README.md#failure) |' "$T/SSOT/02-architecture/_manifest.md"
+sed_inplace '/^| surface:page-main | owner:runtime |/a\
+| surface:result-review | owner:runtime | planned_in: product acceptance owner | [Operations](./views/README.md#failure) |' "$T/SSOT/02-architecture/_manifest.md"
 out=$(run_quality "$T")
 assert_not_contains "planned target is valid after exact bridge coverage" "$out" "[MANIFEST-COMPLETENESS]"
 assert_not_contains "planned target exact bridge coverage is complete" "$out" "[OWNER-INVENTORY]"
 
-sed -i '/^| surface:page-main | owner:runtime |/a\| surface:page-main | owner:runtime | src/runtime.py::run | [Operations](./views/README.md#failure) |' "$T/SSOT/02-architecture/_manifest.md"
+sed_inplace '/^| surface:page-main | owner:runtime |/a\
+| surface:page-main | owner:runtime | src/runtime.py::run | [Operations](./views/README.md#failure) |' "$T/SSOT/02-architecture/_manifest.md"
 out=$(run_quality "$T")
 assert_contains "duplicate architecture bridge row fails exact-set coverage" "$out" "[OWNER-INVENTORY]"
 rm -rf "$T"
@@ -1275,7 +1297,7 @@ echo "== Q26 v2.60 review headings cannot replace scored task evidence =="
 T=$(mktemp -d); make_v260_product_root "$T"
 write_v260_product_manifest "$T/SSOT/01-product/_manifest.md"
 write_v260_review "$T/SSOT/.bootstrap/reader-review.md"
-sed -i '/^| Family |/,/^| \*\*Total\*\* |/d' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^| Family |/,/^| \*\*Total\*\* |/d' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T"); code=$?
 assert_contains "missing sixteen-leaf score table reports review evidence failure" "$out" "[READER-REVIEW-EVIDENCE]"
 assert_exit "missing score table exits 2" "$code" "2"
@@ -1299,8 +1321,10 @@ echo "== Q28 v2.60 high-impact adoption cannot use scoped self-review =="
 T=$(mktemp -d); make_v260_product_root "$T"
 write_v260_product_manifest "$T/SSOT/01-product/_manifest.md"
 write_v260_review "$T/SSOT/.bootstrap/reader-review.md"
-sed -i '/^reviewer_role:/c\reviewer_role: scoped-self-review' "$T/SSOT/.bootstrap/reader-review.md"
-sed -i '/^review_type:/c\review_type: high-impact-adoption' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^reviewer_role:/c\
+reviewer_role: scoped-self-review' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^review_type:/c\
+review_type: high-impact-adoption' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T"); code=$?
 assert_contains "high-impact self-review reports evidence failure" "$out" "[READER-REVIEW-EVIDENCE]"
 assert_exit "high-impact self-review exits 2" "$code" "2"
@@ -1310,7 +1334,7 @@ echo "== Q29 v2.60 review needs the complete scope-specific task matrix =="
 T=$(mktemp -d); make_v260_product_root "$T"
 write_v260_product_manifest "$T/SSOT/01-product/_manifest.md"
 write_v260_review "$T/SSOT/.bootstrap/reader-review.md"
-sed -i '/^| Task class |/,/^$/d' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^| Task class |/,/^$/d' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T"); code=$?
 assert_contains "review without mandatory task rows reports evidence failure" "$out" "[READER-REVIEW-EVIDENCE]"
 assert_exit "review without mandatory task rows exits 2" "$code" "2"
@@ -1319,7 +1343,7 @@ rm -rf "$T"
 echo "== Q30 v2.60 product rows cannot invent owner and evidence paths =="
 T=$(mktemp -d); make_v260_product_root "$T"
 write_v260_product_manifest "$T/SSOT/01-product/_manifest.md"
-sed -i 's@`src/ui/main.ts::mainPage` | \[Product brief\](\./prd.md) | current | browser | evidence: `tests/e2e/main.spec.ts`@`src/ui/does-not-exist.ts::mainPage` | [Missing owner](./missing-owner.md) | current | browser | evidence: `tests/e2e/missing.spec.ts`@' "$T/SSOT/01-product/_manifest.md"
+sed_inplace 's@`src/ui/main.ts::mainPage` | \[Product brief\](\./prd.md) | current | browser | evidence: `tests/e2e/main.spec.ts`@`src/ui/does-not-exist.ts::mainPage` | [Missing owner](./missing-owner.md) | current | browser | evidence: `tests/e2e/missing.spec.ts`@' "$T/SSOT/01-product/_manifest.md"
 write_v260_review "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T"); code=$?
 assert_contains "forged product owner/evidence reports surface failure" "$out" "[SURFACE-INVENTORY]"
@@ -1386,7 +1410,7 @@ echo "== Q34 v2.60 legacy ten-dimension reviews cannot satisfy the complete rubr
 T=$(mktemp -d); make_v260_product_root "$T"
 write_v260_product_manifest "$T/SSOT/01-product/_manifest.md"
 write_v260_review "$T/SSOT/.bootstrap/reader-review.md"
-sed -i '/^| Plain-language clarity | LA2 |/d' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^| Plain-language clarity | LA2 |/d' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T"); code=$?
 assert_contains "review missing a canonical leaf reports evidence failure" "$out" "[READER-REVIEW-EVIDENCE]"
 assert_exit "review missing a canonical leaf exits 2" "$code" "2"
@@ -1410,7 +1434,7 @@ echo "== Q36 v2.60 EN/ZH STATUS templates remain valid register schemas =="
 for lang in en zh; do
   T=$(mktemp -d); mkdir -p "$T/SSOT"
   cp "$PROJECT_ROOT/skills/ssot-bootstrap/assets/templates/$lang/status.md" "$T/SSOT/STATUS.md"
-  sed -i 's/<ssot-preflight-protocol-version>/2.60/' "$T/SSOT/STATUS.md"
+  sed_inplace 's/<ssot-preflight-protocol-version>/2.60/' "$T/SSOT/STATUS.md"
   out=$(bash "$LINT" "$T/SSOT" 2>&1 || true)
   assert_not_contains "$lang STATUS template has no register-cell failure" "$out" "[STATUS-REGISTER-CELL]"
   rm -rf "$T"
@@ -1420,8 +1444,8 @@ echo "== Q37 implementation-delegator hard floors cannot be averaged away =="
 T=$(mktemp -d); make_v260_product_root "$T"
 write_v260_product_manifest "$T/SSOT/01-product/_manifest.md"
 write_v260_review "$T/SSOT/.bootstrap/reader-review.md"
-sed -i '/^| Reader fit | RF1 |/ { s/=2/=1/g; s/ | 2 |/ | 1 |/; }' "$T/SSOT/.bootstrap/reader-review.md"
-sed -i '/^| Reader fit | RF2 |/ { s/=1/=2/g; s/ | 1 |/ | 2 |/; }' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^| Reader fit | RF1 |/ { s/=2/=1/g; s/ | 2 |/ | 1 |/; }' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^| Reader fit | RF2 |/ { s/=1/=2/g; s/ | 1 |/ | 2 |/; }' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T"); code=$?
 assert_contains "RF1 hard-floor miss fails even when total and family sum stay passing" "$out" "[READER-REVIEW-EVIDENCE]"
 assert_exit "RF1 hard-floor miss exits 2" "$code" "2"
@@ -1431,7 +1455,7 @@ echo "== Q38 Q01-Q21 completeness profile IDs are exact, not sampleable =="
 T=$(mktemp -d); make_v260_product_root "$T"
 write_v260_product_manifest "$T/SSOT/01-product/_manifest.md"
 write_v260_review "$T/SSOT/.bootstrap/reader-review.md"
-sed -i '/^| Q21 |/d' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^| Q21 |/d' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T"); code=$?
 assert_contains "missing Q21 completeness row fails review" "$out" "[READER-REVIEW-EVIDENCE]"
 assert_exit "missing completeness row exits 2" "$code" "2"
@@ -1441,7 +1465,7 @@ echo "== Q39 a mandatory task over four hops cannot pass by narration =="
 T=$(mktemp -d); make_v260_product_root "$T"
 write_v260_product_manifest "$T/SSOT/01-product/_manifest.md"
 write_v260_review "$T/SSOT/.bootstrap/reader-review.md"
-sed -i '/^| product-architecture-trace |/ s/ | 4 | / | 5 | /' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^| product-architecture-trace |/ s/ | 4 | / | 5 | /' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T"); code=$?
 assert_contains "over-budget mandatory task fails review" "$out" "[READER-REVIEW-EVIDENCE]"
 assert_exit "over-budget task exits 2" "$code" "2"
@@ -1451,7 +1475,7 @@ echo "== Q39b delegation acceptance fields cannot be left implicit =="
 T=$(mktemp -d); make_v260_product_root "$T"
 write_v260_product_manifest "$T/SSOT/01-product/_manifest.md"
 write_v260_review "$T/SSOT/.bootstrap/reader-review.md"
-sed -i '/^| product-orientation-decision |/ s/| Ask the implementation Agent to preserve the declared product promise and boundary |/| |/' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^| product-orientation-decision |/ s/| Ask the implementation Agent to preserve the declared product promise and boundary |/| |/' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T"); code=$?
 assert_contains "missing delegated action fails structured review" "$out" "[READER-REVIEW-EVIDENCE]"
 assert_exit "missing delegated action exits 2" "$code" "2"
@@ -1463,7 +1487,7 @@ write_v260_product_manifest "$T/SSOT/01-product/_manifest.md"
 write_v260_review "$T/SSOT/.bootstrap/reader-review.md"
 tree=$(git -C "$T" write-tree)
 unrelated_commit=$(printf '%s\n' 'unrelated review snapshot' | git -C "$T" commit-tree "$tree")
-sed -i "s/^repository_commit:.*/repository_commit: $unrelated_commit/" "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace "s/^repository_commit:.*/repository_commit: $unrelated_commit/" "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T"); code=$?
 assert_contains "non-ancestor repository commit fails review freshness" "$out" "[READER-REVIEW-EVIDENCE]"
 assert_exit "non-ancestor review commit exits 2" "$code" "2"
@@ -1471,7 +1495,8 @@ rm -rf "$T"
 
 echo "== Q41-Q46 v2.60 Open Gaps actionability follows the exact eight-column owner =="
 T=$(mktemp -d); write_exact_area_status "$T"
-sed -i '/^## Open Gaps$/,/^| | | | | | | | |$/ { /^| | | | | | | | |$/c\| GAP-20260713-01 | gap | | Browser acceptance is not automated | `$ssot-bootstrap` | Before a release claim | `$ssot-bootstrap` | none: open |
+sed_inplace '/^## Open Gaps$/,/^| | | | | | | | |$/ { /^| | | | | | | | |$/c\
+| GAP-20260713-01 | gap | | Browser acceptance is not automated | `$ssot-bootstrap` | Before a release claim | `$ssot-bootstrap` | none: open |
 }' "$T/SSOT/STATUS.md"
 out=$(run_normal "$T"); code=$?
 assert_contains "open gap missing affected task fails actionability" "$out" "[STATUS-GAP-ACTIONABILITY]"
@@ -1479,7 +1504,8 @@ assert_exit "open gap missing affected task exits 2" "$code" "2"
 rm -rf "$T"
 
 T=$(mktemp -d); write_exact_area_status "$T"
-sed -i '/^## Open Gaps$/,/^| | | | | | | | |$/ { /^| | | | | | | | |$/c\| GAP-20260713-01 | gap | testing release claim | Browser acceptance is not automated | DEBT-0001 | Before a release claim | `$ssot-bootstrap` | none: open |
+sed_inplace '/^## Open Gaps$/,/^| | | | | | | | |$/ { /^| | | | | | | | |$/c\
+| GAP-20260713-01 | gap | testing release claim | Browser acceptance is not automated | DEBT-0001 | Before a release claim | `$ssot-bootstrap` | none: open |
 }' "$T/SSOT/STATUS.md"
 out=$(run_normal "$T"); code=$?
 assert_contains "bare durable record ID is not a clickable responsible owner" "$out" "[STATUS-GAP-ACTIONABILITY]"
@@ -1487,7 +1513,8 @@ assert_exit "bare durable record ID exits 2" "$code" "2"
 rm -rf "$T"
 
 T=$(mktemp -d); write_exact_area_status "$T"
-sed -i '/^## Open Gaps$/,/^| | | | | | | | |$/ { /^| | | | | | | | |$/c\| GAP-20260713-01 | gap | testing release claim | Browser acceptance is not automated | `$ssot-bootstrap` | Before a release claim | DEBT-0001 | none: open |
+sed_inplace '/^## Open Gaps$/,/^| | | | | | | | |$/ { /^| | | | | | | | |$/c\
+| GAP-20260713-01 | gap | testing release claim | Browser acceptance is not automated | `$ssot-bootstrap` | Before a release claim | DEBT-0001 | none: open |
 }' "$T/SSOT/STATUS.md"
 out=$(run_normal "$T"); code=$?
 assert_contains "bare durable record ID is not an actionable resolving route" "$out" "[STATUS-GAP-ACTIONABILITY]"
@@ -1495,7 +1522,8 @@ assert_exit "bare resolving route exits 2" "$code" "2"
 rm -rf "$T"
 
 T=$(mktemp -d); write_exact_area_status "$T"
-sed -i '/^## Open Gaps$/,/^| | | | | | | | |$/ { /^| | | | | | | | |$/c\| GAP-20260713-01 | gap | testing release claim | Browser acceptance is not automated | `$ssot-bootstrap` | Before a release claim | `$ssot-bootstrap` | none: open |
+sed_inplace '/^## Open Gaps$/,/^| | | | | | | | |$/ { /^| | | | | | | | |$/c\
+| GAP-20260713-01 | gap | testing release claim | Browser acceptance is not automated | `$ssot-bootstrap` | Before a release claim | `$ssot-bootstrap` | none: open |
 }' "$T/SSOT/STATUS.md"
 out=$(run_normal "$T" || true)
 assert_not_contains "exact eight-column skill-routed gap passes actionability" "$out" "[FAIL] [STATUS-GAP-ACTIONABILITY]"
@@ -1507,7 +1535,7 @@ assert_not_contains "empty exact Open Gaps starter row remains valid" "$out" "[F
 rm -rf "$T"
 
 T=$(mktemp -d); write_exact_area_status "$T"
-sed -i 's/^## Open Gaps$/## 开放缺口/; s/^| ID | State | Affected scope \/ task | Question \/ missing evidence | Responsible owner | Blocking \/ retrigger condition | Resolving route | Closure \/ supersession evidence |$/| ID | 状态 | 受影响范围或任务 | 问题或缺失证据 | 责任所有者 | 阻断或复核触发条件 | 解决路由 | 闭合或取代证据 |/' "$T/SSOT/STATUS.md"
+sed_inplace 's/^## Open Gaps$/## 开放缺口/; s/^| ID | State | Affected scope \/ task | Question \/ missing evidence | Responsible owner | Blocking \/ retrigger condition | Resolving route | Closure \/ supersession evidence |$/| ID | 状态 | 受影响范围或任务 | 问题或缺失证据 | 责任所有者 | 阻断或复核触发条件 | 解决路由 | 闭合或取代证据 |/' "$T/SSOT/STATUS.md"
 out=$(run_normal "$T" || true)
 assert_not_contains "Chinese exact Open Gaps header passes actionability" "$out" "[FAIL] [STATUS-GAP-ACTIONABILITY]"
 rm -rf "$T"
@@ -1532,7 +1560,7 @@ echo "== Q49 an omitted exact Q item is rejected =="
 T=$(mktemp -d); mkdir -p "$T/SSOT"
 printf '%s\n' '| tracked_skill_version | `2.60` |' > "$T/SSOT/STATUS.md"
 append_quality_register "$T"
-sed -i '/^| Q21 |/d' "$T/SSOT/STATUS.md"
+sed_inplace '/^| Q21 |/d' "$T/SSOT/STATUS.md"
 out=$(run_normal "$T"); code=$?
 assert_contains "missing Q21 disposition fails" "$out" "missing exact Q21 disposition"
 assert_exit "missing Q21 disposition exits 2" "$code" "2"
@@ -1542,7 +1570,7 @@ echo "== Q50 applicable Q layers require resolving owner or gap routes =="
 T=$(mktemp -d); mkdir -p "$T/SSOT"
 printf '%s\n' '| tracked_skill_version | `2.60` |' > "$T/SSOT/STATUS.md"
 append_quality_register "$T"
-sed -i '/^| Q01 |/ s#\[Quality owner\](./quality-owner.md)#missing owner#' "$T/SSOT/STATUS.md"
+sed_inplace '/^| Q01 |/ s#\[Quality owner\](./quality-owner.md)#missing owner#' "$T/SSOT/STATUS.md"
 out=$(run_normal "$T"); code=$?
 assert_contains "unrouted applicable Q layer fails" "$out" "Q01 applicable product layer"
 assert_exit "unrouted applicable Q layer exits 2" "$code" "2"
@@ -1552,7 +1580,8 @@ echo "== Q51 evidenced global non-applicability is accepted =="
 T=$(mktemp -d); mkdir -p "$T/SSOT"
 printf '%s\n' '| tracked_skill_version | `2.60` |' > "$T/SSOT/STATUS.md"
 append_quality_register "$T"
-sed -i '/^| Q01 |/c\| Q01 | not_applicable: no end-user UI; [quality boundary](./quality-owner.md) | — | — | — | — |' "$T/SSOT/STATUS.md"
+sed_inplace '/^| Q01 |/c\
+| Q01 | not_applicable: no end-user UI; [quality boundary](./quality-owner.md) | — | — | — | — |' "$T/SSOT/STATUS.md"
 out=$(run_normal "$T" 2>&1 || true)
 assert_not_contains "evidenced global not_applicable has no quality failure" "$out" "[FAIL] [QUALITY-DISPOSITION]"
 rm -rf "$T"
@@ -1561,7 +1590,8 @@ echo "== Q52 unsupported non-applicability is rejected =="
 T=$(mktemp -d); mkdir -p "$T/SSOT"
 printf '%s\n' '| tracked_skill_version | `2.60` |' > "$T/SSOT/STATUS.md"
 append_quality_register "$T"
-sed -i '/^| Q01 |/c\| Q01 | not_applicable: no end-user UI exists | — | — | — | — |' "$T/SSOT/STATUS.md"
+sed_inplace '/^| Q01 |/c\
+| Q01 | not_applicable: no end-user UI exists | — | — | — | — |' "$T/SSOT/STATUS.md"
 out=$(run_normal "$T"); code=$?
 assert_contains "unsupported global not_applicable fails" "$out" "named reason and resolving evidence/owner link"
 assert_exit "unsupported global not_applicable exits 2" "$code" "2"
@@ -1571,7 +1601,7 @@ echo "== Q53 changing Q semantics expires both cold-review artifacts =="
 T=$(mktemp -d); make_v260_product_root "$T"
 write_v260_product_manifest "$T/SSOT/01-product/_manifest.md"
 write_v260_review "$T/SSOT/.bootstrap/reader-review.md"
-sed -i '/^| Q21 |/ s/none: covered by the linked owner evidence/none: commercial boundary was reclassified/' "$T/SSOT/STATUS.md"
+sed_inplace '/^| Q21 |/ s/none: covered by the linked owner evidence/none: commercial boundary was reclassified/' "$T/SSOT/STATUS.md"
 out=$(run_quality "$T"); code=$?
 assert_contains "changed Q semantics fails review freshness" "$out" "quality_disposition_fingerprint does not match"
 assert_exit "changed Q semantics exits 2" "$code" "2"
@@ -1581,7 +1611,7 @@ echo "== Q54 unrelated STATUS tracking baselines do not expire cold-review artif
 T=$(mktemp -d); make_v260_product_root "$T"
 write_v260_product_manifest "$T/SSOT/01-product/_manifest.md"
 write_v260_review "$T/SSOT/.bootstrap/reader-review.md"
-sed -i 's/| documentation_language | zh-CN |/| documentation_language | zh-Hans |/' "$T/SSOT/STATUS.md"
+sed_inplace 's/| documentation_language | zh-CN |/| documentation_language | zh-Hans |/' "$T/SSOT/STATUS.md"
 out=$(run_quality "$T" 2>&1 || true)
 assert_not_contains "unrelated STATUS edit leaves Q fingerprint fresh" "$out" "quality_disposition_fingerprint does not match"
 assert_not_contains "unrelated STATUS edit leaves review evidence valid" "$out" "[FAIL] [READER-REVIEW-EVIDENCE]"
@@ -1610,7 +1640,8 @@ echo "== Q56 required-change rows must agree with count and verdict =="
 T=$(mktemp -d); make_v260_product_root "$T"
 write_v260_product_manifest "$T/SSOT/01-product/_manifest.md"
 write_v260_review "$T/SSOT/.bootstrap/reader-review.md"
-sed -i '/^| none | none |/c\| RC-01 | pending | Rewrite the unclear current promise. | product owner | Closure review is still pending. |' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^| none | none |/c\
+| RC-01 | pending | Rewrite the unclear current promise. | product owner | Closure review is still pending. |' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T"); code=$?
 assert_contains "pending required change contradicts passing review" "$out" "unresolved rows must equal unresolved_required_changes"
 assert_exit "pending required change exits 2" "$code" "2"
@@ -1620,7 +1651,7 @@ echo "== Q57 review identity binds scope and reviewed date =="
 T=$(mktemp -d); make_v260_product_root "$T"
 write_v260_product_manifest "$T/SSOT/01-product/_manifest.md"
 write_v260_review "$T/SSOT/.bootstrap/reader-review.md"
-sed -i 's/^review_id: review:product:/review_id: review:architecture:/' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace 's/^review_id: review:product:/review_id: review:architecture:/' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T"); code=$?
 assert_contains "review ID scope mismatch fails" "$out" "review_id scope segment"
 assert_exit "review ID scope mismatch exits 2" "$code" "2"
@@ -1629,7 +1660,7 @@ rm -rf "$T"
 T=$(mktemp -d); make_v260_product_root "$T"
 write_v260_product_manifest "$T/SSOT/01-product/_manifest.md"
 write_v260_review "$T/SSOT/.bootstrap/reader-review.md"
-sed -i 's/^reviewed_on: 2026-01-01/reviewed_on: 2026-01-02/' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace 's/^reviewed_on: 2026-01-01/reviewed_on: 2026-01-02/' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T"); code=$?
 assert_contains "review ID date mismatch fails" "$out" "must equal reviewed_on"
 assert_exit "review ID date mismatch exits 2" "$code" "2"
@@ -1638,7 +1669,7 @@ rm -rf "$T"
 echo "== Q58 product surface rows have one owner and class-XOR disposition =="
 T=$(mktemp -d); make_v260_product_root "$T"
 write_v260_product_manifest "$T/SSOT/01-product/_manifest.md"
-sed -i '/surface:page-main/ s#\[Product brief\](./prd.md)#\[Product brief\](./prd.md) [Second owner](./prd.md)#' "$T/SSOT/01-product/_manifest.md"
+sed_inplace '/surface:page-main/ s#\[Product brief\](./prd.md)#\[Product brief\](./prd.md) [Second owner](./prd.md)#' "$T/SSOT/01-product/_manifest.md"
 write_v260_review "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T"); code=$?
 assert_contains "two product owner links fail" "$out" "product owner cell must contain exactly one Markdown owner link"
@@ -1647,7 +1678,8 @@ rm -rf "$T"
 
 T=$(mktemp -d); make_v260_product_root "$T"
 write_v260_product_manifest "$T/SSOT/01-product/_manifest.md"
-sed -i '/surface:settings-na/a\| surface:settings-real | settings | `src/ui/main.ts::mainPage` | [Product brief](./prd.md) | current | browser | evidence: `tests/e2e/main.spec.ts` |' "$T/SSOT/01-product/_manifest.md"
+sed_inplace '/surface:settings-na/a\
+| surface:settings-real | settings | `src/ui/main.ts::mainPage` | [Product brief](./prd.md) | current | browser | evidence: `tests/e2e/main.spec.ts` |' "$T/SSOT/01-product/_manifest.md"
 write_v260_review "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T"); code=$?
 assert_contains "real and not-applicable rows cannot coexist for a surface class" "$out" "real and not_applicable rows coexist"
@@ -1656,7 +1688,7 @@ rm -rf "$T"
 
 T=$(mktemp -d); make_v260_product_root "$T"
 write_v260_product_manifest "$T/SSOT/01-product/_manifest.md"
-sed -i '/surface:result-review/ s#planned_in: \[Product brief\](./prd.md#planned_in: [Product brief](./prd.md) [Second plan](./prd.md)#' "$T/SSOT/01-product/_manifest.md"
+sed_inplace '/surface:result-review/ s#planned_in: \[Product brief\](./prd.md#planned_in: [Product brief](./prd.md) [Second plan](./prd.md)#' "$T/SSOT/01-product/_manifest.md"
 write_v260_review "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T"); code=$?
 assert_contains "planned source has exactly one owner link" "$out" "planned_in surface"
@@ -1667,7 +1699,8 @@ echo "== Q59 Area Status extensions and not-applicable rows have exact routes ==
 T=$(mktemp -d); write_exact_area_status "$T"
 printf '# Boundary owner\n' > "$T/SSOT/boundary.md"
 printf '# Second boundary\n' > "$T/SSOT/boundary-two.md"
-sed -i '/^| glossary |/a\| x-bad! | gap | extension: [boundary](./boundary.md) |' "$T/SSOT/STATUS.md"
+sed_inplace '/^| glossary |/a\
+| x-bad! | gap | extension: [boundary](./boundary.md) |' "$T/SSOT/STATUS.md"
 out=$(run_normal "$T"); code=$?
 assert_contains "invalid extension slug fails" "$out" "extensions use x-<slug>"
 assert_exit "invalid extension slug exits 2" "$code" "2"
@@ -1676,7 +1709,8 @@ rm -rf "$T"
 T=$(mktemp -d); write_exact_area_status "$T"
 printf '# Boundary owner\n' > "$T/SSOT/boundary.md"
 printf '# Second boundary\n' > "$T/SSOT/boundary-two.md"
-sed -i '/^| glossary |/a\| x-mobile | gap | extension: [boundary](./boundary.md) and [second](./boundary-two.md) |' "$T/SSOT/STATUS.md"
+sed_inplace '/^| glossary |/a\
+| x-mobile | gap | extension: [boundary](./boundary.md) and [second](./boundary-two.md) |' "$T/SSOT/STATUS.md"
 out=$(run_normal "$T"); code=$?
 assert_contains "extension with two owners fails" "$out" "one resolving Markdown owner link"
 assert_exit "extension double-owner exits 2" "$code" "2"
@@ -1685,7 +1719,7 @@ rm -rf "$T"
 T=$(mktemp -d); write_exact_area_status "$T"
 printf '# Boundary owner\n' > "$T/SSOT/boundary.md"
 printf '# Second boundary\n' > "$T/SSOT/boundary-two.md"
-sed -i 's#^| operations | gap |.*#| operations | not_applicable | No live service; [boundary](./boundary.md) and [second](./boundary-two.md) |#' "$T/SSOT/STATUS.md"
+sed_inplace 's#^| operations | gap |.*#| operations | not_applicable | No live service; [boundary](./boundary.md) and [second](./boundary-two.md) |#' "$T/SSOT/STATUS.md"
 out=$(run_normal "$T"); code=$?
 assert_contains "whole-area N/A with two owners fails" "$out" "exactly one resolving boundary-owner link"
 assert_exit "whole-area N/A double-owner exits 2" "$code" "2"
@@ -1693,7 +1727,7 @@ rm -rf "$T"
 
 T=$(mktemp -d); write_exact_area_status "$T"
 printf '# Boundary owner\n' > "$T/SSOT/boundary.md"
-sed -i 's#^| development | gap |.*#| development | not_applicable | No contributor workflow; [boundary](./boundary.md) |#' "$T/SSOT/STATUS.md"
+sed_inplace 's#^| development | gap |.*#| development | not_applicable | No contributor workflow; [boundary](./boundary.md) |#' "$T/SSOT/STATUS.md"
 out=$(run_normal "$T"); code=$?
 assert_contains "development is always applicable" "$out" "not_applicable is not legal for always-applicable area development"
 assert_exit "development N/A exits 2" "$code" "2"
@@ -1710,7 +1744,7 @@ rm -rf "$T"
 
 T=$(mktemp -d); write_exact_area_status "$T"
 mkdir -p "$T/SSOT/03-process/testing"
-sed -i 's#^| testing | gap |.*#| testing | covered | [testing](./03-process/testing/README.md) |#' "$T/SSOT/STATUS.md"
+sed_inplace 's#^| testing | gap |.*#| testing | covered | [testing](./03-process/testing/README.md) |#' "$T/SSOT/STATUS.md"
 printf '%s\n' '# Root route' '' 'This root explains where a reader starts and how a current change reaches the fitting process owner in ordinary language.' '' 'It also names the visible result, evidence direction, failure boundary, and the next reader action before any reference table.' > "$T/SSOT/README.md"
 mkdir -p "$T/SSOT/03-process"
 printf '%s\n' '# Process route' '' 'This process route explains which workflow owns a change and what result the reader should expect before choosing a command.' '' 'It also explains the verification handoff, important failure boundary, and recovery direction in ordinary language for a newcomer.' > "$T/SSOT/03-process/README.md"
@@ -1722,7 +1756,7 @@ rm -rf "$T"
 
 T=$(mktemp -d); write_exact_area_status "$T"
 mkdir -p "$T/SSOT/03-process/testing"
-sed -i 's#^| testing | gap |.*#| testing | covered | [testing](./03-process/testing/README.md) |#' "$T/SSOT/STATUS.md"
+sed_inplace 's#^| testing | gap |.*#| testing | covered | [testing](./03-process/testing/README.md) |#' "$T/SSOT/STATUS.md"
 printf '%s\n' '# Root route' '' 'This root explains where a reader starts and how a current change reaches the fitting process owner in ordinary language.' '' 'It also names the visible result, evidence direction, failure boundary, and the next reader action before any reference table.' > "$T/SSOT/README.md"
 mkdir -p "$T/SSOT/03-process"
 printf '%s\n' '# Process route' '' 'This process route explains which workflow owns a change and what result the reader should expect before choosing a command.' '' 'It also explains the verification handoff, important failure boundary, and recovery direction in ordinary language for a newcomer.' > "$T/SSOT/03-process/README.md"
@@ -1734,7 +1768,7 @@ rm -rf "$T"
 echo "== Q61 covered children require root, process, and records routers =="
 T=$(mktemp -d); write_exact_area_status "$T"
 mkdir -p "$T/SSOT/03-process/testing"
-sed -i 's#^| testing | gap |.*#| testing | covered | [testing](./03-process/testing/README.md) |#' "$T/SSOT/STATUS.md"
+sed_inplace 's#^| testing | gap |.*#| testing | covered | [testing](./03-process/testing/README.md) |#' "$T/SSOT/STATUS.md"
 printf '%s\n' '# Testing' '' 'This testing owner explains the correctness decision, delegated check, and visible result in ordinary language for a new reader.' '' 'It also explains failure detection, recovery, evidence limits, and the next action before any command reference.' > "$T/SSOT/03-process/testing/README.md"
 out=$(run_normal "$T"); code=$?
 assert_contains "covered child requires root router" "$out" "a covered area requires the root reader router"
@@ -1744,7 +1778,7 @@ rm -rf "$T"
 
 T=$(mktemp -d); write_exact_area_status "$T"
 mkdir -p "$T/SSOT/04-records/decisions"
-sed -i 's#^| decisions | gap |.*#| decisions | covered | [decisions](./04-records/decisions/README.md) |#' "$T/SSOT/STATUS.md"
+sed_inplace 's#^| decisions | gap |.*#| decisions | covered | [decisions](./04-records/decisions/README.md) |#' "$T/SSOT/STATUS.md"
 printf '%s\n' '# Decisions' '' 'This decision index explains which long-lived choices belong here and how a reader reaches the unique entry owner.' '' 'It also explains validation, supersession, evidence limits, and when a new decision or review is required.' > "$T/SSOT/04-records/decisions/README.md"
 out=$(run_normal "$T"); code=$?
 assert_contains "covered record child requires records router" "$out" "a covered record child requires the records reader router"
@@ -1754,7 +1788,7 @@ rm -rf "$T"
 echo "== Q62 covered bodies reject author comments and glossary tokens =="
 T=$(mktemp -d); write_exact_area_status "$T"
 mkdir -p "$T/SSOT/glossary"
-sed -i 's#^| glossary | gap |.*#| glossary | covered | [glossary](./glossary/README.md) |#' "$T/SSOT/STATUS.md"
+sed_inplace 's#^| glossary | gap |.*#| glossary | covered | [glossary](./glossary/README.md) |#' "$T/SSOT/STATUS.md"
 printf '%s\n' '# Root route' '' 'This root explains the repository outcome and routes the reader to the one owner that answers the current question.' '' 'It also explains the evidence direction, important boundary, failure posture, and the next action in ordinary language.' > "$T/SSOT/README.md"
 printf '%s\n' '# Glossary' '' 'This glossary explains repository-specific words that change a reader decision and routes every definition to one fact owner.' '' 'It also gives examples, nearby confusion, evidence, lifecycle, and the condition that requires another review.' '' '<!-- Remove this author note after filling the page. -->' '' 'The remaining <term> must be replaced.' > "$T/SSOT/glossary/README.md"
 out=$(run_normal "$T"); code=$?
@@ -1765,7 +1799,8 @@ rm -rf "$T"
 echo "== Q63 global Q non-applicability uses exact em dashes =="
 T=$(mktemp -d); write_exact_area_status "$T"
 printf '# Boundary\n' > "$T/SSOT/boundary.md"
-sed -i '/^| Q01 |/c\| Q01 | not_applicable: no interactive surface; [boundary](./boundary.md) | - | — | — | — |' "$T/SSOT/STATUS.md"
+sed_inplace '/^| Q01 |/c\
+| Q01 | not_applicable: no interactive surface; [boundary](./boundary.md) | - | — | — | — |' "$T/SSOT/STATUS.md"
 out=$(run_normal "$T"); code=$?
 assert_contains "ASCII dash cannot replace global N/A em dash" "$out" "global not_applicable row must use exact em dash"
 assert_exit "wrong global N/A dash exits 2" "$code" "2"
@@ -1774,7 +1809,7 @@ rm -rf "$T"
 echo "== Q64 architecture covered is a manifest-and-review aggregate =="
 T=$(mktemp -d); write_exact_area_status "$T"
 mkdir -p "$T/SSOT/02-architecture"
-sed -i 's#^| architecture | gap |.*#| architecture | covered | [architecture](./02-architecture/README.md) |#' "$T/SSOT/STATUS.md"
+sed_inplace 's#^| architecture | gap |.*#| architecture | covered | [architecture](./02-architecture/README.md) |#' "$T/SSOT/STATUS.md"
 printf '%s\n' '# Architecture' '' 'This architecture root explains the current request-to-result path and the system owner that carries the visible outcome.' '' 'It also explains the main state boundary, failure recovery, evidence limit, and the next architecture reading route.' > "$T/SSOT/02-architecture/README.md"
 out=$(run_normal "$T"); code=$?
 assert_contains "architecture aggregate requires views/domains/manifests/review" "$out" "architecture covered aggregate is incoherent"
@@ -1793,25 +1828,25 @@ out=$(run_quality "$BASE" || true)
 assert_contains "complete lightweight process artifact passes its exact gate" "$out" "v2.60 covered/converged lightweight exact profiles have current linked artifacts"
 
 T=$(mktemp -d); cp -a "$BASE/." "$T/"
-sed -i '/^| process-root |/d' "$T/SSOT/.bootstrap/scope-review-process.md"
+sed_inplace '/^| process-root |/d' "$T/SSOT/.bootstrap/scope-review-process.md"
 out=$(run_quality "$T" || true)
 assert_contains "empty target matrix cannot authorise a lightweight review" "$out" "target coverage must contain every real target exactly once"
 rm -rf "$T"
 
 T=$(mktemp -d); cp -a "$BASE/." "$T/"
-sed -i '/^| C02 |/ { s/The current process owner gives a concrete reader decision and safe handoff for this workflow\./See link./; }' "$T/SSOT/.bootstrap/scope-review-process.md"
+sed_inplace '/^| C02 |/ { s/The current process owner gives a concrete reader decision and safe handoff for this workflow\./See link./; }' "$T/SSOT/.bootstrap/scope-review-process.md"
 out=$(run_quality "$T" || true)
 assert_contains "profile row needs a concrete plain-language conclusion" "$out" "exact profile must contain each required ID once"
 rm -rf "$T"
 
 T=$(mktemp -d); cp -a "$BASE/." "$T/"
-sed -i '/^area_disposition_fingerprint:/d' "$T/SSOT/.bootstrap/scope-review-process.md"
+sed_inplace '/^area_disposition_fingerprint:/d' "$T/SSOT/.bootstrap/scope-review-process.md"
 out=$(run_quality "$T" || true)
 assert_contains "lightweight artifact uses the exact 18-key schema" "$out" "exact 18-key scalar schema"
 rm -rf "$T"
 
 T=$(mktemp -d); cp -a "$BASE/." "$T/"
-sed -i 's#^| development | gap |.*#| development | covered | `$ssot-bootstrap` |#' "$T/SSOT/STATUS.md"
+sed_inplace 's#^| development | gap |.*#| development | covered | `$ssot-bootstrap` |#' "$T/SSOT/STATUS.md"
 out=$(run_quality "$T" || true)
 assert_contains "child Area change expires the parent lightweight review" "$out" "area_disposition_fingerprint does not match current dependent Area Status rows"
 rm -rf "$T"
@@ -1820,7 +1855,7 @@ T=$(mktemp -d); cp -a "$BASE/." "$T/"
 mkdir -p "$T/SSOT/03-process/development"
 printf '%s\n' '# Development owner' '' 'This actual child explains the delegated development path and the visible result.' > "$T/SSOT/03-process/development/README.md"
 new_scope_hash=$(scope_fingerprint "$T/SSOT" process)
-sed -i "s/^scope_fingerprint:.*/scope_fingerprint: $new_scope_hash/" "$T/SSOT/.bootstrap/scope-review-process.md"
+sed_inplace "s/^scope_fingerprint:.*/scope_fingerprint: $new_scope_hash/" "$T/SSOT/.bootstrap/scope-review-process.md"
 out=$(run_quality "$T" || true)
 assert_contains "new actual child README must appear in the target matrix" "$out" "target coverage must contain every real target exactly once"
 rm -rf "$T"
@@ -1838,26 +1873,26 @@ out=$(run_quality "$BASE" || true)
 assert_contains "complete glossary root and term target matrix passes" "$out" "v2.60 covered/converged lightweight exact profiles have current linked artifacts"
 
 T=$(mktemp -d); cp -a "$BASE/." "$T/"
-sed -i '/^| glossary-ready |/d' "$T/SSOT/.bootstrap/scope-review-glossary.md"
+sed_inplace '/^| glossary-ready |/d' "$T/SSOT/.bootstrap/scope-review-glossary.md"
 out=$(run_quality "$T" || true)
 assert_contains "omitted applicable glossary term owner is rejected" "$out" "target coverage must contain every real target exactly once"
 rm -rf "$T" "$BASE"
 
 echo "== Q67 record indexes validate child coverage, recursion, IDs, aliases, and visible truth =="
 T=$(mktemp -d); write_records_index_fixture "$T"
-sed -i 's#^| records | covered |.*#| records | gap | `$ssot-bootstrap` |#; s#^| decisions | gap |.*#| decisions | covered | [decisions owner](./04-records/decisions/README.md) |#' "$T/SSOT/STATUS.md"
+sed_inplace 's#^| records | covered |.*#| records | gap | `$ssot-bootstrap` |#; s#^| decisions | gap |.*#| decisions | covered | [decisions owner](./04-records/decisions/README.md) |#' "$T/SSOT/STATUS.md"
 out=$(run_quality "$T" || true)
 assert_contains "covered decisions are validated while records aggregate is gap" "$out" "covered record collections have unique dual-axis entries and exact mirrored indexes"
 rm -rf "$T"
 
 T=$(mktemp -d); write_records_index_fixture "$T"
-sed -i 's/^status: accepted$/status:/' "$T/SSOT/04-records/decisions/0001-choice.md"
+sed_inplace 's/^status: accepted$/status:/' "$T/SSOT/04-records/decisions/0001-choice.md"
 out=$(run_quality "$T" || true)
 assert_contains "present empty compatibility alias is rejected" "$out" "compatibility status must be non-empty and mirror record"
 rm -rf "$T"
 
 T=$(mktemp -d); write_records_index_fixture "$T"
-sed -i 's/^promotion_state: promoted$/promotion_state:/' "$T/SSOT/04-records/research/0001-study.md"
+sed_inplace 's/^promotion_state: promoted$/promotion_state:/' "$T/SSOT/04-records/research/0001-study.md"
 out=$(run_quality "$T" || true)
 assert_contains "present empty research alias is rejected" "$out" "promotion_state must be non-empty and mirror adoption_state"
 rm -rf "$T"
@@ -1865,7 +1900,7 @@ rm -rf "$T"
 T=$(mktemp -d); write_records_index_fixture "$T"
 mkdir -p "$T/SSOT/04-records/decisions/domain"
 mv "$T/SSOT/04-records/decisions/0001-choice.md" "$T/SSOT/04-records/decisions/domain/0001-choice.md"
-sed -i 's#(./0001-choice.md)#(./domain/0001-choice.md)#' "$T/SSOT/04-records/decisions/README.md"
+sed_inplace 's#(./0001-choice.md)#(./domain/0001-choice.md)#' "$T/SSOT/04-records/decisions/README.md"
 out=$(run_quality "$T" || true)
 assert_contains "nested leaf entry remains covered by the root index" "$out" "covered record collections have unique dual-axis entries and exact mirrored indexes"
 rm -rf "$T"
@@ -1879,21 +1914,21 @@ rm -rf "$T"
 
 T=$(mktemp -d); write_records_index_fixture "$T"
 mv "$T/SSOT/04-records/decisions/0001-choice.md" "$T/SSOT/04-records/decisions/0002-choice.md"
-sed -i 's#0001-choice.md#0002-choice.md#' "$T/SSOT/04-records/decisions/README.md"
+sed_inplace 's#0001-choice.md#0002-choice.md#' "$T/SSOT/04-records/decisions/README.md"
 out=$(run_quality "$T" || true)
 assert_contains "entry ID digits must match its filename" "$out" "must use matching NNNN-slug.md filename"
 rm -rf "$T"
 
 T=$(mktemp -d); write_records_index_fixture "$T"
-sed -i 's/DEC-0001/DEC-00001/g; s#0001-choice.md#00001-choice.md#' "$T/SSOT/04-records/decisions/README.md" "$T/SSOT/04-records/decisions/0001-choice.md"
+sed_inplace 's/DEC-0001/DEC-00001/g; s#0001-choice.md#00001-choice.md#' "$T/SSOT/04-records/decisions/README.md" "$T/SSOT/04-records/decisions/0001-choice.md"
 mv "$T/SSOT/04-records/decisions/0001-choice.md" "$T/SSOT/04-records/decisions/00001-choice.md"
 out=$(run_quality "$T" || true)
 assert_contains "five-digit record ID is outside the NNNN contract" "$out" "expected DEC-NNNN"
 rm -rf "$T"
 
 T=$(mktemp -d); write_records_index_fixture "$T"
-sed -i 's/^## GOT-0001$/## GOT-0001 Trap/' "$T/SSOT/04-records/gotchas/topic.md"
-sed -i 's/#got-0001)/#got-0001-trap)/' "$T/SSOT/04-records/gotchas/README.md"
+sed_inplace 's/^## GOT-0001$/## GOT-0001 Trap/' "$T/SSOT/04-records/gotchas/topic.md"
+sed_inplace 's/#got-0001)/#got-0001-trap)/' "$T/SSOT/04-records/gotchas/README.md"
 out=$(run_quality "$T" || true)
 assert_contains "gotcha aggregate H2 must remain the ID-only stable anchor" "$out" "aggregate H2 must be the exact stable ID only"
 rm -rf "$T"
@@ -1905,13 +1940,13 @@ assert_contains "gotcha topic without frontmatter ID or exact block is rejected"
 rm -rf "$T"
 
 T=$(mktemp -d); write_records_index_fixture "$T"
-sed -i '/Record status \/ hazard state/d' "$T/SSOT/04-records/gotchas/topic.md"
+sed_inplace '/Record status \/ hazard state/d' "$T/SSOT/04-records/gotchas/topic.md"
 out=$(run_quality "$T" || true)
 assert_contains "gotcha block cannot omit its two canonical states" "$out" "needs one explicit valid Record status / hazard state line"
 rm -rf "$T"
 
 T=$(mktemp -d); write_records_index_fixture "$T"
-sed -i 's/#got-0001)/#missing-anchor)/' "$T/SSOT/04-records/gotchas/README.md"
+sed_inplace 's/#got-0001)/#missing-anchor)/' "$T/SSOT/04-records/gotchas/README.md"
 out=$(run_quality "$T" || true)
 assert_contains "gotcha index anchor must resolve exactly" "$out" "needs one resolving owner/anchor link"
 rm -rf "$T"
@@ -1929,27 +1964,27 @@ assert_contains "five legitimately empty collections pass their exact indexes" "
 rm -rf "$T"
 
 T=$(mktemp -d); write_empty_records_index_fixture "$T"
-sed -i 's#owner=\[records owner\](../README.md)#owner=[missing owner](./missing.md)#' "$T/SSOT/04-records/decisions/README.md"
+sed_inplace 's#owner=\[records owner\](../README.md)#owner=[missing owner](./missing.md)#' "$T/SSOT/04-records/decisions/README.md"
 out=$(run_quality "$T" || true)
 assert_contains "empty collection owner must resolve" "$out" "empty index needs one reason/owner/review_trigger disposition"
 rm -rf "$T"
 
 T=$(mktemp -d); write_empty_records_index_fixture "$T"
-sed -i 's#^Empty collection: reason=no durable decision has been accepted; owner=\[records owner\](../README.md); review when=a hard-to-reverse choice appears\.$#`Empty collection: reason=no durable decision has been accepted; owner=[records owner](../README.md); review when=a hard-to-reverse choice appears.`#' "$T/SSOT/04-records/decisions/README.md"
+sed_inplace 's#^Empty collection: reason=no durable decision has been accepted; owner=\[records owner\](../README.md); review when=a hard-to-reverse choice appears\.$#`Empty collection: reason=no durable decision has been accepted; owner=[records owner](../README.md); review when=a hard-to-reverse choice appears.`#' "$T/SSOT/04-records/decisions/README.md"
 out=$(run_quality "$T" || true)
 assert_contains "inline-code template text is not a visible empty disposition" "$out" "empty index needs one reason/owner/review_trigger disposition"
 rm -rf "$T"
 
 T=$(mktemp -d); write_empty_records_index_fixture "$T"
-sed -i 's#^Empty collection: reason=no durable decision has been accepted; owner=\[records owner\](../README.md); review when=a hard-to-reverse choice appears\.$#空集合说明：原因=尚未出现需要长期保留的不可逆决策；负责人=[记录所有者](../README.md)；复核条件=出现跨域且难以回退的选择。#' "$T/SSOT/04-records/decisions/README.md"
+sed_inplace 's#^Empty collection: reason=no durable decision has been accepted; owner=\[records owner\](../README.md); review when=a hard-to-reverse choice appears\.$#空集合说明：原因=尚未出现需要长期保留的不可逆决策；负责人=[记录所有者](../README.md)；复核条件=出现跨域且难以回退的选择。#' "$T/SSOT/04-records/decisions/README.md"
 out=$(run_quality "$T" || true)
 assert_contains "localised Chinese empty disposition passes" "$out" "covered record collections have unique dual-axis entries and exact mirrored indexes"
 rm -rf "$T"
 
 echo "== Q69 open bug is canonical active work for indexes, risk, actionability, and deferral =="
 T=$(mktemp -d); write_records_index_fixture "$T"
-sed -i 's/| BUG-0001 | Failure | current | fixed |/| BUG-0001 | Failure | current | open |/' "$T/SSOT/04-records/bugs/README.md"
-sed -i 's/^failure_state: fixed$/failure_state: open/; s/^status: fixed$/status: open/' "$T/SSOT/04-records/bugs/0001-failure.md"
+sed_inplace 's/| BUG-0001 | Failure | current | fixed |/| BUG-0001 | Failure | current | open |/' "$T/SSOT/04-records/bugs/README.md"
+sed_inplace 's/^failure_state: fixed$/failure_state: open/; s/^status: fixed$/status: open/' "$T/SSOT/04-records/bugs/0001-failure.md"
 out=$(run_normal "$T" || true)
 assert_contains "open bug passes the canonical dual-axis index" "$out" "covered record collections have unique dual-axis entries and exact mirrored indexes"
 assert_contains "open major bug requires a quick-entry surface" "$out" "[ENTRY-ACTIONABILITY]"
@@ -1959,8 +1994,8 @@ assert_contains "open bug future-work wording cannot bypass deferral ownership" 
 rm -rf "$T"
 
 T=$(mktemp -d); write_records_index_fixture "$T"
-sed -i 's/| BUG-0001 | Failure | current | fixed |/| BUG-0001 | Failure | current | pending |/' "$T/SSOT/04-records/bugs/README.md"
-sed -i 's/^failure_state: fixed$/failure_state: pending/; s/^status: fixed$/status: pending/' "$T/SSOT/04-records/bugs/0001-failure.md"
+sed_inplace 's/| BUG-0001 | Failure | current | fixed |/| BUG-0001 | Failure | current | pending |/' "$T/SSOT/04-records/bugs/README.md"
+sed_inplace 's/^failure_state: fixed$/failure_state: pending/; s/^status: fixed$/status: pending/' "$T/SSOT/04-records/bugs/0001-failure.md"
 out=$(run_quality "$T" || true)
 assert_contains "illegal bug failure state is rejected" "$out" "invalid failure_state pending"
 rm -rf "$T"
@@ -1971,111 +2006,113 @@ write_v260_product_manifest "$BASE/SSOT/01-product/_manifest.md"
 write_v260_review "$BASE/SSOT/.bootstrap/reader-review.md"
 
 T=$(mktemp -d); cp -a "$BASE/." "$T/"
-sed -i '/^reviewer:/d' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^reviewer:/d' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T" || true)
 assert_contains "missing full-review reviewer key is rejected" "$out" "frontmatter must be one closed exact 29-key scalar schema"
 rm -rf "$T"
 
 T=$(mktemp -d); cp -a "$BASE/." "$T/"
-sed -i '/^authorises:/d' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^authorises:/d' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T" || true)
 assert_contains "missing full-review authorises key is rejected" "$out" "frontmatter must be one closed exact 29-key scalar schema"
 rm -rf "$T"
 
 T=$(mktemp -d); cp -a "$BASE/." "$T/"
-sed -i '/^reviewer:/a\unexpected_field: forbidden' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^reviewer:/a\
+unexpected_field: forbidden' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T" || true)
 assert_contains "extra full-review frontmatter key is rejected" "$out" "frontmatter must be one closed exact 29-key scalar schema"
 rm -rf "$T"
 
 T=$(mktemp -d); cp -a "$BASE/." "$T/"
-sed -i '/^reviewer:/a\reviewer: agent:duplicate' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^reviewer:/a\
+reviewer: agent:duplicate' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T" || true)
 assert_contains "duplicate full-review frontmatter key is rejected" "$out" "frontmatter must be one closed exact 29-key scalar schema"
 rm -rf "$T"
 
 T=$(mktemp -d); cp -a "$BASE/." "$T/"
-sed -i 's/^reviewer: agent:test$/reviewer: reviewer/' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace 's/^reviewer: agent:test$/reviewer: reviewer/' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T" || true)
 assert_contains "placeholder reviewer ID is rejected" "$out" "reviewer must be a stable non-placeholder ID"
 rm -rf "$T"
 
 T=$(mktemp -d); cp -a "$BASE/." "$T/"
-sed -i 's/^authorises: area:product:covered$/authorises: area:architecture:covered/' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace 's/^authorises: area:product:covered$/authorises: area:architecture:covered/' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T" || true)
 assert_contains "cross-scope authorises value is rejected" "$out" "authorises must be area:product:covered"
 rm -rf "$T"
 
 echo "== Q71 full reader review reconciles every frozen target and mandatory task =="
 T=$(mktemp -d); cp -a "$BASE/." "$T/"
-sed -i '/^| surface:page-main |/d' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^| surface:page-main |/d' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T" || true)
 assert_contains "omitted full-review target row is rejected" "$out" "target coverage must contain every real target exactly once"
 rm -rf "$T"
 
 T=$(mktemp -d); cp -a "$BASE/." "$T/"
-sed -i '/^| product-surface |/ s/| [0-9][0-9]* | [0-9][0-9]* | pass |$/| 999 | 999 | pass |/' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^| product-surface |/ s/| [0-9][0-9]* | [0-9][0-9]* | pass |$/| 999 | 999 | pass |/' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T" || true)
 assert_contains "tampered frozen-population count is rejected" "$out" "frozen population reconciliation count does not match the real inventory"
 rm -rf "$T"
 
 T=$(mktemp -d); cp -a "$BASE/." "$T/"
-sed -i '/^| product-surface |/ s#\[product inventory\](../01-product/_manifest.md)#[wrong inventory](../01-product/README.md)#' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^| product-surface |/ s#\[product inventory\](../01-product/_manifest.md)#[wrong inventory](../01-product/README.md)#' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T" || true)
 assert_contains "frozen population must link its real source inventory" "$out" "frozen population product-surface must link its real source inventory"
 rm -rf "$T"
 
 T=$(mktemp -d); cp -a "$BASE/." "$T/"
-sed -i '/^| surface:page-main |/ s/| product-surface-inventory |/| architecture-owner-state-contract |/' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^| surface:page-main |/ s/| product-surface-inventory |/| architecture-owner-state-contract |/' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T" || true)
 assert_contains "cross-scope assigned task is rejected" "$out" "assigned mandatory task is outside the product review scope"
 rm -rf "$T"
 
 T=$(mktemp -d); cp -a "$BASE/." "$T/"
-sed -i '/^| surface:page-main |/ s/| product-surface |/| reader-owner |/' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^| surface:page-main |/ s/| product-surface |/| reader-owner |/' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T" || true)
 assert_contains "target kind must match its frozen population" "$out" "target coverage has invalid Target kind"
 rm -rf "$T"
 
 T=$(mktemp -d); cp -a "$BASE/." "$T/"
-sed -i 's/^| surface:page-main |/| product-surface:surface:page-main |/' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace 's/^| surface:page-main |/| product-surface:surface:page-main |/' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T" || true)
 assert_contains "target ID must use the canonical inventory ID" "$out" "invalid or duplicate stable Target ID product-surface:surface:page-main"
 rm -rf "$T"
 
 T=$(mktemp -d); cp -a "$BASE/." "$T/"
-sed -i '/^| surface:page-main |/p' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^| surface:page-main |/p' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T" || true)
 assert_contains "duplicate canonical target ID is rejected" "$out" "invalid or duplicate stable Target ID surface:page-main"
 rm -rf "$T"
 
 T=$(mktemp -d); cp -a "$BASE/." "$T/"
-sed -i '/^| surface:page-main |/ s/| current |/| target |/' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^| surface:page-main |/ s/| current |/| target |/' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T" || true)
 assert_contains "target disposition must match its inventory row" "$out" "frozen disposition does not match the real inventory"
 rm -rf "$T"
 
 T=$(mktemp -d); cp -a "$BASE/." "$T/"
-sed -i '/^| surface:page-main |/ s#\[product owner\](../01-product/prd.md)#[product owner](../01-product/product-model.md)#' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^| surface:page-main |/ s#\[product owner\](../01-product/prd.md)#[product owner](../01-product/product-model.md)#' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T" || true)
 assert_contains "target owner must match its inventory row" "$out" "owner/body does not match its real inventory owner"
 rm -rf "$T"
 
 T=$(mktemp -d); cp -a "$BASE/." "$T/"
-sed -i '/^| surface:page-main |/ s/| pass |/| unexpected | pass |/' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^| surface:page-main |/ s/| pass |/| unexpected | pass |/' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T" || true)
 assert_contains "target rows reject extra columns" "$out" "target coverage rows need the exact eight columns"
 rm -rf "$T"
 
 echo "== Q72 full reader review closure row matches its artifact and STATUS row =="
 T=$(mktemp -d); cp -a "$BASE/." "$T/"
-sed -i '/^| \[Stop Review Gate\]/d' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^| \[Stop Review Gate\]/d' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T" || true)
 assert_contains "missing covered-claim closure row is rejected" "$out" "STATUS covered-claim closure must contain exactly one current row"
 rm -rf "$T"
 
 T=$(mktemp -d); cp -a "$BASE/." "$T/"
-sed -i '/^| \[Stop Review Gate\]/ s/| agent:test | independent-cold-reader |/| agent:other | independent-cold-reader |/' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^| \[Stop Review Gate\]/ s/| agent:test | independent-cold-reader |/| agent:other | independent-cold-reader |/' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T" || true)
 assert_contains "tampered covered-claim closure row is rejected" "$out" "STATUS covered-claim closure disagrees with the review artifact or Stop Review Gate"
 rm -rf "$T"
@@ -2086,26 +2123,26 @@ assert_not_contains "full-review cold-reader role passes STATUS exact role valid
 assert_not_contains "canonical product full review passes reader-review validation" "$out" "[READER-REVIEW-EVIDENCE]"
 
 T=$(mktemp -d); cp -a "$BASE/." "$T/"
-sed -i '/^| product | covered | agent:test |/ s/| product | covered |/| process | covered |/; /^| process | covered | agent:test |/ s/| area:product:covered |$/| area:process:covered |/' "$T/SSOT/STATUS.md"
+sed_inplace '/^| product | covered | agent:test |/ s/| product | covered |/| process | covered |/; /^| process | covered | agent:test |/ s/| area:product:covered |$/| area:process:covered |/' "$T/SSOT/STATUS.md"
 out=$(run_normal "$T" || true)
 assert_contains "cold-reader role is confined to product and architecture full-review rows" "$out" "independent-cold-reader is only valid for product/architecture covered full-review rows"
 rm -rf "$T"
 
 echo "== Q74 full-review evidence and completeness rows require bounded Markdown links =="
 T=$(mktemp -d); cp -a "$BASE/." "$T/"
-sed -i '/^| product-orientation-decision | Consequential current claim |/ s#\[current owner\](../01-product/README.md)#SSOT/01-product/README.md#' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^| product-orientation-decision | Consequential current claim |/ s#\[current owner\](../01-product/README.md)#SSOT/01-product/README.md#' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T" || true)
 assert_contains "bare per-task evidence path is rejected" "$out" "evidence sample must use one resolving non-review consumer-SSOT Markdown link"
 rm -rf "$T"
 
 T=$(mktemp -d); cp -a "$BASE/." "$T/"
-sed -i '/^| C01 | covered |/ s#\[current owner\](../01-product/README.md)#SSOT/01-product/README.md#' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^| C01 | covered |/ s#\[current owner\](../01-product/README.md)#SSOT/01-product/README.md#' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T" || true)
 assert_contains "bare completeness evidence path is rejected" "$out" "completeness profile must use one resolving non-review consumer-SSOT Markdown evidence link"
 rm -rf "$T"
 
 T=$(mktemp -d); cp -a "$BASE/." "$T/"
-sed -i '/^| C01 | covered |/ s#\[current owner\](../01-product/README.md)#[review artifact](./reader-review.md)#' "$T/SSOT/.bootstrap/reader-review.md"
+sed_inplace '/^| C01 | covered |/ s#\[current owner\](../01-product/README.md)#[review artifact](./reader-review.md)#' "$T/SSOT/.bootstrap/reader-review.md"
 out=$(run_quality "$T" || true)
 assert_contains "self-referential completeness evidence is rejected" "$out" "completeness profile must use one resolving non-review consumer-SSOT Markdown evidence link"
 rm -rf "$T"
