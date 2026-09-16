@@ -4,6 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 LINT="${SSOT_LINT_UNDER_TEST:-$SCRIPT_DIR/../ssot-lint.sh}"
 WORK=$(mktemp -d)
+WORK=$(realpath "$WORK")
 trap 'rm -rf "$WORK"' EXIT
 python3 - "$LINT" "$WORK/helper.sh" <<'PY_HELPER'
 import pathlib
