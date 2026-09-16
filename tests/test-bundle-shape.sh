@@ -259,7 +259,7 @@ fi
 # templates-index.md is the complete public inventory, not a hand-maintained
 # subset: each template filename appears exactly once and no unknown row exists.
 TEMPLATE_INDEX="$PROJECT_ROOT/skills/ssot-bootstrap/references/templates-index.md"
-ACTUAL_TEMPLATE_NAMES="$(find "$TPL_DIR/en" -maxdepth 1 -type f -name '*.md' -printf '%f\n' | sort)"
+ACTUAL_TEMPLATE_NAMES="$(find "$TPL_DIR/en" -maxdepth 1 -type f -name '*.md' -exec basename {} \; | sort)"
 INDEXED_TEMPLATE_NAMES="$(sed -nE 's/^\| `([^`]+\.md)` \|.*$/\1/p' "$TEMPLATE_INDEX" | sort)"
 if [[ "$ACTUAL_TEMPLATE_NAMES" == "$INDEXED_TEMPLATE_NAMES" ]]; then
   pass "templates index completely matches shipped templates"
