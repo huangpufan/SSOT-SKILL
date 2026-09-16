@@ -848,6 +848,11 @@ code=0
 bash "$(dirname "$LINT")/test/test-large-status-json.sh" || code=$?
 assert_exit "large STATUS JSON diagnostics regression" "$code" "0"
 
+echo "== S58 portable lexical path normalization =="
+code=0
+bash "$(dirname "$LINT")/test/test-lexical-path.sh" || code=$?
+assert_exit "portable lexical normalization regression" "$code" "0"
+
 echo ""
 echo "===== summary: PASS=$PASS FAIL=$FAIL ====="
 [[ "$FAIL" -eq 0 ]] && exit 0 || exit 1

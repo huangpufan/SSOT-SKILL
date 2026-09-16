@@ -2,6 +2,10 @@
 # tests/test-document-quality-lint.sh — deterministic guards for covered reader artifacts
 set -uo pipefail
 
+# Canonicalize the trusted temporary root; fixture links remain subject to lint.
+TMPDIR=$(cd "${TMPDIR:-/tmp}" && pwd -P) || exit 1
+export TMPDIR
+
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 LINT="$PROJECT_ROOT/skills/ssot-doctor/assets/scripts/ssot-lint.sh"
 PASS=0
@@ -9,11 +13,29 @@ FAIL=0
 
 pass() { echo "  ok   : $1"; PASS=$((PASS + 1)); }
 fail() { echo "  FAIL : $1"; FAIL=$((FAIL + 1)); }
+show_lint_failure_context() {
+  printf '%s\n' "$1" | awk -v wanted="$2" '
+    /^\[FAIL\]/ { failed = 1 }
+    failed || index($0, wanted) || /^(ERROR|sed|awk|find):/ {
+      if (shown < 24) { print "    lint context: " substr($0, 1, 600); shown++ }
+    }
+  '
+}
 assert_contains() {
-  if printf '%s' "$2" | grep -qF -- "$3"; then pass "$1"; else fail "$1 (missing: $3)"; fi
+  if printf '%s' "$2" | grep -qF -- "$3"; then
+    pass "$1"
+  else
+    fail "$1 (missing: $3)"
+    show_lint_failure_context "$2" "$3"
+  fi
 }
 assert_not_contains() {
-  if printf '%s' "$2" | grep -qF -- "$3"; then fail "$1 (unexpected: $3)"; else pass "$1"; fi
+  if printf '%s' "$2" | grep -qF -- "$3"; then
+    fail "$1 (unexpected: $3)"
+    show_lint_failure_context "$2" "$3"
+  else
+    pass "$1"
+  fi
 }
 assert_exit() {
   if [[ "$2" == "$3" ]]; then pass "$1"; else fail "$1 (exit $2 != $3)"; fi

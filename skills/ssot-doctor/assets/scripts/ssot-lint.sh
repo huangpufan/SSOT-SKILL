@@ -684,6 +684,12 @@ markdown_link_resolves_with_anchor() { # $1=owner document $2=cell
   [[ -z "$fragment" ]] || markdown_file_has_fragment "$resolved" "$fragment"
 }
 
+# Normalize lexical spelling without following links or requiring any component.
+lexical_path() {
+  [[ -n "$1" ]] || return 1
+  python3 -c 'import os,sys; print("/" + os.path.abspath(sys.argv[1]).lstrip("/"))' "$1"
+}
+
 markdown_link_uses_symlink_path() { # $1=owner document $2=cell; success means unsafe
   local owner="$1" cell="$2" target candidate project_root lexical resolved
   target=$(printf '%s\n' "$cell" | sed -nE 's@.*\]\(([^)#]+\.md)(#[^)]*)?\).*@\1@p' | head -1)
@@ -691,7 +697,7 @@ markdown_link_uses_symlink_path() { # $1=owner document $2=cell; success means u
   project_root=$(cd "$(dirname "$SSOT_DIR")" && pwd -P)
   if [[ "$target" == SSOT/* ]]; then candidate="$project_root/$target"; else candidate="$(dirname "$owner")/$target"; fi
   [[ -e "$candidate" ]] || return 1
-  lexical=$(realpath -m -s "$candidate" 2>/dev/null) || return 1
+  lexical=$(lexical_path "$candidate" 2>/dev/null) || return 1
   resolved=$(realpath "$candidate" 2>/dev/null) || return 1
   [[ "$lexical" != "$resolved" ]]
 }
@@ -1062,7 +1068,7 @@ strict_review_artifact_path() { # $1=owner $2=cell; emits a real file under SSOT
   project_root=$(cd "$(dirname "$SSOT_DIR")" && pwd -P)
   if [[ "$target" == SSOT/* ]]; then candidate="$project_root/$target"; else candidate="$(dirname "$owner")/$target"; fi
   [[ -d "$SSOT_DIR/.bootstrap" && ! -L "$SSOT_DIR/.bootstrap" && -f "$candidate" && ! -L "$candidate" ]] || return 1
-  lexical=$(realpath -m -s "$candidate" 2>/dev/null) || return 1
+  lexical=$(lexical_path "$candidate" 2>/dev/null) || return 1
   resolved=$(realpath "$candidate" 2>/dev/null) || return 1
   bootstrap_real=$(realpath "$SSOT_DIR/.bootstrap" 2>/dev/null) || return 1
   [[ "$lexical" == "$resolved" && "$resolved" == "$bootstrap_real/"* ]] || return 1
@@ -1559,7 +1565,7 @@ strict_ssot_markdown_target_key() { # $1=owner $2=one Markdown link; emits realp
   project_root=$(cd "$(dirname "$SSOT_DIR")" && pwd -P)
   if [[ "$target" == SSOT/* ]]; then candidate="$project_root/$target"; else candidate="$(dirname "$owner")/$target"; fi
   [[ -f "$candidate" ]] || return 1
-  lexical=$(realpath -m -s "$candidate" 2>/dev/null) || return 1
+  lexical=$(lexical_path "$candidate" 2>/dev/null) || return 1
   resolved=$(realpath "$candidate" 2>/dev/null) || return 1
   [[ "$lexical" == "$resolved" && "$resolved" == "$SSOT_DIR"/* && "$resolved" != "$SSOT_DIR/.bootstrap/"* ]] || return 1
   fragment=$(markdown_link_fragment "$cell")
@@ -2275,7 +2281,7 @@ validate_v260_review_artifact() { # $1=manifest $2=artifact
     manifest="$ARCHITECTURE_DIR/_manifest.md"
   fi
   [[ -f "$artifact_input" && ! -L "$artifact_input" && -d "$SSOT_DIR/.bootstrap" && ! -L "$SSOT_DIR/.bootstrap" ]] || { printf 'review artifact must be a regular non-symlink Markdown file under SSOT/.bootstrap'; return 1; }
-  [[ "$(realpath -m -s "$artifact_input" 2>/dev/null || true)" == "$(realpath "$artifact_input" 2>/dev/null || true)" ]] || { printf 'review artifact path must not traverse symlinks'; return 1; }
+  [[ "$(lexical_path "$artifact_input" 2>/dev/null || true)" == "$(realpath "$artifact_input" 2>/dev/null || true)" ]] || { printf 'review artifact path must not traverse symlinks'; return 1; }
   artifact=$(realpath "$artifact_input" 2>/dev/null || true)
   [[ -n "$artifact" && "$artifact" == "$(realpath "$SSOT_DIR/.bootstrap")/"* ]] || { printf 'review artifact must be a regular non-symlink Markdown file under SSOT/.bootstrap'; return 1; }
   ! find "$SSOT_DIR/.bootstrap" -type l -print -quit 2>/dev/null | grep -q . || { printf 'review artifact path must not traverse or contain symlinks'; return 1; }
