@@ -1246,7 +1246,7 @@ review_status_closure_table() { # $1=review artifact
 review_table_header_signature() { # stdin=one Markdown header row
   awk -F'|' '
     function trim(v){gsub(/^[[:space:]`]+|[[:space:]`]+$/, "", v);return v}
-    {for(i=2;i<NF;i++){v=trim($i);if(v~/^[A-Za-z ,_\/-]+$/)v=tolower(v);printf "%s%s",i==2?"":"|",v}print ""}
+    {for(i=2;i<NF;i++){v=trim($i);if(v~/^[A-Za-z ,_\/-]+$/)v=tolower(v);printf "%s%s",(i==2?"":"|"),v}print ""}
   '
 }
 
@@ -1908,7 +1908,7 @@ validate_v260_scope_review_artifact() { # $1=profile $2=artifact $3=expected aut
   grep -qE '<[^>]+>|(^|[^[:alnum:]_])(TODO|TBD)([^[:alnum:]_]|$)|待补充' "$artifact" && { printf 'body still contains placeholders'; return 1; }
   basis_table=$(scope_review_basis_table "$artifact")
   [[ -n "$basis_table" ]] || { printf 'body is missing the review-basis table'; return 1; }
-  header=$(printf '%s\n' "$basis_table" | head -1 | awk -F'|' '{for(i=2;i<NF;i++){v=$i;gsub(/^[[:space:]`]+|[[:space:]`]+$/,"",v);if(v~/^[A-Za-z _\/-]+$/)v=tolower(v);printf "%s%s",i==2?"":"|",v}print ""}')
+  header=$(printf '%s\n' "$basis_table" | head -1 | awk -F'|' '{for(i=2;i<NF;i++){v=$i;gsub(/^[[:space:]`]+|[[:space:]`]+$/,"",v);if(v~/^[A-Za-z _\/-]+$/)v=tolower(v);printf "%s%s",(i==2?"":"|"),v}print ""}')
   [[ "$header" == 'check|result|evidence / limit' || "$header" == '检查|结果|证据与限制' ]] || { printf 'review-basis table needs the exact three columns'; return 1; }
   basis_stats=$(printf '%s\n' "$basis_table" | awk -F'|' '
     function trim(v){gsub(/^[[:space:]`*]+|[[:space:]`*]+$/,"",v);return v}
@@ -1918,7 +1918,7 @@ validate_v260_scope_review_artifact() { # $1=profile $2=artifact $3=expected aut
   [[ "$basis_stats" == '3|0' ]] || { printf 'review basis must contain the three exact passing checks with non-empty evidence (got %s)' "$basis_stats"; return 1; }
   table=$(scope_review_profile_table "$artifact")
   [[ -n "$table" ]] || { printf 'body is missing the exact profile table'; return 1; }
-  header=$(printf '%s\n' "$table" | head -1 | awk -F'|' '{for(i=2;i<NF;i++){v=$i;gsub(/^[[:space:]`]+|[[:space:]`]+$/,"",v);if(v~/^[A-Za-z _\/-]+$/)v=tolower(v);printf "%s%s",i==2?"":"|",v}print ""}')
+  header=$(printf '%s\n' "$table" | head -1 | awk -F'|' '{for(i=2;i<NF;i++){v=$i;gsub(/^[[:space:]`]+|[[:space:]`]+$/,"",v);if(v~/^[A-Za-z _\/-]+$/)v=tolower(v);printf "%s%s",(i==2?"":"|"),v}print ""}')
   [[ "$header" == 'item id|disposition|plain answer|owner / evidence' || "$header" == '项目 id|处置|白话结论|所有者或证据' ]] || { printf 'exact-profile table needs the exact four columns including Plain answer'; return 1; }
   expected_ids=$(scope_review_expected_ids "$profile" | paste -sd, -)
   stats=$(printf '%s\n' "$table" | awk -F'|' -v expected="$expected_ids" -v artifact="$artifact" '
@@ -1940,7 +1940,7 @@ validate_v260_scope_review_artifact() { # $1=profile $2=artifact $3=expected aut
   (( declared_covered + declared_na == expected_count )) || { printf 'covered plus not_applicable counts must equal profile_item_count'; return 1; }
   semantic_table=$(scope_review_semantic_table "$artifact")
   [[ -n "$semantic_table" ]] || { printf 'body is missing the semantic-truth sample table'; return 1; }
-  header=$(printf '%s\n' "$semantic_table" | head -1 | awk -F'|' '{for(i=2;i<NF;i++){v=$i;gsub(/^[[:space:]`]+|[[:space:]`]+$/,"",v);if(v~/^[A-Za-z _\/-]+$/)v=tolower(v);printf "%s%s",i==2?"":"|",v}print ""}')
+  header=$(printf '%s\n' "$semantic_table" | head -1 | awk -F'|' '{for(i=2;i<NF;i++){v=$i;gsub(/^[[:space:]`]+|[[:space:]`]+$/,"",v);if(v~/^[A-Za-z _\/-]+$/)v=tolower(v);printf "%s%s",(i==2?"":"|"),v}print ""}')
   [[ "$header" == 'item id|owner/body claim|repository/evidence sample|truth result|limit' || "$header" == '项目 id|所有者正文结论|仓库或证据样本|真实性结果|限制' ]] || { printf 'semantic-truth sample needs the exact five columns'; return 1; }
   semantic_stats=$(awk -F'|' -v families="$expected_families" '
     function trim(v){gsub(/^[[:space:]`*]+|[[:space:]`*]+$/,"",v);return v}
@@ -1960,7 +1960,7 @@ validate_v260_scope_review_artifact() { # $1=profile $2=artifact $3=expected aut
   done < <(printf '%s\n' "$semantic_table" | awk -F'|' 'NR>2&&/^\|/{v=$4;gsub(/^[[:space:]]+|[[:space:]]+$/,"",v);print v}')
   target_table=$(scope_review_target_table "$artifact")
   [[ -n "$target_table" ]] || { printf 'body is missing the exact target-coverage table'; return 1; }
-  header=$(printf '%s\n' "$target_table" | head -1 | awk -F'|' '{for(i=2;i<NF;i++){v=$i;gsub(/^[[:space:]`]+|[[:space:]`]+$/,"",v);if(v~/^[A-Za-z _\/-]+$/)v=tolower(v);printf "%s%s",i==2?"":"|",v}print ""}')
+  header=$(printf '%s\n' "$target_table" | head -1 | awk -F'|' '{for(i=2;i<NF;i++){v=$i;gsub(/^[[:space:]`]+|[[:space:]`]+$/,"",v);if(v~/^[A-Za-z _\/-]+$/)v=tolower(v);printf "%s%s",(i==2?"":"|"),v}print ""}')
   [[ "$header" == 'target id|target owner|profile ids exercised|repository/evidence sample|truth result|limit' || "$header" == '目标 id|目标所有者|已核验画像 id|仓库或证据样本|真实性结果|限制' ]] || { printf 'target coverage table needs the exact six columns'; return 1; }
   expected_targets=$(scope_review_expected_targets "$profile" 2>/dev/null || true)
   [[ -n "$expected_targets" ]] || { printf 'scope has no enumerable real review target'; return 1; }
@@ -1988,7 +1988,7 @@ validate_v260_scope_review_artifact() { # $1=profile $2=artifact $3=expected aut
   for id in "${!expected_profile_set[@]}"; do [[ -n "${exercised_profile_set[$id]:-}" ]] || { printf 'target coverage does not exercise %s' "$id"; return 1; }; done
   required_table=$(review_required_changes_table "$artifact")
   [[ -n "$required_table" ]] || { printf 'body is missing the required-changes table'; return 1; }
-  header=$(printf '%s\n' "$required_table" | head -1 | awk -F'|' '{for(i=2;i<NF;i++){v=$i;gsub(/^[[:space:]`]+|[[:space:]`]+$/,"",v);if(v~/^[A-Za-z _\/-]+$/)v=tolower(v);printf "%s%s",i==2?"":"|",v}print ""}')
+  header=$(printf '%s\n' "$required_table" | head -1 | awk -F'|' '{for(i=2;i<NF;i++){v=$i;gsub(/^[[:space:]`]+|[[:space:]`]+$/,"",v);if(v~/^[A-Za-z _\/-]+$/)v=tolower(v);printf "%s%s",(i==2?"":"|"),v}print ""}')
   [[ "$header" == 'change id|status|required change|owner|closure evidence' || "$header" == '必改项 id|状态|必改内容|所有者|闭合证据' ]] || { printf 'required-changes table needs the exact five columns'; return 1; }
   required_stats=$(printf '%s\n' "$required_table" | awk -F'|' '
     function trim(v){gsub(/^[[:space:]]+|[[:space:]]+$/, "", v); gsub(/[`*]/, "", v); return v}
@@ -3581,7 +3581,7 @@ status_section_table() { # $1=canonical key
 status_header_signature() { # stdin one Markdown header row
   awk -F'|' '
     function trim(v) { gsub(/^[[:space:]`]+|[[:space:]`]+$/, "", v); return v }
-    { for(i=2;i<NF;i++){v=trim($i); if(v ~ /^[A-Za-z _/-]+$/) v=tolower(v); printf "%s%s", (i==2?"":"|"), v} print "" }
+    { for(i=2;i<NF;i++){v=trim($i); if(v ~ /^[A-Za-z _\/-]+$/) v=tolower(v); printf "%s%s", (i==2?"":"|"), v} print "" }
   '
 }
 
