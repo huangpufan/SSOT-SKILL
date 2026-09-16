@@ -1845,7 +1845,7 @@ assert_not_contains "exact 17-row all-gap Area Status has no area-schema failure
 rm -rf "$T"
 
 echo "== Q66 lightweight scope review binds plain answers, every target, and child Area freshness =="
-BASE=$(mktemp -d); write_process_scope_fixture "$BASE"
+BASE=$(mktemp -d -p "$TMPDIR"); write_process_scope_fixture "$BASE"
 out=$(run_quality "$BASE" || true)
 assert_contains "complete lightweight process artifact passes its exact gate" "$out" "v2.60 covered/converged lightweight exact profiles have current linked artifacts"
 
@@ -1890,7 +1890,7 @@ assert_contains "scope artifact symlink cannot authorise coverage" "$out" "regul
 rm -rf "$T" "$BASE"
 
 echo "== Q66b glossary exact-scope coverage includes every applicable term owner =="
-BASE=$(mktemp -d); write_glossary_scope_fixture "$BASE"
+BASE=$(mktemp -d -p "$TMPDIR"); write_glossary_scope_fixture "$BASE"
 out=$(run_quality "$BASE" || true)
 assert_contains "complete glossary root and term target matrix passes" "$out" "v2.60 covered/converged lightweight exact profiles have current linked artifacts"
 
@@ -2023,7 +2023,7 @@ assert_contains "illegal bug failure state is rejected" "$out" "invalid failure_
 rm -rf "$T"
 
 echo "== Q70 full reader review frontmatter is a closed exact 29-key schema =="
-BASE=$(mktemp -d); make_v260_product_root "$BASE"
+BASE=$(mktemp -d -p "$TMPDIR"); make_v260_product_root "$BASE"
 write_v260_product_manifest "$BASE/SSOT/01-product/_manifest.md"
 write_v260_review "$BASE/SSOT/.bootstrap/reader-review.md"
 
