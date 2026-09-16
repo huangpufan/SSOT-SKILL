@@ -3620,7 +3620,8 @@ if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_
       STATUS_EXACT_FAIL_COUNT=$((STATUS_EXACT_FAIL_COUNT + 1))
       continue
     fi
-    header=$(status_section_table "$section" | head -1 | status_header_signature)
+    # Drain the table: an early-closing head can SIGPIPE awk under pipefail.
+    header=$(status_section_table "$section" | sed -n '1p' | status_header_signature)
     case "$section" in
       event) expected_a='field|value'; expected_b='字段|值' ;;
       area) expected_a='area|status|notes'; expected_b='区域|状态|备注' ;;

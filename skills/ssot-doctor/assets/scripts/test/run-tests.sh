@@ -843,6 +843,11 @@ assert_contains "empty-valued promotion_targets list is rejected" "$out" "promot
 assert_exit "empty-valued promotion_targets list exits 2" "$code" "2"
 rm -rf "$T"
 
+echo "== S57 oversized STATUS preserves JSON diagnostics =="
+code=0
+bash "$(dirname "$LINT")/test/test-large-status-json.sh" || code=$?
+assert_exit "large STATUS JSON diagnostics regression" "$code" "0"
+
 echo ""
 echo "===== summary: PASS=$PASS FAIL=$FAIL ====="
 [[ "$FAIL" -eq 0 ]] && exit 0 || exit 1
