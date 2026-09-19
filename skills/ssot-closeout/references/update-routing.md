@@ -110,6 +110,30 @@ provenance. If the file is missing, create it with the
 - The row carries provenance only. Restating a fact, decision, or status
   reason in a row is a shadow ledger — the fact lives in its owner.
 
+## 1.7 Adjudication Boundary (v2.64)
+
+The `SSOT/README.md ## 裁决边界` register is how the invariant layer
+compounds instead of freezing at bootstrap size. Three closeout duties:
+
+1. **Promotion in.** When the batch produced a rule-shaped conclusion that
+   later work could violate silently — an ADR's binding constraint, a
+   repeated bug pattern now treated as a red line, a user-locked product
+   promise — add a `candidate` row (or `confirmed` when a DEC entry or
+   explicit user directive already established it) and tag the rule's
+   owner body with the row ID. The altitude call uses
+   [`promotion-rationale.md`](promotion-rationale.md): most rules stay
+   authority-level prose in their owner; only cross-task red lines
+   register. Do not let the table drift toward completeness — under ~25
+   rows, silent-violation cost is the criterion, not importance.
+2. **Touch acknowledged.** When the batch changed code a registered rule
+   governs, name the rule ID in the HISTORY row's Note cell or the batch
+   summary — silence reads as "the boundary was not consulted".
+3. **Rule edit gated.** When the batch edited a registered rule's owner
+   body, the change must trace to a `decisions/` entry or explicit user
+   directive. Without one, do not rewrite the rule — file `ADJ-` under
+   `STATUS.md ## Open Adjudications` and leave the boundary wording as it
+   was.
+
 ## 2. Frequent Routes
 
 **Code changes** usually update architecture only when they change a public

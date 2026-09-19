@@ -56,8 +56,12 @@ explains its boundary and routes to the unique owner of the detailed fact.
    current request-to-result story and locate runtime owners.
 4. **Task owner** — follow the relevant architecture view/domain, process
    owner, or durable record; read only the branch your task needs.
-5. **Tracking baseline** — read [STATUS.md](./STATUS.md) immediately before acting to
-   check the reviewed commit, session, and protocol, plus open adjudications and visible gaps.
+5. **Tracking baseline and adjudication boundary** — read [STATUS.md](./STATUS.md)
+   immediately before acting to check the reviewed commit, session, and protocol,
+   plus open adjudications and visible gaps; then check the
+   [adjudication boundary](#adjudication-boundary) table below: every registered
+   rule was established by a human decision — changing the rule itself must go
+   back to a human, not to an agent edit.
 
 If you will delegate the implementation, finish this route by naming the
 product result, current architecture owner, bounded process path, visible
@@ -74,6 +78,7 @@ usable change brief; a component name alone is not.
 | What prior decision, bug, debt, or trap affects this work? | [Records](./04-records/README.md) | Lifecycle entries and their evidence/closure owners |
 | What does a repository-specific term mean? | [Glossary](./glossary/README.md) | Canonical definition and unique owner pointer |
 | Which quality, risk, or governance condition changes this task? | [STATUS Q register](./STATUS.md#quality-risk-and-governance) | Unique product, architecture, process/evidence, and gap owners for Q01-Q21 |
+| Which rules must an agent not change on its own? | [Adjudication boundary](#adjudication-boundary) | Each rule's owner body and establishing authority |
 | What must I give an implementation agent, and how will I accept its result? | Product → architecture → [process](./03-process/README.md) | Current promise and boundary, concrete owner/path, visible success/failure/recovery, and fitting evidence |
 
 Product explains the user-facing intent; architecture explains the technical
@@ -89,3 +94,22 @@ two of these areas.
 | Task cluster | Trigger | Read first | Final check |
 |---|---|---|---|
 | <repeated task class> | <path, capability, or failure signal> | <owner link> | <gate or evidence owner> |
+
+## Adjudication boundary
+
+<!-- This register lists rules whose change is itself a human decision:
+     repo-wide architecture invariants, user-confirmed product promises,
+     cross-task process rules, and apex maxims. Rule bodies stay at the owner
+     link; this table holds pointers only. An agent may change code a rule
+     constrains, but must never rewrite the rule's meaning; conflicts go to
+     `STATUS.md ## Open Adjudications`. The owner body of a confirmed rule
+     carries its registry ID at the rule's anchor (e.g. `INV-03`). Keep the
+     register small and hard — usually under 25 rows; domain-local invariants
+     stay prose in their domain README unless promoted. In early bootstrap
+     with no qualifying rule yet, keep this section and write one reasoned
+     empty note. -->
+
+| ID | Kind | Rule | Owner | Established by | State |
+|---|---|---|---|---|---|
+| `INV-NN` | `arch-invariant` / `product-promise` / `process-rule` | <one-line rule> | [owner](<path#anchor>) | <DEC-NNNN link / user-directive / bootstrap> | `confirmed` / `candidate` |
+| `CLAUDE-MAXIM-N` | `apex-maxim` | <one-line rule> | [DISC-NNNN](<path#anchor>) | <promotion evidence link / user-directive> | `core-ref-thin` / `inline-body` / `not_yet_owned` |

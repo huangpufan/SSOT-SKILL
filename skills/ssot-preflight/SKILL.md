@@ -2,7 +2,7 @@
 name: ssot-preflight
 description: Repository SSOT preflight before substantive code, config, docs, review, debugging, refactoring, or planning work. Use to check SSOT/STATUS.md, open adjudications, documentation language, protocol version, minimal SSOT read routing, and in-task SSOT write triggers. Do not use for pure operations, trivial format-only edits, or non-repository chat.
 metadata:
-  protocol_version: "2.63"
+  protocol_version: "2.64"
   bundle: "SSOT Skill"
   semantic_impact: medium
 ---
@@ -22,6 +22,15 @@ you have answered, in order:
 - **Adjudications.** Any `pending` item under `## 开放裁决项` (or legacy
   `## 待裁决项`), or a `deferred` item whose revisit condition has fired,
   blocks ordinary work until resolved or re-deferred.
+- **Adjudication boundary (v2.64).** Rows under the `SSOT/README.md`
+  `## 裁决边界` / `## Adjudication boundary` section are rules established
+  by human decision. If your task would alter the behaviour a registered
+  rule protects, that rule's owner body is mandatory reading. Changing the
+  rule itself — its meaning, scope, or status — is a human decision
+  recorded as a `04-records/decisions/` entry or explicit user directive;
+  an agent files `ADJ-` for conflicts instead of rewriting the rule.
+  `candidate` rows are proposals: respect them as strong defaults, but
+  they do not block work the way `confirmed` rows do.
 - **Documentation language.** Read `documentation_language` and its
   evidence; SSOT Markdown you write this task must match it — except for
   paths, commands, identifiers, enum values, API names, and direct quotes.
@@ -44,7 +53,8 @@ you have answered, in order:
 ## Route your reads, don't bulk-load
 
 The mandatory floor is `SSOT/STATUS.md` (adjudications, language, version
-— cleared above) plus `SSOT/README.md` as the project-specific router. Read
+— cleared above) plus `SSOT/README.md` as the project-specific router —
+including its `## 裁决边界` register when present. Read
 its task-entry map and read only the owners it routes for this task. The
 `01-product/README.md` and `02-architecture/README.md` trunks are read only when
 the task-entry map routes the task to them — not by default. If the

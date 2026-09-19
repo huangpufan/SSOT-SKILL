@@ -1,7 +1,6 @@
-# Intent Ownership Protocol (v2.43; reader orientation revised v2.59)
+# Intent Ownership Protocol (v2.43; reader orientation revised v2.59; adjudication boundary v2.64)
 
-This file is the semantic owner of three intersecting rules introduced in
-the v2.43 intent-recoverability cycle:
+This file is the semantic owner of four intersecting rules:
 
 1. **Apex behavior maxim → SSOT-owner mapping** — every numbered named
    rule a project root constraint file enumerates (`CLAUDE-MAXIM-N`,
@@ -14,6 +13,9 @@ the v2.43 intent-recoverability cycle:
 3. **`[CORE-REF: <owner_path#anchor>]` syntax** — the reserved cross-link
    form a CORE-REF startup file uses to point at its single SSOT owner
    without recopying the invariant body.
+4. **Adjudication boundary registry (v2.64)** — the single canonical list
+   of every rule whose change is a human decision, not an agent edit.
+   See §6.
 
 Read this file when:
 
@@ -36,6 +38,7 @@ Read this file when:
 - [3. `[CORE-REF: <owner_path#anchor>]` syntax](#3-core-ref-owner_pathanchor-syntax)
 - [4. Boundary with `[FORK]` and `[OWNER-ANCHOR]`](#4-boundary-with-fork-and-owner-anchor)
 - [5. Doctor enforcement](#5-doctor-enforcement)
+- [6. Adjudication boundary registry (v2.64)](#6-adjudication-boundary-registry-v264)
 
 ## 1. Apex behavior maxim mapping
 
@@ -81,15 +84,22 @@ then deleted, not kept as a parallel authority.
 ### 1.1 Apex maxim registry (consumer side, cycle-3)
 
 The consumer project MUST maintain a single canonical **Apex maxim
-registry** table at one of (in priority order): `glossary/README.md`,
-`development/discipline.md` head matter, or `architecture/README.md`
-invariants section. The registry is the doctor `[MAXIM-OWNER]` (14X)
+registry**. At protocol v2.64 and later, that registry is the
+`SSOT/README.md ## 裁决边界` table defined in §6 — maxim rows there carry
+kind `apex-maxim` and keep the `Link state` cell from the legacy shape.
+Before v2.64, the registry lives at one of (in priority order):
+`glossary/README.md`, `development/discipline.md` head matter, or
+`architecture/README.md` invariants section. Only one location may hold
+rows at a time; a protocol upgrade moves legacy rows into the boundary
+table and leaves a pointer line behind.
+
+The registry is the doctor `[MAXIM-OWNER]` (14X)
 read anchor — without it, 14X must walk every DISC header, capability
 invariants section, and architecture invariants section to reconstruct
 the mapping, and a missing owner registers as silence rather than a
 positive `not_yet_owned` row.
 
-Default registry shape:
+Legacy (pre-2.64) registry shape:
 
 | Apex maxim | Slug | SSOT owner | Root-file link state |
 |---|---|---|---|
@@ -230,3 +240,70 @@ orientation, prose forks, and apex-maxim findings. Since v2.59, 14W judges
 reader meaning rather than an exact heading triad; document-self invalidation
 and retirement conditions live in the matching domain manifest. The rows work
 alongside `[FORK]` (15D), `[OWNER-ANCHOR]` (14F), and `[FIRST-DAY]` (15E).
+
+## 6. Adjudication boundary registry (v2.64)
+
+An **adjudication boundary** is a repository rule whose change is a human
+decision, not an agent edit. It covers: repo-wide architecture invariants
+(§2), apex behavior maxims (§1), product promises the user confirmed, and
+cross-task process rules that were human-established. The boundary answers
+the question a working agent cannot answer from prose alone: *"may I change
+this, or must a human decide?"*
+
+The semantics:
+
+- An agent may change code, docs, and tests that a registered rule
+  *constrains*. It may not change the rule's *meaning*.
+- Changing a registered rule requires a human decision recorded as a new
+  `04-records/decisions/` entry or an explicit user directive; the registry
+  row's `Established by` cell points at that authority.
+- An agent that finds reality conflicting with a registered rule files an
+  `ADJ-` row under `STATUS.md ## Open Adjudications`. It does not rewrite
+  the rule, and it does not silently bend code around it without the
+  conflict being visible.
+- An agent may *propose* a boundary row at state `candidate`; only a human
+  decision (DEC entry or explicit user directive) turns it `confirmed`.
+  Confirmed rows bind; candidate rows are visible proposals.
+
+Canonical location: `SSOT/README.md`, section `## 裁决边界` (English:
+`## Adjudication boundary`). `SSOT/README.md` is on the mandatory preflight
+floor, so the boundary is read before every substantive task — not only
+when the task-entry map happens to route through a trunk.
+
+Exact schema:
+
+| ID | Kind | Rule | Owner | Established by | State |
+|---|---|---|---|---|---|
+| `INV-NN` | `arch-invariant` / `product-promise` / `process-rule` | one-line rule name | one resolving `path#anchor` Markdown link to the prose owner | `DEC-NNNN` link / `user-directive` / `bootstrap` | `confirmed` / `candidate` |
+| `CLAUDE-MAXIM-N` / `CORE-RULE-N` | `apex-maxim` | one-line rule name | one resolving `path#anchor` link (`DISC-NNNN`, capability, or domain owner) | promotion evidence link or `user-directive` | `core-ref-thin` / `inline-body` / `not_yet_owned` |
+
+Rules:
+
+- The table is a register. One line per rule; cells stay pointer-sized.
+  The rule's prose body — pressure, scope, consequences, exceptions —
+  lives at the owner link, never inside the table.
+- **Bidirectional tag.** The owner body of every `confirmed` /
+  `core-ref-thin` row carries its registry ID at the rule's anchor
+  (`INV-03`, `CLAUDE-MAXIM-2`), so a reader of the body sees that the rule
+  is registered and lint can verify registry ↔ body both ways. A `candidate`
+  row's owner may carry the tag early; `not_yet_owned` rows carry none.
+- Registry ↔ body checks: lint `[INV-REGISTRY]` validates the section and
+  row schema; `[INV-BODY]` fails a `confirmed`/`core-ref-thin` row whose
+  owner body lacks the ID tag, and warns on an `INV-`/`MAXIM-` tag in a
+  body file that has no registry row.
+- Rows are capped at rules a stranger must not violate silently —
+  typically under 25. Domain-local technical invariants stay prose in
+  their domain README unless promoted; an established rule demoted by a
+  later decision is removed from the table, with the DEC link recorded in
+  the decision entry.
+- Promotion route: a rule-shaped conclusion that other work could violate
+  silently (an ADR's binding constraint, a repeated bug pattern turned
+  into a boundary, a user-locked product promise) becomes a `candidate`
+  row via `$ssot-closeout`; the altitude decision uses
+  `promotion-rationale.md`. Most rules stay authority-level prose in their
+  owner; only cross-task red lines register.
+- When no rule qualifies yet (early bootstrap), the section carries one
+  reasoned empty note rather than a fake row.
+- This table also supersedes the §1.1 standalone maxim registry at v2.64+:
+  one registry, one read anchor, maxim rows identified by `apex-maxim`
+  kind.

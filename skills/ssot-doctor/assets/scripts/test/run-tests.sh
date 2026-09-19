@@ -927,6 +927,115 @@ out=$(run "$T"); code=$?
 assert_not_contains "pre-v2.63 has no HISTORY-LOG at all" "$out" "[HISTORY-LOG]"
 rm -rf "$T"
 
+echo "== S63 v2.64 valid adjudication boundary passes INV-REGISTRY =="
+T=$(mktemp -d); make_base "$T"; facet_base "$T"
+set_protocol_version "$T" "2.64"
+{
+  printf '\n## Adjudication boundary\n\n'
+  printf 'Rules an agent must not rewrite on its own; bodies stay at the owners.\n\n'
+  printf '| ID | Kind | Rule | Owner | Established by | State |\n'
+  printf '|---|---|---|---|---|---|\n'
+  printf '| INV-01 | arch-invariant | requests must pass auth | [02-architecture/README.md](02-architecture/README.md) | DEC-0001 | confirmed |\n'
+  printf '| INV-02 | product-promise | drafts never silently vanish | [01-product/product-model.md](01-product/product-model.md) | user-directive | candidate |\n'
+  printf '| CLAUDE-MAXIM-1 | apex-maxim | never re-enter silent deferral | - | user-directive | not_yet_owned |\n'
+} >> "$T/SSOT/README.md"
+printf '\n- **INV-01** 请求必须经过鉴权。\n' >> "$T/SSOT/02-architecture/README.md"
+out=$(run "$T"); code=$?
+assert_no_fail_tag "valid boundary has no INV-REGISTRY fail" "$out" "[INV-REGISTRY]"
+assert_no_fail_tag "valid boundary has no INV-BODY fail" "$out" "[INV-BODY]"
+rm -rf "$T"
+
+echo "== S64 v2.64 missing adjudication boundary warns =="
+T=$(mktemp -d); make_base "$T"; facet_base "$T"
+set_protocol_version "$T" "2.64"
+out=$(run "$T"); code=$?
+assert_has_warn_tag "missing boundary section warns" "$out" "[INV-REGISTRY]"
+assert_no_fail_tag "missing boundary section does not fail" "$out" "[INV-REGISTRY]"
+rm -rf "$T"
+
+echo "== S65 v2.64 malformed boundary rows fail schema =="
+T=$(mktemp -d); make_base "$T"; facet_base "$T"
+set_protocol_version "$T" "2.64"
+{
+  printf '\n## Adjudication boundary\n\n'
+  printf '| ID | Kind | Rule | Owner | Established by | State |\n'
+  printf '|---|---|---|---|---|---|\n'
+  printf '| INV-01 | arch-invariant | rule one | [02-architecture/README.md](02-architecture/README.md) | DEC-0001 | confirmed |\n'
+  printf '| INV-01 | arch-invariant | duplicate id | [02-architecture/README.md](02-architecture/README.md) | DEC-0001 | confirmed |\n'
+  printf '| INV-02 | wrong-kind | bad kind | [02-architecture/README.md](02-architecture/README.md) | DEC-0002 | confirmed |\n'
+  printf '| INV-03 | process-rule | bad state | [02-architecture/README.md](02-architecture/README.md) | DEC-0003 | locked |\n'
+  printf '| RULE-9 | apex-maxim | bad id shape | - | user-directive | not_yet_owned |\n'
+} >> "$T/SSOT/README.md"
+printf '\n- **INV-01** 请求必须经过鉴权。\n- **INV-02** x\n- **INV-03** y\n' >> "$T/SSOT/02-architecture/README.md"
+out=$(run "$T"); code=$?
+assert_has_fail_tag "duplicate id fails" "$out" "[INV-REGISTRY]"
+assert_contains "bad kind flagged" "$out" "kind 'wrong-kind'"
+assert_contains "bad state flagged" "$out" "state 'locked'"
+assert_contains "bad id flagged" "$out" "id 'RULE-9'"
+rm -rf "$T"
+
+echo "== S66 v2.64 confirmed row without owner tag fails INV-BODY =="
+T=$(mktemp -d); make_base "$T"; facet_base "$T"
+set_protocol_version "$T" "2.64"
+{
+  printf '\n## Adjudication boundary\n\n'
+  printf '| ID | Kind | Rule | Owner | Established by | State |\n'
+  printf '|---|---|---|---|---|---|\n'
+  printf '| INV-01 | arch-invariant | requests must pass auth | [02-architecture/README.md](02-architecture/README.md) | DEC-0001 | confirmed |\n'
+} >> "$T/SSOT/README.md"
+out=$(run "$T"); code=$?
+assert_has_fail_tag "untagged confirmed owner fails" "$out" "[INV-BODY]"
+assert_contains "untagged names the rule" "$out" "INV-01"
+rm -rf "$T"
+
+echo "== S67 v2.64 orphan body tag warns INV-BODY =="
+T=$(mktemp -d); make_base "$T"; facet_base "$T"
+set_protocol_version "$T" "2.64"
+{
+  printf '\n## Adjudication boundary\n\n'
+  printf '当前没有跨任务红线需要登记：规则均为域内局部约束，下一次晋升信号是重复的越权修改。\n'
+} >> "$T/SSOT/README.md"
+printf '\n相关约束见 INV-09。\n' >> "$T/SSOT/04-records/gotchas/0001-x.md"
+out=$(run "$T"); code=$?
+assert_has_warn_tag "orphan body tag warns" "$out" "[INV-BODY]"
+assert_contains "orphan names the id" "$out" "INV-09"
+rm -rf "$T"
+
+echo "== S68 v2.64 reasoned empty note passes =="
+T=$(mktemp -d); make_base "$T"; facet_base "$T"
+set_protocol_version "$T" "2.64"
+{
+  printf '\n## Adjudication boundary\n\n'
+  printf '当前没有跨任务红线需要登记：所有约束均为域内局部规则，晋升信号是重复的越权修改或人工登记的决定。\n'
+} >> "$T/SSOT/README.md"
+out=$(run "$T"); code=$?
+assert_no_fail_tag "empty note has no INV-REGISTRY fail" "$out" "[INV-REGISTRY]"
+assert_no_warn_tag "empty note has no INV-REGISTRY warn" "$out" "[INV-REGISTRY]"
+assert_contains "empty note reports pass" "$out" "reasoned empty note"
+rm -rf "$T"
+
+echo "== S69 pre-v2.64 boundary is not checked =="
+T=$(mktemp -d); make_base "$T"; facet_base "$T"
+set_protocol_version "$T" "2.63"
+out=$(run "$T"); code=$?
+assert_not_contains "pre-v2.64 has no INV-REGISTRY at all" "$out" "[INV-REGISTRY]"
+assert_not_contains "pre-v2.64 has no INV-BODY at all" "$out" "[INV-BODY]"
+rm -rf "$T"
+
+echo "== S70 v2.64 boundary in zh heading is found =="
+T=$(mktemp -d); make_base "$T"; facet_base "$T"
+set_protocol_version "$T" "2.64"
+{
+  printf '\n## 裁决边界\n\n'
+  printf '| ID | Kind | Rule | Owner | Established by | State |\n'
+  printf '|---|---|---|---|---|---|\n'
+  printf '| INV-01 | arch-invariant | 请求必须经过鉴权 | [02-architecture/README.md](02-architecture/README.md) | DEC-0001 | confirmed |\n'
+} >> "$T/SSOT/README.md"
+printf '\n- **INV-01** 请求必须经过鉴权。\n' >> "$T/SSOT/02-architecture/README.md"
+out=$(run "$T"); code=$?
+assert_no_fail_tag "zh boundary has no INV-REGISTRY fail" "$out" "[INV-REGISTRY]"
+rm -rf "$T"
+
 echo ""
 echo "===== summary: PASS=$PASS FAIL=$FAIL ====="
 [[ "$FAIL" -eq 0 ]] && exit 0 || exit 1

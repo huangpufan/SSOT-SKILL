@@ -10,6 +10,99 @@ files.
 
 ## Version Ledger
 
+### v2.64
+
+**Upgrade goal**: give the project's rules a human adjudication boundary.
+Until v2.64 the protocol could say *where* an invariant lives (one owner,
+`[CORE-REF]` mirrors) but could not answer *who may change it*. Review of
+real consumer SSOTs showed the failure mode repeatedly: invariants existed
+as embedded prose without IDs, the same red line was restated in the root
+constraint file, the architecture root, and domain READMEs with no
+designated owner, and nothing marked which rules an agent must not rewrite
+on its own — so "stop and escalate" language was the only guard. v2.64
+adds one canonical register — `SSOT/README.md ## 裁决边界` /
+`## Adjudication boundary` — that turns the adjudication boundary itself
+into enumerable, checkable data, and folds the standalone apex-maxim
+registry into it.
+
+1. **One register, four kinds** (`intent-ownership.md §6`). The table
+   registers only rules whose meaning an agent must not change unaided:
+   `arch-invariant`, `product-promise`, `process-rule` rows (`INV-NN`
+   IDs), and `apex-maxim` rows (`CLAUDE-MAXIM-N` / `CORE-RULE-N`). Each
+   row is pointer-sized: one-line rule name, one resolving
+   `path#anchor` owner link, `Established by` (`DEC-NNNN`,
+   `user-directive`, or `bootstrap`), and a closed `State` enum —
+   `confirmed`/`candidate` for `INV-` rows, `core-ref-thin`/`inline-body`/
+   `not_yet_owned` for maxims.
+2. **Agent edits the constrained, not the constraint.** A registered rule
+   does not freeze implementation: the agent may modify the code, docs,
+   and tests the rule governs, but changing the rule's meaning, scope, or
+   state requires a `decisions/` entry or an explicit user directive.
+   When implementation reality contradicts a confirmed rule the agent
+   files `ADJ-` under `STATUS.md ## Open Adjudications` — it does not
+   silently rewrite the rule or silently bend the code around it.
+3. **Candidate is a proposal, confirmed is a boundary.** Agents may
+   register rows as `candidate`; only a human decision or explicit user
+   directive flips a row to `confirmed`. Confirmed rows bind; candidate
+   rows are visible strong defaults. This is the register's growth path:
+   closeout promotes rule-shaped conclusions (an ADR's binding
+   constraint, a repeated bug pattern now treated as a red line, a
+   user-locked product promise) in as candidates per
+   `update-routing.md §1.7`.
+4. **Body-tag symmetry.** A `confirmed`/`core-ref-thin` row's owner body
+   leads the rule with its registry ID (`**INV-03**`, `CLAUDE-MAXIM-2`),
+   and every body tag must resolve back to exactly one row. Domain-local
+   invariants stay ordinary prose — the register is a silent-violation
+   register, not an importance index; the soft ceiling is ~25 rows. When
+   nothing qualifies, the section keeps one reasoned empty note rather
+   than fabricated rows.
+5. **Supersedes the standalone apex-maxim registry.** At ≥2.64 the
+   `CLAUDE-MAXIM-N`/`CORE-RULE-N` register moves into the adjudication
+   boundary as `apex-maxim` rows; the §1.1 standalone registry remains
+   the contract below v2.64. `MAXIM-OWNER` (14X) checks the unified
+   register at the new baseline.
+6. **Enforcement, not convention.** `[INV-REGISTRY]` (semantic doctor row
+   16E) validates the section, unique IDs, closed enums, establishing
+   authority, and single resolving owner link; `[INV-BODY]` (16F) checks
+   registry↔body tag symmetry and warns on orphan body tags. Preflight
+   adds a boundary gate: tasks touching registered-rule behavior read the
+   rule owner first and know which claims they may not rewrite.
+
+**Impact**: `semantic_impact=medium` — one new canonical section in
+`SSOT/README.md`, a preflight gate, a closeout promotion duty, two doctor
+rows, and a registry migration for consumers that already ship a §1.1
+apex-maxim registry. No area added, no claim semantics changed;
+pre-2.64 consumers are unaffected and keep the standalone maxim registry
+contract.
+
+**Impact checklist**:
+
+| Check | Affected area | Audit action | Done criterion |
+|---|---|---|---|
+| Boundary section exists | `SSOT/README.md` | Add `## 裁决边界` / `## Adjudication boundary` with the six-column schema; when nothing qualifies, one reasoned empty note. | Section present; `[INV-REGISTRY]` clean. |
+| Maxims migrated | `CLAUDE-MAXIM-N`/`CORE-RULE-N` rules | Move the standalone apex-maxim registry rows into `apex-maxim` rows; keep `not_yet_owned` for unresolved maxims. | Every named maxim has exactly one row; old standalone table removed. |
+| Invariants registered | root constraint file, architecture root, product promises | Register only cross-task red lines — repository-wide invariants, human-established process rules, user-confirmed product promises — as `INV-NN` rows; leave domain-local rules as prose. | Rows ≤ ~25; each `Established by` resolves. |
+| Body tags | owner documents of confirmed rows | Tag each confirmed/core-ref-thin rule's body with its registry ID at the rule anchor. | `[INV-BODY]` clean — no orphan tags, no untagged confirmed rows. |
+| Candidate honesty | `State` column | Rows inferred by an agent stay `candidate`; only DEC/user-directive-established rules are `confirmed`. | No agent-self-confirmed row without authority. |
+
+**Migration notes**:
+
+- The register's primary harvest is the existing root constraint file
+  (`CLAUDE.md`/`AGENTS.md` rules), binding `decisions/` entries, and
+  confirmed product promises in `prd.md`/`product-model.md` — the same
+  sources bootstrap seeds from. Do not bulk-register every invariant
+  mention; altitude calls follow `promotion-rationale.md`.
+- A consumer that already ships a §1.1 apex-maxim registry (e.g. in
+  `glossary/README.md`) migrates those rows into the unified table and
+  deletes the standalone section; a consumer with no maxims and no
+  qualifying invariants keeps the section with the reasoned empty note.
+- `ssot-lint`/`ssot-migrate` do not yet auto-generate rows; the audit
+  performs the harvest and doctor validates the result.
+- Frozen consumers (lifecycle frozen by local instruction) do not take
+  the section until their freeze is lifted; note the deferral in the
+  audit report rather than editing a frozen tree.
+
+
 ### v2.63
 
 **Upgrade goal**: separate write provenance from coverage state. Until v2.63

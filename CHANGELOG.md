@@ -17,6 +17,24 @@ versions. This file only restates headline changes.
 ## [Unreleased]
 
 ### Added
+- Adjudication boundary register (v2.64): `SSOT/README.md` gains a
+  canonical `## 裁决边界` / `## Adjudication boundary` section registering
+  the rules whose meaning an agent must not change unaided —
+  `arch-invariant` / `product-promise` / `process-rule` rows (`INV-NN`)
+  and `apex-maxim` rows (`CLAUDE-MAXIM-N` / `CORE-RULE-N`). Rows are
+  pointer-sized (one-line name, one resolving owner anchor,
+  `Established by`, closed `State` enum); agents may change what a rule
+  governs but not the rule itself — meaning/scope/state changes require a
+  `decisions/` entry or explicit user directive, and reality-vs-rule
+  conflicts file `ADJ-` instead of silently rewriting. Agents register
+  `candidate` rows; only human authority confirms. Confirmed/core-ref
+  owner bodies carry the registry ID at the rule anchor; the standalone
+  apex-maxim registry (`intent-ownership.md §1.1`) folds into the unified
+  table at ≥2.64. Enforced by preflight's boundary gate, closeout's
+  promotion duty (`update-routing.md §1.7`), and doctor rows
+  `[INV-REGISTRY]` (16E) / `[INV-BODY]` (16F); bootstrap seeds the
+  register from the root constraint file, binding decisions, and
+  user-confirmed product promises.
 - Append-only batch write log (v2.63): `SSOT/HISTORY.md` is a sibling
   register of `STATUS.md` — STATUS owns coverage claims, HISTORY owns
   write provenance. Every substantive batch that runs a writing skill

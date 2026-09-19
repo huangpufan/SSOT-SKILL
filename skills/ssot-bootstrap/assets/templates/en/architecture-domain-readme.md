@@ -61,11 +61,14 @@ flowchart LR
 
 ## Invariants, deployment, and operation
 
-<!-- Explain the pressure behind every local invariant. Then describe the
-     domain's deployment unit, configuration/secrets, scaling or concurrency,
-     health signal, logs/metrics/traces, maintenance, and rollback only where
-     they change its behaviour. Link the cross-owner deployment view for the
-     whole-system path; do not restate that topology here. -->
+<!-- Explain the pressure behind every local invariant. Local invariants stay
+     prose; only a rule promoted to a registered row in the
+     [SSOT/README adjudication boundary](../README.md#adjudication-boundary)
+     carries its registry ID at the start of its bullet (e.g. **INV-07**). Then
+     describe the domain's deployment unit, configuration/secrets, scaling or
+     concurrency, health signal, logs/metrics/traces, maintenance, and rollback
+     only where they change its behaviour. Link the cross-owner deployment view
+     for the whole-system path; do not restate that topology here. -->
 
 ## Current direction and gaps
 

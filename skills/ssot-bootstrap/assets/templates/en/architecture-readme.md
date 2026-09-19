@@ -58,7 +58,10 @@ flowchart LR
      must agree. Domain-local rules remain with the domain. Start from the
      [STATUS Q register](../STATUS.md#quality-risk-and-governance) and route
      every applicable Q01-Q21 condition to its enforcement, observation,
-     recovery, process/evidence, and gap owners; do not create twenty-one headings. -->
+     recovery, process/evidence, and gap owners; do not create twenty-one headings.
+     An invariant registered in the [SSOT/README adjudication boundary](../README.md#adjudication-boundary)
+     carries its registry ID at the start of its bullet (e.g. **INV-03**);
+     unregistered rules stay plain prose. -->
 
 ## Read the system by question
 

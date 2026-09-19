@@ -6148,6 +6148,143 @@ if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_
   fi
 fi
 
+# ---------- check 42: [INV-REGISTRY]/[INV-BODY] (v2.64) adjudication boundary ----------
+# SSOT/README.md owns one canonical register of rules an agent must not
+# rewrite: arch-invariant / product-promise / process-rule rows (INV-NN)
+# and apex-maxim rows (CLAUDE-MAXIM-N / CORE-RULE-N). The deterministic
+# floor: the section exists, rows keep the six-cell schema, IDs are unique
+# and well-formed, Kind/State stay inside the closed enums, Established-by
+# cites a real authority for INV rows, the Owner cell resolves to one
+# file, and a confirmed/core-ref-thin row's owner body carries the ID.
+# Altitude judgement (whether a rule deserves a row) stays with doctor
+# 16E/16F; lint only keeps the register machine-readable.
+if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_SKILL_VERSION" "2.64"; then
+  INV_README="$SSOT_DIR/README.md"
+  if [[ ! -f "$INV_README" ]]; then
+    add_warn "[INV-REGISTRY] tracked_skill_version=$STATUS_SKILL_VERSION has no SSOT/README.md to carry the adjudication boundary"
+  else
+    INV_SECTION=$(awk '
+      tolower($0) ~ /^##[[:space:]]*adjudication boundary[[:space:]]*$/ || $0 ~ /^##[[:space:]]*裁决边界[[:space:]]*$/ {insec=1; next}
+      /^##[[:space:]]+/ { if (insec) insec=0 }
+      insec {print NR "\t" $0}
+    ' "$INV_README")
+    INV_SECTION_FOUND=$(awk '
+      tolower($0) ~ /^##[[:space:]]*adjudication boundary[[:space:]]*$/ || $0 ~ /^##[[:space:]]*裁决边界[[:space:]]*$/ {f=1}
+      END {print (f?1:0)}
+    ' "$INV_README")
+    if [[ "$INV_SECTION_FOUND" != "1" ]]; then
+      add_warn "[INV-REGISTRY] $INV_README has no ## 裁决边界 / ## Adjudication boundary section; v2.64 keeps one even when empty"
+    else
+      INV_REPORT=$(printf '%s\n' "$INV_SECTION" | awk -F'\t' '
+        function trim(v){gsub(/^[[:space:]`]+|[[:space:]`]+$/,"",v);return v}
+        {
+          ln=$1; line=$2
+          if (line ~ /^\|/) {
+            if (line ~ /^\|[[:space:]:|-]+(\|[[:space:]:|-]+)+\|?[[:space:]]*$/) next
+            n=split(line,c,"|")
+            if (!header_done) {
+              if (n!=8 || trim(c[2])!="ID" || trim(c[3])!="Kind" || trim(c[4])!="Rule" || trim(c[5])!="Owner" || trim(c[6])!="Established by" || trim(c[7])!="State") print "BADHEADER:" ln
+              header_done=1; next
+            }
+            if (n!=7 && n!=8) { print "BADCELLS:" ln; next }
+            id=trim(c[2]); kind=trim(c[3]); rule=trim(c[4]); owner=trim(c[5]); est=trim(c[6]); st=trim(c[7])
+            if (id !~ /^(INV-[0-9]+|CLAUDE-MAXIM-[0-9]+|CORE-RULE-[0-9]+)$/) { print "BADID:" ln ":" id; next }
+            if (id in seen) print "DUPID:" ln ":" id
+            seen[id]=1; rows++
+            if (id ~ /^INV-/) {
+              if (kind !~ /^(arch-invariant|product-promise|process-rule)$/) print "BADKIND:" ln ":" id ":" kind
+              if (st !~ /^(confirmed|candidate)$/) print "BADSTATE:" ln ":" id ":" st
+              if (est !~ /DEC-[0-9]+/ && est != "user-directive" && est != "bootstrap") print "BADAUTH:" ln ":" id
+            } else {
+              if (kind != "apex-maxim") print "BADKIND:" ln ":" id ":" kind
+              if (st !~ /^(core-ref-thin|inline-body|not_yet_owned)$/) print "BADSTATE:" ln ":" id ":" st
+              if (est=="" ) print "EMPTYAUTH:" ln ":" id
+            }
+            if (length(rule)>160) print "LONGRULE:" ln ":" id
+            print "ROW:" ln "|" id "|" st "|" owner
+          } else if (line ~ /[^[:space:]]/) { prose++ }
+        }
+        END {
+          if (!header_done) { if (prose>0) print "EMPTYNOTE"; else print "NOTABLE" }
+          else if (rows==0 && prose==0) print "EMPTYNONOTE"
+          else if (rows==0) print "EMPTYNOTE"
+          else if (rows>25) print "TOOWIDE:" rows
+        }
+      ')
+      INV_FAIL_COUNT=0
+      INV_WARN_COUNT=0
+      INV_IDS=""
+      while IFS= read -r iline; do
+        case "$iline" in
+          NOTABLE) add_warn "[INV-REGISTRY] adjudication boundary section has no register table; add the schema or a reasoned empty note"; INV_WARN_COUNT=$((INV_WARN_COUNT+1)) ;;
+          BADHEADER:*) add_fail "[INV-REGISTRY] $INV_README line ${iline#*:} header must be exactly | ID | Kind | Rule | Owner | Established by | State |"; INV_FAIL_COUNT=$((INV_FAIL_COUNT+1)) ;;
+          BADCELLS:*) add_fail "[INV-REGISTRY] $INV_README line ${iline#*:} is not a six-cell row"; INV_FAIL_COUNT=$((INV_FAIL_COUNT+1)) ;;
+          BADID:*)
+            bid=${iline#*:}; bid=${bid#*:}
+            add_fail "[INV-REGISTRY] $INV_README line ${iline#*:} id '$bid' must be INV-NN, CLAUDE-MAXIM-N, or CORE-RULE-N"; INV_FAIL_COUNT=$((INV_FAIL_COUNT+1)) ;;
+          DUPID:*)
+            did=${iline#*:}; did=${did#*:}
+            add_fail "[INV-REGISTRY] $INV_README line ${iline#*:} duplicates registered id '$did'"; INV_FAIL_COUNT=$((INV_FAIL_COUNT+1)) ;;
+          BADKIND:*|BADSTATE:*|BADAUTH:*|EMPTYAUTH:*|LONGRULE:*)
+            icode=${iline%%:*}
+            iln=$(printf '%s' "$iline" | cut -d: -f2)
+            iid=$(printf '%s' "$iline" | cut -d: -f3)
+            case "$icode" in
+              BADKIND) add_fail "[INV-REGISTRY] $INV_README line $iln row '$iid' kind '${iline##*:}' is outside the closed enum (INV: arch-invariant/product-promise/process-rule; maxim: apex-maxim)"; INV_FAIL_COUNT=$((INV_FAIL_COUNT+1)) ;;
+              BADSTATE) add_fail "[INV-REGISTRY] $INV_README line $iln row '$iid' state '${iline##*:}' is outside the closed enum (INV: confirmed/candidate; maxim: core-ref-thin/inline-body/not_yet_owned)"; INV_FAIL_COUNT=$((INV_FAIL_COUNT+1)) ;;
+              BADAUTH) add_warn "[INV-REGISTRY] $INV_README line $iln row '$iid' Established by must trace to DEC-NNNN, user-directive, or bootstrap"; INV_WARN_COUNT=$((INV_WARN_COUNT+1)) ;;
+              EMPTYAUTH) add_warn "[INV-REGISTRY] $INV_README line $iln row '$iid' apex-maxim row has no establishing evidence"; INV_WARN_COUNT=$((INV_WARN_COUNT+1)) ;;
+              LONGRULE) add_warn "[INV-REGISTRY] $INV_README line $iln row '$iid' Rule cell exceeds 160 chars; keep rows pointer-sized"; INV_WARN_COUNT=$((INV_WARN_COUNT+1)) ;;
+            esac ;;
+          EMPTYNONOTE) add_warn "[INV-REGISTRY] adjudication boundary has neither rows nor a reasoned empty note"; INV_WARN_COUNT=$((INV_WARN_COUNT+1)) ;;
+          EMPTYNOTE) add_pass "[INV-REGISTRY] adjudication boundary carries a reasoned empty note" ;;
+          TOOWIDE:*) add_warn "[INV-REGISTRY] adjudication boundary has ${iline#*:} rows (soft ceiling ~25); keep it a silent-violation register, not an importance index"; INV_WARN_COUNT=$((INV_WARN_COUNT+1)) ;;
+          ROW:*)
+            rspec=${iline#ROW:}
+            rln=${rspec%%|*}; rspec=${rspec#*|}
+            rid=${rspec%%|*}; rspec=${rspec#*|}
+            rst=${rspec%%|*}; rowner=${rspec#*|}
+            INV_IDS="${INV_IDS} ${rid}"
+            otarget=$(printf '%s\n' "$rowner" | sed -nE 's@.*\]\(([^)]+)\).*@\1@p' | head -1)
+            [[ -z "$otarget" ]] && otarget=$(printf '%s' "$rowner" | tr -d '`' | awk '{print $1}')
+            opath=${otarget%%#*}
+            [[ "$opath" == ./* ]] && opath=${opath#./}
+            ocand=""
+            for obase in "$SSOT_DIR" "$(dirname "$SSOT_DIR")"; do
+              [[ -z "$ocand" && -n "$opath" && -f "$obase/$opath" ]] && ocand="$obase/$opath"
+            done
+            if [[ -z "$ocand" ]]; then
+              if [[ "$rst" == "not_yet_owned" ]]; then
+                add_warn "[INV-REGISTRY] $INV_README line $rln row '$rid' owner '$otarget' does not resolve to a file"; INV_WARN_COUNT=$((INV_WARN_COUNT+1))
+              else
+                add_fail "[INV-REGISTRY] $INV_README line $rln row '$rid' owner '$otarget' does not resolve to a file"; INV_FAIL_COUNT=$((INV_FAIL_COUNT+1))
+              fi
+            elif [[ "$rst" == "confirmed" || "$rst" == "core-ref-thin" || "$rst" == "inline-body" ]]; then
+              if ! grep -qF "$rid" "$ocand"; then
+                add_fail "[INV-BODY] $INV_README line $rln row '$rid' is $rst but owner $opath does not carry the registry id at the rule anchor"; INV_FAIL_COUNT=$((INV_FAIL_COUNT+1))
+              fi
+            fi ;;
+        esac
+      done <<< "$INV_REPORT"
+      # Orphan body tags: an INV-/maxim id tagged in an SSOT body without a
+      # registry row means the register lost track of a rule.
+      INV_ORPHANS=$(find "$SSOT_DIR" -name '*.md' -type f \
+          ! -path "$SSOT_DIR/README.md" ! -name 'STATUS.md' ! -name 'HISTORY.md' \
+          ! -name '_*' ! -path '*/.bootstrap/*' -print0 2>/dev/null \
+        | xargs -0 grep -hEo 'INV-[0-9]+|CLAUDE-MAXIM-[0-9]+|CORE-RULE-[0-9]+' 2>/dev/null \
+        | sort -u || true)
+      while IFS= read -r oid; do
+        [[ -z "$oid" ]] && continue
+        case " $INV_IDS " in *" $oid "*) ;; *)
+          add_warn "[INV-BODY] SSOT bodies tag '$oid' but the adjudication boundary has no such row"
+          INV_WARN_COUNT=$((INV_WARN_COUNT+1)) ;;
+        esac
+      done <<< "$INV_ORPHANS"
+      [[ "$INV_FAIL_COUNT" -eq 0 && "$INV_WARN_COUNT" -eq 0 ]] && add_pass "[INV-REGISTRY] v2.64 adjudication boundary rows match the register schema"
+    fi
+  fi
+fi
+
 fi  # end META_LEAKAGE_SKIP_OTHER_CHECKS guard (checks 13-17 also guarded)
 
 # ---------- output ----------

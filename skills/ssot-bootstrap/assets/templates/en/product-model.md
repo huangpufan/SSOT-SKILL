@@ -83,6 +83,16 @@ stateDiagram-v2
      signal that would reopen the choice. Do not turn temporary backlog status
      into a product trade-off. -->
 
+## Product promises and the adjudication boundary
+
+<!-- List here the product promises whose change is itself a human decision:
+     user-visible, confirmed outcomes an agent must not rewrite or withdraw.
+     Start each with its registry ID (e.g. **INV-05**), matching the
+     `product-promise` rows in the [SSOT/README adjudication boundary](../README.md#adjudication-boundary);
+     the table holds pointers, this section holds the promise body, its scope,
+     and its establishing authority. Ordinary product description is not
+     registered; this section is not a second feature list. -->
+
 ## Product constraints handed to architecture
 
 <!-- In connected prose, name the constraints that materially shape runtime
