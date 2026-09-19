@@ -2,7 +2,7 @@
 name: ssot-preflight
 description: Repository SSOT preflight before substantive code, config, docs, review, debugging, refactoring, or planning work. Use to check SSOT/STATUS.md, open adjudications, documentation language, protocol version, minimal SSOT read routing, and in-task SSOT write triggers. Do not use for pure operations, trivial format-only edits, or non-repository chat.
 metadata:
-  protocol_version: "2.60"
+  protocol_version: "2.61"
   bundle: "SSOT Skill"
   semantic_impact: high
 ---
@@ -33,6 +33,13 @@ you have answered, in order:
   currently being read (`.agents/skills`, `.codex/skills`, `.claude/skills`,
   etc.), report the install as stale and reinstall from the source checkout
   before relying on new protocol clauses.
+- **Freshness floor (conditional).** This binds only where a coverage claim
+  exists: any Area Status `covered` / `partial`, or `coverage_result:
+  converged`. When it binds, `tracked_commit` must be ancestor-or-equal of
+  `HEAD`; a `covered` / `partial` claim whose reviewed baseline is behind
+  `HEAD` must be re-confirmed by a scoped self-review within the same task or
+  demoted to `stale`. An honest `in_progress` / `bootstrap` / `catching_up`
+  repo with no coverage claim owes no freshness proof.
 
 ## Route your reads, don't bulk-load
 

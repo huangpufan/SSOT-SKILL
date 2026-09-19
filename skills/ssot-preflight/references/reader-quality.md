@@ -41,6 +41,12 @@ exists somewhere.
 
 ## 2. Shared writing contract
 
+`partial` is the pre-gate honest Area Status state: the owner README exists, the
+shared writing floor in this section is met, Doctor L1 is clean for the scope,
+and a scoped self-review is recorded in the Stop Review Gate with
+`authorises=area:<scope>:partial`. It requires none of the §7 cold-reader review
+machinery. Only `covered` and `converged` require the §7 review.
+
 The default reader profile is `implementation-delegator`: a person who
 delegates coding and evaluates observable outcomes, acceptance, and risk. This
 reader need not read source code to understand the current story or decide the
@@ -571,6 +577,11 @@ another.
 
 ## 4. Architecture completeness
 
+What a domain *owns* is defined solely by
+[`architecture.md §3`](architecture.md#3-thin-defaults); this section defines
+only what a domain reader surface must *teach* — the acceptance rubric below
+derives from that single ownership definition and does not restate it.
+
 The architecture trunk collectively answers every applicable question below.
 The root teaches the system; views explain cross-owner relationships; domains
 own detailed runtime truth.
@@ -744,6 +755,11 @@ An `out` surface uses a named `not_applicable` disposition in the runtime-owner,
 boundary, and view cells rather than inventing a runtime implementation.
 
 ## 7. Cold-reader acceptance
+
+`covered` and `converged` are the only Area Status states that require this §7
+review. `partial` — the pre-gate honest state of an owner README, the shared
+writing floor, a clean Doctor L1 for the scope, and a scoped self-review
+recorded with `authorises=area:<scope>:partial` — does not.
 
 Product and architecture `covered` claims use a task-based review of the actual
 Markdown. Routing, comprehension, completeness, truth, and evidence are

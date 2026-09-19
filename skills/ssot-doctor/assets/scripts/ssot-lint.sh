@@ -3403,12 +3403,12 @@ architecture_area_covered_reason() {
 
 if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_SKILL_VERSION" "2.60"; then
   AREA_STATUS_FAIL_COUNT=0
-  declare -A AREA_STATUS_SEEN=() AREA_STATUS_VALUE=()
+  declare -A AREA_STATUS_SEEN=() AREA_STATUS_VALUE=() AREA_DEPTH_VALUE=()
   coverage_state=$(awk -F'|' '
     /^\|[[:space:]]*coverage_result[[:space:]]*\|/ { v=$3; gsub(/^[[:space:]`]+|[[:space:]`]+$/, "", v); print v; exit }
     /^coverage_result:[[:space:]]*/ { v=$0; sub(/^coverage_result:[[:space:]]*/, "", v); gsub(/["`]/, "", v); print v; exit }
   ' "$STATUS_FILE")
-  while IFS=$'\034' read -r event line_no area status notes; do
+  while IFS=$'\034' read -r event line_no area status notes depth; do
     [[ -n "$event" ]] || continue
     if [[ "$event" == "SECTION" ]]; then
       add_fail "[AREA-STATUS] STATUS.md is missing the Area Status / 区域状态 table"
@@ -3423,13 +3423,18 @@ if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_
     case "$area" in
       product|architecture|process|development|testing|benchmark|deployment|release|operations|security-and-compliance|records|decisions|"research records"|gotchas|bugs|tech-debt|glossary) ;;
       *)
-        if [[ "$area" =~ ^x-[a-z0-9][a-z0-9-]*$ ]]; then
+        if [[ "$area" =~ ^(product|architecture|process|development|testing|benchmark|deployment|release|operations|security-and-compliance|records|decisions|gotchas|bugs|tech-debt|glossary)/[a-z0-9][a-z0-9-]*$ ]]; then
+          # Scoped row "<area>/<scope>" (v2.61, opt-in): recursion caps at one
+          # level, so the scope slug must not itself contain a slash. The regex
+          # above already forbids a second slash; nothing further to validate here.
+          :
+        elif [[ "$area" =~ ^x-[a-z0-9][a-z0-9-]*$ ]]; then
           if [[ ! "$notes" =~ ^extension: ]] || [[ "$(manifest_markdown_link_count "$notes")" -ne 1 ]] || ! manifest_markdown_link_resolves "$STATUS_FILE" "$notes"; then
           add_fail "[AREA-STATUS] extension row $area needs 'extension:' and one resolving Markdown owner link: $STATUS_FILE:$line_no"
           AREA_STATUS_FAIL_COUNT=$((AREA_STATUS_FAIL_COUNT + 1))
           fi
         else
-          add_fail "[AREA-STATUS] unknown Area token '$area'; baseline tokens are fixed and extensions use x-<slug>: $STATUS_FILE:$line_no"
+          add_fail "[AREA-STATUS] unknown Area token '$area'; baseline tokens are fixed, scoped rows use <area>/<scope>, and extensions use x-<slug>: $STATUS_FILE:$line_no"
           AREA_STATUS_FAIL_COUNT=$((AREA_STATUS_FAIL_COUNT + 1))
           continue
         fi
@@ -3442,6 +3447,15 @@ if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_
     fi
     AREA_STATUS_SEEN[$area]="$line_no"
     AREA_STATUS_VALUE[$area]="$status"
+    [[ -n "$depth" ]] && AREA_DEPTH_VALUE[$area]="$depth"
+
+    # Optional "Coverage depth" column (v2.61): reuse architecture.md §10
+    # vocabulary. Empty is always legal (single-tenant 3-column form); a
+    # non-empty value must be one of the four ranks.
+    if [[ -n "$depth" && ! "$depth" =~ ^(deep|sampled|inferred|unknown)$ ]]; then
+      add_fail "[AREA-STATUS] invalid Coverage depth '$depth' for $area (deep/sampled/inferred/unknown): $STATUS_FILE:$line_no"
+      AREA_STATUS_FAIL_COUNT=$((AREA_STATUS_FAIL_COUNT + 1))
+    fi
 
     if [[ -z "$status" ]]; then
       if [[ "$coverage_state" != "bootstrap" ]]; then
@@ -3450,7 +3464,7 @@ if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_
       fi
       continue
     fi
-    if [[ ! "$status" =~ ^(covered|gap|stale|unknown|not_applicable|conflict)$ ]]; then
+    if [[ ! "$status" =~ ^(covered|partial|gap|stale|unknown|not_applicable|conflict)$ ]]; then
       add_fail "[AREA-STATUS] invalid Status '$status' for $area: $STATUS_FILE:$line_no"
       AREA_STATUS_FAIL_COUNT=$((AREA_STATUS_FAIL_COUNT + 1))
       continue
@@ -3483,6 +3497,19 @@ if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_
           fi
         fi
       fi
+    elif [[ "$status" == "partial" ]]; then
+      # "partial" (v2.61) is honest partial credit: the owner README must exist.
+      # It carries no six-task cold review / 16-leaf score / §7.7 artifact /
+      # independent-review precondition, so lint stays lighter than "covered".
+      # For a scoped row "<area>/<scope>" the canonical owner is the parent
+      # area's README; for a baseline row it is the area's own README.
+      if [[ "$area" != */* && "$area" != x-* ]]; then
+        owner_rel=$(canonical_area_rel "$area" 2>/dev/null || true)
+        if [[ -z "$owner_rel" || ! -f "$SSOT_DIR/$owner_rel/README.md" ]]; then
+          add_fail "[AREA-STATUS] partial $area requires canonical owner README: $SSOT_DIR/${owner_rel:-<unresolved>}/README.md"
+          AREA_STATUS_FAIL_COUNT=$((AREA_STATUS_FAIL_COUNT + 1))
+        fi
+      fi
     elif [[ "$status" == "not_applicable" ]]; then
       case "$area" in
         testing|benchmark|deployment|release|operations|security-and-compliance|"research records") ;;
@@ -3500,12 +3527,13 @@ if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_
     BEGIN { sep=sprintf("%c", 28) }
     function trim(v) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", v); gsub(/^`|`$/, "", v); return v }
     function set_header(    i,v,lower) {
-      area_i=status_i=notes_i=0
+      area_i=status_i=notes_i=depth_i=0
       for (i=2; i<cell_count; i++) {
         v=trim(cells[i]); lower=tolower(v)
         if (lower == "area" || v == "区域") area_i=i
         else if (lower == "status" || v == "状态") status_i=i
         else if (lower == "notes" || lower == "note" || v == "备注") notes_i=i
+        else if (lower == "coverage depth" || lower == "coverage_depth" || v == "覆盖深度") depth_i=i
       }
       return area_i && status_i && notes_i
     }
@@ -3523,7 +3551,7 @@ if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_
         else have_header=1
         next
       }
-      print "ROW" sep NR sep trim(cells[area_i]) sep trim(cells[status_i]) sep trim(cells[notes_i])
+      print "ROW" sep NR sep trim(cells[area_i]) sep trim(cells[status_i]) sep trim(cells[notes_i]) sep (depth_i ? trim(cells[depth_i]) : "")
     }
     END { if (!found) print "SECTION" sep 0 }
   ' "$STATUS_FILE")
@@ -3550,8 +3578,74 @@ if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_
       }
     done
   fi
+
+  # v2.61 scoped roll-up ("<area>/<scope>" rows, opt-in). Pure table arithmetic:
+  # a baseline (parent) row never claims a Status or Coverage depth stronger than
+  # its weakest scoped child. Uses the existing asymmetric aggregation algebra
+  # (a scoped child at gap/stale/unknown/conflict blocks the parent's
+  # covered/partial claim), not a new weakest-wins total order.
+  area_status_rank() { # higher = stronger claim
+    case "$1" in
+      covered) printf '3\n' ;;
+      partial) printf '2\n' ;;
+      not_applicable) printf '1\n' ;;
+      *) printf '0\n' ;; # gap/stale/unknown/conflict/blank are non-claims
+    esac
+  }
+  area_depth_rank() { # deep < sampled < inferred < unknown is the WEAKNESS order
+    case "$1" in
+      deep) printf '3\n' ;;
+      sampled) printf '2\n' ;;
+      inferred) printf '1\n' ;;
+      *) printf '0\n' ;; # unknown/blank is weakest
+    esac
+  }
+  for parent in "${!AREA_STATUS_SEEN[@]}"; do
+    [[ "$parent" != */* ]] || continue # iterate baseline rows only
+    parent_status="${AREA_STATUS_VALUE[$parent]:-}"
+    parent_depth="${AREA_DEPTH_VALUE[$parent]:-}"
+    weakest_status_rank=3 weakest_depth_rank=3 any_scoped=0 parent_has_depth=0
+    [[ -n "$parent_depth" ]] && parent_has_depth=1
+    for scoped in "${!AREA_STATUS_SEEN[@]}"; do
+      [[ "$scoped" == "$parent/"* ]] || continue
+      any_scoped=1
+      s_rank=$(area_status_rank "${AREA_STATUS_VALUE[$scoped]:-}")
+      (( s_rank < weakest_status_rank )) && weakest_status_rank=$s_rank
+      # Depth-column consistency: once the parent carries the column, every
+      # scoped row of that area must carry it too (and vice versa).
+      if [[ "$parent_has_depth" -eq 1 && -z "${AREA_DEPTH_VALUE[$scoped]:-}" ]]; then
+        add_fail "[STATUS-AGGREGATE] Coverage depth column present on '$parent' but missing on scoped row '$scoped'"
+        AREA_STATUS_FAIL_COUNT=$((AREA_STATUS_FAIL_COUNT + 1))
+      fi
+      if [[ -n "${AREA_DEPTH_VALUE[$scoped]:-}" ]]; then
+        d_rank=$(area_depth_rank "${AREA_DEPTH_VALUE[$scoped]}")
+        (( d_rank < weakest_depth_rank )) && weakest_depth_rank=$d_rank
+      else
+        weakest_depth_rank=0 # a scoped row without a depth rank is weakest (unknown)
+      fi
+    done
+    [[ "$any_scoped" -eq 1 ]] || continue
+    # Status over-claim: parent claim stronger than its weakest scoped child.
+    if [[ -n "$parent_status" ]]; then
+      p_rank=$(area_status_rank "$parent_status")
+      if (( p_rank > weakest_status_rank )); then
+        add_fail "[STATUS-AGGREGATE] Area '$parent' claims '$parent_status' stronger than its weakest scoped-child roll-up (a scoped child at gap/stale/unknown/conflict blocks a covered/partial claim)"
+        AREA_STATUS_FAIL_COUNT=$((AREA_STATUS_FAIL_COUNT + 1))
+      fi
+    fi
+    # Depth over-claim: only when the parent actually carries a depth value.
+    if [[ -n "$parent_depth" ]]; then
+      pd_rank=$(area_depth_rank "$parent_depth")
+      if (( pd_rank > weakest_depth_rank )); then
+        add_fail "[STATUS-AGGREGATE] Area '$parent' claims Coverage depth '$parent_depth' deeper than its weakest scoped-child depth (deep < sampled < inferred < unknown)"
+        AREA_STATUS_FAIL_COUNT=$((AREA_STATUS_FAIL_COUNT + 1))
+      fi
+    fi
+  done
+  unset -f area_status_rank area_depth_rank
+
   [[ "$AREA_STATUS_FAIL_COUNT" -eq 0 ]] && add_pass "[AREA-STATUS] v2.60 exact area schema, aggregate states, and covered owner routes are coherent"
-  unset AREA_STATUS_SEEN AREA_STATUS_VALUE
+  unset AREA_STATUS_SEEN AREA_STATUS_VALUE AREA_DEPTH_VALUE
 fi
 
 # ---------- check 1ab: v2.60 exact S01-S11 STATUS section schemas ----------
@@ -4002,10 +4096,61 @@ if [[ -f "$STATUS_FILE" ]] && command -v git >/dev/null 2>&1; then
           add_pass "tracked_commit is ancestor of HEAD; drift = $DRIFT commits"
         fi
 
-        # If converged is declared but drift > 0, warn (self-reference loop:
-        # forcing FAIL here would lock the project out of normal closeout).
+        # v2.61 freshness floor: where a converged claim exists, tracked_commit
+        # must be ancestor-or-equal of HEAD. Below converged this stays a WARN
+        # (an honest in_progress repo owes no freshness proof).
         if grep -qE "coverage_result\s*\|\s*\`?converged\`?" "$STATUS_FILE" && [[ "$DRIFT" -gt 0 ]]; then
-          add_warn "coverage_result=converged but tracked_commit is $DRIFT commits behind HEAD; converged is a stop conclusion and should be re-reviewed before further advance"
+          add_fail "coverage_result=converged but tracked_commit is $DRIFT commits behind HEAD; converged is a stop conclusion and must be re-reviewed (ancestor-or-equal) before further advance"
+        elif [[ "$DRIFT" -gt 0 ]] && [[ -n "${STATUS_SKILL_VERSION:-}" ]] && version_ge "$STATUS_SKILL_VERSION" "2.60"; then
+          # v2.61 scoped self-review exemption: below converged, a covered/partial
+          # area whose reviewed baseline lags HEAD is demoted to stale unless a
+          # scoped self-review in the Stop Review Gate re-confirmed it within the
+          # same task. The exemption is machine-checkable only when that review
+          # row carries a "re-confirmed at <HEAD-sha|worktree>" note. A
+          # re-confirmed-at-worktree note counts uncommitted worktree content as
+          # fresh. Without the note the claim is not exempt and we WARN. This
+          # keeps the existing asymmetry: zero constraint on in_progress repos,
+          # FAIL only at converged.
+          sep=$(printf '\034')
+          while IFS="$sep" read -r ev ln ar st nt dp; do
+            [[ "$ev" == ROW && "$st" =~ ^(covered|partial)$ ]] || continue
+            # The exemption scans the Stop Review Gate section tolerantly: it
+            # matches a row whose scope column names the area and whose text
+            # carries both the "area:<scope>:<status>" authorises token and a
+            # "re-confirmed at" note, regardless of the exact column schema
+            # (consumers may ship a leaner 6-column table where authorises and
+            # the note live in the evidence cell rather than fixed columns).
+            if awk -v scope="$ar" -v st="$st" '
+              /^##[[:space:]]+(Stop Review Gate|停止审查闸门)[[:space:]]*$/ { active=1; next }
+              active && /^##[[:space:]]/ { exit }
+              active && /^\|/ {
+                if ($0 ~ /^\|[[:space:]:|-]+(\|[[:space:]:|-]+)+\|?[[:space:]]*$/) next
+                # tolerant scope match: a cell equal to the scope, optionally backticked
+                is_scope=0
+                n=split($0, cc, "|")
+                for (i=2;i<=n;i++){ v=cc[i]; gsub(/^[[:space:]]+|[[:space:]]+$/,"",v); gsub(/^`|`$/,"",v); if (v==scope) is_scope=1 }
+                if (is_scope && index($0, "area:" scope ":" st) && index($0, "re-confirmed at")) found=1
+              }
+              END { exit !found }' "$STATUS_FILE"; then
+              add_pass "[FRESHNESS] area '$ar' ($st) is $DRIFT commits behind HEAD but re-confirmed by a scoped self-review (re-confirmed at) within the same task"
+            else
+              add_warn "[FRESHNESS] area '$ar' ($st) is $DRIFT commits behind HEAD; re-confirm it with a scoped self-review in the same task and note 're-confirmed at <HEAD-sha|worktree>' in the Stop Review Gate row, or demote the claim to stale"
+            fi
+          done < <(awk '
+            BEGIN { sep=sprintf("%c", 28) }
+            function trim(v) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", v); gsub(/^`|`$/, "", v); return v }
+            /^##[[:space:]]+/ { title=$0; sub(/^##[[:space:]]+/, "", title); l=tolower(trim(title)); in_area=(l=="area status"||trim(title)=="区域状态"); have_header=0; next }
+            in_area && /^\|/ {
+              if ($0 ~ /^\|[[:space:]:|-]+(\|[[:space:]:|-]+)+\|?[[:space:]]*$/) next
+              n=split($0, c, "|")
+              if (!have_header) {
+                ai=si=0
+                for (i=2;i<n;i++){ v=trim(c[i]); lo=tolower(v); if (lo=="area"||v=="区域") ai=i; else if (lo=="status"||v=="状态") si=i }
+                have_header=1; next
+              }
+              if (ai && si) print "ROW" sep NR sep trim(c[ai]) sep trim(c[si]) sep "" sep ""
+            }
+          ' "$STATUS_FILE")
         fi
       else
         add_fail "tracked_commit ($TRACKED_COMMIT) is not an ancestor of current HEAD; the branch may have been rebased/reset"

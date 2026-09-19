@@ -51,6 +51,27 @@
 > see `$ssot-preflight references/status-protocol.md`. Notes are one short
 > pointer, not a child-state ledger.
 
+<!-- Area Status vocabulary: `covered` / `partial` / `gap` / `stale` /
+     `unknown` / `not_applicable` / `conflict`. `partial` is honest partial
+     credit: owner README exists, the shared writing floor is met, Doctor L1 is
+     clean for the scope, and a scoped self-review row authorises
+     `area:<scope>:partial`. It is a floor, not a ceiling; `covered` semantics
+     are unchanged.
+
+     Large repos may add scoped rows named `<area>/<scope>` (for example a
+     numbered architecture domain scope, or a per-suite testing scope);
+     recursion caps at one level. The 17 baseline rows stay mandatory and roll
+     up their scoped children: a scoped child at `gap`/`stale`/`unknown`/`conflict`
+     blocks the baseline row's `covered`/`partial` claim, and the baseline never
+     claims a Status or Coverage depth stronger than its weakest scoped child.
+
+     Optional 4th column `Coverage depth` reuses the
+     `deep` / `sampled` / `inferred` / `unknown` vocabulary from
+     `architecture.md §10`. Single-tenant repos may keep the 3-column form
+     above; once any row carries the column, every scoped row of that area
+     must carry it. -->
+
+
 ## Quality, Risk, and Governance
 
 <!-- This is the Q01-Q21 disposition register, not twenty-one narratives. Keep

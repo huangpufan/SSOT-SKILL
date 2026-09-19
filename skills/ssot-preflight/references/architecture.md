@@ -131,6 +131,12 @@ Domains are the stable owner for architecture facts that have their own state,
 contract, failure, lifecycle, trust, verification, or evolution semantics. A
 domain must answer why it is separate before it lists parts.
 
+This section is the sole normative owner of **what a domain owns**: owned
+state/resources, contract surfaces, failure/recovery, lifecycle, trust/config,
+and verification. Every other reference (the area model, the reader-quality
+acceptance rubric, manifests) derives from this definition and links here; it
+does not restate the ownership list.
+
 **Domain reader surface** (v2.59): every architecture domain opens with a
 mental model, a why/boundary explanation, and a first-screen component diagram.
 Every covered domain displays this minimum boundary picture; a domain that
@@ -355,7 +361,13 @@ later. If a root/view claim lacks an owner anchor or evidence, mark it
 | `unknown` | Evidence insufficient | cannot mark `covered` |
 
 Large repos may converge in segments, but segment boundaries and uncovered scope
-must be visible in STATUS or the owner.
+must be visible in STATUS or the owner. This coverage-depth vocabulary is also
+surfaced as the optional per-row `Coverage depth` axis in the STATUS Area Status
+table. A large repo converging in segments records each segment as a scoped
+`<area>/<scope>` Area Status row (for example an `architecture` area scoped to
+`billing-runtime`), so the segment boundaries and the still-uncovered scope stay
+visible in the baseline roll-up rather than collapsing into one all-or-nothing
+row.
 
 ## 11. Lightweight Mode
 

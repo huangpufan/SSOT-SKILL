@@ -74,17 +74,7 @@ audit, not the audit narrative itself: use short anchored evidence strings and
 explanation in the authoritative owner or review artifact and cite it from the
 block.
 
-**CAP- row** — one line in `STATUS.md ## Pending Captures` (consumer) or `protocol-upgrades.md ## Bundle Captures` (bundle):
-
-```text
-| id | captured_at | about | altitude_guess | rule | evidence | signal_source | status |
-```
-
-- `id`: `CAP-YYYYMMDD-NN`.
-- `about`: `agent-method | product`.
-- `altitude_guess`: `apex | authority | inbox`.
-- `signal_source`: `user-directive | repo-signal | transcript | tier4-rollup`.
-- `status`: `open | routed | deferred | deferred-export | expired`.
+**CAP- row** — the exact 8-column CAP schema (`ID | Source | Proposed owner | Reason | Priority/trigger | Responsible owner | State | Closure evidence`) is owned solely by `status-protocol.md §8 Appendix A`. This file owns only the move/rationale semantics: the two evidence streams (`stream_a`/`stream_b`), the five self-check questions, and the `<!-- rule -->` / `<!-- move -->` blocks. The `altitude_guess` / `signal_source` vocabulary survives only as cell content inside the Appendix-A `Reason` / `Priority / trigger` cells, not as columns of its own.
 
 ## When to invoke doctor stop-review
 

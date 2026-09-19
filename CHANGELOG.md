@@ -23,6 +23,34 @@ versions. This file only restates headline changes.
   recognizes the selected-language flattened template layout instead of
   reporting the absent source-only `en/` and `zh/` directories as failures.
 
+### Added
+- Graduated coverage: `partial` is now a first-class Area Status value — honest
+  partial credit between `gap` and `covered` (owner README + writing floor +
+  Doctor L1 clean + a scoped self-review), requiring no cold review. The v2.60
+  review blockers now gate `covered` only, so consumers with strong content can
+  bank incremental wins instead of stalling at all-`gap`.
+- Freshness floor: a conditional gate binds `covered`/`partial`/`converged`
+  claims to a fresh `tracked_commit` baseline; a stale claim without a same-task
+  scoped re-confirmation demotes to `stale`, and lint FAILs a `converged` STATUS
+  whose baseline is behind `HEAD` (WARN below). The re-confirmation exemption is
+  machine-checkable: a Stop Review Gate row noting `re-confirmed at
+  <HEAD-sha|worktree>` exempts a below-`converged` claim (worktree counts
+  uncommitted content as fresh), closing the "infinitely-renewed `partial`"
+  loophole; the check parses the gate tolerantly so a leaner consumer table
+  still qualifies.
+- Large-repo coverage (opt-in): the Area Status table accepts scoped
+  `<area>/<scope>` rows and an optional `Coverage depth` column, with the
+  17-row baseline kept as the honest computed roll-up (weak child blocks the
+  parent; `[STATUS-AGGREGATE]` on over-claim). Single-tenant repos are unchanged.
+
+### Changed
+- Single-owner applied to the protocol itself: the CAP-row 8-column schema is
+  owned solely by `status-protocol.md §8 Appendix A` (`promotion-rationale.md`
+  keeps only move semantics); `architecture.md §3` is the sole normative owner
+  of "what a domain owns", with `reader-quality.md §4` and `area-model.md §2.2`
+  deriving instead of restating. Doctor's stop condition is now self-evaluable
+  and non-circular.
+
 ### Changed
 - Lifecycle `SKILL.md` bodies are distilled back to activation prompts (60
   words or fewer outside the preflight router), while the detailed v2.60

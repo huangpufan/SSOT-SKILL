@@ -10,6 +10,106 @@ files.
 
 ## Version Ledger
 
+### v2.61
+
+**Upgrade goal**: close the four structural gaps a multi-dimensional review of a
+real consumer surfaced, with the smallest possible machinery. The protocol
+already had every atom; the gaps came from atoms wired to the wrong grain
+(all-or-nothing), the wrong surface (README prose instead of STATUS), or left
+unenforced at the gate. v2.61 rewires each atom to its correct grain and stops
+there, deliberately declining federation, ladders, and arbitrary-depth recursion
+as unproven complexity.
+
+1. **Graduated coverage / on-ramp.** `covered` was all-or-nothing at full v2.60
+   rigor, so consumers with strong content stalled at all-`gap`. v2.61 admits
+   `partial` as a first-class Area Status value: honest partial credit that
+   claims the content is real and readable while disclaiming the independent
+   verification `covered` adds. `partial` requires the owner `README.md`, the
+   shared writing floor, Doctor L1 clean, and a scoped self-review
+   (`authorises=area:<scope>:partial`) — never the six-task cold review, 16-leaf
+   score, §7.7 artifact, or independent review. It is a floor, not a ceiling;
+   `covered`/`converged` semantics are unchanged, and the v2.60 review blockers
+   now gate `covered` only, not `partial`.
+2. **Freshness floor.** `tracked_commit`/`tracked_session` drift previously had
+   no hard gate, so achieved coverage rotted silently. v2.61 adds a *conditional*
+   freshness floor: it binds only where a coverage claim exists (any area
+   `covered`/`partial`, or `coverage_result: converged`). A claim whose reviewed
+   baseline is behind `HEAD` and not re-confirmed by a same-task scoped
+   self-review demotes to `stale`. Honest `in_progress`/`bootstrap`/
+   `catching_up` repos owe no freshness proof. Lint FAILs at `converged` when
+   `tracked_commit` is not ancestor-or-equal of `HEAD`, and only WARNs below.
+3. **Single-owner (the protocol applied to itself).** Two forks are closed.
+   The CAP-row eight-column schema is now owned solely by
+   `status-protocol.md §8 Appendix A`; `promotion-rationale.md` keeps only the
+   move/rationale semantics and demotes `altitude_guess`/`signal_source` to cell
+   content. `architecture.md §3` is declared the sole normative owner of "what a
+   domain owns"; `reader-quality.md §4` (acceptance rubric) and
+   `area-model.md §2.2` (area role) now derive and link instead of restating.
+4. **Large-repo coverage.** The single global `coverage_result` plus 17 flat
+   Area rows could not represent per-scope coverage. v2.61 makes the Area Status
+   table optionally two-dimensional: opt-in scoped `<area>/<scope>` rows and an
+   optional `Coverage depth` column (reusing `deep`/`sampled`/`inferred`/
+   `unknown` from `architecture.md §10`). The 17-row baseline stays mandatory and
+   is the honest computed roll-up of its scoped children (a `gap`/`stale`/
+   `unknown`/`conflict` child blocks a parent `covered`/`partial` claim; baseline
+   depth is the weakest child depth), enforced via `[STATUS-AGGREGATE]`.
+   Recursion caps at one level; single-tenant repos keep the 3-column form
+   unchanged.
+
+**Impact**: `semantic_impact=medium` — additive and opt-in throughout. No STATUS
+or artifact schema column is removed or retyped, no new top-level area, no new
+mandatory field, no new stop-review trigger (scoped rows reuse the existing
+per-scope covered trigger). A consumer below v2.61 is unaffected: the 3-column,
+17-row, single-`coverage_result` STATUS remains valid, `partial` is opt-in, and
+the freshness floor only hard-fails at `converged`.
+
+**Impact checklist**:
+
+| Check | Affected area | Audit action | Done criterion |
+|---|---|---|---|
+| Graduated `partial` | `STATUS.md ## Area Status`, Stop Review Gate | Where content is strong but the full review has not passed, flip the area from `gap` to `partial` with a scoped self-review; do not leave it reading as all-gap. | `partial` claims have owner README + L1 clean + a scoped self-review row; the v2.60 review blockers no longer demote `partial`; `coverage_result` stays `in_progress` until every applicable area is `covered`. |
+| Freshness floor | Preflight gate, Doctor L2 `COVERAGE-FRESHNESS`, lint | Re-confirm or demote any `covered`/`partial`/`converged` claim whose reviewed baseline is behind `HEAD`. | No `covered`/`partial` claim sits on a stale baseline without a later scoped self-review; lint FAILs a `converged` STATUS whose `tracked_commit` is not ancestor-or-equal of `HEAD`. |
+| CAP-schema single owner | `STATUS.md ## Pending Captures`, closeout routing | Write CAP rows only against the `status-protocol.md §8 Appendix A` 8-column schema; treat `altitude_guess`/`signal_source` as cell content, not columns. | No consumer or bundle file emits the retired `captured_at/about/altitude_guess/rule/evidence/signal_source` column set. |
+| Domain-ownership single owner | Architecture reference docs | Take the "what a domain owns" list from `architecture.md §3`; let the acceptance rubric and area role derive and link. | No forked ownership enumeration remains across `architecture.md`, `reader-quality.md`, and `area-model.md`. |
+| Scoped coverage & depth (opt-in) | `STATUS.md ## Area Status` (large repos) | Decompose a large area into scoped `<area>/<scope>` rows and/or add the `Coverage depth` column; keep the baseline rows as the computed roll-up. | Scoped rows carry their own Status/depth; a weak child honestly blocks the parent; `[STATUS-AGGREGATE]` fires on any parent over-claim; single-tenant repos are byte-unchanged. |
+
+**Migration notes**:
+
+- Every change is additive/opt-in. A consumer tracking `< 2.61` needs no action;
+  advancing the baseline is a declaration, not a rewrite.
+- A consumer stalled at all-`gap` with strong content can, in one pass, flip
+  each content-strong area to `partial` with a scoped self-review — no six-task
+  review required — and immediately stop reading as "all-gap", then advance to
+  `covered` area-by-area as the full review passes.
+- The roll-up uses the existing asymmetric aggregation algebra (as in
+  `process`/`records`), not a new total order: a weak scoped child blocks a
+  parent `covered`/`partial` claim, and the parent depth is its weakest child.
+- The old CAP columns map losslessly into the Appendix-A cells (`rule` →
+  `Reason`; `signal_source`/`altitude_guess` → `Priority / trigger` content).
+- Federation, sub-SSOT roots, hierarchical scope trees, multi-writer
+  concurrency, and a relaxed 4-hop budget are explicitly deferred as unproven
+  complexity; revisit only with evidence from a real large consumer.
+- A real cold-read exercise confirmed v2.61 makes a *single-team,
+  single-level-decomposable* large repo usable (one exercised at ~40k words,
+  single writer, 40 logical domains), with the mechanism agreeing across all
+  three surfaces (the `status-protocol.md §3` scoped-row contract, the lint
+  roll-up arithmetic, and the status-template guidance). It also confirmed the
+  remaining structural ceiling: a *genuinely giant monorepo* — many teams
+  concurrently writing one `STATUS.md`, domains nested three deep, 100k+ words
+  needing multiple routing tiers — is still out of reach. The root cause is the
+  single-file single-writer STATUS model versus scoped multi-team write
+  ownership; recursion capping at one level (`status-protocol.md` physically
+  forbids a second slash) cannot express domain-within-domain coverage
+  layering, and the 4-hop budget is structurally insufficient for deeply buried
+  owners. The highest-leverage follow-up, deliberately *not* built in v2.61 and
+  left for evidence from a real giant consumer, is sharding STATUS write
+  authority by scope: let each `<area>/<scope>` row's authoritative state live
+  in that team's scope shard file while the global STATUS keeps only
+  lint-verifiable roll-up pointers — preserving "one fact, one owner" plus the
+  17-row baseline roll-up while dissolving the multi-team concurrent-write
+  conflict. Until that evidence exists, v2.61's honest posture is
+  "usable at medium scale".
+
 ### v2.60
 
 **Upgrade goal**: remove the false-positive path where mechanically complete

@@ -79,11 +79,20 @@ Area status values are:
 | Status | Meaning |
 |---|---|
 | `covered` | The area matches the reviewed commit/session/protocol scope, contains no candidate/hypothesis content in covered scope, and has a stop review for that scope. |
+| `partial` | Honest partial credit: the area's canonical owner `README.md` exists, the shared writing floor is met, Doctor L1 reports zero FAIL for that scope (WARN is allowed, but each WARN must carry a one-sentence disposition in the area's Notes cell), and a scoped self-review recorded in the Stop Review Gate carries `authorises=area:<scope>:partial`. |
 | `gap` | Required or applicable content is missing or incomplete. |
 | `stale` | Content lags behind reviewed code, conversation, or protocol. |
 | `unknown` | Evidence is insufficient to judge. |
 | `not_applicable` | The engineering-operation area does not apply, with reason in the owner. |
 | `conflict` | Evidence sources conflict and have not been adjudicated. |
+
+`partial` is a floor, not a ceiling. It requires no six-task cold review, no
+16-leaf score, no `reader-quality.md §7.7` artifact, and no independent review;
+`covered` and `converged` semantics are unchanged. The v2.60 hard review
+blockers (`READER-REVIEW-EVIDENCE`, `READER-COMPREHENSION`,
+`LIGHTWEIGHT-REVIEW-TRUTH`, `SURFACE/OWNER-INVENTORY`) block `covered` only,
+not `partial`. Because `converged` still requires all-covered, any `partial`
+row keeps `coverage_result` at `in_progress`.
 
 `covered` always requires the area's canonical owner `README.md` to exist.
 `process: covered` additionally requires development, testing, benchmark,
@@ -103,6 +112,24 @@ to a current passing review artifact. A missing or incoherent child therefore
 keeps the architecture aggregate from `covered`, but never creates an
 `architecture/views` STATUS row.
 
+Large repos may optionally decompose an Area Status row into scoped
+`<area>/<scope>` rows (for example `architecture/billing-runtime` or
+`testing/e2e`) so that segment boundaries and uncovered scope are visible in
+STATUS. The 17-row baseline stays mandatory: each baseline row is the computed
+roll-up of its scoped children, never a claim made independently of them.
+Recursion caps at one level; a scope has no sub-scopes, and deeper
+decomposition means the scope should become a first-class architecture domain.
+Roll-up uses the existing asymmetric aggregation algebra, not a new
+weakest-wins total order: a scoped child at `gap`, `stale`, `unknown`, or
+`conflict` blocks the baseline row's `covered`/`partial` claim, exactly as the
+`process`/`records` aggregate rule above generalises. When the optional
+Coverage depth column is present, the baseline row's depth is the weakest
+scoped-child depth (`deep` < `sampled` < `inferred` < `unknown`). A parent
+never claims a status or depth stronger than its weakest scoped child;
+Doctor/lint report `[STATUS-AGGREGATE]` on over-claim. This mechanism does not
+introduce federation, sub-SSOT roots, hierarchical scope trees, multi-writer
+concurrency, or a relaxed 4-hop budget.
+
 Only conditionally applicable engineering-operation rows (`testing`, `benchmark`,
 `deployment`, `release`, `operations`, and `security-and-compliance`) and
 `research records` may use `not_applicable`. Their Notes cell names the reason
@@ -119,6 +146,22 @@ a completion claim.
 
 `converged` is never inferred from all rows looking green; it is a stop
 conclusion. `covered` is also a stop conclusion for that area/scope.
+
+A conditional freshness floor binds only where a coverage claim exists: any
+area at `covered`/`partial`, or `coverage_result: converged`. If a
+`covered`/`partial` claim's reviewed baseline is behind current HEAD and the
+claim is not re-confirmed by a scoped self-review within the same task, demote
+it to `stale`. That same-task re-confirmation is a valid exemption only when
+the scoped self-review record in the Stop Review Gate notes `re-confirmed at
+<HEAD-sha|worktree>`; without that note the re-confirmation does not count and
+the claim demotes. Content newer than HEAD but not yet committed counts as
+`worktree`: a self-review noting `re-confirmed at worktree` treats uncommitted
+worktree content as fresh, so there is no gray zone between HEAD and the
+working tree. Honest `in_progress`, `bootstrap`, and `catching_up` repos owe
+no freshness proof. Lint behaviour: at `coverage_result: converged`, FAIL if
+`tracked_commit` is not an ancestor-or-equal of HEAD; below `converged`, WARN
+only, and a `covered`/`partial` scope whose Stop Review Gate row carries the
+`re-confirmed at` note is exempt from that WARN.
 
 At protocol v2.60, `process: covered`, `records: covered`, and
 `glossary: covered` each require the matching lightweight exact-scope review
@@ -292,9 +335,16 @@ Area status:
 
 | Area | Status | Notes |
 |---|---|---|
-| product | covered / gap / stale / unknown / conflict | pointer-sized note |
-| architecture | covered / gap / stale / unknown / conflict | pointer-sized note |
+| product | covered / partial / gap / stale / unknown / conflict | pointer-sized note |
+| architecture | covered / partial / gap / stale / unknown / conflict | pointer-sized note |
 | ... | ... | ... |
+
+An optional `Coverage depth` column may be added between `Status` and `Notes`,
+reusing the `deep` / `sampled` / `inferred` / `unknown` vocabulary from the
+architecture reader-quality rules. Single-tenant repos may keep the 3-column
+form. Once any row of an area carries the column, every scoped `<area>/<scope>`
+row of that area must carry it, and the baseline row's depth is the weakest
+scoped-child depth as defined in §3.
 
 Source material absorption:
 
@@ -348,7 +398,9 @@ Pending captures:
 Capture IDs are unique. This table does not retain the former `captured_at`,
 `about`, `altitude_guess`, `rule`, `evidence`, or `signal_source` taxonomy; the
 source, owner, reason, trigger, responsibility, and closure are the durable
-questions.
+questions. This Appendix A table is the sole owner of the eight-column pending
+captures schema; every other reference must point here rather than restate the
+columns.
 
 Stop review gate:
 

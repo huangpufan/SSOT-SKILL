@@ -53,6 +53,23 @@
 > `$ssot-preflight references/status-protocol.md`。
 > 备注只放一条短指针，不维护子项状态流水账。
 
+<!-- 区域状态取值：`covered` / `partial` / `gap` / `stale` / `unknown` /
+     `not_applicable` / `conflict`。`partial`（部分覆盖）是诚实的部分计分：
+     所有者 README 已存在、满足共享写作下限、该范围内 Doctor L1 检查通过，
+     且停止审查闸门中有一行 scoped self-review 授权 `area:<scope>:partial`。
+     它是下限而非上限；`covered`（已覆盖）的语义不变。
+
+     大型仓库可增加名为 `<area>/<scope>` 的作用域行（例如某个带编号架构域的
+     作用域，或某个按测试套件划分的测试作用域）；递归最多一层。17 行基线保持
+     必填，并汇总其作用域子行：任一作用域子行处于
+     `gap`/`stale`/`unknown`/`conflict` 时，阻断基线行的 `covered`/`partial`
+     主张；基线行宣称的状态或覆盖深度不得强于其最弱作用域子行。
+
+     可选第 4 列“覆盖深度”复用 `architecture.md §10` 的
+     `deep` / `sampled` / `inferred` / `unknown` 取值。单租户仓库可保留上述
+     三列形式；一旦某行使用该列，该区域的所有作用域行都必须使用。 -->
+
+
 ## 质量、风险与治理
 
 <!-- 这是 Q01-Q21 的处置登记表，不是二十一篇叙事。每个单元格保持指针大小。
