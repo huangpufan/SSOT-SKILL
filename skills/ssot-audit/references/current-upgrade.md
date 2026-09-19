@@ -10,6 +10,74 @@ files.
 
 ## Version Ledger
 
+### v2.63
+
+**Upgrade goal**: separate write provenance from coverage state. Until v2.63
+`STATUS.md` was asked to answer two different questions — *what is covered
+now* and *who wrote what, when* — and could only answer the first. Audits
+reconstructed batch history from commit archaeology; a substantive closeout
+that found nothing durable was indistinguishable from a closeout that never
+ran. v2.63 adds a sibling register: `SSOT/HISTORY.md`, an append-only batch
+write log, so the second question gets a first-class, machine-readable
+answer.
+
+1. **One row per writing-skill batch** (`update-routing.md §1.6`). Every
+   substantive batch that runs bootstrap/closeout/audit/doctor on a consumer
+   SSOT appends exactly one row to `SSOT/HISTORY.md`: `| Date | Commit |
+   Actor | Result | Touched | Note |`. `Result` is `wrote` or `no-op` — a
+   substantive no-op still logs, which is what distinguishes "checked,
+   nothing durable" from "never checked". Trivial preflight-exempt work
+   appends nothing.
+2. **Append-only by contract.** Rows are never edited, reordered, or
+   deleted; an erroneous row is corrected by a later row. This is
+   convention plus git history — lint checks the row schema, not the
+   log's immutability, which is what version control already guarantees.
+3. **Provenance only, never a shadow ledger.** Rows carry pointers (touched
+   SSOT-relative paths, batch slug, audit range) — never restated facts,
+   decisions, or status reasons. Those stay in their proper owners; the
+   moment a row starts carrying content it becomes a second STATUS and
+   the one-fact-one-owner rule is broken.
+4. **Bootstrap and audit wire in.** Bootstrap creates `HISTORY.md`
+   header-only during skeleton creation and appends its first
+   `wrote: skeleton` row when the batch completes. Commit and conversation
+   audit read HISTORY as coverage evidence — a row in range means a
+   writing skill already reconciled that batch — and append their own
+   row per completed segment with the covered range in Note.
+5. **Schema-enforced, version-gated** (`[HISTORY-LOG]`). Lint validates the
+   exact header, six-cell rows, ISO dates, known Actor/Result vocabulary,
+   monotonic date order, `no-op`↔`none` consistency, and pointer-sized
+   cells — gated on `tracked_skill_version >= 2.63`. Missing file at
+   2.63+ is WARN (the next writing batch creates it); malformed schema is
+   FAIL. `ssot-migrate.py` creates the header for consumers upgrading.
+
+**Impact**: `semantic_impact=low` — one new register file, one new lint
+tag, a batch-close obligation for writing skills. No removed columns, no
+new area, no changed claim semantics; pre-2.63 consumers are unaffected
+and upgrading consumers get the file from `ssot-migrate.py` or their next
+writing batch. HISTORY is a register: `reader-quality.md` exempts it from
+prose-body floors alongside `STATUS.md`.
+
+**Impact checklist**:
+
+| Check | Affected area | Audit action | Done criterion |
+|---|---|---|---|
+| History file exists | `SSOT/HISTORY.md` | Create from `ssot-bootstrap` `history.md` template (or run `ssot-migrate.py`) if absent. | File exists with the exact six-column header. |
+| Batch rows | `SSOT/HISTORY.md` rows | Append one row per substantive writing batch going forward; no backfill required. | Every post-upgrade batch leaves exactly one row. |
+| Row schema | `SSOT/HISTORY.md` rows | Keep rows to the six-cell contract; correct bad rows by appending, never editing. | `[HISTORY-LOG]` clean. |
+| Ownership boundary | `SSOT/HISTORY.md` vs `STATUS.md` | Keep facts/decisions/reasons in owners; HISTORY carries pointers only. | No row restates a durable fact or status reason. |
+
+**Migration notes**:
+
+- `ssot-migrate.py` creates `SSOT/HISTORY.md` (header only) when absent —
+  same run that fixes legacy schemas; `--dry-run` reports without writing.
+- Consumers below v2.63 are unaffected: `[HISTORY-LOG]` gates on
+  `tracked_skill_version >= 2.63`, and a 2.63+ consumer missing the file
+  gets WARN, not FAIL — the next writing batch creates it from the
+  bootstrap template.
+- Audit treats HISTORY as evidence, not exemption: a `wrote`/`no-op` row
+  in the tracked range shows a writing skill ran; audit still reviews the
+  underlying diff for semantic correctness.
+
 ### v2.62
 
 **Upgrade goal**: make every durable claim *bound* — to a resolvable reference,

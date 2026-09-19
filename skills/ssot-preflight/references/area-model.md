@@ -19,6 +19,7 @@ The SSOT root is fixed at `SSOT/` under the repository root; do not use `docs/` 
 SSOT/
   README.md          # Pure index entry; opens with the one-sentence repo positioning
   STATUS.md          # Maintenance status
+  HISTORY.md         # Append-only batch write log: write provenance (v2.63)
   01-product/        # Long-lived product trunk
     README.md        # Product Reader Map / owner index
     prd.md           # Current product brief and scope

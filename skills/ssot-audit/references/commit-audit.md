@@ -17,7 +17,7 @@ This file is the detailed execution reference for the Commit audit part of proac
 Independent of task execution, run a full scan over the `tracked_commit..HEAD` diff:
 
 ```text
-1. Read tracked_commit, tracked_skill_version, documentation_language and documentation_language_evidence from STATUS.md
+1. Read tracked_commit, tracked_skill_version, documentation_language and documentation_language_evidence from STATUS.md; then read `SSOT/HISTORY.md` rows whose Commit falls inside the `tracked_commit..HEAD` range — each row marks a batch a writing skill already reconciled (`no-op` = closeout ran and found nothing durable; a range with no rows = no closeout ever ran). Rows weight where audit attention goes; they do not skip the diff review
 2. Assess change size (see "Size-adaptive strategy" below)
 3. Pick a processing strategy based on size, obtain the diff
 4. Use [`update-routing.md`](../../ssot-closeout/references/update-routing.md) to map diff file changes to affected areas
@@ -38,6 +38,7 @@ Independent of task execution, run a full scan over the `tracked_commit..HEAD` d
    - Update open gaps
    - Update open adjudications (add new conflicts, resolve adjudicated items, or mark deferred/superseded)
    - Record stop-review gate evidence
+   - Append one `SSOT/HISTORY.md` row per completed segment (Actor `audit`; Note carries the covered range `<old-tracked>..<new-tracked>`) per `update-routing.md §1.6`
 ```
 
 ---

@@ -17,6 +17,19 @@ versions. This file only restates headline changes.
 ## [Unreleased]
 
 ### Added
+- Append-only batch write log (v2.63): `SSOT/HISTORY.md` is a sibling
+  register of `STATUS.md` — STATUS owns coverage claims, HISTORY owns
+  write provenance. Every substantive batch that runs a writing skill
+  (bootstrap/closeout/audit/doctor) appends exactly one row
+  `| Date | Commit | Actor | Result | Touched | Note |`; a substantive
+  `no-op` still logs, distinguishing "checked, nothing durable" from
+  "never checked". Rows are append-only (correct by appending), carry
+  pointers only (never restated facts), and are schema-checked by the
+  version-gated `[HISTORY-LOG]` lint. Bootstrap creates the file
+  header-only and appends its first `wrote: skeleton` row on completion;
+  audit reads rows as reconciliation evidence and logs one row per
+  completed segment; `ssot-migrate.py` creates the header for upgrading
+  consumers.
 - Bound claims (v2.62): the two coverage ledgers can no longer contradict —
   `[LEDGER-CONSISTENCY]` fails a file stamped `intent_recovery: covered` under
   a `gap`/`stale`/`unknown`/`conflict` area row (partial under a weak area

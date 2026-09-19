@@ -6089,6 +6089,65 @@ if [[ -d "$SSOT_DIR" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_SKI
   [[ "$SUPERSEDE_WARN_COUNT" -eq 0 ]] && add_pass "[SUPERSEDE-LINK] every superseded record names its successor"
 fi
 
+# ---------- check 41: [HISTORY-LOG] (v2.63) append-only batch write log ----------
+# STATUS.md owns coverage claims; HISTORY.md owns write provenance: one row
+# per batch that ran a writing skill. The append-only rule is convention plus
+# git history; what lint can guarantee is the contract that keeps the log
+# machine-readable: exact header, six cells, ISO date, known Result
+# vocabulary, no wrote/none contradictions. Touched paths are historical —
+# they may name files since renamed, so they are never resolved here.
+if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_SKILL_VERSION" "2.63"; then
+  HISTORY_FILE="$SSOT_DIR/HISTORY.md"
+  if [[ ! -f "$HISTORY_FILE" ]]; then
+    add_warn "[HISTORY-LOG] tracked_skill_version=$STATUS_SKILL_VERSION has no SSOT/HISTORY.md; the next closeout/audit/bootstrap write creates it"
+  else
+    HISTORY_REPORT=$(awk '
+      function trim(v){gsub(/^[[:space:]`]+|[[:space:]`]+$/,"",v);return v}
+      /^\|/ {
+        if ($0 ~ /^\|[[:space:]:|-]+(\|[[:space:]:|-]+)+\|?[[:space:]]*$/) next
+        n=split($0,c,"|")
+        if (!header_done) {
+          if (n!=8 || trim(c[2])!="Date" || trim(c[3])!="Commit" || trim(c[4])!="Actor" || trim(c[5])!="Result" || trim(c[6])!="Touched" || trim(c[7])!="Note") print "BADHEADER"
+          header_done=1; next
+        }
+        rows++
+        if (n!=7 && n!=8) { print "BADCELLS:" NR; next }
+        d=trim(c[2]); cm=trim(c[3]); ac=trim(c[4]); rs=trim(c[5]); tc=trim(c[6]); nt=trim(c[7])
+        if (d !~ /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/) print "BADDATE:" NR
+        else { if (prev!="" && d<prev) print "NONMONO:" NR; prev=d }
+        if (cm !~ /^([0-9a-f]{7,40}|-)$/) print "BADCOMMIT:" NR
+        if (ac !~ /^(bootstrap|closeout|audit|doctor)$/) print "BADACTOR:" NR
+        if (rs !~ /^(wrote|no-op)$/) print "BADRESULT:" NR
+        if (rs=="no-op" && tc!="none") print "CONTRANOOP:" NR
+        if (rs=="wrote" && tc=="none") print "CONTRAWROTE:" NR
+        if (tc ~ /(^|;)[[:space:]]*(\.\.|\/)/) print "BADPATH:" NR
+        if (length(nt)>160) print "LONGNOTE:" NR
+      }
+      END { if (!header_done) print "NOHEADER"; else if (rows==0) print "EMPTY" }
+    ' "$HISTORY_FILE")
+    HISTORY_FAIL_COUNT=0
+    HISTORY_WARN_COUNT=0
+    while IFS= read -r hline; do
+      case "$hline" in
+        NOHEADER) add_fail "[HISTORY-LOG] $HISTORY_FILE has no log table"; HISTORY_FAIL_COUNT=$((HISTORY_FAIL_COUNT+1)) ;;
+        BADHEADER) add_fail "[HISTORY-LOG] $HISTORY_FILE header must be exactly | Date | Commit | Actor | Result | Touched | Note |"; HISTORY_FAIL_COUNT=$((HISTORY_FAIL_COUNT+1)) ;;
+        BADCELLS:*) add_fail "[HISTORY-LOG] $HISTORY_FILE line ${hline#*:} is not a six-cell row"; HISTORY_FAIL_COUNT=$((HISTORY_FAIL_COUNT+1)) ;;
+        BADDATE:*) add_fail "[HISTORY-LOG] $HISTORY_FILE line ${hline#*:} Date is not YYYY-MM-DD"; HISTORY_FAIL_COUNT=$((HISTORY_FAIL_COUNT+1)) ;;
+        BADRESULT:*) add_fail "[HISTORY-LOG] $HISTORY_FILE line ${hline#*:} Result must be wrote or no-op"; HISTORY_FAIL_COUNT=$((HISTORY_FAIL_COUNT+1)) ;;
+        NONMONO:*) add_warn "[HISTORY-LOG] $HISTORY_FILE line ${hline#*:} date goes backward (append-only order expected)"; HISTORY_WARN_COUNT=$((HISTORY_WARN_COUNT+1)) ;;
+        BADCOMMIT:*) add_warn "[HISTORY-LOG] $HISTORY_FILE line ${hline#*:} Commit is not a short sha or -"; HISTORY_WARN_COUNT=$((HISTORY_WARN_COUNT+1)) ;;
+        BADACTOR:*) add_warn "[HISTORY-LOG] $HISTORY_FILE line ${hline#*:} Actor is not bootstrap/closeout/audit/doctor"; HISTORY_WARN_COUNT=$((HISTORY_WARN_COUNT+1)) ;;
+        CONTRANOOP:*) add_warn "[HISTORY-LOG] $HISTORY_FILE line ${hline#*:} no-op row must carry Touched=none"; HISTORY_WARN_COUNT=$((HISTORY_WARN_COUNT+1)) ;;
+        CONTRAWROTE:*) add_warn "[HISTORY-LOG] $HISTORY_FILE line ${hline#*:} wrote row must name touched SSOT paths"; HISTORY_WARN_COUNT=$((HISTORY_WARN_COUNT+1)) ;;
+        BADPATH:*) add_warn "[HISTORY-LOG] $HISTORY_FILE line ${hline#*:} Touched names a path outside SSOT"; HISTORY_WARN_COUNT=$((HISTORY_WARN_COUNT+1)) ;;
+        LONGNOTE:*) add_warn "[HISTORY-LOG] $HISTORY_FILE line ${hline#*:} Note exceeds 160 chars; keep cells pointer-sized"; HISTORY_WARN_COUNT=$((HISTORY_WARN_COUNT+1)) ;;
+        EMPTY) add_warn "[HISTORY-LOG] $HISTORY_FILE has no batch rows; each writing-skill batch appends one"; HISTORY_WARN_COUNT=$((HISTORY_WARN_COUNT+1)) ;;
+      esac
+    done <<< "$HISTORY_REPORT"
+    [[ "$HISTORY_FAIL_COUNT" -eq 0 && "$HISTORY_WARN_COUNT" -eq 0 ]] && add_pass "[HISTORY-LOG] v2.63 batch write log rows match the append-only schema"
+  fi
+fi
+
 fi  # end META_LEAKAGE_SKIP_OTHER_CHECKS guard (checks 13-17 also guarded)
 
 # ---------- output ----------

@@ -168,6 +168,7 @@ In proactive catch-up, conversation audit and commit audit can run independently
 - **Independent execution**: each advances its own tracking baseline (`tracked_commit` / `tracked_session`) through its own independent stop review
 - **Joint execution**: during a full audit, catch up the backlog of both event sources simultaneously
 - **Cross-validation**: changes discussed in conversation are usually landed via commit -- the two event sources can corroborate each other
+- **Batch history**: session-audit writes close through the same `SSOT/HISTORY.md` row as the covering batch — one row per batch per `update-routing.md §1.6`, Actor `audit`, Note carrying the covered transcript range when useful
 
 Typical division of labor: decision records in `decisions/` are better extracted from conversation (because the why is in the conversation), while current facts in architecture are better extracted from commits (because the what is in the code).
 

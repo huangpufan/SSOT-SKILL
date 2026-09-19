@@ -38,6 +38,7 @@ SSOT/
 ├── 04-records/          Decisions, bugs, debts, gotchas, and research packets
 ├── glossary/            Repository-specific terms
 ├── STATUS.md            Tracking baseline, area status, adjudications, and visible gaps
+├── HISTORY.md           Append-only batch write log: which skill wrote which files when
 └── README.md            This reader route
 ```
 

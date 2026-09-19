@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """ssot-migrate.py -- migrate legacy lean STATUS schemas to the canonical
-v2.60+ Appendix-A schemas, and backfill missing record frontmatter keys.
+v2.60+ Appendix-A schemas, backfill missing record frontmatter keys, and
+create the v2.63 append-only SSOT/HISTORY.md header when absent.
 
 Why this exists: exact-schema checks hard-fail every row of a legacy 5-6
 column table, which reports one migration debt as dozens of content defects.
@@ -297,6 +298,23 @@ def backfill_record(path, required, defaults, dry_run):
     return True
 
 
+HISTORY_HEADER = (
+    '# SSOT History\n\n'
+    '| Date | Commit | Actor | Result | Touched | Note |\n'
+    '|---|---|---|---|---|---|\n'
+)
+
+
+def ensure_history(root, dry_run):
+    path = os.path.join(root, 'HISTORY.md')
+    if os.path.isfile(path):
+        return False
+    if not dry_run:
+        with open(path, 'w', encoding='utf-8') as f:
+            f.write(HISTORY_HEADER)
+    return True
+
+
 DECISION_REQ = ['id', 'record_status', 'implementation_state', 'created_on', 'introduced_in', 'updated_on']
 DECISION_DEF = {'record_status': 'active', 'implementation_state': 'pending',
                 'introduced_in': '"unknown-migrated"'}
@@ -321,6 +339,9 @@ def main():
     if not a.records_only and os.path.isfile(status):
         if migrate_status(status, a.dry_run):
             did.append(f'{status}: rewrote non-canonical STATUS tables')
+    if not a.records_only:
+        if ensure_history(root, a.dry_run):
+            did.append(f'{root}/HISTORY.md: created append-only batch log header')
     if not a.status_only:
         for sub, req, defs in ((('decisions',), DECISION_REQ, DECISION_DEF),
                                (('research',), RESEARCH_REQ, RESEARCH_DEF)):

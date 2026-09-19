@@ -81,6 +81,35 @@ Both boundaries are closeout obligations, not lint checks — lint can detect
 some of their traces (untracked SSOT files, `/tmp` evidence) but the
 classification and routing judgement belongs to the reviewer.
 
+## 1.6 Batch History Row
+
+Every batch that runs a writing skill on this SSOT ends by appending exactly
+one row to `SSOT/HISTORY.md` — the append-only batch write log, sibling of
+`STATUS.md`. `STATUS.md` owns coverage claims; `HISTORY.md` owns write
+provenance. If the file is missing, create it with the
+[`history.md`](../../ssot-bootstrap/assets/templates/en/history.md) header.
+
+| Column | Content |
+|---|---|
+| Date | `YYYY-MM-DD` at append time |
+| Commit | short HEAD sha at append time |
+| Actor | the writing skill: `bootstrap` / `closeout` / `audit` / `doctor` |
+| Result | `wrote` when durable SSOT files changed; `no-op` when the batch ran closeout and found no durable change |
+| Touched | `;`-separated SSOT-relative paths the batch wrote, `skeleton` for bootstrap, `none` for `no-op` |
+| Note | optional short pointer: batch slug, audit range, PR or session ref |
+
+- A `no-op` row is still appended when the batch was substantive: the log must
+  distinguish "closeout ran and wrote nothing" from "no closeout ever ran".
+- Preflight-exempt trivial batches append nothing. In-task SSOT writes (a
+  parked `CAP-` row, an inline owner update) are covered by the same batch's
+  closeout row — one row per batch, not per write.
+- Audit appends one row per completed segment; the Note cell carries the
+  covered range `<old-tracked>..<new-tracked>`.
+- Rows are append-only: never edit, reorder, or delete a prior row; a wrong
+  row is corrected by a later row, never rewritten.
+- The row carries provenance only. Restating a fact, decision, or status
+  reason in a row is a shadow ledger — the fact lives in its owner.
+
 ## 2. Frequent Routes
 
 **Code changes** usually update architecture only when they change a public

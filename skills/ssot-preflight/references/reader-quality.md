@@ -106,9 +106,9 @@ characters; semantic review still decides whether those paragraphs actually
 teach the required story. The root process or records router becomes part of
 the covered reader path when any child area is covered.
 
-Register-only files are different. `STATUS.md`, `_manifest.md` and future
-`_*.md` files, artifacts under `.bootstrap/`, promotion/protocol ledgers, and
-thin startup adapters may keep fixed tables or compact fields. Their cells stay
+Register-only files are different. `STATUS.md`, `HISTORY.md`, `_manifest.md`
+and future `_*.md` files, artifacts under `.bootstrap/`, promotion/protocol
+ledgers, and thin startup adapters may keep fixed tables or compact fields. Their cells stay
 pointer-sized and route narrative to its owner. They are not prose bodies and
 must not be padded merely to satisfy the body floor.
 

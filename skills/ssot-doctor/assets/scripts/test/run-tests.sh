@@ -63,6 +63,10 @@ assert_has_warn_tag() { # desc out bracketed-tag
   if _in_section_tag 'WARN' "$2" "$3"; then echo "  ok   : $1"; PASS=$((PASS + 1));
   else echo "  FAIL : $1 (missing warn tag: $3)"; FAIL=$((FAIL + 1)); fi
 }
+assert_no_warn_tag() { # desc out bracketed-tag
+  if _in_section_tag 'WARN' "$2" "$3"; then echo "  FAIL : $1 (unexpected warn tag: $3)"; FAIL=$((FAIL + 1));
+  else echo "  ok   : $1"; PASS=$((PASS + 1)); fi
+}
 assert_file() { # desc path
   if [[ -f "$2" ]]; then echo "  ok   : $1"; PASS=$((PASS + 1));
   else echo "  FAIL : $1 (missing file: $2)"; FAIL=$((FAIL + 1)); fi
@@ -873,6 +877,55 @@ echo "== S58 portable lexical path normalization =="
 code=0
 bash "$(dirname "$LINT")/test/test-lexical-path.sh" || code=$?
 assert_exit "portable lexical normalization regression" "$code" "0"
+
+echo "== S59 v2.63 valid HISTORY.md passes HISTORY-LOG =="
+T=$(mktemp -d); make_base "$T"; facet_base "$T"
+set_protocol_version "$T" "2.63"
+{
+  printf '# SSOT History\n\n'
+  printf '| Date | Commit | Actor | Result | Touched | Note |\n'
+  printf '|---|---|---|---|---|---|\n'
+  printf '| 2026-07-10 | abc1234 | bootstrap | wrote | skeleton | initial skeleton |\n'
+  printf '| 2026-07-11 | def5678 | closeout | no-op | none | - |\n'
+} > "$T/SSOT/HISTORY.md"
+out=$(run "$T"); code=$?
+assert_no_fail_tag "valid history has no HISTORY-LOG fail" "$out" "[HISTORY-LOG]"
+assert_no_warn_tag "valid history has no HISTORY-LOG warn" "$out" "[HISTORY-LOG]"
+assert_contains "valid history reports schema pass" "$out" "batch write log rows match the append-only schema"
+rm -rf "$T"
+
+echo "== S60 v2.63 missing HISTORY.md warns =="
+T=$(mktemp -d); make_base "$T"; facet_base "$T"
+set_protocol_version "$T" "2.63"
+out=$(run "$T"); code=$?
+assert_has_warn_tag "missing history warns" "$out" "[HISTORY-LOG]"
+assert_no_fail_tag "missing history does not fail" "$out" "[HISTORY-LOG]"
+rm -rf "$T"
+
+echo "== S61 v2.63 malformed HISTORY.md fails schema =="
+T=$(mktemp -d); make_base "$T"; facet_base "$T"
+set_protocol_version "$T" "2.63"
+{
+  printf '# SSOT History\n\n'
+  printf '| Date | Commit | Actor | Result | Touched | Note |\n'
+  printf '|---|---|---|---|---|---|\n'
+  printf '| 2026-07-11 | abc1234 | closeout | wrote | STATUS.md | ok row |\n'
+  printf '| 2026-07-09 | abc1234 | wizard | maybe | none | backward + bad actor/result |\n'
+  printf '| 07/10/2026 | abc1234 | closeout | no-op | none | bad date |\n'
+} > "$T/SSOT/HISTORY.md"
+out=$(run "$T"); code=$?
+assert_has_fail_tag "bad date fails" "$out" "[HISTORY-LOG]"
+assert_contains "bad date flagged" "$out" "Date is not YYYY-MM-DD"
+assert_contains "bad result flagged" "$out" "Result must be wrote or no-op"
+assert_contains "non-monotonic order warned" "$out" "date goes backward"
+rm -rf "$T"
+
+echo "== S62 pre-v2.63 missing HISTORY.md is not checked =="
+T=$(mktemp -d); make_base "$T"; facet_base "$T"
+set_protocol_version "$T" "2.62"
+out=$(run "$T"); code=$?
+assert_not_contains "pre-v2.63 has no HISTORY-LOG at all" "$out" "[HISTORY-LOG]"
+rm -rf "$T"
 
 echo ""
 echo "===== summary: PASS=$PASS FAIL=$FAIL ====="

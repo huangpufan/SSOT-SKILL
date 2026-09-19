@@ -41,6 +41,7 @@ from or to apex requires `$ssot-doctor` review.
 3. If this run touches README/docs/ADR/runbook/PRD, product planning or user-supplied material, follow [`source-material.md`](../../ssot-preflight/references/source-material.md) for source-material lifecycle, classification, absorption, thin-documentation check and conflict adjudication; product promises, capability, journey, roadmap and product acceptance enter `product/` first.
 4. Apply the write discipline below to update the single authoritative location; do not maintain the same fact in multiple areas, and do not hide action guidance inside a ledger.
 5. Update `STATUS.md` area state, open gaps, open adjudications, source-material absorption matrix and stop-review records.
+6. When the batch closes, append one `SSOT/HISTORY.md` row per the batch-history contract in [`update-routing.md §1.6`](update-routing.md): `wrote` plus the touched paths, or `no-op` when a substantive batch changed no durable fact. Inline writes inside the batch are covered by that single closeout row — never one row per write.
 
 When the update leaves a fallback, compat shim, temporary workaround,
 later-remove path, TODO/FIXME/HACK/WORKAROUND, or temporary waiver in current
