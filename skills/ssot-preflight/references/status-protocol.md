@@ -147,6 +147,24 @@ a completion claim.
 `converged` is never inferred from all rows looking green; it is a stop
 conclusion. `covered` is also a stop conclusion for that area/scope.
 
+**Two ledgers, one truth.** The Area Status register and per-file
+`intent_recovery:` frontmatter stamps are two ledgers describing the same
+coverage. They must not contradict each other: a file stamped `covered` under
+an area the register calls `gap`, `stale`, `unknown`, or `conflict` presents
+two opposite trust signals on one page — one ledger must move first (demote
+the stamp, or earn the area claim). A `partial` stamp under a `gap`/`unknown`/
+`conflict` area is a milder form of the same contradiction and is warned, not
+failed. Lint reports `[LEDGER-CONSISTENCY]`.
+
+**Registered blockers constrain live claims.** An open gap row's
+`Blocking / retrigger condition` cell is a machine-readable contract when it
+names a protocol claim token (`converged`, `covered`, `tracked_commit`,
+`tracked_session`, `tracked_skill_version`). While that row is `gap` or
+`unknown`, the named claim cannot be declared: a STATUS that says
+`coverage_result: converged` next to an open row blocking `converged` is a
+contradiction, not a nuance. Lint reports `[GAP-BLOCK]`; keep the blocked-claim
+vocabulary exact so the check can see it.
+
 A conditional freshness floor binds only where a coverage claim exists: any
 area at `covered`/`partial`, or `coverage_result: converged`. If a
 `covered`/`partial` claim's reviewed baseline is behind current HEAD and the
@@ -239,6 +257,18 @@ resolving Markdown link or explicit `$ssot-*` route. `resolved` or
 rows may be completely empty; a partly filled row is a real row and must pass
 the full contract.
 
+The `Blocking / retrigger condition` cell is also the contract surface for §3's
+registered blockers: when a gap blocks a protocol claim, name the claim token
+(`converged`, `covered`, `tracked_commit`, ...) there so the constraint is
+checkable rather than prose.
+
+The same supersession discipline applies to record files: a decision,
+research, debt, or bug entry whose lifecycle state is `superseded` (or
+`deprecated`/`retracted`) must name its successor — `superseded_by:` in
+frontmatter, or an explicit "superseded by" / "replaced by" link in the body.
+A superseded record with no successor pointer is a dead end for a cold reader;
+lint warns `[SUPERSEDE-LINK]`.
+
 ## 6. Stop Review Gate
 
 Each time you prepare to declare `converged`, `covered`, `passed`, `done`,
@@ -252,6 +282,18 @@ authorises. `result` is only `no-more-required-changes` or `needs-fix`. If
 result is `needs-fix`, the stop conclusion is not accepted. The evidence cell
 contains one resolving Markdown link; a chat statement or bare path is not a
 durable review artifact.
+
+Evidence must be durable: the link must resolve in a fresh checkout of the
+repository. A path into `/tmp`, a per-user cache, a CI run page, or a chat
+transcript decays into an unverifiable claim. When no in-repo artifact exists
+yet, write one (a `.bootstrap/` review artifact or a research packet) rather
+than pointing at scratch space; lint warns `[EPHEMERAL-EVIDENCE]`.
+
+Advancing a `tracked_commit`, `tracked_session`, or `tracked_skill_version`
+baseline is itself a stop claim: the gate row that authorises it must name that
+field as its stop claim. A baseline that moved without a gate row naming it
+asserts a review nobody performed; lint warns `[BASELINE-REVIEW]` for each
+live baseline no gate row names.
 
 For lightweight v2.60 exact-scope reviews, `scope` is `process`, `records`,
 `glossary`, `root`, or `status`. Covered area rows use stop claim `covered` and
@@ -304,6 +346,13 @@ Rules:
 - Every protocol bump must update the upgrade ledger: the router, current entry,
   or archive entry as applicable. A missing current-version entry makes the
   release incomplete.
+- `tracked_skill_version` must be artifact-bound: it attests to a protocol
+  artifact that exists in this checkout (installed skill files, a pinned
+  submodule/vendor copy, or a recorded release). Do not advance the claim past
+  the newest artifact a fresh clone would see — an installed-but-dirty worktree
+  version is not reproducible. Lint reports `[SKILL-VERSION-BINDING]` when the
+  claim outruns every artifact it can find, and warns when an installed
+  artifact is newer than the claim.
 
 Impact classification:
 

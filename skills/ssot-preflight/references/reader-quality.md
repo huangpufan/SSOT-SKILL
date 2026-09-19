@@ -123,6 +123,14 @@ Apply these reader rules to every body in scope:
    except for unavoidable identifiers or product names.
 5. Never mark a body `covered` while template tokens such as `<term>`,
    `<owner-path>`, or their locked-language equivalents remain in reader prose.
+6. Source references must resolve in the current tree. A body that pins
+   `` `engine/foo.py` `` or `` `engine/foo.py::dispatch` `` teaches a runtime
+   the reader will try to open. When the pinned file or symbol is deleted, the
+   page keeps teaching a dead system — worse than an honest `gap`. Prefer
+   `path::symbol` over `path:NN` line pins (line numbers drift on every edit);
+   when a reference is intentionally historical, mark it inline
+   (`historical: engine/old.py`, `retired:`, `deleted:`) so a reader — and
+   lint `[REF-RESOLVE]` — knows it describes a past state, not the current one.
 
 Information architecture is part of the writing floor. A directory with at
 least two reader children opens its README with an ASCII tree of immediate

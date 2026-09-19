@@ -44,6 +44,43 @@ bug-instance takeaway -> `bugs/<entry>.md`, recurring live duty -> conditional
 `03-process/security-and-compliance/`. Never create a new top-level area just
 because a fact is hard to route.
 
+## 1.5 Verification Layer and Worktree Boundary
+
+Two failure modes recur in real batches and both survive today because nothing
+in the closeout path forces them into the open.
+
+**Verification layer.** Before any final response or done claim, classify every
+user-visible claim by how it was actually verified:
+
+| Layer | What it means | Examples |
+|---|---|---|
+| `user-path` | The real user journey was exercised end to end | installed app opened, hotkey pressed, clipboard delivered, two-monitor routing observed |
+| `proxy` | A stand-in observed something related | unit tests, build success, install exit code, screenshot, typecheck |
+| `unexercised` | Nothing ran the path | claim rests on code reading or intent |
+
+Proxy evidence is legitimate evidence — but it does not prove the user path.
+A batch that ends "installed, tests green, screenshot taken" and leaves the
+global hotkey, clipboard delivery, or microphone path unexercised has verified
+the *harness*, not the *product*. Honest disclosure in the final response is
+necessary but not sufficient: when an unexercised user path affects whether a
+future agent can close the same task, route it — a `testing/` gap, an Open
+Gaps row naming the path and its closure condition, or a `tech-debt` entry.
+A caveat left only in the final response evaporates at session end.
+
+**Worktree boundary.** A substantive batch ends with its changes committed, or
+with an explicit, visible reason they are not ("user asked to review first").
+Uncommitted leftovers are the next batch's contamination: they leak into
+unrelated diffs, break unrelated test runs, and force stash/pop archaeology on
+whoever arrives next. Closeout does not commit on the user's behalf — but it
+must end the batch in one of two honest states: *committed*, or *dirty with a
+named owner and reason recorded where the next agent will see it* (final
+response plus, when the deferral is durable, a STATUS gap or capture). "The
+session ended" is not a reason.
+
+Both boundaries are closeout obligations, not lint checks — lint can detect
+some of their traces (untracked SSOT files, `/tmp` evidence) but the
+classification and routing judgement belongs to the reviewer.
+
 ## 2. Frequent Routes
 
 **Code changes** usually update architecture only when they change a public

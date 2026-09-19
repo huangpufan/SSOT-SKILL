@@ -10,6 +10,104 @@ files.
 
 ## Version Ledger
 
+### v2.62
+
+**Upgrade goal**: make every durable claim *bound* — to a resolvable reference,
+a registered blocker check, a reviewed baseline, and a reproducible artifact —
+and close the two behavioral leaks a transcript study of real consumers
+surfaced: verification that stops at proxy evidence, and batches that end in a
+dirty worktree. v2.61 added honest intermediate states (`partial`,
+re-confirmation); v2.62 adds the discipline that keeps claims, ledgers, and
+evidence from drifting apart afterward.
+
+1. **Two ledgers, one truth** (`[LEDGER-CONSISTENCY]`). The Area Status
+   register and per-file `intent_recovery:` stamps describe the same coverage
+   and were allowed to contradict: real consumers shipped files stamped
+   `covered` under areas the register calls `gap`. A `covered` stamp under a
+   `gap`/`stale`/`unknown`/`conflict` area is now a hard contradiction —
+   demote the stamp or earn the area claim; `partial` under a weak area warns.
+2. **Registered blockers constrain claims** (`[GAP-BLOCK]`). An Open Gaps row's
+   Blocking/retrigger cell is now a machine-readable contract: when it names a
+   protocol claim (`converged`, `covered`, `tracked_*`), that claim cannot be
+   live while the row is open. A consumer had exactly this contradiction —
+   an open blocker on `converged` beside `coverage_result: converged`.
+3. **Baselines are reviewed claims** (`[BASELINE-REVIEW]`). Each live
+   `tracked_commit`/`tracked_session`/`tracked_skill_version` must have a Stop
+   Review Gate row naming that field; a baseline that moved without one asserts
+   a review nobody performed. WARN-only.
+4. **Content referentiality** (`[REF-RESOLVE]`). Inline-code repo references
+   (`path`, `path:NN`, `path::symbol`) in SSOT bodies must resolve; dead pins
+   keep teaching deleted runtimes. `retired:`/`historical:`/`deleted:` markers
+   exempt intentional history. Prefer `path::symbol` over line numbers.
+   WARN-only; the writing rule lives in reader-quality.md §2 floor item 6.
+5. **Artifact-bound protocol identity** (`[SKILL-VERSION-BINDING]`).
+   `tracked_skill_version` attests to a reproducible artifact in the checkout —
+   not an installed-but-dirty worktree. FAIL when the claim outruns every
+   installed/pinned artifact; WARN when the artifact is newer than the claim.
+6. **Auditable re-confirmation** (`[RECONFIRM-TOKEN]`). `re-confirmed at`
+   tokens must carry `on YYYY-MM-DD` and, when naming a commit, be on this
+   branch's history — self-attested tokens must be checkable after the fact.
+7. **Evidence durability** (`[EPHEMERAL-EVIDENCE]`). STATUS cells and
+   `.bootstrap/` artifacts must not point at `/tmp` or per-user caches;
+   evidence lives in the repo or carries a content hash. WARN-only.
+8. **Git visibility** (`[GIT-TRACKED]`). An SSOT file git cannot see cannot be
+   reviewed or shipped. Canonical names like `release/` collide with common
+   build-output ignore rules — new files were silently dropped by `git add`
+   in a real consumer. WARN-only.
+9. **Supersession links** (`[SUPERSEDE-LINK]`). Records marked `superseded`/
+   `deprecated`/`retracted` must name a successor (`superseded_by:` frontmatter
+   or explicit body link); a superseded record without one is a dead end.
+   WARN-only.
+10. **Verification layer and worktree boundary** (behavioral, closeout).
+    `update-routing.md §1.5` adds two closeout obligations: classify each
+    user-visible claim as `user-path`/`proxy`/`unexercised` and route
+    unexercised paths to a durable owner (installed+unit+screenshot is not a
+    user-journey proof); and end every substantive batch committed or with a
+    visible named reason — a dirty worktree is the next batch's contamination.
+11. **Schema migration is a first-class route.** Legacy lean STATUS schemas
+    (5–6-column Open Gaps etc.) previously hard-failed dozens of per-row checks
+    that only restated one migration debt. Per-row actionability checks now
+    run only against the canonical schema; a non-canonical table gets one
+    migration WARN pointing at `ssot-migrate.py`, which upgrades lean STATUS
+    tables and backfills record frontmatter in place.
+
+**Impact**: `semantic_impact=medium` — new lint tags and closeout obligations,
+no removed columns, no new top-level area, no new mandatory field, no new
+stop-review trigger. New FAILs (`LEDGER-CONSISTENCY`, `GAP-BLOCK`,
+`SKILL-VERSION-BINDING`, off-branch `RECONFIRM-TOKEN`) fire only on genuine
+contradictions; the rest are WARN. Consumers on legacy schemas get a migration
+route instead of permanent red.
+
+**Impact checklist**:
+
+| Check | Affected area | Audit action | Done criterion |
+|---|---|---|---|
+| Ledger consistency | File `intent_recovery:` stamps vs `## Area Status` | Walk each `covered`/`partial` stamp under a weak area row; demote the stamp or earn the area claim. | No `covered` stamp sits under a `gap`/`stale`/`unknown`/`conflict` area. |
+| Registered blockers | `## Open Gaps` Blocking cells vs live claims | Name blocked claim tokens in Blocking cells; drop claims that open rows forbid. | No open row blocking `converged`/`covered`/`tracked_*` coexists with that claim live. |
+| Baseline review | `## Event-Source Coverage` + `## Stop Review Gate` | Add a gate row naming each live baseline field it authorised. | Each `tracked_*` field with a live value is named by a gate row. |
+| Reference integrity | SSOT body inline-code paths | Resolve or mark `historical:`/`retired:`/`deleted:`; prefer `path::symbol`. | No unmarked dead reference remains in a body. |
+| Version binding | `tracked_skill_version` vs installed artifacts | Install the claimed artifact or lower the claim to what a fresh clone sees. | Claim ≤ newest reproducible artifact in checkout. |
+| Evidence durability | STATUS cells, `.bootstrap/` artifacts | Replace `/tmp`/cache paths with in-repo artifacts or content hashes. | No evidence pointer decays on a fresh checkout. |
+| Git visibility | SSOT files vs `.gitignore` | Add negation rules for ignored SSOT paths (e.g. `release/`); commit untracked files. | `git check-ignore`/`ls-files` clean for every SSOT file. |
+| Supersession links | `decisions/`, `research/`, `tech-debt/`, `bugs/` records | Add `superseded_by:` (or body link) to every superseded record. | No dead-end superseded record. |
+| Verification layer | Closeout behavior (§1.5) | Classify each user-visible claim `user-path`/`proxy`/`unexercised`; route unexercised paths to a testing/STATUS gap. | No done-claim rests silently on proxy evidence for an unexercised user path. |
+| Worktree boundary | Closeout behavior (§1.5) | End each substantive batch committed, or record owner+reason where the next agent sees it. | No unexplained dirty-tree handoff. |
+| Schema migration | Lean legacy STATUS/record schemas | Run `ssot-migrate.py` to reach the canonical schema, then re-lint. | Canonical-schema checks replace the migration WARN. |
+
+**Migration notes**:
+
+- `skills/ssot-doctor/assets/scripts/ssot-migrate.py` rewrites lean STATUS
+  tables (e.g. 5–6-column Open Gaps) into the canonical Appendix-A schema in
+  place, preserving row content into the closest canonical columns, and can
+  backfill missing record frontmatter keys. Run it before treating exact-schema
+  FAILs as content defects; `--dry-run` prints the planned rewrite.
+- Consumers below v2.62 are unaffected: all new checks gate on
+  `tracked_skill_version >= 2.60` (or `2.61` for RECONFIRM-TOKEN) and the
+  legacy-schema WARN appears only where the canonical gate cannot run.
+- The verification-layer and worktree-boundary rules are closeout obligations,
+  not lint gates — they change what a done-claim must disclose, not what lint
+  counts.
+
 ### v2.61
 
 **Upgrade goal**: close the four structural gaps a multi-dimensional review of a

@@ -419,6 +419,15 @@ check_meta_leakage_dir() {
     [[ "$rel_file" == "CHANGELOG.md" ]] && continue
     local rel_path="${md_file#"$target_dir"/}"
     [[ "$rel_path" == .bootstrap/* || "$rel_path" == */.bootstrap/* ]] && continue
+    # v2.62: record ledgers (decisions/bugs/debt/gotchas/research) legitimately
+    # discuss the protocol itself as subject matter — a DEC about adopting
+    # ssot-doctor cannot be written without naming it. Only the base machinery
+    # tokens (lint IDs, block names, version literals) still apply there; the
+    # v2.59 skill-name tokens keep guarding reader-facing areas.
+    local file_tokens="$meta_leakage_tokens"
+    if [[ "$md_file" =~ /([0-9]+-)?records/ ]]; then
+      file_tokens="$META_LEAKAGE_TOKENS_BASE"
+    fi
     local hit
     hit=$(awk '
       NR==1 && /^---[[:space:]]*$/ { front=1; next }
@@ -438,9 +447,12 @@ check_meta_leakage_dir() {
           }
           break
         }
+        # v2.62: an inline-code mention of a skill name (`$ssot-preflight`) is
+        # operational routing for the repo maintainer, not machinery prose.
+        gsub(/`[^`]*`/, "x", line)
         if (line != "") print FNR ":" line
       }
-    ' "$md_file" | grep -E "$meta_leakage_tokens" | head -3 || true)
+    ' "$md_file" | grep -E "$file_tokens" | head -3 || true)
     if [[ -n "$hit" ]]; then
       local first_hit_line
       first_hit_line=$(printf '%s\n' "$hit" | head -1 | cut -d: -f1)
@@ -1116,7 +1128,7 @@ review_frontmatter_value() { # $1=artifact $2=key
     index($0, key ":") == 1 {
       value=substr($0, length(key) + 2)
       sub(/^[[:space:]]*/, "", value)
-      gsub(/^['\''\"]|['\''\"]$/, "", value)
+      gsub(/^['\''"]|['\''"]$/, "", value)
       print value
       exit
     }
@@ -3889,38 +3901,74 @@ status_gap_owner_is_actionable() { # $1=Owner cell
   printf '%s\n' "$normalized" | grep -qE '^\$ssot-(preflight|bootstrap|closeout|audit|doctor|skill)$'
 }
 
+# Detect the canonical 8-column Open Gaps header. A legacy lean table (<8
+# columns) is already reported by [STATUS-EXACT-SCHEMA]; failing every row here
+# on missing columns would double-report one migration debt as many content
+# defects.
+status_gaps_schema_is_canonical() {
+  awk '
+    function trim(v){gsub(/^[[:space:]]+|[[:space:]]+$/,"",v);return v}
+    function key(v, lower) {
+      lower=tolower(v)
+      if (lower=="open gaps" || v=="开放缺口") return "gaps"
+      return ""
+    }
+    /^##[[:space:]]+/ { title=$0; sub(/^##[[:space:]]+/,"",title); active=(key(trim(title))=="gaps"); next }
+    active && /^\|/ {
+      n=split($0, c, "|")
+      join=""
+      for(i=2;i<n;i++) join=join "|" tolower(trim(c[i]))
+      if (join ~ /(blocking|阻断|阻塞)/ && join ~ /(route|路径|路由)/) print "canonical"
+      exit
+    }
+  ' "$STATUS_FILE" | grep -q canonical
+}
+
 if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_SKILL_VERSION" "2.60"; then
   STATUS_GAP_ACTIONABILITY_FAIL_COUNT=0
-  while IFS=$'\034' read -r line_no affected retrigger responsible route; do
+  if ! status_gaps_schema_is_canonical; then
+    add_warn "[STATUS-GAP-ACTIONABILITY] Open Gaps table does not match the canonical 8-column schema (Affected/Question/Owner/Blocking/Route/Closure); per-row actionability checks are deferred to schema migration — run ssot-migrate.py"
+  fi
+fi
+if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_SKILL_VERSION" "2.60" && status_gaps_schema_is_canonical; then
+  while IFS=$'\034' read -r line_no gap_id affected retrigger responsible route; do
     [[ -n "$line_no" ]] || continue
+    gap_ref="${gap_id:-row}"
     if [[ -z "$affected" ]]; then
-      add_fail "[STATUS-GAP-ACTIONABILITY] open gap row has empty Affected scope / task: $STATUS_FILE:$line_no"
+      add_fail "[STATUS-GAP-ACTIONABILITY] open gap row has empty Affected scope / task: $STATUS_FILE:$line_no $gap_ref"
       STATUS_GAP_ACTIONABILITY_FAIL_COUNT=$((STATUS_GAP_ACTIONABILITY_FAIL_COUNT + 1))
     fi
     if [[ -z "$retrigger" ]]; then
-      add_fail "[STATUS-GAP-ACTIONABILITY] open gap row has empty Blocking / retrigger condition: $STATUS_FILE:$line_no"
+      add_fail "[STATUS-GAP-ACTIONABILITY] open gap row has empty Blocking / retrigger condition: $STATUS_FILE:$line_no $gap_ref"
       STATUS_GAP_ACTIONABILITY_FAIL_COUNT=$((STATUS_GAP_ACTIONABILITY_FAIL_COUNT + 1))
     fi
     if [[ -z "$responsible" ]]; then
-      add_fail "[STATUS-GAP-ACTIONABILITY] open gap row has empty Responsible owner: $STATUS_FILE:$line_no"
+      add_fail "[STATUS-GAP-ACTIONABILITY] open gap row has empty Responsible owner: $STATUS_FILE:$line_no $gap_ref"
       STATUS_GAP_ACTIONABILITY_FAIL_COUNT=$((STATUS_GAP_ACTIONABILITY_FAIL_COUNT + 1))
     elif ! status_gap_owner_is_actionable "$responsible"; then
-      add_fail "[STATUS-GAP-ACTIONABILITY] open gap Responsible owner must be one resolvable Markdown owner link or an explicit \$ssot-* runtime route; a bare record ID is not reachable: $STATUS_FILE:$line_no owner='$responsible'"
+      add_fail "[STATUS-GAP-ACTIONABILITY] open gap Responsible owner must be one resolvable Markdown owner link or an explicit \$ssot-* runtime route; a bare record ID is not reachable: $STATUS_FILE:$line_no $gap_ref owner='$responsible'"
       STATUS_GAP_ACTIONABILITY_FAIL_COUNT=$((STATUS_GAP_ACTIONABILITY_FAIL_COUNT + 1))
     fi
     if [[ -z "$route" ]] || ! status_gap_owner_is_actionable "$route"; then
-      add_fail "[STATUS-GAP-ACTIONABILITY] open gap Resolving route must be one resolvable Markdown link or an explicit \$ssot-* runtime route: $STATUS_FILE:$line_no route='$route'"
+      add_fail "[STATUS-GAP-ACTIONABILITY] open gap Resolving route must be one resolvable Markdown link or an explicit \$ssot-* runtime route: $STATUS_FILE:$line_no $gap_ref route='$route'"
       STATUS_GAP_ACTIONABILITY_FAIL_COUNT=$((STATUS_GAP_ACTIONABILITY_FAIL_COUNT + 1))
     fi
-  done < <(status_section_table gaps | awk -F'|' '
-    BEGIN { sep=sprintf("%c",28); row=0 }
+  done < <(awk -F'|' '
+    BEGIN { sep=sprintf("%c",28); active=0 }
     function trim(v){gsub(/^[[:space:]]+|[[:space:]]+$/,"",v);return v}
-    NR<=2{next}
-    /^\|/{
-      real=0; for(i=2;i<NF;i++)if(trim($i)!="")real=1; if(!real)next
-      row++; print row sep trim($4) sep trim($6) sep trim($5) sep trim($7)
+    function key(v, lower) {
+      lower=tolower(v)
+      if (lower=="open gaps" || v=="开放缺口") return "gaps"
+      return ""
     }
-  ')
+    /^##[[:space:]]+/ { title=$0; sub(/^##[[:space:]]+/,"",title); active=(key(trim(title))=="gaps"); next }
+    active && /^\|/ {
+      real=0; for(i=2;i<NF;i++)if(trim($i)!="")real=1; if(!real)next
+      if (trim($2) ~ /^(ID|编号)$/ || trim($2)=="" ) next
+      if ($0 ~ /^\|[[:space:]:|-]+(\|[[:space:]:|-]+)+\|?[[:space:]]*$/) next
+      print FNR sep trim($2) sep trim($4) sep trim($7) sep trim($6) sep trim($8)
+    }
+  ' "$STATUS_FILE")
 
   if [[ "$STATUS_GAP_ACTIONABILITY_FAIL_COUNT" -eq 0 ]]; then
     add_pass "[STATUS-GAP-ACTIONABILITY] v2.60 open gap rows expose affected tasks, blocking/retrigger conditions, and clickable owner routes"
@@ -4083,8 +4131,28 @@ if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_
 fi
 
 # ---------- check 2: tracked_commit is an ancestor of HEAD ----------
+# Extract a named Event-Source Coverage field value. The field name is matched
+# literally (tracked_commit / tracked_session / tracked_skill_version) so the
+# first backticked hex token elsewhere in the register cannot shadow the real
+# baseline. Accepts `| field | value |`, `field | value`, and `field: value`.
+status_event_field() { # $1=field name
+  local field="$1"
+  [[ -f "$STATUS_FILE" ]] || return 0
+  awk -v field="$field" '
+    function trim(v){gsub(/^[[:space:]`]+|[[:space:]`]+$/,"",v);return v}
+    $0 ~ ("^[[:space:]]*\\|?[[:space:]]*" field "[[:space:]]*([|:])") {
+      line=$0
+      if (line ~ /^[[:space:]]*\|/) sub(/^[[:space:]]*\|[[:space:]]*[^|]*\|[[:space:]]*/, "", line)
+      else sub("^[^|:]*" field "[[:space:]]*[:|][[:space:]]*", "", line)
+      sub(/[[:space:]]*\|.*$/, "", line)          # keep the value cell only
+      print trim(line)
+      exit
+    }
+  ' "$STATUS_FILE"
+}
+
 if [[ -f "$STATUS_FILE" ]] && command -v git >/dev/null 2>&1; then
-  TRACKED_COMMIT=$(grep -oE '`[0-9a-f]{7,40}`' "$STATUS_FILE" | head -n 1 | tr -d '`' || true)
+  TRACKED_COMMIT=$(status_event_field tracked_commit | grep -oE '[0-9a-f]{7,40}' | head -n 1 || true)
   if [[ -n "$TRACKED_COMMIT" ]]; then
     if git -C "$(dirname "$SSOT_DIR")" cat-file -e "$TRACKED_COMMIT" 2>/dev/null; then
       HEAD_SHA=$(git -C "$(dirname "$SSOT_DIR")" rev-parse HEAD)
@@ -5288,24 +5356,39 @@ scan_covered_placeholder_file() { # $1=file $2=label
         print FNR ":authoring HTML comment remains in covered body"; exit
       }
       if (line ~ /<!--[[:space:]]*/) next
-      lower=tolower(line)
-      if (lower ~ /<[^>]*(owner|path|command|test|deploy|term|title|date|time|commit|session|version|language|evidence|reason|scope|result|slug|domain|area|state|file|section|task|hash|name|condition|action|proof|repo|project|invariant|child|view|feature|count|score|role|record|failure|pitfall|debt|product|architecture|runtime|current|target|source|review|gate|rollback|recover|observe|verify|safe|unsafe|目录|术语|标题|日期|所有者|路径|证据|理由|范围|状态|文件|小节|任务|仓库|不变量|一句|一段|动作|结果|代码|反例|兄弟)[^>]*>/ ||
-          line ~ /<(YYYY|NNNN|ISO-|≤)[^>]*>/ ||
-          lower ~ /(^|[^[:alnum:]_])(path\/to|src\/path|tests\/path|command-or-|command-test-or-|nn-<domain>)([^[:alnum:]_]|$)/) {
-        print FNR ":protocol placeholder remains in prose or code"; exit
+      # v2.62: inline code spans legitimately hold reader-substitution
+      # placeholders (`<your-asar-path>`) and naming conventions
+      # (`NNNN-<slug>.md`); they are documentation, not starter residue.
+      # Replace each span with a sentinel so code-only table cells still count
+      # as filled while their angle tokens are exempt from placeholder checks.
+      stripped=line
+      gsub(/`[^`]*`/, "x", stripped)
+      lower=tolower(stripped)
+      if (in_code) {
+        # In fenced code only a standalone template slot still means residue
+        # (`<owner>`, `run <command-or-test>`); a slot embedded in a naming
+        # convention like `NNNN-<slug>.md` is exempted by the identifier
+        # boundary requirement. Compound slots join keywords with
+        # spaces/hyphens and an optional `or`/`或`.
+        if (line ~ /(^|[^A-Za-z0-9_.\/-])<[[:space:]]*(owner|path|command|test|deploy|term|title|date|time|commit|session|version|language|evidence|reason|scope|result|slug|domain|area|state|file|section|task|hash|name|condition|action|proof|repo|project|invariant|child|view|feature|count|score|role|record|failure|pitfall|debt|product|architecture|runtime|current|target|source|review|gate|rollback|recover|observe|verify|safe|unsafe|YYYY|YYYY-MM-DD|NNNN|目录|术语|标题|日期|所有者|路径|证据|理由|范围|状态|文件|小节|任务|仓库|不变量|一句|一段|动作|结果|代码|反例|兄弟)([[:space:]-]+(or|或)[[:space:]-]+(owner|path|command|test|deploy|term|title|date|time|commit|session|version|language|evidence|reason|scope|result|slug|domain|area|state|file|section|task|hash|name|condition|action|proof|repo|project|invariant|child|view|feature|count|score|role|record|failure|pitfall|debt|product|architecture|runtime|current|target|source|review|gate|rollback|recover|observe|verify|safe|unsafe|YYYY|YYYY-MM-DD|NNNN|目录|术语|标题|日期|所有者|路径|证据|理由|范围|状态|文件|小节|任务|仓库|不变量|一句|一段|动作|结果|代码|反例|兄弟))*[[:space:]]*>([^A-Za-z0-9_.\/-]|$)/) {
+          print FNR ":protocol placeholder remains in prose or code"; exit
+        }
+      } else {
+        if (lower ~ /<[^>]*(owner|path|command|test|deploy|term|title|date|time|commit|session|version|language|evidence|reason|scope|result|slug|domain|area|state|file|section|task|hash|name|condition|action|proof|repo|project|invariant|child|view|feature|count|score|role|record|failure|pitfall|debt|product|architecture|runtime|current|target|source|review|gate|rollback|recover|observe|verify|safe|unsafe|目录|术语|标题|日期|所有者|路径|证据|理由|范围|状态|文件|小节|任务|仓库|不变量|一句|一段|动作|结果|代码|反例|兄弟)[^>]*>/ ||
+            stripped ~ /<(YYYY|NNNN|ISO-|≤)[^>]*>/ ||
+            lower ~ /(^|[^[:alnum:]_])(path\/to|src\/path|tests\/path|command-or-|command-test-or-|nn-<domain>)([^[:alnum:]_]|$)/) {
+          print FNR ":protocol placeholder remains in prose or code"; exit
+        }
+        gsub(/<\/?(a|div|span|img|table|thead|tbody|tr|th|td|details|summary|br|sub|sup|kbd|code)([[:space:]][^>]*)?>/, "", stripped)
+        if (stripped ~ /<[^>]+>/) { print FNR ":angle-bracket template token remains"; exit }
       }
-      if (!in_code) {
-        gsub(/`[^`]*`/, "", line)
-        gsub(/<\/?(a|div|span|img|table|thead|tbody|tr|th|td|details|summary|br|sub|sup|kbd|code)([[:space:]][^>]*)?>/, "", line)
-        if (line ~ /<[^>]+>/) { print FNR ":angle-bracket template token remains"; exit }
-      }
-      if (line ~ /(TODO:[[:space:]]|FIXME|review-needed|starter skeleton|to be filled|fill this|TBD:|待补充|（待补充）|YYYY-MM-DD)/) {
+      if (stripped ~ /(TODO:[[:space:]]|FIXME|review-needed|starter skeleton|to be filled|fill this|TBD:|待补充|（待补充）|YYYY-MM-DD)/) {
         print FNR ":starter token remains"; exit
       }
-      if (line ~ /^\|/ && line !~ /^\|[[:space:]:|-]+(\|[[:space:]:|-]+)+\|?[[:space:]]*$/ && line ~ /\|[[:space:]]*\|/) {
+      if (stripped ~ /^\|/ && stripped !~ /^\|[[:space:]:|-]+(\|[[:space:]:|-]+)+\|?[[:space:]]*$/ && stripped ~ /\|[[:space:]]*\|/) {
         print FNR ":empty required table cell remains"; exit
       }
-      if (line ~ /^\|[[:space:]]*(0000|EXAMPLE|示例)[[:space:]]*\|/) {
+      if (stripped ~ /^\|[[:space:]]*(0000|EXAMPLE|示例)[[:space:]]*\|/) {
         print FNR ":template example row remains"; exit
       }
     }
@@ -5700,6 +5783,312 @@ if [[ "$BENCHMARK_OWNER_FAIL_COUNT" -eq 0 ]]; then
   add_pass "[BENCHMARK-OWNER] benchmark process owner is present or no obvious benchmark facts are hidden in testing"
 fi
 
+# v2.62 shared: Area Status map for the consistency checks below. The v2.60
+# AREA-STATUS check unsets its working arrays, so re-parse tolerantly here.
+declare -A V262_AREA_STATUS=()
+if [[ -f "$STATUS_FILE" ]]; then
+  while IFS=$'\034' read -r v262_area v262_status; do
+    [[ -n "$v262_area" ]] && V262_AREA_STATUS[$v262_area]="$v262_status"
+  done < <(awk '
+    BEGIN { sep=sprintf("%c", 28) }
+    function trim(v) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", v); gsub(/^`|`$/, "", v); return v }
+    /^##[[:space:]]+/ { title=$0; sub(/^##[[:space:]]+/, "", title); l=tolower(trim(title)); in_area=(l=="area status"||trim(title)=="区域状态"); have_header=0; next }
+    in_area && /^\|/ {
+      if ($0 ~ /^\|[[:space:]:|-]+(\|[[:space:]:|-]+)+\|?[[:space:]]*$/) next
+      n=split($0, c, "|")
+      if (!have_header) {
+        ai=si=0
+        for (i=2;i<n;i++){ v=trim(c[i]); lo=tolower(v); if (lo=="area"||v=="区域") ai=i; else if (lo=="status"||v=="状态") si=i }
+        have_header=1; next
+      }
+      if (ai && si) print trim(c[ai]) sep trim(c[si])
+    }
+  ' "$STATUS_FILE")
+fi
+
+# ---------- check 32: [LEDGER-CONSISTENCY] (v2.62) file stamps vs area rows ----------
+# Two coverage ledgers exist side by side: the STATUS Area Status register and
+# per-file `intent_recovery:` frontmatter stamps. doctor.md 15M already
+# prescribes "use `covered` only when the corresponding STATUS area is
+# `covered`"; this check enforces it. A file stamped `covered` under an area
+# the register calls gap/stale/unknown/conflict presents two contradictory
+# trust signals on the same page — one ledger must move first.
+if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_SKILL_VERSION" "2.60" && [[ "${#V262_AREA_STATUS[@]}" -gt 0 ]]; then
+  LEDGER_FAIL_COUNT=0
+  for ledger_area in "${!V262_AREA_STATUS[@]}"; do
+    [[ "$ledger_area" == */* || "$ledger_area" == x-* ]] && continue
+    ledger_dir=$(resolve_area_dir "$ledger_area" 2>/dev/null || true)
+    [[ -n "$ledger_dir" && -d "$ledger_dir" ]] || continue
+    ledger_status="${V262_AREA_STATUS[$ledger_area]}"
+    [[ "$ledger_status" =~ ^(covered|partial|not_applicable)$ ]] && continue
+    while IFS= read -r -d '' ledger_file; do
+      ledger_stamp=$(yaml_frontmatter "$ledger_file" | awk -F: '/^intent_recovery:[[:space:]]*/ { v=$2; gsub(/[ "`]/, "", v); print tolower(v); exit }')
+      [[ -n "$ledger_stamp" ]] || continue
+      if [[ "$ledger_stamp" == "covered" ]]; then
+        add_fail "[LEDGER-CONSISTENCY] $ledger_file stamps intent_recovery=covered while STATUS area '$ledger_area' is '$ledger_status'; per 15M the stamp must not outrun the register — demote the stamp or earn the area claim"
+        LEDGER_FAIL_COUNT=$((LEDGER_FAIL_COUNT + 1))
+      elif [[ "$ledger_stamp" == "partial" && "$ledger_status" =~ ^(gap|unknown|conflict)$ ]]; then
+        add_warn "[LEDGER-CONSISTENCY] $ledger_file stamps intent_recovery=partial while STATUS area '$ledger_area' is '$ledger_status'"
+      fi
+      [[ "$LEDGER_FAIL_COUNT" -ge 15 ]] && break
+    done < <(find "$ledger_dir" -name '*.md' -type f -print0 2>/dev/null || true)
+    [[ "$LEDGER_FAIL_COUNT" -ge 15 ]] && break
+  done
+  [[ "$LEDGER_FAIL_COUNT" -eq 0 ]] && add_pass "[LEDGER-CONSISTENCY] file-level intent_recovery stamps agree with STATUS area rows"
+fi
+
+# ---------- check 33: [GAP-BLOCK] (v2.62) registered blockers constrain claims ----------
+# An open gap's Blocking / retrigger cell is a machine-readable contract when
+# it names a protocol claim (converged, covered, tracked_commit...). Declaring
+# the blocked claim anyway — as happened in real consumers — must be a lint
+# event, not prose a later agent has to notice. The blocking cell lives in the
+# canonical column 7, so a legacy lean schema silently cannot be checked — gate
+# on the same canonical header as [STATUS-GAP-ACTIONABILITY].
+if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_SKILL_VERSION" "2.60" && status_gaps_schema_is_canonical; then
+  GAP_BLOCK_FAIL_COUNT=0
+  coverage_state="${coverage_state:-$(awk -F'|' '
+    /^\|[[:space:]]*coverage_result[[:space:]]*\|/ { v=$3; gsub(/^[[:space:]`]+|[[:space:]`]+$/, "", v); print v; exit }
+    /^coverage_result:[[:space:]]*/ { v=$0; sub(/^coverage_result:[[:space:]]*/, "", v); gsub(/["`]/, "", v); print v; exit }
+  ' "$STATUS_FILE")}"
+  while IFS=$'\034' read -r gb_line gb_id gb_state gb_affected gb_block; do
+    [[ -n "$gb_line" && "$gb_state" == "gap" ]] || continue
+    gb_block_l=$(printf '%s\n' "$gb_block" | tr 'A-Z' 'a-z')
+    if printf '%s\n' "$gb_block_l" | grep -qE '(^|[^a-z])converged([^a-z]|$)' && [[ "$coverage_state" == "converged" ]]; then
+      add_fail "[GAP-BLOCK] $gb_id blocks the converged claim but coverage_result is converged: $STATUS_FILE:$gb_line"
+      GAP_BLOCK_FAIL_COUNT=$((GAP_BLOCK_FAIL_COUNT + 1))
+    fi
+    if printf '%s\n' "$gb_block_l" | grep -qE '(^|[^a-z])covered([^a-z]|$)'; then
+      for gb_area in product architecture process development testing benchmark deployment release operations security-and-compliance records decisions gotchas bugs tech-debt glossary "research records"; do
+        if printf '%s\n' "$gb_affected $gb_block" | tr 'A-Z' 'a-z' | grep -qE "(^|[^a-z])${gb_area}([^a-z]|$)" && [[ "${V262_AREA_STATUS[$gb_area]:-}" == "covered" ]]; then
+          add_fail "[GAP-BLOCK] $gb_id blocks the covered claim for area '$gb_area' but Area Status marks it covered: $STATUS_FILE:$gb_line"
+          GAP_BLOCK_FAIL_COUNT=$((GAP_BLOCK_FAIL_COUNT + 1))
+          break
+        fi
+      done
+    fi
+    if printf '%s\n' "$gb_block_l" | grep -qE 'tracked_(commit|session|skill_version)'; then
+      add_warn "[GAP-BLOCK] $gb_id registers a blocker on a tracking baseline (tracked_commit/session/skill_version); verify no baseline advance bypassed it: $STATUS_FILE:$gb_line"
+    fi
+    [[ "$GAP_BLOCK_FAIL_COUNT" -ge 10 ]] && break
+  done < <(awk -F'|' '
+    BEGIN { sep=sprintf("%c",28); active=0 }
+    function trim(v){gsub(/^[[:space:]]+|[[:space:]]+$/,"",v);return v}
+    /^##[[:space:]]+/ { title=$0; sub(/^##[[:space:]]+/,"",title); t=tolower(trim(title)); active=(t=="open gaps"||trim(title)=="开放缺口"); next }
+    active && /^\|/ {
+      real=0; for(i=2;i<NF;i++)if(trim($i)!="")real=1; if(!real)next
+      if (trim($2) ~ /^(ID|编号)$/ || trim($2)=="") next
+      if ($0 ~ /^\|[[:space:]:|-]+(\|[[:space:]:|-]+)+\|?[[:space:]]*$/) next
+      print FNR sep trim($2) sep trim($3) sep trim($4) sep trim($7)
+    }
+  ' "$STATUS_FILE")
+  [[ "$GAP_BLOCK_FAIL_COUNT" -eq 0 ]] && add_pass "[GAP-BLOCK] no open gap blocker contradicts a live coverage claim"
+fi
+
+# ---------- check 34: [BASELINE-REVIEW] (v2.62) baseline advances are reviewed ----------
+# Each tracked_* field asserts "history up to X is absorbed". Advancing that
+# claim without a Stop Review Gate row naming it leaves the register asserting
+# review nobody performed.
+if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_SKILL_VERSION" "2.60"; then
+  BASELINE_REVIEW_WARN_COUNT=0
+  stop_gate_text=$(awk '
+    /^##[[:space:]]+(Stop Review Gate|停止审查闸门)[[:space:]]*$/ { active=1; next }
+    active && /^##[[:space:]]/ { exit }
+    active { print }
+  ' "$STATUS_FILE")
+  for bl_field in tracked_commit tracked_session tracked_skill_version; do
+    bl_value=$(status_event_field "$bl_field")
+    [[ -n "$bl_value" && "$bl_value" != "none" ]] || continue
+    if [[ -n "$stop_gate_text" ]] && ! printf '%s\n' "$stop_gate_text" | grep -q "$bl_field"; then
+      add_warn "[BASELINE-REVIEW] $bl_field has a live baseline but no Stop Review Gate row names '$bl_field' as a reviewed claim; register the review that authorized the advance"
+      BASELINE_REVIEW_WARN_COUNT=$((BASELINE_REVIEW_WARN_COUNT + 1))
+    fi
+  done
+  [[ "$BASELINE_REVIEW_WARN_COUNT" -eq 0 && -n "$stop_gate_text" ]] && add_pass "[BASELINE-REVIEW] every live tracking baseline is named by a Stop Review Gate row"
+fi
+
+# ---------- check 35: [GIT-TRACKED] (v2.62) SSOT files must reach git ----------
+# A file git cannot see cannot be reviewed, shipped, or recovered. Canonical
+# names like `release/` collide with common build-output ignore rules — the
+# consumer never notices that new owner pages are silently dropped by git add.
+if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_SKILL_VERSION" "2.60" && [[ -d "$SSOT_DIR" ]] && command -v git >/dev/null 2>&1 && git -C "$(dirname "$SSOT_DIR")" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  GIT_TRACKED_WARN_COUNT=0
+  gt_repo_root=$(cd "$(dirname "$SSOT_DIR")" && pwd -P)
+  while IFS= read -r -d '' gt_file; do
+    gt_abs=$(cd "$(dirname "$gt_file")" 2>/dev/null && pwd -P)/$(basename "$gt_file")
+    gt_rel="${gt_abs#"$gt_repo_root"/}"
+    [[ "$gt_rel" == "$gt_abs" ]] && continue
+    if git -C "$gt_repo_root" check-ignore -q "$gt_rel" 2>/dev/null; then
+      add_warn "[GIT-TRACKED] $gt_file is git-ignored; new facts written here will never reach review or release — add a negation rule for this SSOT path"
+      GIT_TRACKED_WARN_COUNT=$((GIT_TRACKED_WARN_COUNT + 1))
+    elif ! git -C "$gt_repo_root" ls-files --error-unmatch "$gt_rel" >/dev/null 2>&1; then
+      add_warn "[GIT-TRACKED] $gt_file is not tracked by git; commit it or it will be lost"
+      GIT_TRACKED_WARN_COUNT=$((GIT_TRACKED_WARN_COUNT + 1))
+    fi
+    [[ "$GIT_TRACKED_WARN_COUNT" -ge 15 ]] && break
+  done < <(find "$SSOT_DIR" -name '*.md' -type f -print0 2>/dev/null || true)
+  [[ "$GIT_TRACKED_WARN_COUNT" -eq 0 ]] && add_pass "[GIT-TRACKED] every SSOT markdown file is visible to git"
+fi
+
+# ---------- check 36: [REF-RESOLVE] (v2.62) repo path references must resolve ----------
+# Reader bodies pin `path`, `path:NN`, and `path::symbol` references into the
+# source tree. When the pinned file or symbol is deleted the page keeps
+# teaching a runtime that no longer exists. References explicitly marked
+# retired:/historical:/deleted: are exempt — honest history stays.
+REF_RESOLVE_WARN_COUNT=0
+scan_ref_resolve_file() { # $1=md file
+  local rr_file="$1" repo_root
+  repo_root=$(dirname "$SSOT_DIR")
+  awk '
+    NR==1 && /^---[[:space:]]*$/ { front=1; next }
+    front && /^---[[:space:]]*$/ { front=0; next }
+    front { next }
+    /^```/ { in_code=!in_code; next }
+    in_code { next }
+    {
+      line=$0
+      while (match(line, /`[^`]+`/)) {
+        tok=substr(line, RSTART + 1, RLENGTH - 2)
+        line=substr(line, RSTART + RLENGTH)
+        if (tok ~ /^(retired|historical|deleted|was|removed):/) continue
+        # path::symbol or path:NN — the path part must contain a slash
+        if (match(tok, /^[A-Za-z0-9_.~\/-]+\.[A-Za-z0-9]+(:|::)/)) {
+          ref=tok; sub(/:.*/, "", ref)
+          if (ref ~ /\//) print FNR ":" tok
+          continue
+        }
+        # bare path/to/file.ext
+        if (tok ~ /^[A-Za-z0-9_.\/-]+\/[A-Za-z0-9_.\/-]*\.(py|ts|tsx|js|jsx|mjs|cjs|sh|sql|json|ya?ml|toml|rs|go|rb|java|kt|c|h|cc|cpp|css|scss|html|vue|svelte|conf|cfg|ini|xml|proto|graphql|ps1|bat|cmd|lock|txt|csv|env|service|plist|xcconfig|gradle|cmake|mk|properties)$/) print FNR ":" tok
+      }
+    }
+  ' "$rr_file" | while IFS= read -r rr_hit; do
+    rr_line="${rr_hit%%:*}"; rr_tok="${rr_hit#*:}"
+    rr_path="${rr_tok%%::*}"; rr_path="${rr_path%%:*}"
+    rr_sym=""
+    [[ "$rr_tok" == *::* ]] && rr_sym="${rr_tok##*::}"
+    # resolve against repo root, then the file's own directory, then SSOT root
+    rr_base=""
+    for cand in "$repo_root/$rr_path" "$(dirname "$rr_file")/$rr_path" "$SSOT_DIR/$rr_path"; do
+      [[ -e "$cand" ]] && rr_base="$cand" && break
+    done
+    if [[ -z "$rr_base" ]]; then
+      printf '%s\n' "$rr_file:$rr_line references missing path \`$rr_path\`"
+    elif [[ -n "$rr_sym" ]] && ! grep -qF "$rr_sym" "$rr_base" 2>/dev/null; then
+      printf '%s\n' "$rr_file:$rr_line references \`$rr_tok\` but '$rr_sym' is not present in $rr_base"
+    fi
+  done
+}
+if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_SKILL_VERSION" "2.60" && [[ -d "$SSOT_DIR" ]]; then
+  while IFS= read -r -d '' rr_md; do
+    rr_rel="${rr_md#"$SSOT_DIR"/}"
+    [[ "$rr_rel" == .bootstrap/* || "$rr_rel" == */.bootstrap/* || "$rr_rel" == "STATUS.md" ]] && continue
+    while IFS= read -r rr_msg; do
+      [[ -n "$rr_msg" ]] || continue
+      add_warn "[REF-RESOLVE] $rr_msg"
+      REF_RESOLVE_WARN_COUNT=$((REF_RESOLVE_WARN_COUNT + 1))
+      [[ "$REF_RESOLVE_WARN_COUNT" -ge 30 ]] && break
+    done < <(scan_ref_resolve_file "$rr_md")
+    [[ "$REF_RESOLVE_WARN_COUNT" -ge 30 ]] && break
+  done < <(find "$SSOT_DIR" -name '*.md' -type f -print0 2>/dev/null || true)
+  [[ "$REF_RESOLVE_WARN_COUNT" -eq 0 ]] && add_pass "[REF-RESOLVE] repo path references in SSOT bodies resolve or carry a retired/historical marker"
+fi
+
+# ---------- check 37: [RECONFIRM-TOKEN] (v2.62) re-confirmations are auditable ----------
+# `re-confirmed at <HEAD-sha|worktree>` is self-attested. To stay meaningful it
+# must name a commit on this branch's history and carry a date; an undated or
+# off-branch token cannot be audited after the fact.
+if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_SKILL_VERSION" "2.61"; then
+  RECONFIRM_FAIL_COUNT=0 RECONFIRM_WARN_COUNT=0
+  while IFS= read -r rc_line; do
+    [[ -n "$rc_line" ]] || continue
+    rc_target=$(printf '%s\n' "$rc_line" | grep -oE 're-confirmed at [^ |`]*' | head -1 | sed 's/re-confirmed at //' | tr -d '`' || true)
+    [[ -n "$rc_target" ]] || continue
+    if [[ "$rc_target" != "worktree" && "$rc_target" =~ ^[0-9a-f]{7,40}$ ]] && command -v git >/dev/null 2>&1; then
+      rc_head=$(git -C "$(dirname "$SSOT_DIR")" rev-parse HEAD 2>/dev/null || true)
+      if [[ -n "$rc_head" ]] && ! git -C "$(dirname "$SSOT_DIR")" merge-base --is-ancestor "$rc_target" "$rc_head" 2>/dev/null; then
+        add_fail "[RECONFIRM-TOKEN] 're-confirmed at $rc_target' names a commit not on this branch's history: $STATUS_FILE"
+        RECONFIRM_FAIL_COUNT=$((RECONFIRM_FAIL_COUNT + 1))
+      fi
+    fi
+    if ! printf '%s\n' "$rc_line" | grep -qE 're-confirmed at [^ |]+ on 20[0-9]{2}-[0-9]{2}-[0-9]{2}'; then
+      add_warn "[RECONFIRM-TOKEN] 're-confirmed at $rc_target' carries no 'on YYYY-MM-DD' date; an undated re-confirmation cannot be audited: $STATUS_FILE"
+      RECONFIRM_WARN_COUNT=$((RECONFIRM_WARN_COUNT + 1))
+    fi
+  done < <(grep -n 're-confirmed at' "$STATUS_FILE" 2>/dev/null || true)
+  if [[ "$RECONFIRM_FAIL_COUNT" -eq 0 && "$RECONFIRM_WARN_COUNT" -eq 0 ]]; then
+    add_pass "[RECONFIRM-TOKEN] every re-confirmed-at token is dated and names history on this branch"
+  fi
+fi
+
+# ---------- check 38: [SKILL-VERSION-BINDING] (v2.62) tracked version must exist ----------
+# tracked_skill_version attests to a protocol artifact. When the claim outruns
+# every installed/pinned copy in the repo, a fresh clone silently reverts to an
+# older protocol while the register asserts the newer one.
+if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_SKILL_VERSION" "2.60"; then
+  svb_repo_root=$(dirname "$SSOT_DIR")
+  svb_best=""
+  for svb_candidate in \
+    "$svb_repo_root/.agents/skills/ssot-preflight/SKILL.md" \
+    "$svb_repo_root/.claude/skills/ssot-preflight/SKILL.md" \
+    "$svb_repo_root/.cursor/skills/ssot-preflight/SKILL.md" \
+    "$svb_repo_root/.devin/skills/ssot-preflight/SKILL.md" \
+    "$svb_repo_root/projects/SSOT-SKILL/VERSION" \
+    "$svb_repo_root/SSOT-SKILL/VERSION"; do
+    [[ -f "$svb_candidate" ]] || continue
+    if [[ "$svb_candidate" == */VERSION ]]; then
+      svb_v=$(tr -d '[:space:]' < "$svb_candidate" | head -c 10)
+    else
+      svb_v=$(grep -oE 'protocol_version:[[:space:]]*"?[0-9]+\.[0-9]+' "$svb_candidate" | grep -oE '[0-9]+\.[0-9]+' | head -1 || true)
+    fi
+    [[ -n "$svb_v" ]] || continue
+    if [[ -z "$svb_best" ]] || version_ge "$svb_best" "$svb_v"; then svb_best="$svb_v"; fi
+  done
+  if [[ -n "$svb_best" && -n "$STATUS_SKILL_VERSION" ]]; then
+    if version_ge "$STATUS_SKILL_VERSION" "$svb_best" && [[ "$STATUS_SKILL_VERSION" != "$svb_best" ]]; then
+      add_fail "[SKILL-VERSION-BINDING] tracked_skill_version=$STATUS_SKILL_VERSION outruns every installed/pinned artifact (newest found: $svb_best); a fresh checkout silently reverts — install the claimed artifact or lower the claim"
+    elif [[ "$svb_best" != "$STATUS_SKILL_VERSION" ]] && version_ge "$svb_best" "$STATUS_SKILL_VERSION"; then
+      add_warn "[SKILL-VERSION-BINDING] installed artifact ($svb_best) is newer than tracked_skill_version=$STATUS_SKILL_VERSION; audit the delta and advance the claim"
+    fi
+  fi
+fi
+
+# ---------- check 39: [EPHEMERAL-EVIDENCE] (v2.62) evidence must be durable ----------
+# Review rows and closeout artifacts that point into /tmp or per-user caches
+# decay into unverifiable claims. Evidence lives inside the repo or carries a
+# content hash.
+if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_SKILL_VERSION" "2.60"; then
+  EPHEMERAL_WARN_COUNT=0
+  while IFS= read -r -d '' ev_file; do
+    ev_hits=$(grep -cE '(\(|`)[[:space:]]*(/tmp/|/var/folders/|/private/tmp/|~/Library/Caches|[A-Za-z]:\\\\Users\\\\[^\\\\]+\\\\AppData\\\\Local\\\\Temp)' "$ev_file" 2>/dev/null || true)
+    if [[ "${ev_hits:-0}" -gt 0 ]]; then
+      add_warn "[EPHEMERAL-EVIDENCE] $ev_file points at ephemeral paths ($ev_hits hit); move evidence into the repo or record a content hash"
+      EPHEMERAL_WARN_COUNT=$((EPHEMERAL_WARN_COUNT + 1))
+    fi
+    [[ "$EPHEMERAL_WARN_COUNT" -ge 10 ]] && break
+  done < <( { printf '%s\0' "$STATUS_FILE"; find "$SSOT_DIR/.bootstrap" -name '*.md' -type f -print0 2>/dev/null; } || true )
+  [[ "$EPHEMERAL_WARN_COUNT" -eq 0 ]] && add_pass "[EPHEMERAL-EVIDENCE] register and review artifacts link durable evidence only"
+fi
+
+# ---------- check 40: [SUPERSEDE-LINK] (v2.62) superseded records name their heir ----------
+# A record marked superseded without a `superseded_by:` pointer leaves the cold
+# reader holding a dead end. The convention costs one line.
+if [[ -d "$SSOT_DIR" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_SKILL_VERSION" "2.60"; then
+  SUPERSEDE_WARN_COUNT=0
+  for sup_dir in "$DECISIONS_DIR" "$RESEARCH_AREA_DIR" "$TECH_DEBT_DIR" "$BUGS_DIR"; do
+    [[ -d "$sup_dir" ]] || continue
+    while IFS= read -r -d '' sup_file; do
+      sup_status=$(yaml_frontmatter "$sup_file" | awk -F: '/^(record_status|status|implementation_state):[[:space:]]*/ { v=$2; gsub(/[ "`]/, "", v); print tolower(v); exit }')
+      [[ "$sup_status" == "superseded" ]] || continue
+      if ! yaml_frontmatter "$sup_file" | grep -qE '^(superseded_by|retracted|replaced_by):' && ! grep -qE 'superseded by|replaced by|被.*取代|已被.*替代' "$sup_file"; then
+        add_warn "[SUPERSEDE-LINK] $sup_file is superseded but names no superseded_by/replaced_by successor"
+        SUPERSEDE_WARN_COUNT=$((SUPERSEDE_WARN_COUNT + 1))
+      fi
+      [[ "$SUPERSEDE_WARN_COUNT" -ge 10 ]] && break
+    done < <(find "$sup_dir" -maxdepth 1 -name '*.md' -type f -print0 2>/dev/null || true)
+    [[ "$SUPERSEDE_WARN_COUNT" -ge 10 ]] && break
+  done
+  [[ "$SUPERSEDE_WARN_COUNT" -eq 0 ]] && add_pass "[SUPERSEDE-LINK] every superseded record names its successor"
+fi
+
 fi  # end META_LEAKAGE_SKIP_OTHER_CHECKS guard (checks 13-17 also guarded)
 
 # ---------- output ----------
@@ -5738,6 +6127,23 @@ else
     echo ""
     echo "[FAIL] $fail_count"
     for msg in "${FAILS[@]}"; do echo "  - $msg"; done
+  fi
+  # v2.62 digest: a flat list of dozens of failures is unreadable and teaches
+  # operators to ignore the gate. Group by check tag so the shape of the debt
+  # is visible at a glance; individual lines stay authoritative above.
+  if [[ "$fail_count" -ge 8 ]]; then
+    echo ""
+    echo "[DIGEST] failures by check"
+    printf '%s\n' "${FAILS[@]}" | grep -oE '^\[[A-Z0-9_-]+\]' | sort | uniq -c | sort -rn | while read -r digest_n digest_tag; do
+      printf '  %4d  %s\n' "$digest_n" "$digest_tag"
+    done
+  fi
+  if [[ "$warn_count" -ge 12 ]]; then
+    echo ""
+    echo "[DIGEST] warnings by check"
+    printf '%s\n' "${WARNS[@]}" | grep -oE '^\[[A-Z0-9_-]+\]' | sort | uniq -c | sort -rn | while read -r digest_n digest_tag; do
+      printf '  %4d  %s\n' "$digest_n" "$digest_tag"
+    done
   fi
   echo ""
   echo "===== summary: PASS=$pass_count WARN=$warn_count FAIL=$fail_count ====="

@@ -40,6 +40,34 @@ assert_not_contains() {
 assert_exit() {
   if [[ "$2" == "$3" ]]; then pass "$1"; else fail "$1 (exit $2 != $3)"; fi
 }
+# Lint failures render as "  - [TAG] msg" inside the "[FAIL] N" section, so a
+# plain not_contains on "[FAIL] [TAG]" is vacuous. These scope the assertion
+# to actual failure/warning lines. $3 is the bracketed tag, matched literally.
+_in_section_tag() { # $1=section name (FAIL|WARN) $2=output $3=bracketed tag
+  printf '%s' "$2" | awk -v tag="$3" -v section="$1" '
+    /^\[[A-Z-]+\]/ { inside = (index($0, "[" section "]") == 1); next }
+    inside && index($0, tag) { found=1 }
+    END { exit(found ? 0 : 1) }
+  '
+}
+assert_no_fail_tag() { # $1=label $2=output $3=bracketed tag
+  if _in_section_tag 'FAIL' "$2" "$3"; then
+    fail "$1 (unexpected fail tag: $3)"; show_lint_failure_context "$2" "$3"
+  else pass "$1"; fi
+}
+assert_has_fail_tag() {
+  if _in_section_tag 'FAIL' "$2" "$3"; then pass "$1"
+  else fail "$1 (missing fail tag: $3)"; show_lint_failure_context "$2" "$3"; fi
+}
+assert_no_warn_tag() {
+  if _in_section_tag 'WARN' "$2" "$3"; then
+    fail "$1 (unexpected warn tag: $3)"; show_lint_failure_context "$2" "$3"
+  else pass "$1"; fi
+}
+assert_has_warn_tag() {
+  if _in_section_tag 'WARN' "$2" "$3"; then pass "$1"
+  else fail "$1 (missing warn tag: $3)"; show_lint_failure_context "$2" "$3"; fi
+}
 # Edit fixture content with the same GNU/BSD sed script; failed edits leave it intact.
 sed_inplace() { # $1=script remaining args=files
   local script="$1" file temporary code=0
@@ -1548,18 +1576,18 @@ sed_inplace '/^## Open Gaps$/,/^| | | | | | | | |$/ { /^| | | | | | | | |$/c\
 | GAP-20260713-01 | gap | testing release claim | Browser acceptance is not automated | `$ssot-bootstrap` | Before a release claim | `$ssot-bootstrap` | none: open |
 }' "$T/SSOT/STATUS.md"
 out=$(run_normal "$T" || true)
-assert_not_contains "exact eight-column skill-routed gap passes actionability" "$out" "[FAIL] [STATUS-GAP-ACTIONABILITY]"
+assert_no_fail_tag "exact eight-column skill-routed gap passes actionability" "$out" "[STATUS-GAP-ACTIONABILITY]"
 rm -rf "$T"
 
 T=$(mktemp -d -p "$TMPDIR"); write_exact_area_status "$T"
 out=$(run_normal "$T" || true)
-assert_not_contains "empty exact Open Gaps starter row remains valid" "$out" "[FAIL] [STATUS-GAP-ACTIONABILITY]"
+assert_no_fail_tag "empty exact Open Gaps starter row remains valid" "$out" "[STATUS-GAP-ACTIONABILITY]"
 rm -rf "$T"
 
 T=$(mktemp -d -p "$TMPDIR"); write_exact_area_status "$T"
 sed_inplace 's/^## Open Gaps$/## 开放缺口/; s/^| ID | State | Affected scope \/ task | Question \/ missing evidence | Responsible owner | Blocking \/ retrigger condition | Resolving route | Closure \/ supersession evidence |$/| ID | 状态 | 受影响范围或任务 | 问题或缺失证据 | 责任所有者 | 阻断或复核触发条件 | 解决路由 | 闭合或取代证据 |/' "$T/SSOT/STATUS.md"
 out=$(run_normal "$T" || true)
-assert_not_contains "Chinese exact Open Gaps header passes actionability" "$out" "[FAIL] [STATUS-GAP-ACTIONABILITY]"
+assert_no_fail_tag "Chinese exact Open Gaps header passes actionability" "$out" "[STATUS-GAP-ACTIONABILITY]"
 rm -rf "$T"
 
 echo "== Q47 v2.60 requires the exact Q01-Q21 disposition register =="
@@ -1575,7 +1603,7 @@ T=$(mktemp -d -p "$TMPDIR"); mkdir -p "$T/SSOT"
 printf '%s\n' '| tracked_skill_version | `2.60` |' > "$T/SSOT/STATUS.md"
 append_quality_register "$T"
 out=$(run_normal "$T" 2>&1 || true)
-assert_not_contains "complete Q01-Q21 register has no quality failure" "$out" "[FAIL] [QUALITY-DISPOSITION]"
+assert_no_fail_tag "complete Q01-Q21 register has no quality failure" "$out" "[QUALITY-DISPOSITION]"
 rm -rf "$T"
 
 echo "== Q49 an omitted exact Q item is rejected =="
@@ -1605,7 +1633,7 @@ append_quality_register "$T"
 sed_inplace '/^| Q01 |/c\
 | Q01 | not_applicable: no end-user UI; [quality boundary](./quality-owner.md) | — | — | — | — |' "$T/SSOT/STATUS.md"
 out=$(run_normal "$T" 2>&1 || true)
-assert_not_contains "evidenced global not_applicable has no quality failure" "$out" "[FAIL] [QUALITY-DISPOSITION]"
+assert_no_fail_tag "evidenced global not_applicable has no quality failure" "$out" "[QUALITY-DISPOSITION]"
 rm -rf "$T"
 
 echo "== Q52 unsupported non-applicability is rejected =="
@@ -1636,7 +1664,7 @@ write_v260_review "$T/SSOT/.bootstrap/reader-review.md"
 sed_inplace 's/| documentation_language | zh-CN |/| documentation_language | zh-Hans |/' "$T/SSOT/STATUS.md"
 out=$(run_quality "$T" 2>&1 || true)
 assert_not_contains "unrelated STATUS edit leaves Q fingerprint fresh" "$out" "quality_disposition_fingerprint does not match"
-assert_not_contains "unrelated STATUS edit leaves review evidence valid" "$out" "[FAIL] [READER-REVIEW-EVIDENCE]"
+assert_no_fail_tag "unrelated STATUS edit leaves review evidence valid" "$out" "[READER-REVIEW-EVIDENCE]"
 rm -rf "$T"
 
 echo "== Q55 review artifacts allow only the exact six H2 sections =="
@@ -1784,7 +1812,7 @@ mkdir -p "$T/SSOT/03-process"
 printf '%s\n' '# Process route' '' 'This process route explains which workflow owns a change and what result the reader should expect before choosing a command.' '' 'It also explains the verification handoff, important failure boundary, and recovery direction in ordinary language for a newcomer.' > "$T/SSOT/03-process/README.md"
 printf '%s\n' '# Testing' '' 'This testing owner explains which correctness decision the reader must make and what visible result proves the delegated change.' '' 'It also explains a failure, the safe recovery route, the evidence limitation, and when the reader must stop or escalate.' '' '```c' 'if (value < limit) { return value; }' '```' > "$T/SSOT/03-process/testing/README.md"
 out=$(run_normal "$T" 2>&1 || true)
-assert_not_contains "real comparison syntax is not a placeholder" "$out" "[FAIL] [COVERED-PLACEHOLDER]"
+assert_no_fail_tag "real comparison syntax is not a placeholder" "$out" "[COVERED-PLACEHOLDER]"
 rm -rf "$T"
 
 echo "== Q61 covered children require root, process, and records routers =="
@@ -1841,7 +1869,7 @@ rm -rf "$T"
 echo "== Q65 exact all-gap Area Status schema is structurally valid =="
 T=$(mktemp -d -p "$TMPDIR"); write_exact_area_status "$T"
 out=$(run_normal "$T" 2>&1 || true)
-assert_not_contains "exact 17-row all-gap Area Status has no area-schema failure" "$out" "[FAIL] [AREA-STATUS]"
+assert_no_fail_tag "exact 17-row all-gap Area Status has no area-schema failure" "$out" "[AREA-STATUS]"
 rm -rf "$T"
 
 echo "== Q66 lightweight scope review binds plain answers, every target, and child Area freshness =="
@@ -2170,6 +2198,146 @@ assert_contains "self-referential completeness evidence is rejected" "$out" "com
 rm -rf "$T"
 
 rm -rf "$BASE"
+
+echo "== V62a ledger consistency: file stamp must not outrun the STATUS area row =="
+T=$(mktemp -d -p "$TMPDIR")
+write_exact_area_status "$T"
+mkdir -p "$T/SSOT/01-product"
+printf -- '---\nintent_recovery: covered\n---\n# Product\n' > "$T/SSOT/01-product/README.md"
+out=$(run_normal "$T" || true)
+assert_has_fail_tag "covered stamp under gap area fails ledger consistency" "$out" "[LEDGER-CONSISTENCY]"
+rm -rf "$T"
+
+T=$(mktemp -d -p "$TMPDIR")
+write_exact_area_status "$T"
+mkdir -p "$T/SSOT/01-product"
+printf -- '---\nintent_recovery: gap\n---\n# Product\n' > "$T/SSOT/01-product/README.md"
+out=$(run_normal "$T" || true)
+assert_no_fail_tag "gap stamp under gap area has no ledger failure" "$out" "[LEDGER-CONSISTENCY]"
+rm -rf "$T"
+
+echo "== V62b an open gap blocking the converged claim forbids coverage_result=converged =="
+T=$(mktemp -d -p "$TMPDIR")
+write_exact_area_status "$T"
+sed_inplace 's/| coverage_result | in_progress |/| coverage_result | converged |/' "$T/SSOT/STATUS.md"
+sed_inplace '/^## Open Gaps/,${s#^| | | | | | | | |$#| GAP-20260919-01 | gap | release | evidence absent | [owner](./03-process/README.md) | blocks converged | [route](./03-process/README.md) | pending |#}' "$T/SSOT/STATUS.md"
+out=$(run_normal "$T" || true)
+assert_has_fail_tag "registered converged blocker forbids the converged claim" "$out" "[GAP-BLOCK]"
+rm -rf "$T"
+
+T=$(mktemp -d -p "$TMPDIR")
+write_exact_area_status "$T"
+sed_inplace '/^## Open Gaps/,${s#^| | | | | | | | |$#| GAP-20260919-01 | gap | release | evidence absent | [owner](./03-process/README.md) | blocks converged | [route](./03-process/README.md) | pending |#}' "$T/SSOT/STATUS.md"
+out=$(run_normal "$T" || true)
+assert_no_fail_tag "registered blocker with in_progress coverage has no GAP-BLOCK failure" "$out" "[GAP-BLOCK]"
+rm -rf "$T"
+
+echo "== V62c legacy lean Open Gaps schema warns once instead of failing per row =="
+T=$(mktemp -d -p "$TMPDIR")
+mkdir -p "$T/SSOT"
+printf '%s\n' \
+  '| tracked_skill_version | `2.60` |' '| documentation_language | zh-CN |' '| coverage_result | in_progress |' '' \
+  '## Open Gaps' '' \
+  '| 编号 | 状态 | 影响范围 | 说明 | 路由 |' '|---|---|---|---|---|' \
+  '| legacy-gap | gap | release | 缺验收证据 | [路由](./03-process/README.md) |' \
+  '| legacy-gap-2 | gap | testing | 缺少回归 | [路由](./03-process/README.md) |' \
+  > "$T/SSOT/STATUS.md"
+out=$(run_normal "$T" || true)
+assert_has_warn_tag "lean Open Gaps schema produces one migration warning" "$out" "[STATUS-GAP-ACTIONABILITY]"
+assert_no_fail_tag "lean Open Gaps schema has no per-row actionability failures" "$out" "[STATUS-GAP-ACTIONABILITY]"
+rm -rf "$T"
+
+echo "== V62d open-gap actionability reads the canonical columns (regression: route lives in column 8) =="
+T=$(mktemp -d -p "$TMPDIR")
+write_exact_area_status "$T"
+sed_inplace '/^## Open Gaps/,${s#^| | | | | | | | |$#| GAP-20260919-02 | gap | release | evidence absent | [owner](./03-process/README.md) | retrigger on ship | not-a-link | pending |#}' "$T/SSOT/STATUS.md"
+out=$(run_normal "$T" || true)
+assert_contains "non-resolving Resolving route cell is rejected" "$out" "Resolving route must be one resolvable Markdown link"
+rm -rf "$T"
+
+T=$(mktemp -d -p "$TMPDIR")
+write_exact_area_status "$T"
+sed_inplace '/^## Open Gaps/,${s#^| | | | | | | | |$#| GAP-20260919-03 | gap | release | evidence absent | plain text owner | retrigger on ship | [route](./03-process/README.md) | pending |#}' "$T/SSOT/STATUS.md"
+out=$(run_normal "$T" || true)
+assert_contains "non-link Responsible owner cell is rejected" "$out" "Responsible owner must be one resolvable Markdown owner link"
+rm -rf "$T"
+
+echo "== V62e ephemeral evidence paths are flagged =="
+T=$(mktemp -d -p "$TMPDIR")
+write_exact_area_status "$T"
+mkdir -p "$T/SSOT/.bootstrap"
+printf '# Review\n\nEvidence: `/tmp/scope-review-2026.md`\n' > "$T/SSOT/.bootstrap/reader-review.md"
+out=$(run_normal "$T" || true)
+assert_has_warn_tag "/tmp evidence path is flagged as ephemeral" "$out" "[EPHEMERAL-EVIDENCE]"
+rm -rf "$T"
+
+echo "== V62f live baselines need a Stop Review Gate row naming them =="
+T=$(mktemp -d -p "$TMPDIR")
+write_exact_area_status "$T"
+sed_inplace '/^## Stop Review Gate/,/^## Open Adjudications/{s#^| | | | | | | | | |$#| baseline | tracked_commit | agent:test | scoped-self-review | 2026-01-01 | no-more-required-changes | [evidence](./.bootstrap/scope-review-process.md) | none | baseline:tracked_commit |#}' "$T/SSOT/STATUS.md"
+out=$(run_normal "$T" || true)
+assert_has_warn_tag "unreviewed tracked_session and tracked_skill_version baselines warn" "$out" "[BASELINE-REVIEW]"
+assert_not_contains "reviewed tracked_commit baseline does not warn" "$(printf '%s' "$out" | grep 'BASELINE-REVIEW' || true)" "tracked_commit has a live baseline"
+rm -rf "$T"
+
+echo "== V62g inline-code table cells are content, not placeholders =="
+T=$(mktemp -d -p "$TMPDIR")
+write_exact_area_status "$T"
+mkdir -p "$T/SSOT/01-product"
+printf -- '---\nintent_recovery: gap\n---\n# Product\n\n| Tool | Command |\n|---|---|\n| Pencil CLI | `pencil inspect` |\n' > "$T/SSOT/01-product/README.md"
+out=$(run_normal "$T" || true)
+assert_no_fail_tag "code-only table cell is not a covered placeholder" "$out" "[COVERED-PLACEHOLDER]"
+rm -rf "$T"
+
+echo "== V62h repo path references must resolve unless marked retired =="
+T=$(mktemp -d -p "$TMPDIR")
+write_exact_area_status "$T"
+mkdir -p "$T/SSOT/02-architecture"
+printf -- '---\nintent_recovery: gap\n---\n# Architecture\n\nThe dispatcher lives at `engine/mission_executor.py`.\nRetired path: `historical: engine/old_dfs.py`\n' > "$T/SSOT/02-architecture/README.md"
+out=$(run_normal "$T" || true)
+assert_has_warn_tag "missing source path warns" "$out" "[REF-RESOLVE]"
+assert_not_contains "retired marker exempts the historical path" "$(printf '%s' "$out" | grep 'REF-RESOLVE' || true)" "old_dfs.py"
+rm -rf "$T"
+
+echo "== V62i superseded records name their successor =="
+T=$(mktemp -d -p "$TMPDIR")
+write_exact_area_status "$T"
+mkdir -p "$T/SSOT/04-records/decisions"
+printf -- '---\nrecord_status: superseded\n---\n# Old decision\n' > "$T/SSOT/04-records/decisions/0001-old.md"
+out=$(run_normal "$T" || true)
+assert_has_warn_tag "superseded record without successor warns" "$out" "[SUPERSEDE-LINK]"
+rm -rf "$T"
+
+T=$(mktemp -d -p "$TMPDIR")
+write_exact_area_status "$T"
+mkdir -p "$T/SSOT/04-records/decisions"
+printf -- '---\nrecord_status: superseded\nsuperseded_by: 0002-new.md\n---\n# Old decision\n' > "$T/SSOT/04-records/decisions/0001-old.md"
+out=$(run_normal "$T" || true)
+assert_no_warn_tag "superseded record with superseded_by does not warn" "$out" "[SUPERSEDE-LINK]"
+rm -rf "$T"
+
+echo "== V62j tracked_skill_version must not outrun installed artifacts =="
+T=$(mktemp -d -p "$TMPDIR")
+write_exact_area_status "$T"
+sed_inplace 's/| tracked_skill_version | `2.60` |/| tracked_skill_version | `9.99` |/' "$T/SSOT/STATUS.md"
+mkdir -p "$T/.agents/skills/ssot-preflight"
+printf -- '---\nmetadata:\n  protocol_version: "2.60"\n---\n# preflight\n' > "$T/.agents/skills/ssot-preflight/SKILL.md"
+out=$(run_normal "$T" || true)
+assert_has_fail_tag "tracked version outrunning installed artifact fails" "$out" "[SKILL-VERSION-BINDING]"
+rm -rf "$T"
+
+echo "== V62k failure digest groups large failure sets by check =="
+T=$(mktemp -d -p "$TMPDIR")
+write_exact_area_status "$T"
+mkdir -p "$T/SSOT/01-product" "$T/SSOT/02-architecture" "$T/SSOT/03-process"
+for area in 01-product 02-architecture 03-process; do
+  for n in 1 2 3 4 5; do
+    printf -- '---\nintent_recovery: covered\n---\n# f\n' > "$T/SSOT/$area/f$n.md"
+  done
+done
+out=$(run_normal "$T" || true)
+assert_contains "large failure sets render the per-check digest" "$out" "[DIGEST] failures by check"
+rm -rf "$T"
 
 echo
 echo "=== RESULT: pass=$PASS fail=$FAIL ==="

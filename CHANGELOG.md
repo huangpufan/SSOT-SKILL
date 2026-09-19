@@ -16,7 +16,68 @@ versions. This file only restates headline changes.
 
 ## [Unreleased]
 
+### Added
+- Bound claims (v2.62): the two coverage ledgers can no longer contradict —
+  `[LEDGER-CONSISTENCY]` fails a file stamped `intent_recovery: covered` under
+  a `gap`/`stale`/`unknown`/`conflict` area row (partial under a weak area
+  warns), and `[GAP-BLOCK]` turns an Open Gaps Blocking/retrigger cell into a
+  machine-readable contract so an open row blocking `converged`/`covered`/
+  `tracked_*` forbids that claim while open.
+- Reviewed baselines and artifacts (v2.62): `[BASELINE-REVIEW]` warns when a
+  live `tracked_commit`/`tracked_session`/`tracked_skill_version` has no Stop
+  Review Gate row naming it; `[SKILL-VERSION-BINDING]` fails a
+  `tracked_skill_version` that outruns every installed/pinned artifact a fresh
+  checkout would see; `[RECONFIRM-TOKEN]` requires dated, on-branch
+  `re-confirmed at` tokens.
+- Reference, evidence, and lifecycle integrity (v2.62): `[REF-RESOLVE]` warns
+  on unresolvable inline-code repo paths and `path::symbol` pins
+  (`retired:`/`historical:`/`deleted:` markers exempt real history);
+  `[EPHEMERAL-EVIDENCE]` warns on `/tmp`/cache evidence pointers;
+  `[GIT-TRACKED]` warns on git-ignored or untracked SSOT files (canonical
+  `release/` collides with common ignore rules); `[SUPERSEDE-LINK]` warns on
+  superseded records naming no successor. Large failure/warning sets now end
+  with a per-check `[DIGEST]` count.
+- Verification layer and worktree boundary (v2.62, closeout):
+  `update-routing.md §1.5` requires classifying each user-visible claim as
+  `user-path`/`proxy`/`unexercised` and routing unexercised paths to a durable
+  owner — install + unit tests + screenshot is not a user-journey proof — and
+  requires ending a substantive batch committed or with a visible named
+  reason, since a dirty worktree is the next batch's contamination.
+- `ssot-migrate.py` (v2.62): migrates legacy lean STATUS tables to the
+  canonical Appendix-A schemas in place (keyword column remap, generated
+  `GAP-`/`ADJ-`/`CAP-` stable IDs, owner↔route dual-fill) and backfills missing
+  record frontmatter keys; `--dry-run` previews the rewrite.
+- Source references must resolve (v2.62): reader-quality.md §2 floor item 6
+  requires inline-code source pins to resolve in the current tree or carry an
+  explicit `historical:`/`retired:`/`deleted:` marker, preferring
+  `path::symbol` over drifting line numbers — a page teaching a deleted
+  runtime is worse than an honest gap.
+
 ### Fixed
+- Open Gaps actionability now reads the canonical columns — Responsible owner
+  from column 6, Blocking/retrigger from 7, Resolving route from 8 — and emits
+  real file line numbers. The previous mapping read the Question column as the
+  owner and the Blocking column as the route, failing every real row (55 false
+  FAILs observed across two consumers).
+- Schema migration is a first-class route: per-row Open Gaps actionability
+  runs only against the canonical 8-column table; a legacy lean table produces
+  one migration WARN pointing at `ssot-migrate.py` instead of dozens of
+  misleading per-row FAILs restating one schema debt.
+- `COVERED-PLACEHOLDER` no longer strips inline code before judging table-cell
+  emptiness: code-only cells and legitimate reader-substitution notation
+  (`` `path/<segment>` ``) are content, not placeholder residue.
+- `META-LEAKAGE` no longer treats protocol machinery as leakage when the
+  machinery is the subject — records directories get the base token set only,
+  and inline-code operational mentions (`$ssot-preflight` invocations) are
+  stripped before matching.
+- `tracked_*` baseline fields are extracted from their own STATUS rows instead
+  of the first backtick-hex in the file, so an earlier table's hex value can
+  no longer be mistaken for the commit baseline.
+- Lint test assertions can no longer pass vacuously: `assert_no_fail_tag` /
+  `assert_has_fail_tag` scope to the `[FAIL] N` section instead of grepping
+  for the impossible adjacent string `[FAIL] [TAG]` — the hole that let the
+  column-mapping bug ship. Fifteen assertions across both test files fixed.
+- Removed a gawk regex-escape warning emitted on every lint invocation.
 - Project upgrades now recognize the pre-marker `SKILL_STYLE.md` shipped by
   older complete SSOT bundles, adopt it safely, and still refuse unrelated
   shared-root files with the same name. The installed Doctor self-test now

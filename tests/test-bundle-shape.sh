@@ -411,9 +411,7 @@ while IFS= read -r f; do
   if [[ -n "$unclosed_line" ]]; then
     FENCE_FAILS+=("${f#"$PROJECT_ROOT"/}:$unclosed_line")
   fi
-done < <(find "$PROJECT_ROOT" \
-  -path "$PROJECT_ROOT/.git" -prune -o \
-  -type f -name '*.md' -print)
+done < <(git -C "$PROJECT_ROOT" ls-files -co --exclude-standard -z -- '*.md' 2>/dev/null | while IFS= read -r -d '' f; do printf '%s/%s\0' "$PROJECT_ROOT" "$f"; done)
 if [[ ${#FENCE_FAILS[@]} -eq 0 ]]; then
   pass "all shipped Markdown fences close"
 else
@@ -434,10 +432,7 @@ while IFS= read -r f; do
   if grep -nE "$HYGIENE_PATTERN" "$f" >/dev/null 2>&1; then
     HYGIENE_FILES+=("${f#"$PROJECT_ROOT"/}")
   fi
-done < <(find "$PROJECT_ROOT" \
-  -path "$PROJECT_ROOT/.git" -prune -o \
-  -path "$PROJECT_ROOT/CHANGELOG.md" -prune -o \
-  -type f \( -name '*.md' -o -name '*.sh' -o -name '*.py' -o -name '*.yaml' -o -name '*.yml' \) -print)
+done < <(git -C "$PROJECT_ROOT" ls-files -co --exclude-standard -z -- '*.md' '*.sh' '*.py' '*.yaml' '*.yml' ':!:CHANGELOG.md' 2>/dev/null | while IFS= read -r -d '' f; do printf '%s/%s\0' "$PROJECT_ROOT" "$f"; done)
 if [[ ${#HYGIENE_FILES[@]} -eq 0 ]]; then
   pass "public assets avoid local/origin-project leakage"
 else

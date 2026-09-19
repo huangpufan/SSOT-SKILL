@@ -79,6 +79,15 @@ completeness, open-risk ownership, research packets, and benchmark ownership.
 Stable warnings cover heuristic density, readability, derived-index, shadow
 ledger, and benchmark-ledger signals. `--strict` promotes warnings for CI.
 
+When L1 reports schema-shaped debt on a legacy consumer — dozens of
+per-row FAILs that all restate one non-canonical table — do not fix rows by
+hand. [`assets/scripts/ssot-migrate.py`](../assets/scripts/ssot-migrate.py)
+rewrites lean STATUS tables into the canonical schema (localized canonical
+headers are recognized and left alone), backfills missing record frontmatter
+keys with review-marked placeholders, and supports `--dry-run`,
+`--status-only`, and `--records-only`. Migrate first, re-lint, then treat what
+remains as content debt.
+
 At a `tracked_skill_version >= 2.59` tracking baseline, L1 additionally hard-fails
 `[NARRATIVE-SUFFICIENCY]`, `[MANIFEST-COMPLETENESS]`,
 `[SURFACE-COVERAGE]`, `[DIAGRAM-FIRST]`, and v2.59 authoring-meta leakage.
@@ -128,6 +137,15 @@ produce the comprehension verdict.
 | SR | `STATUS-REGISTER-CELL` (v2.60) | Are STATUS data cells pointer-sized rather than paragraphs, command transcripts, checklists, or chronology? Normal register cells are capped at 180 characters; source-material disposition cells may use 320 because their schema is wider. Four or more semicolon clauses, multiple dates, or executable commands still fail. | Move narrative and proof into the unique owner or appendix; split source lifecycle, authority, owner, exclusion, and review into their schema columns; leave state plus one pointer. |
 | SG | `STATUS-GAP-ACTIONABILITY` (v2.60) | When Open Gaps has a real data row, can a reader tell which scope or task is affected, the observable condition that blocks work or retriggers review, and which responsible owner and resolving route to open? An empty template row is not a gap. | Use the exact Open Gaps schema owned by `status-protocol.md`: `Affected scope / task`, `Blocking / retrigger condition`, `Responsible owner`, and `Resolving route` must be actionable. Owner and route are resolvable Markdown links or explicit `$ssot-*` runtime routes; a bare record ID is not reachable. |
 | QD | `QUALITY-DISPOSITION` (v2.60) | Does STATUS dispose `Q01`-`Q21` exactly once? For every applicable dimension, do product, architecture, and process/evidence columns link a real owner or a named layer-level non-applicable reason, and does the gap column link a gap owner or explain why none remains? | Add or repair the pointer-sized Quality, Risk, and Governance register. Missing implementation is a gap, not proof that a dimension is inapplicable. Keep facts in the linked layer owners rather than expanding STATUS. |
+| LC | `LEDGER-CONSISTENCY` (v2.62) | Do per-file `intent_recovery:` stamps agree with the STATUS Area Status row for their area? A `covered` stamp under a `gap`/`stale`/`unknown`/`conflict` area is a contradiction; a `partial` stamp under `gap`/`unknown`/`conflict` is a warning. | Demote the file stamp or earn the area claim — one ledger must move first (status-protocol.md §3, "two ledgers, one truth"). |
+| GB | `GAP-BLOCK` (v2.62) | Does an open Open Gaps row's Blocking/retrigger cell name a protocol claim (`converged`, `covered`, `tracked_*`) that STATUS declares anyway? | Close or re-scope the gap row, or drop the live claim; the registered blocker must win while it is open. |
+| BR | `BASELINE-REVIEW` (v2.62) | Does every live `tracked_commit`/`tracked_session`/`tracked_skill_version` baseline have a Stop Review Gate row naming that field as the reviewed claim? WARN-only. | Add the scoped self-review row that authorised the advance; a baseline moved without one asserts review nobody performed. |
+| GT | `GIT-TRACKED` (v2.62) | Is every SSOT Markdown file visible to git — not ignored by `.gitignore` and not untracked? Canonical names like `release/` collide with common build-output ignore rules. WARN-only. | Add a negation ignore rule for the SSOT path, or commit the untracked file. |
+| RR2 | `REF-RESOLVE` (v2.62) | Do inline-code repo path references (`path`, `path:NN`, `path::symbol`) in SSOT bodies resolve, and do `::symbol` pins name a symbol present in the target? `retired:`/`historical:`/`deleted:`/`was:`/`removed:` markers exempt intentional history. WARN-only. | Update the pointer, prefer `path::symbol` over line pins, or mark the reference historical (reader-quality.md §2 floor item 6). |
+| RT | `RECONFIRM-TOKEN` (v2.62) | Is every `re-confirmed at <target>` token dated (`on YYYY-MM-DD`) and, when it names a commit, on this branch's history? | Re-run the scoped self-review and record a dated, on-branch token; an off-branch or undated token cannot be audited. |
+| SV | `SKILL-VERSION-BINDING` (v2.62) | Is `tracked_skill_version` bound to an artifact present in this checkout (installed skill, pinned copy, recorded release)? FAIL when the claim outruns every found artifact; WARN when an installed artifact is newer. | Install the claimed artifact or lower the claim; advance the claim when a newer artifact is genuinely present. |
+| EE | `EPHEMERAL-EVIDENCE` (v2.62) | Do STATUS cells and `.bootstrap/` artifacts point only at durable evidence — no `/tmp`, per-user caches, or machine-local scratch paths? WARN-only. | Move evidence into the repo (a `.bootstrap/` artifact or research packet) or record a content hash. |
+| SL | `SUPERSEDE-LINK` (v2.62) | Does every record file whose lifecycle state is `superseded`/`deprecated`/`retracted` name a successor via `superseded_by:`/`replaced_by:` frontmatter or an explicit body link? WARN-only. | Point the dead record at its heir; a superseded record with no successor is a dead end. |
 
 ### 2.2 L2 semantic checks
 
@@ -493,6 +511,16 @@ Tag semantics:
 - `[READ-ORDER]` (v2.50): an ordered directory's children lack `NN-` prefix or the README map does not name a "recommended reading order" line for unordered peers. (Doctor row `15O`.)
 - `[META-FILE-ROUTING]` (v2.50): a `_manifest.md` or other `_*.md` meta file is listed in the directory map without an explicit "machine-only, skip" marker. (Doctor row `15P`.)
 - `[JARGON-MAP-NOTE]` (v2.50): a directory map annotation row uses team jargon in the annotation cell without translating it into plain language. (Doctor row `15Q`.)
+- `[LEDGER-CONSISTENCY]` (v2.62, L1): a file's `intent_recovery:` frontmatter stamp contradicts its STATUS Area Status row — `covered` under `gap`/`stale`/`unknown`/`conflict` fails; `partial` under `gap`/`unknown`/`conflict` warns. Per status-protocol.md §3 "two ledgers, one truth", one ledger must move first. (Doctor row `LC`.)
+- `[GAP-BLOCK]` (v2.62, L1): an open gap row's Blocking/retrigger cell names a protocol claim (`converged`, `covered`, `tracked_*`) that STATUS declares anyway. Registered blockers constrain live claims; blocking cells on `tracked_*` baselines warn instead. (Doctor row `GB`.)
+- `[BASELINE-REVIEW]` (v2.62, L1): a live `tracked_commit`/`tracked_session`/`tracked_skill_version` baseline has no Stop Review Gate row naming that field as the reviewed claim. WARN-only. (Doctor row `BR`.)
+- `[GIT-TRACKED]` (v2.62, L1): an SSOT Markdown file is git-ignored or untracked — facts written there never reach review or release. Canonical names like `release/` collide with common build-output ignore rules. WARN-only. (Doctor row `GT`.)
+- `[REF-RESOLVE]` (v2.62, L1): an inline-code repo path reference (`path`, `path:NN`, `path::symbol`) in an SSOT body does not resolve, or a `::symbol` pin names a symbol absent from the target. `retired:`/`historical:`/`deleted:`/`was:`/`removed:` markers exempt intentional history. WARN-only. (Doctor row `RR2`.)
+- `[RECONFIRM-TOKEN]` (v2.62, L1): a `re-confirmed at <target>` token is undated (warn) or names a commit not on this branch's history (fail). Re-confirmation is self-attested; it must be auditable. (Doctor row `RT`.)
+- `[SKILL-VERSION-BINDING]` (v2.62, L1): `tracked_skill_version` outruns every installed/pinned artifact a fresh checkout would see (fail), or an installed artifact is newer than the claim (warn). The claim attests to a reproducible artifact, not a dirty worktree. (Doctor row `SV`.)
+- `[EPHEMERAL-EVIDENCE]` (v2.62, L1): STATUS cells or `.bootstrap/` artifacts point at `/tmp`, per-user caches, or other machine-local scratch — evidence that cannot survive a fresh checkout. WARN-only. (Doctor row `EE`.)
+- `[SUPERSEDE-LINK]` (v2.62, L1): a record whose lifecycle state is `superseded`/`deprecated`/`retracted` names no `superseded_by`/`replaced_by` successor. WARN-only. (Doctor row `SL`.)
+- `[DIGEST]` (v2.62): when failures reach 8 (warnings 12), the human-readable output ends with a per-check count so the dominant defect class is visible without scrolling hundreds of lines.
 
 ---
 

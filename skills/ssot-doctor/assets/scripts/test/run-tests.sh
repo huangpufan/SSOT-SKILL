@@ -42,6 +42,27 @@ assert_not_exit() { # desc actual forbidden
   if [[ "$2" != "$3" ]]; then echo "  ok   : $1"; PASS=$((PASS + 1));
   else echo "  FAIL : $1 (unexpected exit code $3)"; FAIL=$((FAIL + 1)); fi
 }
+# Failures render as "  - [TAG] msg" under "[FAIL] N", so not_contains on
+# "[FAIL] [TAG]" is vacuous; scope assertions to real section lines instead.
+_in_section_tag() { # $1=section name (FAIL|WARN) $2=output $3=bracketed tag
+  printf '%s' "$2" | awk -v tag="$3" -v section="$1" '
+    /^\[[A-Z-]+\]/ { inside = (index($0, "[" section "]") == 1); next }
+    inside && index($0, tag) { found=1 }
+    END { exit(found ? 0 : 1) }
+  '
+}
+assert_no_fail_tag() { # desc out bracketed-tag
+  if _in_section_tag 'FAIL' "$2" "$3"; then echo "  FAIL : $1 (unexpected fail tag: $3)"; FAIL=$((FAIL + 1));
+  else echo "  ok   : $1"; PASS=$((PASS + 1)); fi
+}
+assert_has_fail_tag() { # desc out bracketed-tag
+  if _in_section_tag 'FAIL' "$2" "$3"; then echo "  ok   : $1"; PASS=$((PASS + 1));
+  else echo "  FAIL : $1 (missing fail tag: $3)"; FAIL=$((FAIL + 1)); fi
+}
+assert_has_warn_tag() { # desc out bracketed-tag
+  if _in_section_tag 'WARN' "$2" "$3"; then echo "  ok   : $1"; PASS=$((PASS + 1));
+  else echo "  FAIL : $1 (missing warn tag: $3)"; FAIL=$((FAIL + 1)); fi
+}
 assert_file() { # desc path
   if [[ -f "$2" ]]; then echo "  ok   : $1"; PASS=$((PASS + 1));
   else echo "  FAIL : $1 (missing file: $2)"; FAIL=$((FAIL + 1)); fi
@@ -596,7 +617,7 @@ mkdir -p "$T/SSOT/tech-debt"
 printf '# Tech debt\n\n## Easily confused with\n\nnone\n\n## Out of scope\n\nnone -- covers complete intent\n' > "$T/SSOT/tech-debt/README.md"
 printf -- '---\nid: DEBT-0004\nstatus: active\npriority: medium\nowner: platform team\nclosure_condition: "real owner is registered"\nrevisit_signal: "path-glob:SSOT/**"\nverification_guard: "ssot-lint passes"\n---\n# Placeholder debt\n\nTODO debt: capture the real owner later.\n\n## Agent quick entry\n\nTrigger: SSOT owner changes. First check: run ssot-lint. Do not close without lint evidence.\n' > "$T/SSOT/tech-debt/0004-placeholder-debt.md"
 out=$(run "$T"); code=$?
-assert_not_contains "registered owner placeholder is not misclassified" "$out" "[FAIL] [CAPTURE-LIFECYCLE] owner file contains placeholder follow-up wording"
+assert_no_fail_tag "registered owner placeholder is not misclassified" "$out" "[CAPTURE-LIFECYCLE]"
 assert_exit "registered owner placeholder exits 0" "$code" "0"
 rm -rf "$T"
 
@@ -616,7 +637,7 @@ mkdir -p "$T/SSOT/tech-debt"
 printf '# Tech debt\n\n## Easily confused with\n\nnone\n\n## Out of scope\n\nnone -- covers complete intent\n' > "$T/SSOT/tech-debt/README.md"
 printf -- '---\nid: DEBT-0006\nstatus: resolved\npriority: low\n---\n# Historical wording\n\n> TODO debt: capture the real owner later.\n\n```text\nPending action: follow up later\n```\n' > "$T/SSOT/tech-debt/0006-historical-wording.md"
 out=$(run "$T"); code=$?
-assert_not_contains "quoted/fenced placeholder has no CAPTURE-LIFECYCLE fail" "$out" "[FAIL] [CAPTURE-LIFECYCLE] owner file contains placeholder follow-up wording"
+assert_no_fail_tag "quoted/fenced placeholder has no CAPTURE-LIFECYCLE fail" "$out" "[CAPTURE-LIFECYCLE]"
 assert_exit "quoted/fenced placeholder exits 0" "$code" "0"
 rm -rf "$T"
 
@@ -638,7 +659,7 @@ printf '# Tech debt\n\n## Easily confused with\n\nnone\n\n## Out of scope\n\nnon
 } > "$T/SSOT/tech-debt/0003-visible.md"
 out=$(run "$T"); code=$?
 assert_exit "owner-backed deferral exits 0" "$code" "0"
-assert_not_contains "owner-backed deferral has no SILENT-DEFERRAL fail" "$out" "[FAIL] [SILENT-DEFERRAL]"
+assert_no_fail_tag "owner-backed deferral has no SILENT-DEFERRAL fail" "$out" "[SILENT-DEFERRAL]"
 rm -rf "$T"
 
 echo "== S39 valid research record passes check 30 =="
@@ -655,7 +676,7 @@ printf '# 研究记录\n\n本页只索引有来源的研究证据包。它不负
 } > "$T/SSOT/04-records/research/0001-sandbox-options.md"
 out=$(run "$T"); code=$?
 assert_exit "valid research record exits 0" "$code" "0"
-assert_not_contains "valid research record has no RESEARCH-RECORD fail" "$out" "[FAIL] [RESEARCH-RECORD]"
+assert_no_fail_tag "valid research record has no RESEARCH-RECORD fail" "$out" "[RESEARCH-RECORD]"
 rm -rf "$T"
 
 echo "== S40 research record missing required frontmatter fails check 30 =="
@@ -706,7 +727,7 @@ mkdir -p "$T/SSOT/03-process/testing" "$T/SSOT/03-process/benchmark"
 printf '# 测试\n\nCorrectness gates live here.\n\n## Easily confused with\n\n无。\n\n## Out of scope\n\n无。\n' > "$T/SSOT/03-process/testing/README.md"
 printf '# 基准测试\n\nStable suites and floors live here.\n\n## Easily confused with\n\n无。\n\n## Out of scope\n\n无。\n' > "$T/SSOT/03-process/benchmark/README.md"
 out=$(run "$T"); code=$?
-assert_not_contains "benchmark owner present has no BENCHMARK-OWNER fail" "$out" "[FAIL] [BENCHMARK-OWNER]"
+assert_no_fail_tag "benchmark owner present has no BENCHMARK-OWNER fail" "$out" "[BENCHMARK-OWNER]"
 assert_exit "benchmark owner present exits 0" "$code" "0"
 rm -rf "$T"
 
@@ -768,7 +789,7 @@ rm -rf "$T"
 echo "== S51 canonical v2.57 layout passes FACETED-LAYOUT gate =="
 T=$(mktemp -d); make_base "$T"; facet_base "$T"
 out=$(run "$T"); code=$?
-assert_not_contains "canonical layout has no FACETED-LAYOUT failure" "$out" "[FAIL] [FACETED-LAYOUT]"
+assert_no_fail_tag "canonical layout has no FACETED-LAYOUT failure" "$out" "[FACETED-LAYOUT]"
 assert_exit "canonical minimal layout exits 0" "$code" "0"
 rm -rf "$T"
 
@@ -799,7 +820,7 @@ printf '# 研究记录\n\n本页只索引有来源的研究证据包。它不负
   printf 'recheck_trigger: "test harness changes"\n---\n# Long packet\n\n## Applicability and boundaries\n\ndo_not_use_for: current production fact.\n'
 } > "$T/SSOT/04-records/research/0001-long-frontmatter.md"
 out=$(run "$T"); code=$?
-assert_not_contains "long block-list frontmatter has no RESEARCH-RECORD fail" "$out" "[FAIL] [RESEARCH-RECORD]"
+assert_no_fail_tag "long block-list frontmatter has no RESEARCH-RECORD fail" "$out" "[RESEARCH-RECORD]"
 assert_exit "long block-list frontmatter exits 0" "$code" "0"
 rm -rf "$T"
 
