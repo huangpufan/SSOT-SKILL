@@ -94,7 +94,7 @@ SSOT/
      域内局部不变量留在领域 README 散文中，除非晋升为裁决边界。早期
      bootstrap 尚无合格规则时，保留本节并写一句有理由的空登记说明。 -->
 
-| ID | 类别 | 规则 | Owner | 建立依据 | 状态 |
+| ID | Kind | Rule | Owner | Established by | State |
 |---|---|---|---|---|---|
 | `INV-NN` | `arch-invariant` / `product-promise` / `process-rule` | <一句话规则> | [owner](<path#anchor>) | <DEC-NNNN 链接 / user-directive / bootstrap> | `confirmed` / `candidate` |
 | `CLAUDE-MAXIM-N` | `apex-maxim` | <一句话规则> | [DISC-NNNN](<path#anchor>) | <晋升证据链接 / user-directive> | `core-ref-thin` / `inline-body` / `not_yet_owned` |
