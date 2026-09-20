@@ -137,7 +137,8 @@ HOME="$SCENARIO5BB" SOURCE_DIR="$PROJECT_ROOT" \
 assert_grep "scenario5bb: legacy companion receives ownership marker" \
   "$SCENARIO5BB/.claude/skills/SKILL_STYLE.md" "SSOT-SKILL bundle companion; owned by install.sh"
 assert_grep "scenario5bb: legacy skill bundle is upgraded" \
-  "$SCENARIO5BB/.claude/skills/ssot-preflight/SKILL.md" 'protocol_version: "2.60"'
+  "$SCENARIO5BB/.claude/skills/ssot-preflight/SKILL.md" \
+  "protocol_version: \"$(cat "$PROJECT_ROOT/VERSION" | tr -d '[:space:]')\""
 
 # Scenario 5bc: the legacy title alone never authorizes takeover
 SCENARIO5BC="$WORK_ROOT/scenario5bc"

@@ -2220,14 +2220,16 @@ echo "== V62b an open gap blocking the converged claim forbids coverage_result=c
 T=$(mktemp -d -p "$TMPDIR")
 write_exact_area_status "$T"
 sed_inplace 's/| coverage_result | in_progress |/| coverage_result | converged |/' "$T/SSOT/STATUS.md"
-sed_inplace '/^## Open Gaps/,${s#^| | | | | | | | |$#| GAP-20260919-01 | gap | release | evidence absent | [owner](./03-process/README.md) | blocks converged | [route](./03-process/README.md) | pending |#}' "$T/SSOT/STATUS.md"
+sed_inplace '/^## Open Gaps$/,$ { /^| | | | | | | | |$/s#.*#| GAP-20260919-01 | gap | release | evidence absent | [owner](./03-process/README.md) | blocks converged | [route](./03-process/README.md) | pending |#
+  }' "$T/SSOT/STATUS.md"
 out=$(run_normal "$T" || true)
 assert_has_fail_tag "registered converged blocker forbids the converged claim" "$out" "[GAP-BLOCK]"
 rm -rf "$T"
 
 T=$(mktemp -d -p "$TMPDIR")
 write_exact_area_status "$T"
-sed_inplace '/^## Open Gaps/,${s#^| | | | | | | | |$#| GAP-20260919-01 | gap | release | evidence absent | [owner](./03-process/README.md) | blocks converged | [route](./03-process/README.md) | pending |#}' "$T/SSOT/STATUS.md"
+sed_inplace '/^## Open Gaps$/,$ { /^| | | | | | | | |$/s#.*#| GAP-20260919-01 | gap | release | evidence absent | [owner](./03-process/README.md) | blocks converged | [route](./03-process/README.md) | pending |#
+  }' "$T/SSOT/STATUS.md"
 out=$(run_normal "$T" || true)
 assert_no_fail_tag "registered blocker with in_progress coverage has no GAP-BLOCK failure" "$out" "[GAP-BLOCK]"
 rm -rf "$T"
@@ -2250,14 +2252,16 @@ rm -rf "$T"
 echo "== V62d open-gap actionability reads the canonical columns (regression: route lives in column 8) =="
 T=$(mktemp -d -p "$TMPDIR")
 write_exact_area_status "$T"
-sed_inplace '/^## Open Gaps/,${s#^| | | | | | | | |$#| GAP-20260919-02 | gap | release | evidence absent | [owner](./03-process/README.md) | retrigger on ship | not-a-link | pending |#}' "$T/SSOT/STATUS.md"
+sed_inplace '/^## Open Gaps$/,$ { /^| | | | | | | | |$/s#.*#| GAP-20260919-02 | gap | release | evidence absent | [owner](./03-process/README.md) | retrigger on ship | not-a-link | pending |#
+  }' "$T/SSOT/STATUS.md"
 out=$(run_normal "$T" || true)
 assert_contains "non-resolving Resolving route cell is rejected" "$out" "Resolving route must be one resolvable Markdown link"
 rm -rf "$T"
 
 T=$(mktemp -d -p "$TMPDIR")
 write_exact_area_status "$T"
-sed_inplace '/^## Open Gaps/,${s#^| | | | | | | | |$#| GAP-20260919-03 | gap | release | evidence absent | plain text owner | retrigger on ship | [route](./03-process/README.md) | pending |#}' "$T/SSOT/STATUS.md"
+sed_inplace '/^## Open Gaps$/,$ { /^| | | | | | | | |$/s#.*#| GAP-20260919-03 | gap | release | evidence absent | plain text owner | retrigger on ship | [route](./03-process/README.md) | pending |#
+  }' "$T/SSOT/STATUS.md"
 out=$(run_normal "$T" || true)
 assert_contains "non-link Responsible owner cell is rejected" "$out" "Responsible owner must be one resolvable Markdown owner link"
 rm -rf "$T"
@@ -2274,7 +2278,8 @@ rm -rf "$T"
 echo "== V62f live baselines need a Stop Review Gate row naming them =="
 T=$(mktemp -d -p "$TMPDIR")
 write_exact_area_status "$T"
-sed_inplace '/^## Stop Review Gate/,/^## Open Adjudications/{s#^| | | | | | | | | |$#| baseline | tracked_commit | agent:test | scoped-self-review | 2026-01-01 | no-more-required-changes | [evidence](./.bootstrap/scope-review-process.md) | none | baseline:tracked_commit |#}' "$T/SSOT/STATUS.md"
+sed_inplace '/^## Stop Review Gate$/,/^## Open Adjudications$/ { /^| | | | | | | | | |$/s#.*#| baseline | tracked_commit | agent:test | scoped-self-review | 2026-01-01 | no-more-required-changes | [evidence](./.bootstrap/scope-review-process.md) | none | baseline:tracked_commit |#
+  }' "$T/SSOT/STATUS.md"
 out=$(run_normal "$T" || true)
 assert_has_warn_tag "unreviewed tracked_session and tracked_skill_version baselines warn" "$out" "[BASELINE-REVIEW]"
 assert_not_contains "reviewed tracked_commit baseline does not warn" "$(printf '%s' "$out" | grep 'BASELINE-REVIEW' || true)" "tracked_commit has a live baseline"
