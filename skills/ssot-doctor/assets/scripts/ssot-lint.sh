@@ -115,6 +115,15 @@ if [[ ! -d "$SSOT_DIR" ]]; then
   exit 3
 fi
 
+# Canonicalize to a physical absolute path once. Validators compare realpath()
+# output against "$SSOT_DIR/..." (e.g. strict_ssot_markdown_target_key rejects
+# links resolving outside the tree); a relative invocation like
+# `ssot-lint.sh SSOT` would make every resolved target look outside the scope.
+SSOT_DIR=$(cd "$SSOT_DIR" && pwd -P) || {
+  echo "ERROR: cannot resolve SSOT directory: $SSOT_DIR" >&2
+  exit 3
+}
+
 # ---------- diagnostic collection ----------
 declare -a FAILS=()
 declare -a WARNS=()

@@ -2344,6 +2344,20 @@ out=$(run_normal "$T" || true)
 assert_contains "large failure sets render the per-check digest" "$out" "[DIGEST] failures by check"
 rm -rf "$T"
 
+echo "== V62l a relative SSOT_DIR argument resolves targets identically to absolute =="
+# strict_ssot_markdown_target_key compares realpath() output against
+# "$SSOT_DIR/..."; a relative invocation used to reject every resolved link.
+T=$(mktemp -d -p "$TMPDIR"); make_v260_product_root "$T"
+write_v260_product_manifest "$T/SSOT/01-product/_manifest.md"
+write_v260_review "$T/SSOT/.bootstrap/reader-review.md"
+abs_out=$(run_normal "$T" || true)
+rel_out=$(cd "$T" && bash "$LINT" SSOT 2>&1 || true)
+assert_no_fail_tag "relative invocation keeps reader evidence resolving" "$rel_out" "[READER-REVIEW-EVIDENCE]"
+abs_fails=$(printf '%s\n' "$abs_out" | grep -oE 'FAIL=[0-9]+' | tail -1)
+rel_fails=$(printf '%s\n' "$rel_out" | grep -oE 'FAIL=[0-9]+' | tail -1)
+assert_exit "relative and absolute invocation report the same FAIL count" "$rel_fails" "$abs_fails"
+rm -rf "$T"
+
 echo
 echo "=== RESULT: pass=$PASS fail=$FAIL ==="
 [[ "$FAIL" -eq 0 ]]
