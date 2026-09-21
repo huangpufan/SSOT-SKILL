@@ -1042,6 +1042,10 @@ copy_bundle() {
     shopt -u dotglob nullglob
   fi
 
+  # Generated caches are machine-local junk, never bundle content
+  find "$stage" -type d -name "__pycache__" -prune -exec rm -rf {} +
+  find "$stage" -type f \( -name "*.pyc" -o -name ".DS_Store" \) -delete
+
   for skill in "${BUNDLE_SKILLS[@]}"; do
     local target="$base/$skill"
     [[ -d "$target" ]] && rm -rf "$target"

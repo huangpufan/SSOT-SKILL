@@ -330,6 +330,25 @@ else
   fail "scenario17: missing --agent suggestion; log: $SCEN17_LOG"
 fi
 
+# Scenario 18: generated caches in source are never copied into installs
+SCENARIO18="$WORK_ROOT/scenario18"
+FAKE_SRC="$WORK_ROOT/fake-src"
+mkdir -p "$SCENARIO18" "$FAKE_SRC"
+cp -R "$PROJECT_ROOT/skills" "$FAKE_SRC/skills"
+cp "$PROJECT_ROOT/VERSION" "$FAKE_SRC/VERSION"
+mkdir -p "$FAKE_SRC/skills/ssot-doctor/assets/scripts/__pycache__"
+printf 'junk\n' > "$FAKE_SRC/skills/ssot-doctor/assets/scripts/__pycache__/x.cpython-312.pyc"
+printf 'junk\n' > "$FAKE_SRC/skills/ssot-preflight/.DS_Store"
+HOME="$SCENARIO18" SOURCE_DIR="$FAKE_SRC" \
+  bash "$INSTALLER" --non-interactive --agent claude --scope global --lang en --yes \
+  >/dev/null 2>&1 || fail "scenario18 install exit code"
+assert_file "scenario18: install from fake source works" "$SCENARIO18/.claude/skills/ssot-preflight/SKILL.md"
+if find "$SCENARIO18/.claude/skills" \( -name "__pycache__" -o -name "*.pyc" -o -name ".DS_Store" \) | grep -q .; then
+  fail "scenario18: generated cache files leaked into install"
+else
+  pass "scenario18: __pycache__/.DS_Store excluded from install"
+fi
+
 echo
 echo "=== RESULT: pass=$PASS fail=$FAIL ==="
 [[ $FAIL -eq 0 ]] && exit 0 || exit 1
