@@ -10,9 +10,9 @@
 
 </div>
 
-We believe coding agents will evolve toward automating design, implementation, and code review. SSOT Skill explores and adapts to that paradigm shift, centering human judgment on **defining a project's invariants and deciding when to change them.** Invariants are the promises an implementation must preserve: API compatibility, tenant isolation, or never charging twice on a retry.
+We believe coding agents will evolve toward automating design, implementation, and code review. SSOT Skill explores and adapts to that paradigm shift: **humans define a project's invariants. When a change to those invariants is proposed, humans assess whether it is correct and appropriate, then decide whether to accept it.** Invariants are the promises an implementation must preserve: API compatibility, tenant isolation, or never charging twice on a retry.
 
-Within those boundaries, agents do the work, supported by the **harness**: the tools, checks, and execution controls around them. When a task requires changing an invariant, a human decides whether to make that trade-off.
+Within those boundaries, agents do the work, supported by the **harness**: the tools, checks, and execution controls around them.
 
 **SSOT Skill gives those invariants and decisions a durable home.** It maintains a version-controlled `SSOT/` directory, preserving the constraints and their rationale alongside architecture, evidence, and known pitfalls. Across sessions and agents, the work starts from the same explicit agreements.
 
