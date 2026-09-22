@@ -1,101 +1,147 @@
 # Install Guide (Agent-facing)
 
-You are an AI coding agent. A user has asked you to install the SSOT Skill bundle into this repository. Follow these steps in order. Respond in the user's language.
+Use this guide when a user asks you to install, reinstall, update, or remove SSOT Skill. Work in the **user's target repository**, preserve existing instructions, and respond in the user's language.
 
-## 1. Ask the user two quick questions
+For a new installation, finish the setup: install the bundle, verify the installed files, and merge the lifecycle instructions. Skill discovery is confirmed only after the agent session restarts.
 
-Before installing, ask the user — in their language — these two questions in a single message. Pre-select defaults: `zh` for language if the user is chatting in Chinese (otherwise `en`); `project only` for scope.
+For an update or removal, resolve the choices and download the installer, then follow [the maintenance section](#update-or-remove-an-existing-installation) instead of running a fresh installation.
 
-> Two quick choices before I install:
->
-> 1. **Template language** for the `SSOT/` docs we'll create later — `en` or `zh`? (default: \<your inferred default\>)
-> 2. **Scope** — install only into this project, or also globally for all your repos? (default: project only)
+## 1. Resolve the installation choices
 
-Wait for the user's reply. Capture two values:
+Honor options the user already supplied. Otherwise use these defaults without asking them to reconfirm:
 
-- `LANG` ∈ `{en, zh}` — default `en` (or the inferred default you offered).
-- `INSTALL_GLOBAL` ∈ `{yes, no}` — default `no`.
+- **Agent:** the coding agent you are currently running as. Pass its canonical installer key explicitly; a machine may have several agents installed.
+- **Scope:** `project` by default; use `global` for an explicit global-only request. Install in both locations only when the user requests both. Run project commands from the target repository root.
+- **Template language:** preserve an existing `SSOT/STATUS.md` documentation-language lock or the installed template language on reinstall. For a new setup, use `zh` when the user is communicating in Chinese, otherwise `en`. A template choice does not change an existing SSOT language lock.
 
-If the user's reply is ambiguous or silent on either question, use the default.
+If the target repository or agent identity cannot be determined from the current session, ask for that missing information. Routine defaults do not need a separate approval step.
 
-## 2. Install project-locally
+Common keys and project locations:
 
-Run:
+| Current agent | Key | Project skills directory |
+|---|---|---|
+| Claude Code | `claude-code` | `.claude/skills/` |
+| Codex | `codex` | `.agents/skills/` |
+| Cursor | `cursor` | `.agents/skills/` |
+| Windsurf | `windsurf` | `.windsurf/skills/` |
+| Gemini CLI | `gemini-cli` | `.agents/skills/` |
+| GitHub Copilot | `github-copilot` | `.agents/skills/` |
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash -s -- --quickstart --lang <LANG>
-```
+For other agents or global locations, use the installer's `--list-agents` output. Its registry is the authority for paths; respect configuration overrides shown there.
 
-If that hangs or fails for network reasons (e.g. mainland China), retry with the mirror:
+## 2. Install the bundle
 
-```bash
-curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash -s -- --quickstart --lang <LANG>
-```
+Check that Bash 4+, `git`, `curl`, and `python3` are available. On macOS, the system Bash is too old. If Homebrew Bash is already installed, use `"$(brew --prefix)/bin/bash"`; otherwise explain the missing prerequisite and install it only within the user's authorization.
 
-`--quickstart` auto-detects which agent you are (env signature → filesystem scan) and installs **project-locally** (into `./.claude/skills/`, `./.agents/skills/`, etc. — depending on which agent you are).
-
-Verify the install: a file like `./.claude/skills/ssot-preflight/SKILL.md` (or your agent's equivalent path) should now exist. If not, surface the installer's stderr to the user and stop — do **not** proceed until project install succeeds.
-
-## 3. If `INSTALL_GLOBAL = yes`, also install globally
+Download the installer to a temporary directory so a failed download cannot look like a successful installation. Replace the placeholder values with the choices resolved above, then run:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash -s -- --quickstart --lang <LANG> --scope global
+ssot_agent='<agent-key>'
+ssot_template_lang='<en-or-zh>'
+ssot_scope='<project-or-global>'
+ssot_install_dir="$(mktemp -d)"
+printf 'Installer directory: %s\n' "$ssot_install_dir"
+if ! curl -fsSL --connect-timeout 10 --max-time 60 --retry 2 \
+  https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh \
+  -o "$ssot_install_dir/install.sh"; then
+  printf 'Installer download failed; setup has not run.\n' >&2
+  exit 1
+fi
 ```
 
-(Use the `gh-proxy.com` mirror if step 2 needed it.)
+For an installation, run:
 
-Verify a file like `~/.claude/skills/ssot-preflight/SKILL.md` exists.
+```bash
+bash "$ssot_install_dir/install.sh" --quickstart \
+  --agent "$ssot_agent" --scope "$ssot_scope" --lang "$ssot_template_lang"
+```
+
+Check the download and installer results separately. Retain the printed temporary path and resolved choices if subsequent steps run in a new shell. A download failure means nothing was installed; an installer failure must be resolved before continuing to verification or instruction wiring. Preserve stderr and report the specific failure.
+
+If the download fails for network reasons, the existing mirror is:
+
+```text
+https://gh-proxy.com/https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh
+```
+
+Retry the download using that URL, then run the same installer command. Do not treat invalid arguments, missing prerequisites, or verification failures as network problems.
+
+If the user supplied a local SSOT-SKILL checkout, use its `install.sh` with `SOURCE_DIR` set to that checkout instead of downloading another copy. The installer normally fetches the current `main` bundle; `SOURCE_DIR` explicitly selects a local source.
+
+If the user requested both scopes, run the installation once for each scope and verify both locations. Installation does not create or migrate the target repository's `SSOT/`.
+
+## 3. Verify the installed bundle
+
+Read the actual target path from installer output and check that location. Replace the placeholder below with it:
+
+```bash
+ssot_skills_dir='<installed-skills-directory>'
+for ssot_skill in ssot-preflight ssot-bootstrap ssot-closeout ssot-audit ssot-doctor ssot-skill; do
+  test -f "$ssot_skills_dir/$ssot_skill/SKILL.md" || exit 1
+  test -f "$ssot_skills_dir/$ssot_skill/agents/openai.yaml" || exit 1
+done
+SSOT_TEST_PACKAGE_SHAPE_ONLY=1 \
+  bash "$ssot_skills_dir/ssot-doctor/assets/scripts/test/run-tests.sh"
+```
+
+Also inspect the installed bootstrap templates: they should use the selected language directly under `ssot-bootstrap/assets/templates/`, without `en/` and `zh/` subdirectories. Read the installed `ssot-preflight/SKILL.md` `metadata.protocol_version` and include it in the result.
+
+These checks verify the installation, not the health of the user's repository documentation. Do not run a full SSOT audit or bootstrap as part of installation unless the user requested that work.
 
 ## 4. Wire the skills into the repo's agent-instructions file
 
-Step 2 made the skills discoverable, but discovery is not invocation — without an explicit trigger directive, you (and the next agent that opens this repo) may forget to call `$ssot-preflight` at the right moment.
+The installer prints a lifecycle instruction block in the selected template language. Merge that block into the target repository's existing instructions; discovery alone does not establish when a skill should run. A global-only installation without a target repository stops after verification and reports that each consuming repository still needs these instructions; it does not authorize editing global agent instructions.
 
-Find this repo's primary agent-instructions file based on which agent you are:
+| Agent | Instruction entry |
+|---|---|
+| Claude Code | `CLAUDE.md` |
+| Codex / OpenAI-style agents | `AGENTS.md` |
+| Cursor | `.cursor/rules/ssot.mdc`, or the repository's existing `.cursorrules` |
+| Windsurf | `.windsurf/rules/ssot.md`, or the repository's existing `.windsurfrules` |
+| Gemini CLI | `GEMINI.md` |
+| Other agents | Their supported repository-instruction entry |
 
-- Claude Code → `CLAUDE.md` at repo root
-- Codex / OpenAI-style → `AGENTS.md`
-- Cursor → `.cursor/rules/ssot.mdc` (new file) or merge into existing `.cursorrules`
-- Windsurf → `.windsurf/rules/ssot.md` or merge into `.windsurfrules`
-- Gemini CLI → `GEMINI.md`
-- Other agents → their canonical instruction file
+Read existing instructions first. Follow any pointer or symlink to the repository's shared instruction owner, and update that one source. Adapt the installer's block to the surrounding style. If SSOT instructions already exist, reconcile them in place; preserve unrelated instructions and avoid duplicate blocks. When creating a tool-specific rules file, use that agent's supported activation format.
 
-Read it first if it exists. Then merge in these six lines (use `LANG` from step 1). Pick a natural section — "Skills", "Conventions", or end-of-file — and adapt wording so it flows with the surrounding text. **Do not** paste verbatim if the file uses a different voice.
+Before finishing, reread the resulting file and confirm it covers:
 
-**en**
+- preflight before substantive repository work;
+- bootstrap when `SSOT/` is missing or initialization is incomplete;
+- closeout before a substantive batch's final response or commit;
+- audit for historical catch-up and protocol upgrades;
+- doctor for health checks and completion reviews.
 
-> SSOT Skill is installed here. `SSOT/` is agent long-term memory; code, schema, and tests remain the source of truth.
-> - `$ssot-preflight` — before any substantive repository task.
-> - `$ssot-bootstrap` — when `SSOT/` is missing or bootstrap is incomplete.
-> - `$ssot-closeout` — before final response / `claim_done` / commit on a substantive change batch.
-> - `$ssot-audit` — to catch up `tracked_commit` / `tracked_session` / `tracked_skill_version`.
-> - `$ssot-doctor` — for health check, stop review, CORE-REF / ADAPTER / CONSUMPTION.
+Do not copy or apply SSOT-SKILL's own `AGENTS.md` to the user's repository. It governs maintenance of the bundle source, including its release and commit conventions.
 
-**zh**
+## 5. Report the result and restart step
 
-> 本仓库已安装 SSOT Skill。`SSOT/` 是 Agent 长期记忆；代码 / schema / 测试仍是事实证据源。
-> - `$ssot-preflight` — 实质性仓库任务开始前。
-> - `$ssot-bootstrap` — `SSOT/` 缺失或 bootstrap 未完成时。
-> - `$ssot-closeout` — 实质性变更批次的 final response / `claim_done` / commit 前。
-> - `$ssot-audit` — 同步 `tracked_commit` / `tracked_session` / `tracked_skill_version`。
-> - `$ssot-doctor` — 健康检查 / 停止审查 / CORE-REF / ADAPTER / CONSUMPTION。
+Remove the temporary installer directory you created after verification. Report:
 
-If the file already references `$ssot-preflight` or `SSOT/`, update that block in place rather than duplicating. Do not modify unrelated sections.
+- the installed version, agent, scope, target path, and template language;
+- the instruction file updated, or why its existing block already suffices;
+- which installed-file checks passed;
+- that the user must restart the agent session to discover the skills.
 
-## 5. Read the skill reference
+After restart, use `$ssot-bootstrap` when `SSOT/` is absent, or `$ssot-preflight` when it already exists. Do not claim the skills are active before restart and discovery are confirmed. Do not ask the user to choose a global installation again after a successful project-only setup.
 
-Fetch and read [AGENTS.md](https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/AGENTS.md). It tells you when to invoke each of the six lifecycle skills (`$ssot-preflight`, `$ssot-bootstrap`, `$ssot-closeout`, `$ssot-audit`, `$ssot-doctor`, `$ssot-skill`).
+## Update or remove an existing installation
 
-## 6. Tell the user to restart you
+Resolve the target agent and scope as above. To update, use the downloaded installer:
 
-The newly installed skills will not load in the current session. Tell the user:
+```bash
+# Update only the selected agent and scope.
+# Omit --lang to preserve its installed template language.
+bash "$ssot_install_dir/install.sh" --upgrade --agent "$ssot_agent" --scope "$ssot_scope"
+```
 
-> Bundle installed. Restart this agent session so the new skills are discovered.
+To remove the installation instead:
 
-After restart, the user can invoke `$ssot-preflight` before substantive work, or `$ssot-bootstrap` to create `SSOT/` if it's missing — but do not invoke those yourself now; wait for the user to call them post-restart.
+```bash
+bash "$ssot_install_dir/install.sh" --uninstall --agent "$ssot_agent" --scope "$ssot_scope" --yes
+```
 
-## Notes
+A scoped upgrade honors both `--agent` and `--scope`. Bare `--upgrade` scans every supported location in the current project and globally; use it only when that broader update was requested. Shared directories are updated once, and agents sharing a directory share the same installation.
 
-- If `--quickstart` autodetect fails (`agent autodetect failed`), pass `--agent <key>` explicitly. Run `bash install.sh --list-agents` to see canonical keys.
-- The installer is idempotent — safe to re-run.
-- For uninstall: `bash install.sh --uninstall --agent <key> --scope <global|project> --yes`.
-- For upgrade-in-place (re-scan every location and reinstall): `bash install.sh --upgrade`.
+After an update, repeat verification and reconcile the instruction block, then request a session restart. Repository protocol migration is separate work through `$ssot-audit`.
+
+After removal, verify the bundle files are absent. Preserve generated `SSOT/` documentation and unrelated skills. Reconcile obsolete trigger instructions with any remaining SSOT installation; the installer itself does not edit instruction files. Remove the temporary installer directory afterward.

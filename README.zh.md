@@ -2,230 +2,194 @@
 
 # SSOT Skill
 
-**让代码仓库拥有可维护、可验证、跨会话延续的 Agent 长期记忆。**
+**用 Markdown 维护仓库记忆，让不同会话、不同 Agent 共享项目上下文。**
 
-[![Version](https://img.shields.io/github/v/tag/huangpufan/SSOT-SKILL?label=protocol&color=2ea44f)](./VERSION)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-[![CI](https://github.com/huangpufan/SSOT-SKILL/actions/workflows/ci.yml/badge.svg)](https://github.com/huangpufan/SSOT-SKILL/actions/workflows/ci.yml)
-[![Agents](https://img.shields.io/badge/agents-70%2B-purple)](#支持的-agent)
-[![Stars](https://img.shields.io/github/stars/huangpufan/SSOT-SKILL?style=social)](https://github.com/huangpufan/SSOT-SKILL/stargazers)
+[![CI](https://github.com/huangpufan/SSOT-SKILL/actions/workflows/ci.yml/badge.svg)](https://github.com/huangpufan/SSOT-SKILL/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE) [![Agents](https://img.shields.io/badge/agents-70%2B-purple)](#支持的-agent) [![Stars](https://img.shields.io/github/stars/huangpufan/SSOT-SKILL?style=social)](https://github.com/huangpufan/SSOT-SKILL/stargazers)
 
-[English](./README.md) · [中文](./README.zh.md) · [Skill 参考](./AGENTS.md) · [更新日志](./CHANGELOG.md)
+[English](./README.md) · [中文](./README.zh.md) · [安装指南](./INSTALL.md) · [协议版本](./VERSION) · [更新日志](./CHANGELOG.md)
 
 </div>
 
----
+新开一个编程会话，常常又要解释同一批问题：项目要实现什么、为什么这样设计、哪些修过的问题不能再犯。SSOT Skill 帮助 Agent 把这些答案保存在随代码一起版本管理的 `SSOT/` 目录里，让下一次会话有据可循。
 
-SSOT Skill 把仓库的长期事实——产品意图、架构边界、决策、陷阱、测试策略——整理成一份可审查的 Markdown `SSOT/` 目录。任何 Agent（Claude Code、Codex、Cursor、Windsurf、Gemini CLI 等）在开始工作前都先读同一份追踪基线，也就是文档追踪到哪个提交、会话和协议版本，而不是每次会话都重新猜测上下文。
+**SSOT** 是 **Single Source of Truth（单一事实源）**：每条长期事实只在一个位置维护，其他文档通过链接引用。本项目提供六个 Skill、Markdown 模板和本地检查脚本，在你已有的编程 Agent 中使用。
 
-> `SSOT/` 是 **Agent 长期记忆**，不是代码的替代品。代码、schema、测试和实际运行行为仍然是当前实现事实的证据来源；SSOT 记录围绕这些事实形成的持久结论。
+- **跨会话延续上下文。** 把产品意图、架构边界、决策和已知陷阱留在代码旁边。
+- **跨工具共享上下文。** 在同一仓库工作的 Agent 可以读取和更新同一组文件。
+- **看清哪些内容经过检查。** 记录已审查的提交、尚存的缺口，以及仍需人来决定的事项。
 
-## 什么是 SSOT？
-
-**SSOT** 是 **Single Source of Truth**（单一事实源）的缩写——一条经典的软件工程原则：每一条重要事实只在**一个**权威位置存在，不允许有第二份散落的副本。任何人（或任何工具）需要这条事实时，都从同一个位置读，而不是猜测、复制或重新推导。
-
-本 Skill 把同样的思路套到 **Agent 对仓库的记忆**上：
-
-- **一条事实一个位置。** 产品意图、架构边界、关键决策、已知陷阱、测试策略，每一项都落在 `SSOT/` 下的一个 Markdown 文件，而不是散落在对话记录、PR 描述和不同 Agent 的私有缓存里。
-- **可审查。** 全是纯 Markdown，随仓库一起进版本控制——可 diff、可在 PR 里 review、可回滚。
-- **跨工具。** Claude Code、Codex、Cursor、Windsurf、Gemini CLI 等读的是**同一份** `SSOT/`，不会出现某个 Agent 维护一份跑偏的私有记忆。
-- **可验证。** 五个生命周期 Skill（`$ssot-preflight` / `$ssot-bootstrap` / `$ssot-closeout` / `$ssot-audit` / `$ssot-doctor`）、一个旧提示兼容入口（`$ssot-skill`）和自带的静态检查，共同防止 `SSOT/` 随仓库演化而失真。
-
-**SSOT 不是代码的替代品。** 代码、schema、测试和运行时行为仍然是 *当前实现* 事实的来源；`SSOT/` 记录的是围绕代码的**持久结论**——那些一旦会话结束或换了 Agent 就会丢失的东西。
-
-## 即使不读代码，也能看懂全部 SSOT
-
-只有新人能读懂，SSOT 才真正有用。因此，所有面向读者的正文都先帮助读者建立
-方向，再用一个具体的当前流程解释因果关系、边界、失败与恢复，以及当前状态和
-目标状态的区别，最后才给出紧凑的参考表和证据。这里的 KISS 是“抵达理解的
-最短可靠路径”，不是“字数越少越好”。“事实权威位置”是唯一解释和维护一条
-事实的文件或小节；“运行时责任边界”是实际处理请求或持有状态的系统部分；
-“责任人或批准角色”是有权执行、决定或批准的人，不能从前两者自动推断。
-
-默认读者是**实施委托者**：他们可能已经不亲自写或读代码，但仍要能告诉 Agent 应交付什么结果、识别可见结果与合适证据，并知道何时停止或升级处理。因此，SSOT 先用平实语言讲清场景与因果，再引入不可避免的仓库术语、命令和符号。
-
-产品主干覆盖用户、真实可见界面、核心对象生命周期、能力、选择/控制/恢复旅程、
-验收以及当前与目标的区别。“产品表面”是人能看到、调用或收到的入口、动作和
-结果。架构主干从运行时责任边界出发，回答七类跨边界问题：运行模式、关键旅程、状态与数据、
-契约与信任、失败与恢复、部署与可观测性、当前/目标/缺口。供 Agent 恢复和校验
-使用的清单（manifest）是机器索引，不是让读者反推答案的正文。
-
-静态检查会拦住只有标题、占位符或链接清单的“看起来完整”。产品和架构各要求
-一位没有预备背景的新读者完成 6 个真实任务；同时还要分别逐项处理 53 个产品
-完整性问题和 48 个架构完整性问题，避免一段顺畅的故事掩盖缺失边界。流程、记录、
-术语表、根导航和 STATUS 使用与自身内容相配的较小评审。批准一项委托工作前，
-所有评审都会帮助读者问四个白话问题：
-
-1. 谁可能看不懂、用不了、受到不公平对待或遭受伤害？
-2. 压力、并发、失败、断网、升级或恢复时会发生什么？
-3. 数据、身份、权限、钱和外部规则由谁负责？
-4. 什么证据能证明结果有效、成本可控、可以维护并且能够恢复？
-
-每项适用关注点都要链接事实权威位置、运行时责任边界、流程证据、已知责任角色，
-或一个明确缺口；不能靠沉默表示“不适用”，链接能打开也不能单独证明正文符合
-仓库事实。精确评审编号、数量和停止规则见
-[读者质量协议](./skills/ssot-preflight/references/reader-quality.md)。
+它尤其适合持续维护的仓库，以及需要在人与 Agent、不同 Agent 之间交接工作的项目。
 
 ## 快速开始
 
-把这一行粘进你的 Agent 对话（Claude Code、Codex、Cursor、Gemini CLI 等均可）：
+### 1. 安装到你想整理的项目中
 
+用编程 Agent 打开那个项目，把下面这句话发给它：
+
+```text
+请阅读 https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/INSTALL.md 并按照指南安装。
 ```
-Read https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/INSTALL.md and follow it.
-```
 
-Agent 会 fetch [`INSTALL.md`](./INSTALL.md)，跑安装器（默认装到项目本地），问你是否再装一份全局，然后读 `AGENTS.md`。
+Agent 会按[安装指南](./INSTALL.md)识别安装位置，安装并验证全部六个 Skill，再把日常触发指令合并到项目的 `AGENTS.md`、`CLAUDE.md` 等文件中。默认**只安装到当前项目**，沿用已有模板语言；首次安装时根据对话语言选择 `en` 或 `zh`。你也可以在同一句话里指定其他语言，或明确要求全局安装。
 
-**没 Agent？自己跑：**
+<details>
+<summary>希望在终端里手动安装？</summary>
+
+环境需要 **Bash 4+**、`git`、`curl` 和 `python3`。macOS 用户先运行 `brew install bash`，再把下面命令里的 `bash` 换成 `"$(brew --prefix)/bin/bash"`；系统自带的 Bash 版本过旧。
+
+在你想整理的项目根目录执行：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash
+set -o pipefail
+curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash -s -- --quickstart --scope project --lang zh
 ```
 
-交互式安装器用方向键选 Agent、范围、模板语言。装完后重启 Agent 会话，在仓库里跑 `$ssot-bootstrap` 创建 `SSOT/`。
+需要英文模板时改用 `--lang en`。`--quickstart` 会识别 Agent 并跳过交互选择。如果识别结果不唯一，或你希望明确指定安装对象，可以追加 `--agent codex`、`--agent claude-code` 或其他[支持的标识](#支持的-agent)。
 
-## 把指令写进 agent-instructions 文件
+脚本会安装 Skill 并输出建议的指令块，**不会修改项目的 Agent 指令文件，也不会创建 `SSOT/`**。请按[安装指南第 4 步](./INSTALL.md#4-wire-the-skills-into-the-repos-agent-instructions-file)合并指令块；已有 SSOT 指令时原地更新，避免重复。随后继续下一步。
 
-安装 bundle 让 skill 可被**发现**，但大多数 Agent 在没有显式触发指令时**不会可靠地调用** `$ssot-preflight`。你需要在仓库的 agent-instructions 文件（`CLAUDE.md` / `AGENTS.md` / `.cursorrules` / `GEMINI.md` 等）里加一段触发块。
+</details>
 
-Agent 驱动的安装路径（[`INSTALL.md`](./INSTALL.md) 第 4 步）会自动做这件事。如果你是手动跑 `install.sh`，请把下面的块复制到你仓库的 agent-instructions 文件里。措辞按上下文调整；如果已有相同块，**不要重复粘贴**。
+### 2. 重启 Agent，再创建仓库记忆
 
-**中文**
-
-```markdown
-本仓库已安装 SSOT Skill。`SSOT/` 是 Agent 长期记忆；代码 / schema / 测试仍是事实证据源。
-
-- `$ssot-preflight` — 实质性仓库任务开始前。
-- `$ssot-bootstrap` — `SSOT/` 缺失或 bootstrap 未完成时。
-- `$ssot-closeout` — 实质性变更批次的 final response / `claim_done` / commit 前。
-- `$ssot-audit` — 同步 `tracked_commit` / `tracked_session` / `tracked_skill_version`。
-- `$ssot-doctor` — 健康检查 / 停止审查 / CORE-REF / ADAPTER / CONSUMPTION。
-```
-
-**English**
-
-```markdown
-SSOT Skill is installed here. `SSOT/` is agent long-term memory; code, schema, and tests remain the source of truth.
-
-- `$ssot-preflight` — before any substantive repository task.
-- `$ssot-bootstrap` — when `SSOT/` is missing or bootstrap is incomplete.
-- `$ssot-closeout` — before final response / `claim_done` / commit on a substantive change batch.
-- `$ssot-audit` — to catch up `tracked_commit` / `tracked_session` / `tracked_skill_version`.
-- `$ssot-doctor` — for health check, stop review, CORE-REF / ADAPTER / CONSUMPTION.
-```
-
-点代码块右上角的复制按钮，把内容粘到 agent-instructions 文件的 "Skills" / "Conventions" / "约定" 段落（若无则贴到文件末尾）。
-
-## 环境要求
-
-- **Bash 4+**。macOS 默认 bash 3.2，请先 `brew install bash`，然后用 `/opt/homebrew/bin/bash` 跑安装器。
-- `git`、`curl`、`python3` 在 `PATH` 中可用。
-
-## 卸载
-
-```bash
-bash install.sh --uninstall --agent <key> --scope <global|project> --yes
-```
-
-`<key>` 与安装时使用的 canonical Agent key 一致（例如 `claude-code`、`codex`、`cursor`）。安装器同时支持 `--upgrade`（扫描全部已安装位置并重装）和 `--version`。
-
-## 六个 SSOT Skill
-
-其中五个负责生命周期；`$ssot-skill` 只负责把旧提示转到正确 Skill。
-
-| Skill | 何时使用 |
-|---|---|
-| `$ssot-preflight` | 任何实质性代码任务开始前——读取追踪基线和未决裁决，路由到最小必读 SSOT 文件 |
-| `$ssot-bootstrap` | 仓库首次没有 `SSOT/`，或 bootstrap 未完成 |
-| `$ssot-closeout`  | 最终回复 / `claim_done` / commit 前——判断本批是否产生了需要吸收的持久事实 |
-| `$ssot-audit`     | 分段补齐 commit、session 或协议升级 |
-| `$ssot-doctor`    | 健康检查、停止审查、lint、CORE-REF / ADAPTER / CONSUMPTION 审计 |
-| `$ssot-skill`     | 兼容 shim；把调用路由到上面五个之一（保留给旧 prompt） |
-
-协议版本只在 [`skills/ssot-preflight/SKILL.md`](./skills/ssot-preflight/SKILL.md) 单点维护，并镜像到 [`VERSION`](./VERSION)。
-
-## 三层结构
+重启 Agent 会话，让新安装的 Skill 被发现。如果项目还没有 `SSOT/`，发送：
 
 ```text
-SSOT-SKILL --install.sh--> Agent 本地 Skill --在仓库中运行--> SSOT/
+用 $ssot-bootstrap 根据这个仓库现有的代码和文档创建 SSOT。
 ```
 
-安装后的 Skill 创建并维护下面这套完整仓库记忆：
+初始化会探索仓库、整理长期事实、记录缺口，并审查结果。生成后从 `SSOT/README.md` 开始阅读，在 `SSOT/STATUS.md` 查看哪些内容已审查、哪些仍未解决。大型仓库可能需要多个会话，可以继续尚未完成的初始化工作。
+
+如果项目已经有 `SSOT/`，先用 `$ssot-preflight`；遇到初始化未完成或项目追踪的协议版本落后，它会转到对应 Skill。
+
+### 3. 在日常工作中使用
 
 ```text
-your-repo/SSOT/
-├── README.md                    从这里开始：仓库做什么，各类问题去哪里找
-├── STATUS.md                    哪些事实可信、缺失、过时或仍待决定
-├── 01-product/                  用户、当前承诺、可见结果与验收
-│   ├── prd.md
-│   ├── product-model.md
-│   ├── roadmap-and-acceptance.md
-│   ├── capabilities/
-│   └── journeys/
-├── 02-architecture/             系统怎样产出结果，以及怎样处理状态、信任与失败
-│   ├── views/                   七类跨系统部分的问题
-│   └── NN-domain/               每个领域只有一个清楚的运行时、状态或契约所有者
-├── 03-process/                  工作怎样开发、检查、交付和长期运行
-│   ├── development/
-│   ├── testing/
-│   ├── benchmark/
-│   ├── deployment/
-│   ├── release/
-│   ├── operations/              适用于需要长期运行的仓库
-│   └── security-and-compliance/ 适用于存在相应生命周期的仓库
-├── 04-records/                  为什么这样选择，哪些历史事实仍会影响行动
-│   ├── decisions/
-│   ├── research/
-│   ├── gotchas/
-│   ├── bugs/
-│   └── tech-debt/
-├── glossary/                    仓库专用词、别名和统一含义
-└── .bootstrap/                  评审与恢复证据；普通读者可以跳过
+开始这个仓库任务前先用 $ssot-preflight：[描述你的任务]。
+最终回复或提交前用 $ssot-closeout 收尾。
 ```
 
-源包、安装后的 Skill、仓库里的 `SSOT/` 三层只服务一个目标：让 Agent 对仓库的
-记忆**可审查**、**可验证**、**跨工具可移植**。
+开始前，preflight 检查文档状态并定位与任务相关的文件；收尾时，closeout 检查本次工作是否改变了长期事实，并按需更新其维护位置。安装时写入的指令会为后续会话建立这些触发约定，你也可以显式调用 Skill。
 
-## 常用流程
+上面的 `$ssot-…` 示例是**发给 Agent 的提示词**，不是终端命令。不同 Agent 的 Skill 调用语法可能不同。
+
+## 该用哪个 Skill？
+
+五个 Skill 负责生命周期，第六个兼容旧提示词。点击名称可以查看对应协议及详细参考文档。
+
+| 场景 | Skill | 作用 |
+|---|---|---|
+| 开始实质性的仓库任务 | [`$ssot-preflight`](./skills/ssot-preflight/SKILL.md) | 检查已审查状态、未决事项、语言和版本，定位必读文档 |
+| 创建 `SSOT/` 或继续初始化 | [`$ssot-bootstrap`](./skills/ssot-bootstrap/SKILL.md) | 根据证据建立仓库记忆，并审查覆盖情况 |
+| 结束一批实质性变更 | [`$ssot-closeout`](./skills/ssot-closeout/SKILL.md) | 在最终回复或提交前，让长期事实与本次变更对齐 |
+| 补齐提交、会话或协议变更 | [`$ssot-audit`](./skills/ssot-audit/SKILL.md) | 分段审查历史，更新追踪基线 |
+| 检查文档健康度或审查完成声明 | [`$ssot-doctor`](./skills/ssot-doctor/SKILL.md) | 运行结构检查，审查证据、一致性与可读性 |
+| 使用旧的 `$ssot-skill` 提示词 | [`$ssot-skill`](./skills/ssot-skill/SKILL.md) | 转到上面五个 Skill 之一 |
+
+**追踪基线**记录文档审查到了哪个提交、会话和协议版本。它不代表每条事实都是最新的，也不代表所有领域已经完整覆盖。
+
+## 项目里会生成什么？
+
+安装后的 Skill 提供工作指令和工具；项目里的 `SSOT/` 保存它们帮助维护的记忆：
 
 ```text
-# 开始一个代码任务
-开始这个仓库任务前先用 $ssot-preflight。
-
-# 收尾
-最终回复前先用 $ssot-closeout。
-
-# 全新仓库
-用 $ssot-bootstrap 创建仓库 SSOT。
-
-# 历史补齐
-用 $ssot-audit 补齐 tracked_commit 和 tracked_session。
-
-# 体检
-用 $ssot-doctor 跑一次 SSOT 健康检查。
+SSOT-SKILL → 安装到 Agent 的 Skill 目录 → 在你的项目中使用 Skill → SSOT/
 ```
+
+主要阅读入口如下：
+
+```text
+ your-repo/SSOT/
+ ├── README.md           项目做什么，各类问题去哪里找答案
+ ├── STATUS.md           已审查状态、未决事项、缺口与追踪基线
+ ├── HISTORY.md          SSOT 更新批次及所涉及文件的简要记录
+ ├── 01-product/         用户、能力、使用流程与验收标准
+ ├── 02-architecture/    系统怎样运行、管理状态和处理失败
+ │   ├── views/          跨系统边界的整体解释
+ │   └── NN-domain/      按仓库实际职责划分的领域细节
+ ├── 03-process/         怎样开发、测试、做基准评估、部署和发布
+ ├── 04-records/         决策、研究、陷阱、缺陷与技术债
+ ├── glossary/           项目专用术语及其含义
+ └── .bootstrap/         初始化期间的进度与审查证据
+```
+
+架构领域按仓库的实际职责划分；运维、安全与合规流程在适用时纳入。完整结构见[模板索引](./skills/ssot-bootstrap/references/templates-index.md)。
+
+现有 README、设计文档和决策记录是整理过程的输入。长期事实会归入各自的维护位置，导航通过链接指向它们；具体处理方式见[已有资料处理规则](./skills/ssot-preflight/references/source-material.md)。
+
+## 怎样让这份记忆持续有用？
+
+**让委托实施的人也能读懂。** 写作规则要求文档讲清用户场景、当前行为、边界、失败与恢复，以及验收结果所需的证据。读者应该能据此决定让 Agent 做什么，而不必先通读代码。详细验收要求见[读者质量协议](./skills/ssot-preflight/references/reader-quality.md)。
+
+**让结论有证据可查。** 代码、数据结构、测试和实际运行行为仍是当前实现的证据来源。SSOT 保存围绕它们形成的解释与决策，并区分现状、目标和未知事项。
+
+**明确检查能证明什么。** [本地检查脚本](./skills/ssot-doctor/assets/scripts/ssot-lint.sh)检查结构、链接、追踪一致性等可机械判断的属性，Doctor 再进行 Agent 审查。仅通过脚本检查，不能证明文档真实、易懂或完整；初始化完成还需要独立审查。
+
+**通过工作流程维护。** 安装只让 Skill 可用，需要在工作中调用它们，文档才能随仓库变化更新。安装本身不会提供自动同步，也不能保证 Agent 每次都遵守全部规则。
 
 ## 支持的 Agent
 
-与 [vercel-labs/skills](https://github.com/vercel-labs/skills) 注册表对齐。主流 Agent 包括：**Claude Code · Cursor · Codex · Windsurf · Gemini CLI · GitHub Copilot · OpenCode · Cline · Roo Code · Continue · Augment · Zed · Goose · Aider · Junie · Trae · Crush · Warp · OpenHands · Replit · Devin · Droid · Qwen Code · Lingma · Kilo · ForgeCode · Tabnine**，外加 40+ 其他。交互式安装器会展示本机检测到的 Agent。
+安装器登记了 **70 多种 Agent** 的安装路径，包括 Claude Code、Codex、Cursor、Windsurf、Gemini CLI、GitHub Copilot、OpenCode 和 Cline。常用的项目级安装位置如下：
 
-## 文档
+| Agent | 安装器标识 | 项目 Skill 目录 |
+|---|---|---|
+| Claude Code | `claude-code` | `.claude/skills/` |
+| Codex | `codex` | `.agents/skills/` |
+| Cursor | `cursor` | `.agents/skills/` |
+| Windsurf | `windsurf` | `.windsurf/skills/` |
+| Gemini CLI | `gemini-cli` | `.agents/skills/` |
 
-- [`AGENTS.md`](./AGENTS.md) — 完整 skill 参考和路由规则
-- [`CONTRIBUTING.md`](./CONTRIBUTING.md) — 贡献指南
-- [`CHANGELOG.md`](./CHANGELOG.md) — 协议历史（Keep a Changelog）
-- [`skills/ssot-audit/references/protocol-upgrades.md`](./skills/ssot-audit/references/protocol-upgrades.md) — 升级路由
+查看全部标识与安装路径，不执行安装：
 
-## Star 趋势
+```bash
+set -o pipefail
+curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash -s -- --list-agents
+```
 
-<a href="https://www.star-history.com/#huangpufan/SSOT-SKILL&Date">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=huangpufan/SSOT-SKILL&type=Date&theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=huangpufan/SSOT-SKILL&type=Date" />
-    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=huangpufan/SSOT-SKILL&type=Date" />
-  </picture>
-</a>
+登记了安装路径，不等于已经证明各 Agent 版本的 Skill 发现机制和执行行为完全一致。安装后请重启 Agent，并确认它能发现这些 Skill。
 
-## 协议
+## 更新与卸载
+
+更新时，也让 Agent 按同一份指南处理：
+
+```text
+请阅读 https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/INSTALL.md，为当前 Agent 更新本项目的 SSOT Skill，保留原模板语言。
+```
+
+更新后重启 Agent。如果项目追踪的协议版本较旧，用 `$ssot-audit` 审查升级；替换安装后的 Skill 不会自行迁移 `SSOT/`。卸载时，让 Agent 按指南移除指定范围的安装，并检查是否还有过时的触发指令。
+
+<details>
+<summary>手动更新与卸载命令</summary>
+
+例如，在使用 SSOT Skill 的项目根目录更新项目级 Codex 安装：
+
+```bash
+set -o pipefail
+curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash -s -- --upgrade --agent codex --scope project
+```
+
+移除这份安装：
+
+```bash
+set -o pipefail
+curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash -s -- --uninstall --agent codex --scope project --yes
+```
+
+请使用安装时对应的 Agent 标识和范围。共享同一 Skill 目录的 Agent 也共享这份安装，卸载会影响该共享位置。命令会保留 `SSOT/` 文档和 Agent 指令文件；停止使用本 Skill 包时，请自行移除不再适用的 SSOT 触发指令。
+
+不带范围的 `--upgrade` 会更新当前项目和全局检测到的所有安装；只想更新一处时，请使用上面限定 Agent 和范围的写法。
+
+</details>
+
+## 文档与贡献
+
+- [安装指南](./INSTALL.md)：由 Agent 完成安装、写入触发指令，以及网络异常时的备用方式。
+- [更新日志](./CHANGELOG.md)与[当前协议版本](./VERSION)：Skill 包的变更记录。
+- [协议升级指南](./skills/ssot-audit/references/protocol-upgrades.md)：已有项目的文档怎样跟进升级。
+- [贡献指南](./CONTRIBUTING.md)：怎样提交改进，以及运行本地检查。
+- [AGENTS.md](./AGENTS.md)：Agent 维护**本 Skill 包源仓库**时应遵循的指令。
+- [安全政策](./SECURITY.md)：怎样报告安全漏洞。
+
+## 许可证
 
 [MIT](./LICENSE) © [huangpufan](https://github.com/huangpufan)

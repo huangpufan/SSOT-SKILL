@@ -2,245 +2,193 @@
 
 # SSOT Skill
 
-**Durable, verifiable, cross-session long-term memory for coding agents.**
+**Shared repository memory for coding agents, maintained in Markdown.**
 
-[![Version](https://img.shields.io/github/v/tag/huangpufan/SSOT-SKILL?label=protocol&color=2ea44f)](./VERSION)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-[![CI](https://github.com/huangpufan/SSOT-SKILL/actions/workflows/ci.yml/badge.svg)](https://github.com/huangpufan/SSOT-SKILL/actions/workflows/ci.yml)
-[![Agents](https://img.shields.io/badge/agents-70%2B-purple)](#supported-agents)
-[![Stars](https://img.shields.io/github/stars/huangpufan/SSOT-SKILL?style=social)](https://github.com/huangpufan/SSOT-SKILL/stargazers)
+[![CI](https://github.com/huangpufan/SSOT-SKILL/actions/workflows/ci.yml/badge.svg)](https://github.com/huangpufan/SSOT-SKILL/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE) [![Agents](https://img.shields.io/badge/agents-70%2B-purple)](#supported-agents) [![Stars](https://img.shields.io/github/stars/huangpufan/SSOT-SKILL?style=social)](https://github.com/huangpufan/SSOT-SKILL/stargazers)
 
-[English](./README.md) · [中文](./README.zh.md) · [Skill Reference](./AGENTS.md) · [Changelog](./CHANGELOG.md)
+[English](./README.md) · [中文](./README.zh.md) · [Install guide](./INSTALL.md) · [Protocol version](./VERSION) · [Changelog](./CHANGELOG.md)
 
 </div>
 
----
+A new coding session often starts with the same questions: what does this project promise, why was it built this way, and which fixes must not be undone? SSOT Skill helps your agent preserve those answers in a version-controlled `SSOT/` directory, so the next session has a place to start.
 
-SSOT Skill turns your repository's long-lived facts — product intent, architecture boundaries, decisions, pitfalls, test policy — into a reviewable Markdown `SSOT/` directory. Any agent (Claude Code, Codex, Cursor, Windsurf, Gemini CLI, …) reads the same **tracking baseline** before starting work: the commit, session, and protocol version that the documentation has actually reviewed. The agent does not have to reconstruct context from scratch every session.
+**SSOT** means **Single Source of Truth**: each durable fact has one maintained home; other documents link to it. The bundle supplies six skills, Markdown templates, and a local checker that work inside your existing coding agent.
 
-> `SSOT/` is **agent long-term memory**, not a substitute for code. Code, schema, tests, and runtime behavior remain the source of truth for current implementation; SSOT records the durable conclusions around them.
+- **Carry context across sessions.** Keep product intent, architecture boundaries, decisions, and known pitfalls alongside the code.
+- **Share context across tools.** Agents working in the same repository can read and update the same files.
+- **Know what has been checked.** Record reviewed commits, remaining gaps, and decisions that still need human input.
 
-## What is SSOT?
-
-**SSOT** stands for **Single Source of Truth** — a long-standing software-engineering principle: every important fact has exactly **one** authoritative, unambiguous place where it lives. Anyone (or any tool) looking for that fact reads from the same place, instead of guessing, copying, or re-deriving it.
-
-This skill applies the same idea to **an agent's memory of a repository**:
-
-- **One place per fact.** Product intent, architecture boundaries, key decisions, known pitfalls, and test policy each live in one Markdown file under `SSOT/` — not scattered across chat logs, PR descriptions, or different agents' private caches.
-- **Reviewable.** Plain Markdown, version-controlled with the repo. You can diff it, review it in PRs, and roll it back.
-- **Cross-tool.** Claude Code, Codex, Cursor, Windsurf, Gemini CLI, … all read the **same** `SSOT/`. No agent maintains a parallel memory that drifts from the others.
-- **Verifiable.** Five lifecycle skills (`$ssot-preflight` / `$ssot-bootstrap` / `$ssot-closeout` / `$ssot-audit` / `$ssot-doctor`), one legacy-routing shim (`$ssot-skill`), and the bundled lint rules keep `SSOT/` honest as the repo evolves.
-
-**SSOT is not a code substitute.** Code, schema, tests, and runtime behavior remain the source of truth for *current implementation*. `SSOT/` records the durable conclusions *around* the code — the kind of thing that would otherwise be lost when a session ends or a new agent picks up the work.
-
-## SSOT must make sense even if you do not read code
-
-SSOT is useful only when a newcomer can understand it. Every reader-facing body
-therefore follows one shared contract: orient the reader, explain one concrete
-current path, causal boundary, failure/recovery posture, and current-versus-
-target truth, then provide compact reference tables and evidence. KISS means
-the shortest reliable path to understanding, not the fewest words. A **fact
-authority** is the file or section that explains and maintains one fact. A
-**runtime responsibility boundary** is the system part that handles a request
-or owns state. A **responsible person or approving role** is a human role; it
-must not be inferred from either kind of technical authority.
-
-The default reader is an **implementation delegator**: someone who may not
-write or read the code themselves, but must still tell an Agent what outcome to
-produce, recognise the visible result and fitting evidence, and know when to
-stop or escalate. SSOT therefore introduces unavoidable terms only after a
-plain-language scene and causal explanation.
-
-The product spine covers users, real surfaces, object lifecycles, capabilities,
-choice/control/recovery journeys, acceptance, and current-versus-target truth.
-The architecture spine explains the system response through runtime
-responsibility boundaries and seven questions that cross those boundaries:
-operating model, critical journeys, state/data,
-contracts/trust, failure/recovery, deployment/observability, and
-current-target-gap. Machine recovery metadata lives in location-specific
-manifests outside the reader narrative. A **manifest** is a machine-facing
-recovery and validation index, not the explanation a reader must reconstruct.
-
-Checks reject headings, placeholders, and link lists that only look complete.
-For both product and architecture, a newcomer must complete six real tasks.
-The review separately works through all 53 product and 48 architecture
-completeness questions, so a good story cannot hide a missing boundary.
-Process, records, glossary, the root, and STATUS use smaller reviews matched to
-their actual contents. Before approving delegated work, every review helps a
-reader ask four plain questions:
-
-1. Who may be excluded, confused, treated unfairly, or harmed?
-2. What happens under load, overlap, failure, disconnection, upgrade, or recovery?
-3. Who controls data, identity, permissions, money, and external obligations?
-4. What evidence shows the result is valid, affordable, maintainable, and recoverable?
-
-Each applicable concern links its fact authority, runtime responsibility
-boundary, process evidence, responsible role when one is known, or a named gap.
-Nothing is silently assumed away, and a working link alone is not proof that
-the linked explanation is true. The exact review IDs, counts, and stop rules
-live in the [reader-quality protocol](./skills/ssot-preflight/references/reader-quality.md).
+It is most useful for repositories you return to over time, especially when people or agents hand work to one another.
 
 ## Quickstart
 
-Paste this one line into your agent's chat (works for Claude Code, Codex, Cursor, Gemini CLI, …):
+### 1. Install in the repository you want to document
 
-```
+Open that repository in your coding agent and paste:
+
+```text
 Read https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/INSTALL.md and follow it.
 ```
 
-The agent fetches [`INSTALL.md`](./INSTALL.md), runs the installer (project-local by default), asks whether you also want a global install, then reads `AGENTS.md`.
+The agent follows the [install guide](./INSTALL.md) to identify its installation target, install and verify all six skills, and merge lifecycle instructions into the repository's `AGENTS.md`, `CLAUDE.md`, or equivalent file. The default is **the current project only**, preserving an existing template language or choosing `en` / `zh` from your conversation. You can specify a different language or explicitly request a global installation in the same message.
 
-**No agent? Run it yourself:**
+<details>
+<summary>Prefer to install from a terminal?</summary>
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash
-```
+You need **Bash 4+**, `git`, `curl`, and `python3`. On macOS, run `brew install bash` first and use `"$(brew --prefix)/bin/bash"` in place of `bash` below; the system Bash is too old.
 
-The interactive installer picks scope/agent/language with arrow keys. After install, restart your agent session, then run `$ssot-bootstrap` to create `SSOT/`.
-
-## Wire it into your agent-instructions file
-
-Installing the bundle makes the skills *discoverable*, but most agents will not reliably *invoke* `$ssot-preflight` at the right moment without an explicit trigger line in your repo's agent-instructions file (`CLAUDE.md` / `AGENTS.md` / `.cursorrules` / `GEMINI.md` / etc.).
-
-The agent-driven install ([`INSTALL.md`](./INSTALL.md) step 4) does this for you automatically. If you ran `install.sh` yourself, paste the block below into your repo's agent-instructions file. Adapt wording to match the surrounding style; do not duplicate if a previous block is already present.
-
-**English**
-
-```markdown
-SSOT Skill is installed here. `SSOT/` is agent long-term memory; code, schema, and tests remain the source of truth.
-
-- `$ssot-preflight` — before any substantive repository task.
-- `$ssot-bootstrap` — when `SSOT/` is missing or bootstrap is incomplete.
-- `$ssot-closeout` — before final response / `claim_done` / commit on a substantive change batch.
-- `$ssot-audit` — to catch up `tracked_commit` / `tracked_session` / `tracked_skill_version`.
-- `$ssot-doctor` — for health check, stop review, CORE-REF / ADAPTER / CONSUMPTION.
-```
-
-**中文**
-
-```markdown
-本仓库已安装 SSOT Skill。`SSOT/` 是 Agent 长期记忆；代码 / schema / 测试仍是事实证据源。
-
-- `$ssot-preflight` — 实质性仓库任务开始前。
-- `$ssot-bootstrap` — `SSOT/` 缺失或 bootstrap 未完成时。
-- `$ssot-closeout` — 实质性变更批次的 final response / `claim_done` / commit 前。
-- `$ssot-audit` — 同步 `tracked_commit` / `tracked_session` / `tracked_skill_version`。
-- `$ssot-doctor` — 健康检查 / 停止审查 / CORE-REF / ADAPTER / CONSUMPTION。
-```
-
-Click the copy button on the code block, then paste it into a "Skills" / "Conventions" section of your agent-instructions file (or at the end if no such section exists).
-
-## Requirements
-
-- **Bash 4+**. macOS ships bash 3.2 by default — install a newer bash first: `brew install bash` (then re-run the installer through `/opt/homebrew/bin/bash`).
-- `git`, `curl`, and `python3` on `PATH`.
-
-## Uninstall
+Run this from the root of the repository you want to document:
 
 ```bash
-bash install.sh --uninstall --agent <key> --scope <global|project> --yes
+set -o pipefail
+curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash -s -- --quickstart --scope project --lang en
 ```
 
-`<key>` is the canonical agent key you installed into (e.g. `claude-code`, `codex`, `cursor`). The installer also supports `--upgrade` (re-scan all detected installs and reinstall) and `--version`.
+Use `--lang zh` for Chinese templates. `--quickstart` detects the agent and skips interactive prompts. If detection is ambiguous or you want to choose explicitly, append `--agent codex`, `--agent claude-code`, or another [supported key](#supported-agents).
 
-## The Six SSOT Skills
+The script installs the skills and prints a suggested instruction block. **It does not edit your agent-instructions file or create `SSOT/`.** Merge the block using [install guide step 4](./INSTALL.md#4-wire-the-skills-into-the-repos-agent-instructions-file), updating any existing SSOT block instead of duplicating it. Then continue below.
 
-Five skills own the lifecycle. `$ssot-skill` is only a compatibility route for
-older prompts.
+</details>
 
-| Skill | When to use |
-|---|---|
-| `$ssot-preflight` | Before any substantive code task — reads the tracking baseline and open adjudications, then routes you to the minimal SSOT files |
-| `$ssot-bootstrap` | First time on a repo with no `SSOT/`, or bootstrap is incomplete |
-| `$ssot-closeout`  | Before final response / `claim_done` / commit — decides whether durable facts need absorbing |
-| `$ssot-audit`     | Catch up commits, sessions, or protocol upgrades in segments |
-| `$ssot-doctor`    | Health check, stop review, lint, CORE-REF / ADAPTER / CONSUMPTION audits |
-| `$ssot-skill`     | Compatibility shim; routes calls to one of the five above (kept for legacy prompts) |
+### 2. Restart the agent, then create repository memory
 
-The protocol version is single-sourced in [`skills/ssot-preflight/SKILL.md`](./skills/ssot-preflight/SKILL.md) and mirrored in [`VERSION`](./VERSION).
-
-## How It Fits Together
+Restart the agent session so it discovers the installed skills. In a repository without `SSOT/`, send:
 
 ```text
-SSOT-SKILL --install.sh--> agent-local skills --run in repository--> SSOT/
+Use $ssot-bootstrap to create this repository's SSOT from its existing code and documentation.
 ```
 
-The installed skills create and maintain this complete repository memory:
+Bootstrap explores the repository, organizes its durable facts, records gaps, and reviews the result. Start reading at `SSOT/README.md`; check `SSOT/STATUS.md` for what has been reviewed and what remains open. Large repositories may need several sessions, and bootstrap can resume unfinished work.
+
+If the repository already has `SSOT/`, start with `$ssot-preflight`. It routes unfinished bootstrap or an older tracked protocol to the appropriate skill.
+
+### 3. Use it during everyday work
 
 ```text
-your-repo/SSOT/
-├── README.md                    Start here: what the repository is and where each question goes
-├── STATUS.md                    What is trusted, missing, stale, or awaiting a decision
-├── 01-product/                  Users, promises, visible results, and acceptance
-│   ├── prd.md
-│   ├── product-model.md
-│   ├── roadmap-and-acceptance.md
-│   ├── capabilities/
-│   └── journeys/
-├── 02-architecture/             How the system produces results and handles state, trust, and failure
-│   ├── views/                   Seven questions that cross system parts
-│   └── NN-domain/               One clear runtime, state, or contract owner per domain
-├── 03-process/                  How work is done, checked, delivered, and operated
-│   ├── development/
-│   ├── testing/
-│   ├── benchmark/
-│   ├── deployment/
-│   ├── release/
-│   ├── operations/              Included when day-two operation applies
-│   └── security-and-compliance/ Included when that lifecycle applies
-├── 04-records/                  Why choices were made and what history remains actionable
-│   ├── decisions/
-│   ├── research/
-│   ├── gotchas/
-│   ├── bugs/
-│   └── tech-debt/
-├── glossary/                    Repository-specific words, aliases, and meanings
-└── .bootstrap/                  Review and recovery evidence; ordinary readers may skip it
+Use $ssot-preflight before starting this repository task: [describe your task].
+Use $ssot-closeout before the final response or commit.
 ```
 
-Three layers — source bundle, installed skills, and repository `SSOT/` — serve
-one purpose: keep agent memory **reviewable**, **verifiable**, and **portable
-across tools**.
+Preflight checks the documentation's state and directs the agent to the files relevant to the task. Closeout checks whether the work changed any durable facts and updates their owners when needed. The instructions added during installation establish these triggers for future sessions; you can also invoke the skills explicitly.
 
-## Common Flows
+The `$ssot-…` examples are **agent chat prompts**, not shell commands. Skill invocation syntax may vary by agent.
+
+## Which skill should I use?
+
+Five skills handle the lifecycle; the sixth preserves compatibility with older prompts. Follow a skill link for its protocol and detailed references.
+
+| Situation | Skill | Purpose |
+|---|---|---|
+| Starting a substantive repository task | [`$ssot-preflight`](./skills/ssot-preflight/SKILL.md) | Check reviewed state, unresolved decisions, language, and version; route the necessary reading |
+| Creating `SSOT/` or resuming its initial setup | [`$ssot-bootstrap`](./skills/ssot-bootstrap/SKILL.md) | Build repository memory from evidence and review its coverage |
+| Finishing a substantive change batch | [`$ssot-closeout`](./skills/ssot-closeout/SKILL.md) | Reconcile changes with durable facts before the final response or commit |
+| Catching up on commits, sessions, or protocol changes | [`$ssot-audit`](./skills/ssot-audit/SKILL.md) | Review history in segments and update the tracking baseline |
+| Checking documentation health or reviewing a completion claim | [`$ssot-doctor`](./skills/ssot-doctor/SKILL.md) | Run structural checks and review evidence, consistency, and readability |
+| Using an older `$ssot-skill` prompt | [`$ssot-skill`](./skills/ssot-skill/SKILL.md) | Route to one of the five skills above |
+
+The **tracking baseline** records which commit, session, and protocol version the documentation has reviewed. It is not a claim that every fact is current or every area is complete.
+
+## What appears in your repository?
+
+The installed skills are the instructions and tools. Your repository's `SSOT/` is the memory they help maintain:
 
 ```text
-# Starting a code task
-Use $ssot-preflight before starting this repository task.
-
-# Wrapping up
-Use $ssot-closeout before the final response.
-
-# Brand-new repo
-Use $ssot-bootstrap to create repository SSOT.
-
-# Catching up history
-Use $ssot-audit to catch up tracked_commit and tracked_session.
-
-# Sanity check
-Use $ssot-doctor to run an SSOT health check.
+SSOT-SKILL → install into your agent's skills directory → use the skills in your repo → SSOT/
 ```
 
-## Supported Agents
+The main reading paths are:
 
-Aligned with the [vercel-labs/skills](https://github.com/vercel-labs/skills) registry. Headliners: **Claude Code · Cursor · Codex · Windsurf · Gemini CLI · GitHub Copilot · OpenCode · Cline · Roo Code · Continue · Augment · Zed · Goose · Aider · Junie · Trae · Crush · Warp · OpenHands · Replit · Devin · Droid · Qwen Code · Lingma · Kilo · ForgeCode · Tabnine**, plus 40+ more. The interactive installer shows which agents it detects on your machine.
+```text
+ your-repo/SSOT/
+ ├── README.md           What this repository does and where to find answers
+ ├── STATUS.md           Reviewed state, open decisions, gaps, and tracking baseline
+ ├── HISTORY.md          Brief log of SSOT update batches and the files they touched
+ ├── 01-product/         Users, capabilities, journeys, and acceptance criteria
+ ├── 02-architecture/    How the system works, owns state, and handles failure
+ │   ├── views/          Explanations that span system boundaries
+ │   └── NN-domain/      Details for a repository-specific responsibility boundary
+ ├── 03-process/         How to develop, test, benchmark, deploy, and release
+ ├── 04-records/         Decisions, research, pitfalls, bugs, and technical debt
+ ├── glossary/           Repository-specific terms and their meanings
+ └── .bootstrap/         Progress and review evidence during initial setup
+```
 
-## Documentation
+Architecture domains follow the repository's actual responsibilities. Operations and security/compliance process areas are included when applicable. See the [template index](./skills/ssot-bootstrap/references/templates-index.md) for the detailed layout.
 
-- [`AGENTS.md`](./AGENTS.md) — full skill reference and routing rules
-- [`CONTRIBUTING.md`](./CONTRIBUTING.md) — contribution guide
-- [`CHANGELOG.md`](./CHANGELOG.md) — protocol history (Keep a Changelog)
-- [`skills/ssot-audit/references/protocol-upgrades.md`](./skills/ssot-audit/references/protocol-upgrades.md) — upgrade router
+Existing READMEs, design documents, and decisions are input to this process. Durable facts are consolidated into their designated owners, with navigation links pointing readers there; see the [source-material rules](./skills/ssot-preflight/references/source-material.md).
 
-## Star History
+## What keeps the memory useful?
 
-<a href="https://www.star-history.com/#huangpufan/SSOT-SKILL&Date">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=huangpufan/SSOT-SKILL&type=Date&theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=huangpufan/SSOT-SKILL&type=Date" />
-    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=huangpufan/SSOT-SKILL&type=Date" />
-  </picture>
-</a>
+**Readable by people who delegate implementation.** The writing rules ask documents to explain the user situation, current behavior, boundaries, failure and recovery, and the evidence needed to accept a result. A reader should be able to decide what to ask an agent to do without first reconstructing the code. Detailed acceptance criteria live in the [reader-quality protocol](./skills/ssot-preflight/references/reader-quality.md).
+
+**Evidence stays attached to claims.** Code, schemas, tests, and observed runtime behavior remain the evidence for current implementation. SSOT preserves the explanations and decisions around them, and distinguishes current behavior, intended behavior, and unknowns.
+
+**Checks have explicit limits.** The [local checker](./skills/ssot-doctor/assets/scripts/ssot-lint.sh) checks mechanically decidable properties such as structure, links, and tracking consistency. Doctor adds agent review. Passing lint alone does not prove a document is true, understandable, or complete; bootstrap completion requires independent review.
+
+**Maintenance happens through the agent workflow.** Installing the bundle makes the skills available. They need to be invoked to keep documentation aligned with repository changes; installation alone does not provide automatic synchronization or guarantee that an agent follows every rule.
+
+## Supported agents
+
+The installer contains installation paths for **70+ agents**, including Claude Code, Codex, Cursor, Windsurf, Gemini CLI, GitHub Copilot, OpenCode, and Cline. Examples of project-local locations:
+
+| Agent | Installer key | Project skills directory |
+|---|---|---|
+| Claude Code | `claude-code` | `.claude/skills/` |
+| Codex | `codex` | `.agents/skills/` |
+| Cursor | `cursor` | `.agents/skills/` |
+| Windsurf | `windsurf` | `.windsurf/skills/` |
+| Gemini CLI | `gemini-cli` | `.agents/skills/` |
+
+List all keys and installation paths without installing anything:
+
+```bash
+set -o pipefail
+curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash -s -- --list-agents
+```
+
+An installation path in the registry does not establish identical skill discovery or behavior across agent versions. Restart the agent after installation and verify that it can discover the skills.
+
+## Update or uninstall
+
+Ask your agent to handle updates through the same guide:
+
+```text
+Read https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/INSTALL.md and update SSOT Skill for this agent in the current project. Preserve the template language.
+```
+
+Restart the agent afterward. If the repository tracks an older protocol, use `$ssot-audit` to review the upgrade; replacing the installed skills does not migrate `SSOT/` by itself. To uninstall, ask the agent to follow the guide's removal steps for the chosen scope, including checking for obsolete trigger instructions.
+
+<details>
+<summary>Manual update and removal commands</summary>
+
+For a project-local Codex installation, run from the consuming repository:
+
+```bash
+set -o pipefail
+curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash -s -- --upgrade --agent codex --scope project
+```
+
+To remove it:
+
+```bash
+set -o pipefail
+curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash -s -- --uninstall --agent codex --scope project --yes
+```
+
+Choose the same key and scope used during installation. Agents sharing a skills directory also share the installed bundle, so removal affects that shared location. The command leaves your `SSOT/` documents and agent-instructions file in place; remove obsolete SSOT trigger instructions yourself if you stop using the bundle.
+
+Bare `--upgrade` updates all detected installations in the current project and globally. Use the scoped form above when you want to update just one installation.
+
+</details>
+
+## Documentation and contributing
+
+- [Install guide](./INSTALL.md) — agent-driven setup, instruction wiring, and network fallback.
+- [Changelog](./CHANGELOG.md) and [current protocol version](./VERSION) — what changed in the bundle.
+- [Protocol upgrade guide](./skills/ssot-audit/references/protocol-upgrades.md) — how existing repository documentation catches up.
+- [Contributing](./CONTRIBUTING.md) — how to propose changes and run local checks.
+- [AGENTS.md](./AGENTS.md) — instructions for agents maintaining **this bundle repository**.
+- [Security policy](./SECURITY.md) — how to report a vulnerability.
 
 ## License
 

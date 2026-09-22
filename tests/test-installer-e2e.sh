@@ -349,6 +349,165 @@ else
   pass "scenario18: __pycache__/.DS_Store excluded from install"
 fi
 
+# Scenario 19: upgrade selection is read-only here, with isolated registry paths.
+# In particular, --scope project must never select a global installation.
+SCENARIO19="$WORK_ROOT/scenario19"
+mkdir -p "$SCENARIO19"
+if SSOT_TEST_INSTALLER="$INSTALLER" SSOT_TEST_ROOT="$SCENARIO19" bash <<'SH' >"$SCENARIO19/check.log" 2>&1
+source <(sed '/^main "\$@"$/d' "$SSOT_TEST_INSTALLER")
+cd "$SSOT_TEST_ROOT"
+ALL_AGENTS=(claude-code codex cursor)
+AGENT_LABELS=([claude-code]=Claude [codex]=Codex [cursor]=Cursor)
+AGENT_PROJECT_BASES=([claude-code]=.claude/skills [codex]=.agents/skills [cursor]=.agents/skills)
+AGENT_GLOBAL_BASES=([claude-code]="$PWD/global/claude" [codex]="$PWD/global/shared" [cursor]="$PWD/global/shared")
+for base in .claude/skills .agents/skills global/claude global/shared; do
+  mkdir -p "$base/ssot-preflight"
+done
+ARG_AGENT=codex
+ARG_SCOPE=project
+scan_upgrade_targets
+[[ ${#UPGRADE_ROWS[@]} -eq 1 && "${UPGRADE_ROWS[0]}" == codex\|project\|* ]]
+ARG_AGENT=claude
+ARG_SCOPE=global
+scan_upgrade_targets
+[[ ${#UPGRADE_ROWS[@]} -eq 1 && "${UPGRADE_ROWS[0]}" == claude-code\|global\|* ]]
+ARG_AGENT=""
+ARG_SCOPE=""
+scan_upgrade_targets
+[[ ${#UPGRADE_ROWS[@]} -eq 4 ]]
+# A directory symlink is also one physical installation.
+ln -s .agents .cursor-alias
+AGENT_PROJECT_BASES[cursor]=.cursor-alias/skills
+ARG_SCOPE=project
+scan_upgrade_targets
+[[ ${#UPGRADE_ROWS[@]} -eq 2 ]]
+SH
+then
+  pass "scenario19: upgrade honors scope/agent/alias and visits shared paths once"
+else
+  fail "scenario19: upgrade selection or physical-path deduplication is wrong"
+fi
+
+# Scenario 20: multiple detected agents are not evidence of the active agent.
+SCENARIO20="$WORK_ROOT/scenario20"
+mkdir -p "$SCENARIO20"
+if env -i PATH="$PATH" SSOT_TEST_INSTALLER="$INSTALLER" bash <<'SH' >"$SCENARIO20/check.log" 2>&1
+source <(sed '/^main "\$@"$/d' "$SSOT_TEST_INSTALLER")
+DETECTED_AGENTS=(claude-code codex)
+if autodetect_agent; then exit 1; fi
+DETECTED_AGENTS=(codex)
+[[ "$(autodetect_agent)" == codex ]]
+DETECTED_AGENTS=(claude-code codex)
+CLAUDECODE=1
+[[ "$(autodetect_agent)" == claude-code ]]
+SH
+then
+  pass "scenario20: ambiguous detection fails; unique and active-agent detection work"
+else
+  fail "scenario20: quickstart silently chooses among multiple detected agents"
+fi
+
+# Scenario 21: a downloaded installer can clone without GNU timeout (macOS),
+# and removes its fetched source and staging directories after success/failure.
+SCENARIO21="$WORK_ROOT/scenario21"
+mkdir -p "$SCENARIO21/bin" "$SCENARIO21/tmp" "$SCENARIO21/project"
+cp "$INSTALLER" "$SCENARIO21/install.sh"
+for utility in bash git dirname mkdir mktemp rm tr cp mv tput head grep awk sed find basename tar curl; do
+  ln -s "$(command -v "$utility")" "$SCENARIO21/bin/$utility"
+done
+if (cd "$SCENARIO21/project" && env -u SOURCE_DIR PATH="$SCENARIO21/bin" TMPDIR="$SCENARIO21/tmp" \
+  SSOT_SKILL_REPO_URL="$PROJECT_ROOT" bash "$SCENARIO21/install.sh" \
+  --quickstart --agent claude-code --scope project --lang en) >"$SCENARIO21/check.log" 2>&1; then
+  pass "scenario21: fetched-source installation works without GNU timeout"
+else
+  fail "scenario21: fetched-source installation failed without GNU timeout"
+  cat "$SCENARIO21/check.log"
+fi
+assert_file "scenario21: fetched bundle installed" "$SCENARIO21/project/.claude/skills/ssot-preflight/SKILL.md"
+if [[ -z "$(find "$SCENARIO21/tmp" -mindepth 1 -print -quit)" ]]; then
+  pass "scenario21: fetched source is cleaned up"
+else
+  fail "scenario21: fetched source leaked after installation"
+fi
+if [[ -f "$SCENARIO21/project/.claude/skills/ssot-preflight/SKILL.md" ]]; then
+  cp "$SCENARIO21/project/.claude/skills/ssot-preflight/SKILL.md" "$SCENARIO21/before.md"
+  # Fail while staging a replacement, before any installed skill is removed.
+  rm "$SCENARIO21/bin/cp"
+  printf '#!/bin/sh\nexit 73\n' > "$SCENARIO21/bin/cp"
+  chmod +x "$SCENARIO21/bin/cp"
+  if (cd "$SCENARIO21/project" && env -u SOURCE_DIR PATH="$SCENARIO21/bin" TMPDIR="$SCENARIO21/tmp" \
+    SSOT_SKILL_REPO_URL="$PROJECT_ROOT" bash "$SCENARIO21/install.sh" \
+    --quickstart --agent claude-code --scope project --lang en) >"$SCENARIO21/failure.log" 2>&1; then
+    fail "scenario21: failed staging must not report success"
+  else
+    pass "scenario21: staging failure is reported"
+  fi
+  if cmp -s "$SCENARIO21/before.md" "$SCENARIO21/project/.claude/skills/ssot-preflight/SKILL.md" &&
+     [[ -z "$(find "$SCENARIO21/tmp" -mindepth 1 -print -quit)" ]] &&
+     [[ -z "$(find "$SCENARIO21/project" -name '.ssot-skill-install.*' -print -quit)" ]]; then
+    pass "scenario21: staging failure preserves installed content and cleans temporary files"
+  else
+    fail "scenario21: staging failure damaged content or leaked temporary files"
+  fi
+fi
+
+# Scenario 22: exercise the real scoped update/removal commands. All selected
+# writable locations are temporary; no user-global installation may be touched.
+SCENARIO22="$WORK_ROOT/scenario22"
+mkdir -p "$SCENARIO22/project/SSOT" "$SCENARIO22/project/.agents/skills/ssot-preflight" \
+  "$SCENARIO22/global/skills/ssot-preflight" "$SCENARIO22/project/.claude/skills/other-skill"
+printf 'project documentation\n' > "$SCENARIO22/project/SSOT/README.md"
+printf 'user instructions\n' > "$SCENARIO22/project/AGENTS.md"
+printf 'other agent\n' > "$SCENARIO22/project/.agents/skills/ssot-preflight/SKILL.md"
+printf 'global install\n' > "$SCENARIO22/global/skills/ssot-preflight/SKILL.md"
+printf 'other skill\n' > "$SCENARIO22/project/.claude/skills/other-skill/SKILL.md"
+if (cd "$SCENARIO22/project" && SOURCE_DIR="$PROJECT_ROOT" \
+  bash "$INSTALLER" --quickstart --agent claude-code --scope project --lang zh) >"$SCENARIO22/install.log" 2>&1; then
+  printf 'old bundle\n' > "$SCENARIO22/project/.claude/skills/ssot-preflight/SENTINEL"
+  if (cd "$SCENARIO22/project" && SOURCE_DIR="$PROJECT_ROOT" CLAUDE_CONFIG_DIR="$SCENARIO22/global" \
+    bash "$INSTALLER" --upgrade --agent claude --scope project) >"$SCENARIO22/upgrade.log" 2>&1; then
+    pass "scenario22: scoped upgrade succeeds with an agent alias"
+  else
+    fail "scenario22: scoped upgrade failed"
+    cat "$SCENARIO22/upgrade.log"
+  fi
+  assert_no_file "scenario22: selected bundle refreshed" "$SCENARIO22/project/.claude/skills/ssot-preflight/SENTINEL"
+  if cmp -s "$PROJECT_ROOT/skills/ssot-bootstrap/assets/templates/zh/ssot-readme.md" \
+    "$SCENARIO22/project/.claude/skills/ssot-bootstrap/assets/templates/ssot-readme.md"; then
+    pass "scenario22: upgrade preserves installed template language"
+  else
+    fail "scenario22: upgrade changed template language"
+  fi
+  assert_grep "scenario22: global install untouched" "$SCENARIO22/global/skills/ssot-preflight/SKILL.md" '^global install$'
+  assert_grep "scenario22: other agent untouched" "$SCENARIO22/project/.agents/skills/ssot-preflight/SKILL.md" '^other agent$'
+  if (cd "$SCENARIO22/project" && bash "$INSTALLER" --uninstall --agent claude --scope project --yes) \
+    >"$SCENARIO22/uninstall.log" 2>&1; then
+    pass "scenario22: scoped uninstall succeeds"
+  else
+    fail "scenario22: scoped uninstall failed"
+  fi
+  assert_no_dir "scenario22: selected bundle removed" "$SCENARIO22/project/.claude/skills/ssot-preflight"
+  assert_grep "scenario22: project documentation preserved" "$SCENARIO22/project/SSOT/README.md" '^project documentation$'
+  assert_grep "scenario22: user instructions preserved" "$SCENARIO22/project/AGENTS.md" '^user instructions$'
+  assert_grep "scenario22: unrelated skill preserved" "$SCENARIO22/project/.claude/skills/other-skill/SKILL.md" '^other skill$'
+else
+  fail "scenario22: setup install failed"
+  cat "$SCENARIO22/install.log"
+fi
+if bash "$INSTALLER" --uninstall --agent promptscript --scope global --yes >"$SCENARIO22/unsupported.log" 2>&1; then
+  fail "scenario22: unsupported global removal must fail without a target"
+else
+  pass "scenario22: unsupported global removal is rejected"
+fi
+if (cd "$SCENARIO22/project" && bash "$INSTALLER" --upgrade --agent nonexistent-agent --scope project) \
+  >"$SCENARIO22/invalid.log" 2>&1; then
+  fail "scenario22: invalid upgrade agent must fail"
+else
+  pass "scenario22: invalid upgrade agent is rejected"
+fi
+bash "$INSTALLER" --list-agents >"$SCENARIO22/agents.log" 2>&1
+assert_grep "scenario22: agent listing includes project paths" "$SCENARIO22/agents.log" 'PROJECT PATH'
+
 echo
 echo "=== RESULT: pass=$PASS fail=$FAIL ==="
 [[ $FAIL -eq 0 ]] && exit 0 || exit 1

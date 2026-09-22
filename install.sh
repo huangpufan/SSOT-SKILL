@@ -48,6 +48,8 @@ ARG_YES=0
 ARG_NONINTERACTIVE=0
 ARG_UI_LANG=""
 SOURCE_DIR="${SOURCE_DIR:-}"
+FETCHED_SOURCE_DIR=""
+INSTALL_STAGE=""
 
 # Will be filled by detect_agents
 DETECTED_AGENTS=()
@@ -70,9 +72,16 @@ VERSION="$(read_version_file)"
 [[ -z "$VERSION" ]] && VERSION="unknown"
 
 # -----------------------------------------------------------------------------
-# Cursor restore trap (set once at top level)
+# One cleanup owner for fetched source, staged copies, and the terminal cursor.
 # -----------------------------------------------------------------------------
-trap 'tput cnorm 2>/dev/null || true' EXIT INT TERM
+cleanup() {
+  [[ -z "$INSTALL_STAGE" ]] || rm -rf -- "$INSTALL_STAGE"
+  [[ -z "$FETCHED_SOURCE_DIR" ]] || rm -rf -- "$FETCHED_SOURCE_DIR"
+  tput cnorm 2>/dev/null || true
+}
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 # -----------------------------------------------------------------------------
 # Prompt FD setup (handles `curl | bash`)
@@ -129,7 +138,7 @@ t() {
       ALSO_GLOBAL_HINT) echo "如需同时全局安装，重新跑命令并追加 --scope global。" ;;
       WIRE_HEADER) echo "下一步：把这段触发指令复制到本仓库的 agent-instructions 文件" ;;
       WIRE_TARGET_HINT) echo "目标文件：CLAUDE.md / AGENTS.md / .cursorrules / GEMINI.md / 等（按你用的 Agent 选）" ;;
-      WIRE_SEE_README) echo "完整说明与英文版块：https://github.com/huangpufan/SSOT-SKILL#wire-it-into-your-agent-instructions-file" ;;
+      WIRE_SEE_README) echo "由 Agent 合并指令并验证安装：https://github.com/huangpufan/SSOT-SKILL/blob/main/INSTALL.md#4-wire-the-skills-into-the-repos-agent-instructions-file" ;;
       NO_AGENT_DETECTED) echo "未检测到已安装的 Agent" ;;
       SHOWING_ALL) echo "显示所有支持的目标" ;;
       NO_AGENT_SELECTED) echo "未选择任何 Agent" ;;
@@ -166,7 +175,7 @@ t() {
       ALSO_GLOBAL_HINT) echo "To also install globally, re-run with --scope global appended." ;;
       WIRE_HEADER) echo "Next: paste this trigger block into this repo's agent-instructions file" ;;
       WIRE_TARGET_HINT) echo "Target file: CLAUDE.md / AGENTS.md / .cursorrules / GEMINI.md / etc. (whichever your agent uses)" ;;
-      WIRE_SEE_README) echo "Full guide + the other language: https://github.com/huangpufan/SSOT-SKILL#wire-it-into-your-agent-instructions-file" ;;
+      WIRE_SEE_README) echo "Ask your agent to merge the instructions and verify setup: https://github.com/huangpufan/SSOT-SKILL/blob/main/INSTALL.md#4-wire-the-skills-into-the-repos-agent-instructions-file" ;;
       NO_AGENT_DETECTED) echo "No installed Agent detected" ;;
       SHOWING_ALL) echo "Showing all supported targets" ;;
       NO_AGENT_SELECTED) echo "No Agent selected" ;;
@@ -755,7 +764,7 @@ detect_agents() {
 }
 
 # Quickstart helper: pick a single canonical agent key.
-# Priority: signature env vars → detect_agents fallback → empty (caller dies).
+# Priority: signature env vars → one detected agent; ambiguous detection fails.
 autodetect_agent() {
   # (i) skip — caller already merged $SSOT_AGENT into ARG_AGENT earlier.
   # (ii) signature env detection (canonical keys, not aliases)
@@ -782,9 +791,13 @@ autodetect_agent() {
     echo "aider-desk"; return
   done
   # (iii) fs-based fallback via existing detect_agents
-  if [[ ${#DETECTED_AGENTS[@]} -gt 0 ]]; then
+  if [[ ${#DETECTED_AGENTS[@]} -eq 1 ]]; then
     echo "${DETECTED_AGENTS[0]}"
     return
+  fi
+  if [[ ${#DETECTED_AGENTS[@]} -gt 1 ]]; then
+    err "multiple agents detected (${DETECTED_AGENTS[*]}): re-run with --agent <key>; see --list-agents"
+    return 1
   fi
   # (iv) empty → caller decides to die
   echo ""
@@ -834,12 +847,12 @@ dedup_targets() {
   RESOLVED_AGENTS=("${unique[@]}")
 }
 
-# Print the agent registry as a 3-column table; used by --list-agents.
+# Print agent keys and resolved project/global paths; used by --list-agents.
 # Assumes parse_agent_registry has already been called by main().
 print_agent_list() {
   detect_agents
-  printf "  %-20s %-26s %-7s %s\n" "KEY" "NAME" "DETECT" "GLOBAL PATH"
-  printf "  %-20s %-26s %-7s %s\n" "----" "----" "------" "-----------"
+  printf "  %-20s %-26s %-7s %-28s %s\n" "KEY" "NAME" "DETECT" "PROJECT PATH" "GLOBAL PATH"
+  printf "  %-20s %-26s %-7s %-28s %s\n" "----" "----" "------" "------------" "-----------"
   local key detected
   for key in "${ALL_AGENTS[@]}"; do
     detected=" "
@@ -850,7 +863,7 @@ print_agent_list() {
     local g="${AGENT_GLOBAL_BASES[$key]}"
     [[ -z "$g" ]] && g="${DIM}(project-only)${NC}"
     # shellcheck disable=SC2059
-    printf "  %-20s %-26s   %b    %b\n" "$key" "${AGENT_LABELS[$key]}" "$detected" "$g"
+    printf "  %-20s %-26s   %b    %-28s %b\n" "$key" "${AGENT_LABELS[$key]}" "$detected" "${AGENT_PROJECT_BASES[$key]}" "$g"
   done
   echo ""
   echo "  Total: ${#ALL_AGENTS[@]} agents (${#DETECTED_AGENTS[@]} detected on this system)"
@@ -859,6 +872,18 @@ print_agent_list() {
 # -----------------------------------------------------------------------------
 # Source acquisition
 # -----------------------------------------------------------------------------
+clone_source() {
+  # GNU timeout is optional: macOS ships neither timeout nor gtimeout.
+  local -a limiter=()
+  if command -v timeout >/dev/null 2>&1; then
+    limiter=(timeout 15)
+  elif command -v gtimeout >/dev/null 2>&1; then
+    limiter=(gtimeout 15)
+  fi
+  GIT_TERMINAL_PROMPT=0 "${limiter[@]}" git -c http.lowSpeedLimit=1 -c http.lowSpeedTime=15 \
+    clone --depth 1 --branch "$REPO_BRANCH" "$1" "$SOURCE_DIR"
+}
+
 ensure_source() {
   if [[ -n "${SOURCE_DIR:-}" ]] && [[ -f "$SOURCE_DIR/skills/$PRIMARY_SKILL/SKILL.md" ]]; then
     return 0
@@ -878,8 +903,7 @@ ensure_source() {
 
   info "$(t FETCHING)"
   SOURCE_DIR="$(mktemp -d)"
-  # shellcheck disable=SC2064
-  trap "rm -rf '$SOURCE_DIR'; tput cnorm 2>/dev/null || true" EXIT INT TERM
+  FETCHED_SOURCE_DIR="$SOURCE_DIR"
 
   local -a mirrors=()
   if [[ -n "${SSOT_SKILL_REPO_URL:-}" ]]; then
@@ -897,13 +921,14 @@ ensure_source() {
       warn "primary clone failed, retrying via $url" >&2
     fi
     first=0
-    if timeout 15 git clone --depth 1 --branch "$REPO_BRANCH" "$url" "$SOURCE_DIR" >/dev/null 2>&1; then
+    if clone_source "$url" >/dev/null 2>&1; then
       ok_clone=1
       break
     fi
     # clone leaves a partial dir on failure
     rm -rf "$SOURCE_DIR"
     SOURCE_DIR="$(mktemp -d)"
+    FETCHED_SOURCE_DIR="$SOURCE_DIR"
   done
 
   if [[ $ok_clone -eq 0 && -z "${SSOT_SKILL_REPO_URL:-}" ]]; then
@@ -917,6 +942,7 @@ ensure_source() {
       warn "git clone failed for all mirrors, retrying via $tar_url" >&2
       rm -rf "$SOURCE_DIR"
       SOURCE_DIR="$(mktemp -d)"
+      FETCHED_SOURCE_DIR="$SOURCE_DIR"
       if curl -fsSL --max-time 30 "$tar_url" | tar -xz -C "$SOURCE_DIR" --strip-components=1 2>/dev/null; then
         ok_clone=1
         break
@@ -1014,8 +1040,7 @@ copy_bundle() {
   mkdir -p "$base"
   guard_bundle_root_files "$base"
   stage="$(mktemp -d "$base/.ssot-skill-install.XXXXXX")"
-  # shellcheck disable=SC2064
-  trap "rm -rf '$stage'; tput cnorm 2>/dev/null || true" EXIT INT TERM
+  INSTALL_STAGE="$stage"
 
   local skill source companion
   for skill in "${BUNDLE_SKILLS[@]}"; do
@@ -1056,8 +1081,7 @@ copy_bundle() {
   done
 
   rm -rf "$stage"
-  # restore base EXIT trap to cursor-only (don't try to remove stage that's gone)
-  trap 'tput cnorm 2>/dev/null || true' EXIT INT TERM
+  INSTALL_STAGE=""
 }
 
 install_to() {
@@ -1110,31 +1134,30 @@ scan_upgrade_targets() {
   # Emits lines: "agent|scope|base|label"
   # Skips bases that resolve to SOURCE_DIR/skills (would clobber the source repo).
   UPGRADE_ROWS=()
-  local agent base
+  local agent base scope
+  local -A seen=()
+  local -a agents=("${ALL_AGENTS[@]}")
+  if [[ -n "$ARG_AGENT" && "$ARG_AGENT" != "all" ]]; then
+    resolve_agent_list
+    agents=("${RESOLVED_AGENTS[@]}")
+  fi
   local source_skills=""
   if [[ -n "${SOURCE_DIR:-}" && -d "$SOURCE_DIR/skills" ]]; then
-    source_skills="$(cd "$SOURCE_DIR/skills" && pwd)"
+    source_skills="$(cd "$SOURCE_DIR/skills" && pwd -P)"
   fi
   local probe
-  for agent in "${ALL_AGENTS[@]}"; do
-    base="${AGENT_GLOBAL_BASES[$agent]}"
-    if [[ -n "$base" && -d "$base/$PRIMARY_SKILL" ]]; then
-      probe=""
-      [[ -d "$base" ]] && probe="$(cd "$base" && pwd)"
-      if [[ -n "$source_skills" && "$probe" == "$source_skills" ]]; then
-        continue  # would overwrite source repo
-      fi
-      UPGRADE_ROWS+=("${agent}|global|${base}|${AGENT_LABELS[$agent]}")
-    fi
-    base="$PWD/${AGENT_PROJECT_BASES[$agent]}"
-    if [[ -d "$base/$PRIMARY_SKILL" ]]; then
-      probe=""
-      [[ -d "$base" ]] && probe="$(cd "$base" && pwd)"
-      if [[ -n "$source_skills" && "$probe" == "$source_skills" ]]; then
-        continue
-      fi
-      UPGRADE_ROWS+=("${agent}|project|${base}|${AGENT_LABELS[$agent]}")
-    fi
+  for agent in "${agents[@]}"; do
+    for scope in global project; do
+      [[ -z "$ARG_SCOPE" || "$ARG_SCOPE" == "$scope" ]] || continue
+      base="$(agent_base_for "$agent" "$scope")"
+      [[ -n "$base" ]] || continue
+      [[ "$scope" != "project" ]] || base="$PWD/$base"
+      [[ -d "$base/$PRIMARY_SKILL" ]] || continue
+      probe="$(cd "$base" && pwd -P)"
+      [[ "$probe" != "$source_skills" && -z "${seen[$probe]+x}" ]] || continue
+      seen[$probe]=1
+      UPGRADE_ROWS+=("${agent}|${scope}|${base}|${AGENT_LABELS[$agent]}")
+    done
   done
 }
 
@@ -1148,7 +1171,7 @@ SSOT Skill installer
 USAGE:
   install.sh [OPTIONS]
   install.sh --uninstall [OPTIONS]
-  install.sh --upgrade
+  install.sh --upgrade [--agent <list>] [--scope <global|project>]
   install.sh --list-agents
 
 OPTIONS:
@@ -1157,13 +1180,13 @@ OPTIONS:
                             copilot, gemini, aider, tabnine, iflow, kimi,
                             kiro, autohand, hermes, codearts.
                             Full canonical list: --list-agents
-  --scope <global|project>  Install scope
+  --scope <global|project>  Install/uninstall scope; optional upgrade filter
   --lang <en|zh>            Template language (default: en)
   --yes, -y                 Skip confirmation
   --non-interactive         Fail instead of prompting when args are missing
   --quickstart              Non-interactive project-local install with autodetect
   --uninstall               Remove installed bundle (requires --agent, --scope)
-  --upgrade                 Re-install over existing locations (auto-detects)
+  --upgrade                 Re-install detected locations; respects --agent/--scope
   --list-agents             Print supported agents (KEY / NAME / DETECT / PATH)
   --ui-lang <en|zh>         Installer UI language (default: auto from $LANG)
   --version                 Print bundle version and exit
@@ -1187,6 +1210,7 @@ EXAMPLES:
   bash install.sh --non-interactive --agent all --scope global --lang en --yes
 
   # Maintenance
+  bash install.sh --upgrade --agent codex --scope project
   bash install.sh --upgrade
   bash install.sh --uninstall --agent claude-code --scope project --yes
   bash install.sh --list-agents
@@ -1460,6 +1484,8 @@ run_uninstall() {
 
   detect_agents
   resolve_agent_list
+  dedup_targets "$ARG_SCOPE"
+  [[ ${#RESOLVED_AGENTS[@]} -gt 0 ]] || die "no uninstallable targets for scope: $ARG_SCOPE"
 
   local -a bases=()
   local agent base
