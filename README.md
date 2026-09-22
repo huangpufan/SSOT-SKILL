@@ -10,7 +10,7 @@
 
 </div>
 
-A new coding session often starts with the same questions: what does this project promise, why was it built this way, and which fixes must not be undone? SSOT Skill helps your agent preserve those answers in a version-controlled `SSOT/` directory, so the next session has a place to start.
+A new coding session often starts with the same questions: what does this project promise, why was it built this way, and which fixes must not be undone? SSOT Skill helps your agent preserve those answers in a version-controlled `SSOT/` directory, so the next session has a place to start. Once wired into the repository instructions, your agent reads and maintains that memory during normal work.
 
 **SSOT** means **Single Source of Truth**: each durable fact has one maintained home; other documents link to it. The bundle supplies six skills, Markdown templates, and a local checker that work inside your existing coding agent.
 
@@ -50,41 +50,49 @@ The script installs the skills and prints a suggested instruction block. **It do
 
 </details>
 
-### 2. Restart the agent, then create repository memory
+### 2. Restart the agent, then work as usual
 
-Restart the agent session so it discovers the installed skills. In a repository without `SSOT/`, send:
-
-```text
-Use $ssot-bootstrap to create this repository's SSOT from its existing code and documentation.
-```
-
-Bootstrap explores the repository, organizes its durable facts, records gaps, and reviews the result. Start reading at `SSOT/README.md`; check `SSOT/STATUS.md` for what has been reviewed and what remains open. Large repositories may need several sessions, and bootstrap can resume unfinished work.
-
-If the repository already has `SSOT/`, start with `$ssot-preflight`. It routes unfinished bootstrap or an older tracked protocol to the appropriate skill.
-
-### 3. Use it during everyday work
+Restart the agent session so it loads the installed skills and repository instructions. **Describe your task as usual; the agent applies the SSOT workflow automatically.** For example:
 
 ```text
-Use $ssot-preflight before starting this repository task: [describe your task].
-Use $ssot-closeout before the final response or commit.
+Investigate and fix the login timeout, and verify the fix.
 ```
 
-Preflight checks the documentation's state and directs the agent to the files relevant to the task. Closeout checks whether the work changed any durable facts and updates their owners when needed. The instructions added during installation establish these triggers for future sessions; you can also invoke the skills explicitly.
+The repository instructions tell the agent when to act:
 
-The `$ssot-…` examples are **agent chat prompts**, not shell commands. Skill invocation syntax may vary by agent.
+- **Before substantive work:** check SSOT state and read the relevant context through preflight. Missing or unfinished `SSOT/` routes to bootstrap; an older tracked protocol routes to audit.
+- **During work:** capture durable facts, decisions, and evidence in their maintained homes.
+- **Before finishing or committing a substantive batch:** run closeout, reconcile the changes with SSOT, and route to Doctor when review is required. Work that changes no durable facts can leave SSOT unchanged.
 
-## Which skill should I use?
+You do not need to select or invoke a skill at every step. Initial bootstrap explores the repository and reviews its documentation; large repositories may need several sessions, with progress saved for continuation. Read the result at `SSOT/README.md` and check `SSOT/STATUS.md` for reviewed areas and open issues.
 
-Five skills handle the lifecycle; the sixth preserves compatibility with older prompts. Follow a skill link for its protocol and detailed references.
+<details>
+<summary>Optional: request setup or a focused check directly</summary>
+
+You can ask in ordinary language:
+
+```text
+Create or continue this repository's SSOT from its code and existing documentation.
+Check the health of this repository's SSOT.
+Catch SSOT up with the recent commits.
+```
+
+Naming a skill explicitly is also available, for example `Use $ssot-doctor to check this repository's SSOT.` This can help when diagnosing a missed trigger. It is an agent chat prompt; invocation syntax varies by agent.
+
+</details>
+
+## How the agent selects skills
+
+The agent selects from five lifecycle skills according to the task and repository state; the sixth preserves compatibility with older prompts. This table explains the routing for reference. Follow a skill link for its protocol and detailed references.
 
 | Situation | Skill | Purpose |
 |---|---|---|
-| Starting a substantive repository task | [`$ssot-preflight`](./skills/ssot-preflight/SKILL.md) | Check reviewed state, unresolved decisions, language, and version; route the necessary reading |
-| Creating `SSOT/` or resuming its initial setup | [`$ssot-bootstrap`](./skills/ssot-bootstrap/SKILL.md) | Build repository memory from evidence and review its coverage |
-| Finishing a substantive change batch | [`$ssot-closeout`](./skills/ssot-closeout/SKILL.md) | Reconcile changes with durable facts before the final response or commit |
-| Catching up on commits, sessions, or protocol changes | [`$ssot-audit`](./skills/ssot-audit/SKILL.md) | Review history in segments and update the tracking baseline |
-| Checking documentation health or reviewing a completion claim | [`$ssot-doctor`](./skills/ssot-doctor/SKILL.md) | Run structural checks and review evidence, consistency, and readability |
-| Using an older `$ssot-skill` prompt | [`$ssot-skill`](./skills/ssot-skill/SKILL.md) | Route to one of the five skills above |
+| Starting a substantive repository task | [`ssot-preflight`](./skills/ssot-preflight/SKILL.md) | Check reviewed state, unresolved decisions, language, and version; route the necessary reading |
+| Creating `SSOT/` or resuming its initial setup | [`ssot-bootstrap`](./skills/ssot-bootstrap/SKILL.md) | Build repository memory from evidence and review its coverage |
+| Finishing a substantive change batch | [`ssot-closeout`](./skills/ssot-closeout/SKILL.md) | Reconcile changes with durable facts before the final response or commit |
+| Catching up on commits, sessions, or protocol changes | [`ssot-audit`](./skills/ssot-audit/SKILL.md) | Review history in segments and update the tracking baseline |
+| Checking documentation health or reviewing a completion claim | [`ssot-doctor`](./skills/ssot-doctor/SKILL.md) | Run structural checks and review evidence, consistency, and readability |
+| Using an older `$ssot-skill` prompt | [`ssot-skill`](./skills/ssot-skill/SKILL.md) | Route to one of the five skills above |
 
 The **tracking baseline** records which commit, session, and protocol version the documentation has reviewed. It is not a claim that every fact is current or every area is complete.
 
@@ -93,7 +101,7 @@ The **tracking baseline** records which commit, session, and protocol version th
 The installed skills are the instructions and tools. Your repository's `SSOT/` is the memory they help maintain:
 
 ```text
-SSOT-SKILL → install into your agent's skills directory → use the skills in your repo → SSOT/
+Your task → agent reads SSOT → does the work → updates SSOT as needed
 ```
 
 The main reading paths are:
@@ -125,7 +133,7 @@ Existing READMEs, design documents, and decisions are input to this process. Dur
 
 **Checks have explicit limits.** The [local checker](./skills/ssot-doctor/assets/scripts/ssot-lint.sh) checks mechanically decidable properties such as structure, links, and tracking consistency. Doctor adds agent review. Passing lint alone does not prove a document is true, understandable, or complete; bootstrap completion requires independent review.
 
-**Maintenance happens through the agent workflow.** Installing the bundle makes the skills available. They need to be invoked to keep documentation aligned with repository changes; installation alone does not provide automatic synchronization or guarantee that an agent follows every rule.
+**Maintenance follows the agent workflow.** Once the skills and repository instructions are loaded, the agent triggers the appropriate skills as it works. This automation depends on the agent following those instructions; changes made outside that workflow are reviewed when the agent next works in the repository or you request a catch-up.
 
 ## Supported agents
 
@@ -156,7 +164,7 @@ Ask your agent to handle updates through the same guide:
 Read https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/INSTALL.md and update SSOT Skill for this agent in the current project. Preserve the template language.
 ```
 
-Restart the agent afterward. If the repository tracks an older protocol, use `$ssot-audit` to review the upgrade; replacing the installed skills does not migrate `SSOT/` by itself. To uninstall, ask the agent to follow the guide's removal steps for the chosen scope, including checking for obsolete trigger instructions.
+Restart the agent afterward. At the next substantive task, preflight checks the repository's tracked protocol and routes an older version to audit for upgrade review. Replacing the installed skills does not migrate `SSOT/` by itself. To uninstall, ask the agent to follow the guide's removal steps for the chosen scope, including checking for obsolete trigger instructions.
 
 <details>
 <summary>Manual update and removal commands</summary>
@@ -189,6 +197,16 @@ Bare `--upgrade` updates all detected installations in the current project and g
 - [Contributing](./CONTRIBUTING.md) — how to propose changes and run local checks.
 - [AGENTS.md](./AGENTS.md) — instructions for agents maintaining **this bundle repository**.
 - [Security policy](./SECURITY.md) — how to report a vulnerability.
+
+## Star History
+
+<a href="https://www.star-history.com/#huangpufan/SSOT-SKILL&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=huangpufan/SSOT-SKILL&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=huangpufan/SSOT-SKILL&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=huangpufan/SSOT-SKILL&type=Date" />
+  </picture>
+</a>
 
 ## License
 

@@ -27,7 +27,7 @@ For upgrade or uninstall, see `bash install.sh --help`.
 
 ## Usage
 
-After install, restart the agent session so skills are discovered. Then use:
+In consuming repositories, complete the instruction wiring in [`INSTALL.md`](./INSTALL.md), then restart the agent session to load the skills and project instructions. The agent applies these triggers automatically; users describe their tasks normally, with explicit skill invocation optional:
 
 - `$ssot-preflight` — before starting any substantive repository work
 - `$ssot-bootstrap` — when `SSOT/` is missing or bootstrap is incomplete

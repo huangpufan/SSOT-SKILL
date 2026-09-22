@@ -92,6 +92,8 @@ These checks verify the installation, not the health of the user's repository do
 
 The installer prints a lifecycle instruction block in the selected template language. Merge that block into the target repository's existing instructions; discovery alone does not establish when a skill should run. A global-only installation without a target repository stops after verification and reports that each consuming repository still needs these instructions; it does not authorize editing global agent instructions.
 
+Make clear that these are instructions for the agent: apply the skills automatically when their conditions match, without waiting for the user to name each skill. Users should be able to describe ordinary repository tasks after setup and restart. Explicit skill invocation remains an optional way to request a focused check or diagnose a missed trigger.
+
 | Agent | Instruction entry |
 |---|---|
 | Claude Code | `CLAUDE.md` |
@@ -120,9 +122,9 @@ Remove the temporary installer directory you created after verification. Report:
 - the installed version, agent, scope, target path, and template language;
 - the instruction file updated, or why its existing block already suffices;
 - which installed-file checks passed;
-- that the user must restart the agent session to discover the skills.
+- that the user must restart the agent session to load the skills and repository instructions, then can describe tasks as usual.
 
-After restart, use `$ssot-bootstrap` when `SSOT/` is absent, or `$ssot-preflight` when it already exists. Do not claim the skills are active before restart and discovery are confirmed. Do not ask the user to choose a global installation again after a successful project-only setup.
+Explain that the agent handles the lifecycle: preflight before substantive work, bootstrap when `SSOT/` is missing or unfinished, and closeout before finishing a substantive batch, with audit and doctor used when their conditions apply. Do not hand routine skill invocation back to the user as a manual checklist. Do not claim the skills are active before restart and discovery are confirmed. Do not ask the user to choose a global installation again after a successful project-only setup.
 
 ## Update or remove an existing installation
 
@@ -142,6 +144,6 @@ bash "$ssot_install_dir/install.sh" --uninstall --agent "$ssot_agent" --scope "$
 
 A scoped upgrade honors both `--agent` and `--scope`. Bare `--upgrade` scans every supported location in the current project and globally; use it only when that broader update was requested. Shared directories are updated once, and agents sharing a directory share the same installation.
 
-After an update, repeat verification and reconcile the instruction block, then request a session restart. Repository protocol migration is separate work through `$ssot-audit`.
+After an update, repeat verification and reconcile the instruction block, then request a session restart. At the next substantive task, preflight checks the tracked protocol version and routes any required repository migration to `$ssot-audit`; installing new skill files alone does not migrate `SSOT/`.
 
 After removal, verify the bundle files are absent. Preserve generated `SSOT/` documentation and unrelated skills. Reconcile obsolete trigger instructions with any remaining SSOT installation; the installer itself does not edit instruction files. Remove the temporary installer directory afterward.

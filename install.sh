@@ -131,12 +131,12 @@ t() {
       FETCHING) echo "正在拉取最新 SSOT Skill bundle..." ;;
       FETCHED) echo "拉取完成" ;;
       INSTALLED) echo "SSOT Skill bundle 已安装" ;;
-      RESTART_TIP) echo "重启 Agent 会话以发现新的 skill。" ;;
-      PREFLIGHT_TIP) echo "实质性工作前使用 \$ssot-preflight。" ;;
-      CLOSEOUT_TIP) echo "final response / claim_done / commit 前使用 \$ssot-closeout。" ;;
+      RESTART_TIP) echo "合并下方项目指令后，重启 Agent 会话以加载 Skill 和指令。" ;;
+      PREFLIGHT_TIP) echo "之后照常提需求；Agent 会在实质性工作前自动使用 \$ssot-preflight。" ;;
+      CLOSEOUT_TIP) echo "Agent 会在实质性变更批次的最终回复或提交前自动使用 \$ssot-closeout。" ;;
       PROJECT_NOTE) echo "项目级安装仅在 Agent 在该项目根启动时生效。" ;;
       ALSO_GLOBAL_HINT) echo "如需同时全局安装，重新跑命令并追加 --scope global。" ;;
-      WIRE_HEADER) echo "下一步：把这段触发指令复制到本仓库的 agent-instructions 文件" ;;
+      WIRE_HEADER) echo "下一步：让 Agent 将这段触发指令合并到本仓库的指令文件" ;;
       WIRE_TARGET_HINT) echo "目标文件：CLAUDE.md / AGENTS.md / .cursorrules / GEMINI.md / 等（按你用的 Agent 选）" ;;
       WIRE_SEE_README) echo "由 Agent 合并指令并验证安装：https://github.com/huangpufan/SSOT-SKILL/blob/main/INSTALL.md#4-wire-the-skills-into-the-repos-agent-instructions-file" ;;
       NO_AGENT_DETECTED) echo "未检测到已安装的 Agent" ;;
@@ -168,12 +168,12 @@ t() {
       FETCHING) echo "Fetching latest SSOT Skill bundle..." ;;
       FETCHED) echo "Fetched source" ;;
       INSTALLED) echo "SSOT Skill bundle installed" ;;
-      RESTART_TIP) echo "Restart the Agent session so the new skills are discovered." ;;
-      PREFLIGHT_TIP) echo "Use \$ssot-preflight before substantive work." ;;
-      CLOSEOUT_TIP) echo "Use \$ssot-closeout before final response, claim_done, or commit." ;;
+      RESTART_TIP) echo "Merge the project instructions below, then restart the Agent session to load skills and instructions." ;;
+      PREFLIGHT_TIP) echo "Then describe tasks normally; the Agent uses \$ssot-preflight automatically before substantive work." ;;
+      CLOSEOUT_TIP) echo "The Agent uses \$ssot-closeout automatically before a substantive batch's final response or commit." ;;
       PROJECT_NOTE) echo "Project installs apply only when the Agent starts in this project root." ;;
       ALSO_GLOBAL_HINT) echo "To also install globally, re-run with --scope global appended." ;;
-      WIRE_HEADER) echo "Next: paste this trigger block into this repo's agent-instructions file" ;;
+      WIRE_HEADER) echo "Next: ask your Agent to merge this trigger block into this repo's instructions" ;;
       WIRE_TARGET_HINT) echo "Target file: CLAUDE.md / AGENTS.md / .cursorrules / GEMINI.md / etc. (whichever your agent uses)" ;;
       WIRE_SEE_README) echo "Ask your agent to merge the instructions and verify setup: https://github.com/huangpufan/SSOT-SKILL/blob/main/INSTALL.md#4-wire-the-skills-into-the-repos-agent-instructions-file" ;;
       NO_AGENT_DETECTED) echo "No installed Agent detected" ;;
@@ -226,7 +226,7 @@ warn() { echo -e "  ${YELLOW}!${NC} $*"; }
 err()  { echo -e "  ${RED}✗${NC} $*" >&2; }
 die()  { err "$@"; exit 1; }
 
-# Print the trigger-directive block users should paste into their
+# Print the trigger-directive block agents should merge into the repo's
 # agent-instructions file. Switches on $1 = lang (en|zh).
 print_wire_block() {
   local lang="${1:-en}"
@@ -236,6 +236,7 @@ print_wire_block() {
   echo ""
   if [[ "$lang" == "zh" ]]; then
     echo -e "${CYAN}  本仓库已安装 SSOT Skill。\`SSOT/\` 是 Agent 长期记忆；代码 / schema / 测试仍是事实证据源。${NC}"
+    echo -e "${CYAN}  Agent 应按以下条件自动调用 Skill，无需等待用户逐个点名。${NC}"
     echo ""
     echo -e "${CYAN}  - \`\$ssot-preflight\` — 实质性仓库任务开始前。${NC}"
     echo -e "${CYAN}  - \`\$ssot-bootstrap\` — \`SSOT/\` 缺失或 bootstrap 未完成时。${NC}"
@@ -244,6 +245,7 @@ print_wire_block() {
     echo -e "${CYAN}  - \`\$ssot-doctor\` — 健康检查 / 停止审查 / CORE-REF / ADAPTER / CONSUMPTION。${NC}"
   else
     echo -e "${CYAN}  SSOT Skill is installed here. \`SSOT/\` is agent long-term memory; code, schema, and tests remain the source of truth.${NC}"
+    echo -e "${CYAN}  Apply these skills automatically when their conditions match; do not wait for the user to name each skill.${NC}"
     echo ""
     echo -e "${CYAN}  - \`\$ssot-preflight\` — before any substantive repository task.${NC}"
     echo -e "${CYAN}  - \`\$ssot-bootstrap\` — when \`SSOT/\` is missing or bootstrap is incomplete.${NC}"

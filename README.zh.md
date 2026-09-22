@@ -10,7 +10,7 @@
 
 </div>
 
-新开一个编程会话，常常又要解释同一批问题：项目要实现什么、为什么这样设计、哪些修过的问题不能再犯。SSOT Skill 帮助 Agent 把这些答案保存在随代码一起版本管理的 `SSOT/` 目录里，让下一次会话有据可循。
+新开一个编程会话，常常又要解释同一批问题：项目要实现什么、为什么这样设计、哪些修过的问题不能再犯。SSOT Skill 帮助 Agent 把这些答案保存在随代码一起版本管理的 `SSOT/` 目录里，让下一次会话有据可循。接入项目指令后，Agent 会随日常工作读取和维护这份记忆。
 
 **SSOT** 是 **Single Source of Truth（单一事实源）**：每条长期事实只在一个位置维护，其他文档通过链接引用。本项目提供六个 Skill、Markdown 模板和本地检查脚本，在你已有的编程 Agent 中使用。
 
@@ -50,41 +50,49 @@ curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.
 
 </details>
 
-### 2. 重启 Agent，再创建仓库记忆
+### 2. 重启 Agent，然后照常提需求
 
-重启 Agent 会话，让新安装的 Skill 被发现。如果项目还没有 `SSOT/`，发送：
-
-```text
-用 $ssot-bootstrap 根据这个仓库现有的代码和文档创建 SSOT。
-```
-
-初始化会探索仓库、整理长期事实、记录缺口，并审查结果。生成后从 `SSOT/README.md` 开始阅读，在 `SSOT/STATUS.md` 查看哪些内容已审查、哪些仍未解决。大型仓库可能需要多个会话，可以继续尚未完成的初始化工作。
-
-如果项目已经有 `SSOT/`，先用 `$ssot-preflight`；遇到初始化未完成或项目追踪的协议版本落后，它会转到对应 Skill。
-
-### 3. 在日常工作中使用
+重启 Agent 会话，让它加载已安装的 Skill 和项目指令。**之后照常描述任务，Agent 会自动按 SSOT 工作流程处理。** 例如：
 
 ```text
-开始这个仓库任务前先用 $ssot-preflight：[描述你的任务]。
-最终回复或提交前用 $ssot-closeout 收尾。
+排查并修复登录超时的问题，验证修复结果。
 ```
 
-开始前，preflight 检查文档状态并定位与任务相关的文件；收尾时，closeout 检查本次工作是否改变了长期事实，并按需更新其维护位置。安装时写入的指令会为后续会话建立这些触发约定，你也可以显式调用 Skill。
+项目指令会让 Agent 在对应时机执行：
 
-上面的 `$ssot-…` 示例是**发给 Agent 的提示词**，不是终端命令。不同 Agent 的 Skill 调用语法可能不同。
+- **实质性任务开始前：** 通过 preflight 检查 SSOT 状态，读取相关上下文；缺少 `SSOT/` 或初始化未完成时转入 bootstrap，追踪的协议版本落后时转入 audit。
+- **工作过程中：** 把需要长期保留的事实、决策和证据写入各自的维护位置。
+- **一批实质性工作结束、最终回复或提交前：** 通过 closeout 核对变更并按需更新 SSOT，需要审查时转入 Doctor。没有长期事实变化的工作可以不改动 SSOT。
 
-## 该用哪个 Skill？
+日常使用无需逐个选择或手动调用 Skill。首次初始化会探索仓库并审查文档；大型仓库可能需要多个会话，进度会保留以便继续。生成后从 `SSOT/README.md` 开始阅读，在 `SSOT/STATUS.md` 查看已审查的范围和未决事项。
 
-五个 Skill 负责生命周期，第六个兼容旧提示词。点击名称可以查看对应协议及详细参考文档。
+<details>
+<summary>可选：主动初始化或做一次专项检查</summary>
+
+直接用自然语言提出需求即可：
+
+```text
+根据代码和已有文档，为这个仓库建立或继续完善 SSOT。
+检查这个仓库的 SSOT 健康状态。
+把最近的提交同步到 SSOT。
+```
+
+也可以指定 Skill，例如“用 `$ssot-doctor` 检查这个仓库的 SSOT”，便于排查未触发等问题。这是发给 Agent 的提示词；具体调用语法因 Agent 而异。
+
+</details>
+
+## Agent 怎样选择 Skill？
+
+Agent 根据任务和仓库状态选择五个生命周期 Skill，第六个兼容旧提示词。下表用于了解工作机制，点击名称可以查看对应协议及详细参考文档。
 
 | 场景 | Skill | 作用 |
 |---|---|---|
-| 开始实质性的仓库任务 | [`$ssot-preflight`](./skills/ssot-preflight/SKILL.md) | 检查已审查状态、未决事项、语言和版本，定位必读文档 |
-| 创建 `SSOT/` 或继续初始化 | [`$ssot-bootstrap`](./skills/ssot-bootstrap/SKILL.md) | 根据证据建立仓库记忆，并审查覆盖情况 |
-| 结束一批实质性变更 | [`$ssot-closeout`](./skills/ssot-closeout/SKILL.md) | 在最终回复或提交前，让长期事实与本次变更对齐 |
-| 补齐提交、会话或协议变更 | [`$ssot-audit`](./skills/ssot-audit/SKILL.md) | 分段审查历史，更新追踪基线 |
-| 检查文档健康度或审查完成声明 | [`$ssot-doctor`](./skills/ssot-doctor/SKILL.md) | 运行结构检查，审查证据、一致性与可读性 |
-| 使用旧的 `$ssot-skill` 提示词 | [`$ssot-skill`](./skills/ssot-skill/SKILL.md) | 转到上面五个 Skill 之一 |
+| 开始实质性的仓库任务 | [`ssot-preflight`](./skills/ssot-preflight/SKILL.md) | 检查已审查状态、未决事项、语言和版本，定位必读文档 |
+| 创建 `SSOT/` 或继续初始化 | [`ssot-bootstrap`](./skills/ssot-bootstrap/SKILL.md) | 根据证据建立仓库记忆，并审查覆盖情况 |
+| 结束一批实质性变更 | [`ssot-closeout`](./skills/ssot-closeout/SKILL.md) | 在最终回复或提交前，让长期事实与本次变更对齐 |
+| 补齐提交、会话或协议变更 | [`ssot-audit`](./skills/ssot-audit/SKILL.md) | 分段审查历史，更新追踪基线 |
+| 检查文档健康度或审查完成声明 | [`ssot-doctor`](./skills/ssot-doctor/SKILL.md) | 运行结构检查，审查证据、一致性与可读性 |
+| 使用旧的 `$ssot-skill` 提示词 | [`ssot-skill`](./skills/ssot-skill/SKILL.md) | 转到上面五个 Skill 之一 |
 
 **追踪基线**记录文档审查到了哪个提交、会话和协议版本。它不代表每条事实都是最新的，也不代表所有领域已经完整覆盖。
 
@@ -93,7 +101,7 @@ curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.
 安装后的 Skill 提供工作指令和工具；项目里的 `SSOT/` 保存它们帮助维护的记忆：
 
 ```text
-SSOT-SKILL → 安装到 Agent 的 Skill 目录 → 在你的项目中使用 Skill → SSOT/
+你的需求 → Agent 读取 SSOT → 执行任务 → 按需更新 SSOT
 ```
 
 主要阅读入口如下：
@@ -125,7 +133,7 @@ SSOT-SKILL → 安装到 Agent 的 Skill 目录 → 在你的项目中使用 Ski
 
 **明确检查能证明什么。** [本地检查脚本](./skills/ssot-doctor/assets/scripts/ssot-lint.sh)检查结构、链接、追踪一致性等可机械判断的属性，Doctor 再进行 Agent 审查。仅通过脚本检查，不能证明文档真实、易懂或完整；初始化完成还需要独立审查。
 
-**通过工作流程维护。** 安装只让 Skill 可用，需要在工作中调用它们，文档才能随仓库变化更新。安装本身不会提供自动同步，也不能保证 Agent 每次都遵守全部规则。
+**随 Agent 工作流程维护。** Skill 和项目指令加载后，由 Agent 在工作中触发相应 Skill。这种自动化依赖 Agent 执行项目指令；流程之外发生的改动，会在 Agent 下次处理仓库任务或你要求补齐历史时检查。
 
 ## 支持的 Agent
 
@@ -156,7 +164,7 @@ curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.
 请阅读 https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/INSTALL.md，为当前 Agent 更新本项目的 SSOT Skill，保留原模板语言。
 ```
 
-更新后重启 Agent。如果项目追踪的协议版本较旧，用 `$ssot-audit` 审查升级；替换安装后的 Skill 不会自行迁移 `SSOT/`。卸载时，让 Agent 按指南移除指定范围的安装，并检查是否还有过时的触发指令。
+更新后重启 Agent。下一次实质性任务开始时，preflight 会检查项目追踪的协议版本，发现落后时转入 audit 审查升级。替换安装后的 Skill 不会自行迁移 `SSOT/`。卸载时，让 Agent 按指南移除指定范围的安装，并检查是否还有过时的触发指令。
 
 <details>
 <summary>手动更新与卸载命令</summary>
@@ -189,6 +197,16 @@ curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.
 - [贡献指南](./CONTRIBUTING.md)：怎样提交改进，以及运行本地检查。
 - [AGENTS.md](./AGENTS.md)：Agent 维护**本 Skill 包源仓库**时应遵循的指令。
 - [安全政策](./SECURITY.md)：怎样报告安全漏洞。
+
+## Star 趋势
+
+<a href="https://www.star-history.com/#huangpufan/SSOT-SKILL&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=huangpufan/SSOT-SKILL&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=huangpufan/SSOT-SKILL&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=huangpufan/SSOT-SKILL&type=Date" />
+  </picture>
+</a>
 
 ## 许可证
 
