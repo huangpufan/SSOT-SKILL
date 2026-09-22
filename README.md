@@ -2,7 +2,7 @@
 
 # SSOT Skill
 
-**Shared repository memory for coding agents, maintained in Markdown.**
+**Humans define the invariants. Agents evolve the code.**
 
 [![CI](https://github.com/huangpufan/SSOT-SKILL/actions/workflows/ci.yml/badge.svg)](https://github.com/huangpufan/SSOT-SKILL/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE) [![Agents](https://img.shields.io/badge/agents-70%2B-purple)](#supported-agents) [![Stars](https://img.shields.io/github/stars/huangpufan/SSOT-SKILL?style=social)](https://github.com/huangpufan/SSOT-SKILL/stargazers)
 
@@ -10,15 +10,13 @@
 
 </div>
 
-A new coding session often starts with the same questions: what does this project promise, why was it built this way, and which fixes must not be undone? SSOT Skill helps your agent preserve those answers in a version-controlled `SSOT/` directory, so the next session has a place to start. Once wired into the repository instructions, your agent reads and maintains that memory during normal work.
+Our goal is to automate design, implementation, and code review as far as possible, and focus human judgment on two key moments: **defining a project's invariants and deciding when to change them.** Invariants are the promises an implementation must preserve: API compatibility, tenant isolation, or never charging twice on a retry.
 
-**SSOT** means **Single Source of Truth**: each durable fact has one maintained home; other documents link to it. The bundle supplies six skills, Markdown templates, and a local checker that work inside your existing coding agent.
+Within those boundaries, agents do the work, supported by the **harness**: the tools, checks, and execution controls around them. When a task requires changing an invariant, a human decides whether to make that trade-off.
 
-- **Carry context across sessions.** Keep product intent, architecture boundaries, decisions, and known pitfalls alongside the code.
-- **Share context across tools.** Agents working in the same repository can read and update the same files.
-- **Know what has been checked.** Record reviewed commits, remaining gaps, and decisions that still need human input.
+**SSOT Skill gives those invariants and decisions a durable home.** It maintains a version-controlled `SSOT/` directory, preserving the constraints and their rationale alongside architecture, evidence, and known pitfalls. Across sessions and agents, the work starts from the same explicit agreements.
 
-It is most useful for repositories you return to over time, especially when people or agents hand work to one another.
+**SSOT** means **Single Source of Truth**: each durable fact has one maintained home; other documents link to it. The bundle provides six skills, Markdown templates, and a local checker inside your existing coding agent. It maintains the shared knowledge; your harness and tests execute and verify the work.
 
 ## Quickstart
 

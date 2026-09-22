@@ -2,7 +2,7 @@
 
 # SSOT Skill
 
-**用 Markdown 维护仓库记忆，让不同会话、不同 Agent 共享项目上下文。**
+**人定义不变量，Agent 演进代码。**
 
 [![CI](https://github.com/huangpufan/SSOT-SKILL/actions/workflows/ci.yml/badge.svg)](https://github.com/huangpufan/SSOT-SKILL/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE) [![Agents](https://img.shields.io/badge/agents-70%2B-purple)](#支持的-agent) [![Stars](https://img.shields.io/github/stars/huangpufan/SSOT-SKILL?style=social)](https://github.com/huangpufan/SSOT-SKILL/stargazers)
 
@@ -10,15 +10,13 @@
 
 </div>
 
-新开一个编程会话，常常又要解释同一批问题：项目要实现什么、为什么这样设计、哪些修过的问题不能再犯。SSOT Skill 帮助 Agent 把这些答案保存在随代码一起版本管理的 `SSOT/` 目录里，让下一次会话有据可循。接入项目指令后，Agent 会随日常工作读取和维护这份记忆。
+我们希望把设计、实现和代码审查尽可能交给自动化，让人的判断集中在两个关键时刻：**定义项目的不变量，以及决定何时修改它们。** 不变量是实现无论怎样演进都必须守住的承诺，例如接口兼容、租户数据隔离、重试不能重复扣款。
 
-**SSOT** 是 **Single Source of Truth（单一事实源）**：每条长期事实只在一个位置维护，其他文档通过链接引用。本项目提供六个 Skill、Markdown 模板和本地检查脚本，在你已有的编程 Agent 中使用。
+在这些边界内，Agent 执行任务，外层 **Harness**（围绕 Agent 的工具、检查与执行控制）支撑自动化；需要改变不变量时，由人权衡并决策。
 
-- **跨会话延续上下文。** 把产品意图、架构边界、决策和已知陷阱留在代码旁边。
-- **跨工具共享上下文。** 在同一仓库工作的 Agent 可以读取和更新同一组文件。
-- **看清哪些内容经过检查。** 记录已审查的提交、尚存的缺口，以及仍需人来决定的事项。
+**SSOT Skill 让这些不变量和决策有据可循。** 它把约束及其理由，与架构、证据和已知陷阱一起，保存在随代码版本管理的 `SSOT/` 目录里，让不同会话、不同 Agent 从同一组明确的共识出发。
 
-它尤其适合持续维护的仓库，以及需要在人与 Agent、不同 Agent 之间交接工作的项目。
+**SSOT** 是 **Single Source of Truth（单一事实源）**：每条长期事实只在一个位置维护，其他文档通过链接引用。本项目提供六个 Skill、Markdown 模板和本地检查脚本，在你已有的编程 Agent 中维护这份共享知识；任务的执行与验证由你的 Harness 和测试设施承担。
 
 ## 快速开始
 
