@@ -62,7 +62,7 @@ The repository instructions tell the agent when to act:
 
 - **Before substantive work:** check SSOT state and read the relevant context through preflight. Missing or unfinished `SSOT/` routes to bootstrap; an older tracked protocol routes to audit.
 - **During work:** capture durable facts, decisions, and evidence in their maintained homes.
-- **Before finishing or committing a substantive batch:** run closeout, reconcile the changes with SSOT, and route to Doctor when review is required. Work that changes no durable facts can leave SSOT unchanged.
+- **Before finishing or committing a substantive batch:** run closeout, reconcile the changes with SSOT, and route to Doctor when review is required. When durable facts are unchanged, closeout records a no-op batch without rewriting those facts.
 
 You do not need to select or invoke a skill at every step. Initial bootstrap explores the repository and reviews its documentation; large repositories may need several sessions, with progress saved for continuation. Read the result at `SSOT/README.md` and check `SSOT/STATUS.md` for reviewed areas and open issues.
 

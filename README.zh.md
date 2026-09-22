@@ -62,7 +62,7 @@ curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.
 
 - **实质性任务开始前：** 通过 preflight 检查 SSOT 状态，读取相关上下文；缺少 `SSOT/` 或初始化未完成时转入 bootstrap，追踪的协议版本落后时转入 audit。
 - **工作过程中：** 把需要长期保留的事实、决策和证据写入各自的维护位置。
-- **一批实质性工作结束、最终回复或提交前：** 通过 closeout 核对变更并按需更新 SSOT，需要审查时转入 Doctor。没有长期事实变化的工作可以不改动 SSOT。
+- **一批实质性工作结束、最终回复或提交前：** 通过 closeout 核对变更并按需更新 SSOT，需要审查时转入 Doctor。没有长期事实变化时，closeout 记录 no-op 批次，无需改写事实正文。
 
 日常使用无需逐个选择或手动调用 Skill。首次初始化会探索仓库并审查文档；大型仓库可能需要多个会话，进度会保留以便继续。生成后从 `SSOT/README.md` 开始阅读，在 `SSOT/STATUS.md` 查看已审查的范围和未决事项。
 

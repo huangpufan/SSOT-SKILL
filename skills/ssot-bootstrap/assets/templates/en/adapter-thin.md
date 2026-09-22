@@ -9,15 +9,20 @@
 
 <repo-positioning-one-liner>
 
-## SSOT Entry
+<!-- SSOT-SKILL:BEGIN -->
+## SSOT workflow
 
-This repository uses the SSOT Skill bundle; `SSOT/` is the single authoritative location for long-lived memory.
+Apply the installed SSOT skills automatically when their conditions match; users describe tasks normally. Read and follow the selected skill's `SKILL.md`, including its stop and review requirements.
 
-- Use `$ssot-preflight` before substantive tasks.
-- Use `$ssot-bootstrap` when `SSOT/` is missing or bootstrap is incomplete.
-- Use `$ssot-closeout` before final response, `claim_done`, or commit.
-- Use `$ssot-audit` when the user asks to sync commit/session/protocol.
-- Use `$ssot-doctor` for health checks, stop review, CORE-REF, ADAPTER, or CONSUMPTION.
+- **Start:** before substantive repository work (code, configuration, documentation, review, debugging, or planning), use `$ssot-preflight`. Follow its `$ssot-bootstrap` route when `SSOT/` is missing or initialization is incomplete, then resume the original task once its gates clear.
+- **Capture and close:** keep durable facts in their SSOT owners as work proceeds. Before the final response, `claim_done`, or commit for a substantive change batch, use `$ssot-closeout`; it decides the required updates and batch record, including a no-op when no durable facts changed.
+- **Catch up:** use `$ssot-audit` for requested historical catch-up or when another SSOT skill routes commit, session, or protocol drift there. Advance tracking baselines only after the required review.
+- **Check:** use `$ssot-doctor` for a requested SSOT health check or a review required by another SSOT skill.
+
+Skip automatic lifecycle calls for non-repository chat, pure command execution, or meaning-preserving typo/format edits. An explicit SSOT request still selects the matching skill.
+
+`SSOT/` holds durable repository memory; code, configuration, schemas, tests, and observed behavior are evidence for current implementation. Existing project rules and user decisions remain in force; commits and pushes follow their authorization. If a required skill cannot be loaded, pause work that depends on its gates and report the missing prerequisite and recovery step; this summary is not a substitute for passing its checks.
+<!-- SSOT-SKILL:END -->
 
 ## Core Invariants
 

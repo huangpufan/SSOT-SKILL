@@ -85,6 +85,11 @@ versions. This file only restates headline changes.
   runtime is worse than an honest gap.
 
 ### Fixed
+- Consumer agent instructions now share one marked routing block between the
+  installer and bilingual bootstrap templates. The entry distinguishes
+  substantive work from trivial tasks, preserves conditional audit/Doctor
+  routing and review requirements, and reports unavailable skills explicitly.
+  Installation rejects a missing or malformed block before replacing files.
 - Open Gaps actionability now reads the canonical columns — Responsible owner
   from column 6, Blocking/retrigger from 7, Resolving route from 8 — and emits
   real file line numbers. The previous mapping read the Question column as the

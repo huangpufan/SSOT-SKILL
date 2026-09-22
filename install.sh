@@ -230,29 +230,13 @@ die()  { err "$@"; exit 1; }
 # agent-instructions file. Switches on $1 = lang (en|zh).
 print_wire_block() {
   local lang="${1:-en}"
+  local block
+  block="$(read_wire_block "$lang")" || return 1
   echo ""
   echo -e "  ${BOLD}${YELLOW}━━━ $(t WIRE_HEADER) ━━━${NC}"
   echo -e "  ${DIM}$(t WIRE_TARGET_HINT)${NC}"
   echo ""
-  if [[ "$lang" == "zh" ]]; then
-    echo -e "${CYAN}  本仓库已安装 SSOT Skill。\`SSOT/\` 是 Agent 长期记忆；代码 / schema / 测试仍是事实证据源。${NC}"
-    echo -e "${CYAN}  Agent 应按以下条件自动调用 Skill，无需等待用户逐个点名。${NC}"
-    echo ""
-    echo -e "${CYAN}  - \`\$ssot-preflight\` — 实质性仓库任务开始前。${NC}"
-    echo -e "${CYAN}  - \`\$ssot-bootstrap\` — \`SSOT/\` 缺失或 bootstrap 未完成时。${NC}"
-    echo -e "${CYAN}  - \`\$ssot-closeout\` — 实质性变更批次的 final response / \`claim_done\` / commit 前。${NC}"
-    echo -e "${CYAN}  - \`\$ssot-audit\` — 同步 \`tracked_commit\` / \`tracked_session\` / \`tracked_skill_version\`。${NC}"
-    echo -e "${CYAN}  - \`\$ssot-doctor\` — 健康检查 / 停止审查 / CORE-REF / ADAPTER / CONSUMPTION。${NC}"
-  else
-    echo -e "${CYAN}  SSOT Skill is installed here. \`SSOT/\` is agent long-term memory; code, schema, and tests remain the source of truth.${NC}"
-    echo -e "${CYAN}  Apply these skills automatically when their conditions match; do not wait for the user to name each skill.${NC}"
-    echo ""
-    echo -e "${CYAN}  - \`\$ssot-preflight\` — before any substantive repository task.${NC}"
-    echo -e "${CYAN}  - \`\$ssot-bootstrap\` — when \`SSOT/\` is missing or bootstrap is incomplete.${NC}"
-    echo -e "${CYAN}  - \`\$ssot-closeout\` — before final response / \`claim_done\` / commit on a substantive change batch.${NC}"
-    echo -e "${CYAN}  - \`\$ssot-audit\` — to catch up \`tracked_commit\` / \`tracked_session\` / \`tracked_skill_version\`.${NC}"
-    echo -e "${CYAN}  - \`\$ssot-doctor\` — for health check, stop review, CORE-REF / ADAPTER / CONSUMPTION.${NC}"
-  fi
+  printf '%s\n' "$block"
   echo ""
   echo -e "  ${DIM}$(t WIRE_SEE_README)${NC}"
 }
@@ -1031,6 +1015,29 @@ resolve_template_lang_dir() {
   die "no templates found under $templates_root"
 }
 
+# The marked template section is shared by installation and bootstrap.
+# Validate before installing so a broken source cannot silently omit wiring.
+read_wire_block() {
+  local lang="$1" template_dir template block skill
+  template_dir="$(resolve_template_lang_dir "$lang")" || return 1
+  template="${template_dir:-$SOURCE_DIR/skills/ssot-bootstrap/assets/templates}/adapter-thin.md"
+  [[ -f "$template" ]] || { err "missing SSOT instruction template: $template"; return 1; }
+  block="$(awk '
+    $0 == "<!-- SSOT-SKILL:BEGIN -->" { starts++; active = 1 }
+    active { block = block $0 ORS }
+    $0 == "<!-- SSOT-SKILL:END -->" { ends++; active = 0 }
+    END {
+      if (starts != 1 || ends != 1 || active) exit 1
+      printf "%s", block
+    }
+  ' "$template")" || { err "invalid SSOT instruction block: $template"; return 1; }
+  for skill in "${BUNDLE_SKILLS[@]}"; do
+    [[ "$skill" == "ssot-skill" ]] && continue # Compatibility shim is not a lifecycle route.
+    [[ "$block" == *"\$$skill"* ]] || { err "missing $skill route in SSOT instruction block: $template"; return 1; }
+  done
+  printf '%s\n' "$block"
+}
+
 # -----------------------------------------------------------------------------
 # Install / copy
 # -----------------------------------------------------------------------------
@@ -1039,6 +1046,7 @@ copy_bundle() {
   local lang="$2"
   local stage
   validate_bundle_source
+  read_wire_block "$lang" >/dev/null
   mkdir -p "$base"
   guard_bundle_root_files "$base"
   stage="$(mktemp -d "$base/.ssot-skill-install.XXXXXX")"

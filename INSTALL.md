@@ -90,7 +90,7 @@ These checks verify the installation, not the health of the user's repository do
 
 ## 4. Wire the skills into the repo's agent-instructions file
 
-The installer prints a lifecycle instruction block in the selected template language. Merge that block into the target repository's existing instructions; discovery alone does not establish when a skill should run. A global-only installation without a target repository stops after verification and reports that each consuming repository still needs these instructions; it does not authorize editing global agent instructions.
+The installer prints the `SSOT-SKILL:BEGIN` / `SSOT-SKILL:END` block from the selected-language bootstrap `adapter-thin.md` template. That template is the shared source for installation and later bootstrap; the skill protocols own the detailed behavior. Merge the printed block into the target repository's existing instructions; discovery alone does not establish when a skill should run. A global-only installation without a target repository stops after verification and reports that each consuming repository still needs these instructions; it does not authorize editing global agent instructions.
 
 Make clear that these are instructions for the agent: apply the skills automatically when their conditions match, without waiting for the user to name each skill. Users should be able to describe ordinary repository tasks after setup and restart. Explicit skill invocation remains an optional way to request a focused check or diagnose a missed trigger.
 
@@ -103,15 +103,14 @@ Make clear that these are instructions for the agent: apply the skills automatic
 | Gemini CLI | `GEMINI.md` |
 | Other agents | Their supported repository-instruction entry |
 
-Read existing instructions first. Follow any pointer or symlink to the repository's shared instruction owner, and update that one source. Adapt the installer's block to the surrounding style. If SSOT instructions already exist, reconcile them in place; preserve unrelated instructions and avoid duplicate blocks. When creating a tool-specific rules file, use that agent's supported activation format.
+Read existing instructions first. Follow any pointer or symlink to the repository's shared instruction owner, and update that one source. Keep one marked block in that owner so future updates can replace just this section. Reconcile older, unmarked SSOT instructions in place; preserve unrelated instructions and avoid duplicate blocks. Adapt the heading level if needed, preserving the routes and exceptions. Copy only the marked block from the template, not its whole-file `SSOT-generated` marker or project placeholders. When creating a tool-specific rules file, use that agent's supported activation format.
 
 Before finishing, reread the resulting file and confirm it covers:
 
-- preflight before substantive repository work;
-- bootstrap when `SSOT/` is missing or initialization is incomplete;
-- closeout before a substantive batch's final response or commit;
-- audit for historical catch-up and protocol upgrades;
-- doctor for health checks and completion reviews.
+- automatic preflight and closeout for substantive work, with bootstrap, audit and doctor selected by their conditions;
+- the skip cases for chat, pure command execution, and meaning-preserving typo/format edits, while explicit SSOT requests still route to a skill;
+- loading the selected skill's full instructions, preserving its review gates, and reporting a missing skill honestly;
+- preserving existing project rules, user decisions, and commit/push authorization.
 
 Do not copy or apply SSOT-SKILL's own `AGENTS.md` to the user's repository. It governs maintenance of the bundle source, including its release and commit conventions.
 

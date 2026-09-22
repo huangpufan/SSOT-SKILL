@@ -410,13 +410,22 @@ fi
 # Scenario 21: a downloaded installer can clone without GNU timeout (macOS),
 # and removes its fetched source and staging directories after success/failure.
 SCENARIO21="$WORK_ROOT/scenario21"
-mkdir -p "$SCENARIO21/bin" "$SCENARIO21/tmp" "$SCENARIO21/project"
+mkdir -p "$SCENARIO21/bin" "$SCENARIO21/tmp" "$SCENARIO21/project" "$SCENARIO21/source"
 cp "$INSTALLER" "$SCENARIO21/install.sh"
+# Clone a snapshot of the working tree, not HEAD: the downloaded installer and
+# its source bundle must describe the same candidate before it is committed.
+cp -R "$PROJECT_ROOT/skills" "$SCENARIO21/source/skills"
+cp "$PROJECT_ROOT/VERSION" "$SCENARIO21/source/VERSION"
+git -C "$SCENARIO21/source" init -q
+git -C "$SCENARIO21/source" symbolic-ref HEAD refs/heads/main
+git -C "$SCENARIO21/source" add skills VERSION
+git -C "$SCENARIO21/source" -c core.hooksPath=/dev/null -c commit.gpgsign=false \
+  -c user.name=SSOT-test -c user.email=ssot-test@example.invalid commit -qm 'installer source fixture'
 for utility in bash git dirname mkdir mktemp rm tr cp mv tput head grep awk sed find basename tar curl; do
   ln -s "$(command -v "$utility")" "$SCENARIO21/bin/$utility"
 done
 if (cd "$SCENARIO21/project" && env -u SOURCE_DIR PATH="$SCENARIO21/bin" TMPDIR="$SCENARIO21/tmp" \
-  SSOT_SKILL_REPO_URL="$PROJECT_ROOT" bash "$SCENARIO21/install.sh" \
+  SSOT_SKILL_REPO_URL="$SCENARIO21/source" bash "$SCENARIO21/install.sh" \
   --quickstart --agent claude-code --scope project --lang en) >"$SCENARIO21/check.log" 2>&1; then
   pass "scenario21: fetched-source installation works without GNU timeout"
 else
@@ -436,7 +445,7 @@ if [[ -f "$SCENARIO21/project/.claude/skills/ssot-preflight/SKILL.md" ]]; then
   printf '#!/bin/sh\nexit 73\n' > "$SCENARIO21/bin/cp"
   chmod +x "$SCENARIO21/bin/cp"
   if (cd "$SCENARIO21/project" && env -u SOURCE_DIR PATH="$SCENARIO21/bin" TMPDIR="$SCENARIO21/tmp" \
-    SSOT_SKILL_REPO_URL="$PROJECT_ROOT" bash "$SCENARIO21/install.sh" \
+    SSOT_SKILL_REPO_URL="$SCENARIO21/source" bash "$SCENARIO21/install.sh" \
     --quickstart --agent claude-code --scope project --lang en) >"$SCENARIO21/failure.log" 2>&1; then
     fail "scenario21: failed staging must not report success"
   else
@@ -507,6 +516,106 @@ else
 fi
 bash "$INSTALLER" --list-agents >"$SCENARIO22/agents.log" 2>&1
 assert_grep "scenario22: agent listing includes project paths" "$SCENARIO22/agents.log" 'PROJECT PATH'
+
+# Scenario 23: installation and bootstrap must deliver the same instructions.
+# These are output/packaging checks; prompt behavior is reviewed separately.
+SCENARIO23="$WORK_ROOT/scenario23"
+mkdir -p "$SCENARIO23"
+if python3 - "$PROJECT_ROOT" "$SCENARIO23" <<'PY'
+import hashlib
+import os
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import sys
+
+root, work = map(Path, sys.argv[1:])
+begin, end = '<!-- SSOT-SKILL:BEGIN -->', '<!-- SSOT-SKILL:END -->'
+source = work / 'source'
+shutil.copytree(root / 'skills', source / 'skills')
+shutil.copy2(root / 'VERSION', source / 'VERSION')
+templates = source / 'skills/ssot-bootstrap/assets/templates'
+
+def block(text):
+    assert text.count(begin) == text.count(end) == 1
+    return text[text.index(begin):text.index(end) + len(end)]
+
+def run(project, label, *args):
+    result = subprocess.run(
+        ['bash', str(root / 'install.sh'), *args, '--agent', 'codex', '--scope', 'project'],
+        cwd=project, env=dict(os.environ, SOURCE_DIR=str(source)),
+        text=True, capture_output=True, timeout=30,
+    )
+    (work / (label + '.log')).write_text(result.stdout + result.stderr)
+    return result
+
+def snapshot(directory):
+    return {
+        str(path.relative_to(directory)): hashlib.sha256(path.read_bytes()).hexdigest()
+        for path in directory.rglob('*') if path.is_file()
+    }
+
+for lang in ('en', 'zh'):
+    project = work / lang
+    project.mkdir()
+    (project / 'AGENTS.md').write_text('# Existing instructions\nKeep the project rules.\n')
+    (project / 'CLAUDE.md').symlink_to('AGENTS.md')
+    original_instructions = (project / 'AGENTS.md').read_bytes()
+    template = templates / lang / 'adapter-thin.md'
+    expected = block(template.read_text())
+    assert len(template.read_text().splitlines()) <= 50
+    assert len(re.findall(r'\$ssot-(?:preflight|bootstrap|closeout|audit|doctor)\b', expected)) == 5
+    assert 'SSOT-generated' not in expected and '<project-name>' not in expected and '<项目名>' not in expected
+    for action in ('install', 'upgrade'):
+        args = ('--quickstart', '--lang', lang) if action == 'install' else ('--upgrade',)
+        result = run(project, lang + '-' + action, *args)
+        assert result.returncode == 0, result.stdout + result.stderr
+        assert block(result.stdout) == expected, (lang, action, 'printed instructions differ')
+        installed = project / '.agents/skills/ssot-bootstrap/assets/templates/adapter-thin.md'
+        assert block(installed.read_text()) == expected, (lang, action, 'bootstrap instructions differ')
+        assert (project / 'AGENTS.md').read_bytes() == original_instructions
+        assert (project / 'CLAUDE.md').is_symlink()
+        assert not (project / 'SSOT').exists()
+    print('  verified: ' + lang + ' install/upgrade output equals bootstrap instructions; existing entry files preserved')
+
+# Invalid instructions must fail before replacing any installed file.
+project = work / 'en'
+installed_before = snapshot(project / '.agents/skills')
+template = templates / 'en/adapter-thin.md'
+original = template.read_text()
+invalid = {
+    'missing-block': original.replace(block(original), ''),
+    'unclosed-block': original.replace(end, ''),
+    'duplicate-block': original + '\n' + block(original),
+    'empty-block': original.replace(block(original), begin + '\n' + end),
+    'missing-route': original.replace('$ssot-closeout', 'removed-route'),
+}
+for label, content in invalid.items():
+    template.write_text(content)
+    result = run(project, label, '--upgrade')
+    assert result.returncode != 0, label + ' should fail'
+    assert 'instruction block' in result.stderr, result.stderr
+    assert snapshot(project / '.agents/skills') == installed_before, label + ' changed existing installation'
+    assert not list((project / '.agents/skills').glob('.ssot-skill-install.*'))
+    print('  verified: ' + label + ' rejects upgrade and preserves installed files')
+template.write_text(original)
+
+# Flat sources (such as an installed bundle) use the same extraction path.
+flat = work / 'flat-templates'
+shutil.copytree(templates / 'en', flat)
+shutil.rmtree(templates)
+shutil.move(str(flat), str(templates))
+result = run(project, 'flat-source', '--upgrade')
+assert result.returncode == 0, result.stdout + result.stderr
+assert block(result.stdout) == block(original)
+print('  verified: flat template source retains the shared instructions')
+PY
+then
+  pass "scenario23: shared instructions survive install/upgrade and reject malformed sources safely"
+else
+  fail "scenario23: instruction output, template parity, or failure preservation is wrong"
+fi
 
 echo
 echo "=== RESULT: pass=$PASS fail=$FAIL ==="

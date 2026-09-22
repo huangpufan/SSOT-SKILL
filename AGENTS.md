@@ -27,13 +27,9 @@ For upgrade or uninstall, see `bash install.sh --help`.
 
 ## Usage
 
-In consuming repositories, complete the instruction wiring in [`INSTALL.md`](./INSTALL.md), then restart the agent session to load the skills and project instructions. The agent applies these triggers automatically; users describe their tasks normally, with explicit skill invocation optional:
+In consuming repositories, complete the instruction wiring in [`INSTALL.md`](./INSTALL.md), then restart the agent session. Users describe tasks normally; the agent selects the matching skills automatically.
 
-- `$ssot-preflight` — before starting any substantive repository work
-- `$ssot-bootstrap` — when `SSOT/` is missing or bootstrap is incomplete
-- `$ssot-closeout` — before final response, `claim_done`, or commit
-- `$ssot-audit` — when the user asks to sync commits/sessions/protocol
-- `$ssot-doctor` — for health checks or stop review before high-impact claims
+The consumer instruction block lives in the bootstrap adapter template ([English](./skills/ssot-bootstrap/assets/templates/en/adapter-thin.md), [中文](./skills/ssot-bootstrap/assets/templates/zh/adapter-thin.md)), between the `SSOT-SKILL:BEGIN` / `SSOT-SKILL:END` markers. The installer prints that same block; maintain its wording there. Each skill's `SKILL.md` owns the detailed protocol.
 
 ## Language
 
