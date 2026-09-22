@@ -10,7 +10,7 @@
 
 </div>
 
-Our goal is to automate design, implementation, and code review as far as possible, and focus human judgment on two key moments: **defining a project's invariants and deciding when to change them.** Invariants are the promises an implementation must preserve: API compatibility, tenant isolation, or never charging twice on a retry.
+We believe coding agents will evolve toward automating design, implementation, and code review. SSOT Skill explores and adapts to that paradigm shift, centering human judgment on **defining a project's invariants and deciding when to change them.** Invariants are the promises an implementation must preserve: API compatibility, tenant isolation, or never charging twice on a retry.
 
 Within those boundaries, agents do the work, supported by the **harness**: the tools, checks, and execution controls around them. When a task requires changing an invariant, a human decides whether to make that trade-off.
 
