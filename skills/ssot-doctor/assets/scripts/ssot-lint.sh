@@ -887,12 +887,59 @@ validate_v260_product_surface_inventory() { # $1=product-root manifest
   return 0
 }
 
+# Layout changes physical placement only; inventory and cold-reader gates stay active.
+architecture_is_single_level() {
+  # Never grant layout exemptions before the complete replacement gates exist.
+  document_quality_v260_active || return 1
+  local manifest="${1:-$ARCHITECTURE_DIR/_manifest.md}"
+  [[ -f "$manifest" ]] || return 1
+  [[ $(yaml_frontmatter "$manifest" | grep -Ec '^architecture_layout:' || true) -eq 1 ]] &&
+    [[ $(yaml_frontmatter "$manifest" | grep -Ec '^architecture_layout:[[:space:]]*single-level[[:space:]]*$' || true) -eq 1 ]]
+}
+
+architecture_view_inventory_file() {
+  if architecture_is_single_level; then printf '%s\n' "$ARCHITECTURE_DIR/_manifest.md"
+  else printf '%s\n' "$ARCHITECTURE_DIR/views/_manifest.md"; fi
+}
+
+single_level_value_is_filled() { # Content sufficiency belongs to semantic review.
+  local value
+  value=$(trim_table_cell "$1")
+  value="${value//\`/}"; value="${value//\"/}"; value="${value//\'/}"
+  value=$(trim_table_cell "$value")
+  [[ -n "$value" ]] && ! printf '%s\n' "$value" | grep -qiE \
+    '<[^>]+>|(^|[^A-Za-z])(TODO|TBD|FIXME)([^A-Za-z]|$)|待补充|^(missing|unresolved|unknown|none|null|n/?a|—|[-.]+)$'
+}
+
+validate_single_level_questions() { # $1=root manifest; same seven view concerns, root-owned
+  local manifest="$1" table rows question owner coverage evidence key seen="" reason
+  local expected='operating-model critical-journeys state-and-data-lifecycle contracts-and-trust-boundaries failure-and-recovery deployment-and-observability current-target-gap'
+  reason=$(yaml_frontmatter "$manifest" | sed -nE 's/^single_level_reason:[[:space:]]*//p')
+  single_level_value_is_filled "$reason" || { printf 'single-level layout needs a non-placeholder single_level_reason; semantic review checks its evidence'; return 1; }
+  table=$(manifest_primary_table "$manifest" architecture-views)
+  [[ -n "$table" ]] || { printf 'single-level layout needs the seven view-question dispositions in its root manifest'; return 1; }
+  rows=$(printf '%s\n' "$table" | awk 'NR>2 && /^\|/ {n++} END {print n+0}')
+  [[ "$rows" == 7 ]] || { printf 'single-level layout needs exactly seven view-question dispositions'; return 1; }
+  while IFS='|' read -r _ question owner coverage evidence _; do
+    question=$(trim_table_cell "$question"); question="${question//\`/}"
+    [[ " $expected " == *" $question "* && -n "$question" ]] || { printf 'invalid single-level question class %s' "$question"; return 1; }
+    [[ " $seen " != *" $question "* ]] || { printf 'duplicate single-level question class %s' "$question"; return 1; }
+    seen+=" $question"
+    key=$(strict_ssot_markdown_target_key "$manifest" "$owner" 2>/dev/null || true)
+    [[ "$key" == "$ARCHITECTURE_DIR/README.md#"* ]] || { printf 'single-level question %s needs one resolving root narrative anchor' "$question"; return 1; }
+    coverage=$(trim_table_cell "$coverage"); coverage="${coverage//\`/}"
+    [[ "$coverage" =~ ^(contract|design|poc|debt|mixed|not_applicable)$ ]] || { printf 'single-level question %s needs a current state or not_applicable disposition' "$question"; return 1; }
+    single_level_value_is_filled "$evidence" || { printf 'single-level question %s needs non-placeholder evidence or a named non-applicability reason' "$question"; return 1; }
+  done <<< "$(printf '%s\n' "$table" | tail -n +3)"
+}
+
 validate_v260_architecture_owner_inventory() { # $1=architecture-root manifest
   local manifest="$1" owner_table surface_table bridge_table kind_table product_table invalid duplicate class domain base
   local architecture_abs domain_count owner_row_count row_number=0 ignored id owner_class owner state closure owner_path owner_paths="" owner_ids=""
   local kind anchor normalized_anchor anchors="" tech_ids="" disposition registered reason surface_count kind_row_count
   local expected_registered actual_registered registered_id registered_kind
-  local bridge_rows=0 surface_id boundary view view_path project_root product_maturity product_ids bridge_ids
+  local bridge_rows=0 surface_id boundary view view_path project_root product_maturity product_ids bridge_ids single_level=0 question_reason
+  architecture_is_single_level "$manifest" && single_level=1
   architecture_abs=$(cd "$ARCHITECTURE_DIR" && pwd -P)
   project_root=$(cd "$(dirname "$SSOT_DIR")" && pwd -P)
   owner_table=$(manifest_architecture_owner_table "$manifest")
@@ -914,7 +961,13 @@ validate_v260_architecture_owner_inventory() { # $1=architecture-root manifest
   [[ -z "$duplicate" ]] || { printf 'duplicate owner ID %s' "$duplicate"; return 1; }
   domain_count=$(find "$ARCHITECTURE_DIR" -mindepth 1 -maxdepth 1 -type d -name '[0-9][0-9]-*' -print 2>/dev/null | wc -l | tr -d ' ')
   owner_row_count=$(printf '%s\n' "$owner_table" | awk 'NR > 2 && /^\|/ { rows++ } END { print rows + 0 }')
-  [[ "$owner_row_count" == "$domain_count" ]] || { printf 'direct numbered domain count %s does not match owner row count %s' "$domain_count" "$owner_row_count"; return 1; }
+  if [[ "$single_level" -eq 1 ]]; then
+    [[ "$domain_count" == 0 && "$owner_row_count" == 1 && ! -d "$ARCHITECTURE_DIR/views" ]] || { printf 'single-level layout requires exactly one root runtime owner and no numbered domains or views directory'; return 1; }
+    question_reason=$(validate_single_level_questions "$manifest" 2>/dev/null || true)
+    [[ -z "$question_reason" ]] || { printf '%s' "$question_reason"; return 1; }
+  else
+    [[ "$owner_row_count" == "$domain_count" ]] || { printf 'direct numbered domain count %s does not match owner row count %s' "$domain_count" "$owner_row_count"; return 1; }
+  fi
   while IFS='|' read -r ignored id owner_class owner state closure ignored; do
     row_number=$((row_number + 1))
     (( row_number <= 2 )) && continue
@@ -922,7 +975,12 @@ validate_v260_architecture_owner_inventory() { # $1=architecture-root manifest
     owner=$(trim_table_cell "$owner")
     [[ $(printf '%s\n' "$owner" | grep -oE '\]\([^)]+\.md(#[^)]*)?\)' | wc -l | tr -d ' ') == "1" ]] || { printf 'owner %s must contain exactly one Markdown owner link' "$id"; return 1; }
     owner_path=$(manifest_markdown_link_resolved_path "$manifest" "$owner" 2>/dev/null || true)
-    [[ -n "$owner_path" && "$owner_path" == "$architecture_abs"/[0-9][0-9]-*/README.md ]] || { printf 'owner %s must resolve to one direct numbered domain README' "$id"; return 1; }
+    if [[ "$single_level" -eq 1 ]]; then
+      owner_class=$(trim_table_cell "$owner_class"); owner_class="${owner_class//\`/}"
+      [[ "$owner_class" == runtime && "$owner_path" == "$architecture_abs/README.md" ]] || { printf 'single-level owner %s must be runtime and resolve to the architecture root README' "$id"; return 1; }
+    else
+      [[ -n "$owner_path" && "$owner_path" == "$architecture_abs"/[0-9][0-9]-*/README.md ]] || { printf 'owner %s must resolve to one direct numbered domain README' "$id"; return 1; }
+    fi
     owner_paths+="$owner_path"$'\n'
     owner_ids+="$id"$'\n'
   done <<< "$owner_table"
@@ -1045,7 +1103,12 @@ validate_v260_architecture_owner_inventory() { # $1=architecture-root manifest
       (( ${#boundary} >= 4 )) || { printf 'bridge surface %s has no contract or state boundary' "$surface_id"; return 1; }
       [[ $(printf '%s\n' "$view" | grep -oE '\]\([^)]+\.md(#[^)]*)?\)' | wc -l | tr -d ' ') == "1" ]] || { printf 'bridge surface %s needs exactly one Markdown view link' "$surface_id"; return 1; }
       view_path=$(manifest_markdown_link_resolved_path "$manifest" "$view" 2>/dev/null || true)
-      [[ -n "$view_path" && "$view_path" == "$architecture_abs/views/"* ]] || { printf 'bridge surface %s view link does not resolve under architecture/views' "$surface_id"; return 1; }
+      if [[ "$single_level" -eq 1 ]]; then
+        view_path=$(strict_ssot_markdown_target_key "$manifest" "$view" 2>/dev/null || true)
+        [[ "$view_path" == "$architecture_abs/README.md#"* ]] || { printf 'bridge surface %s needs a resolving single-level root narrative anchor' "$surface_id"; return 1; }
+      else
+        [[ -n "$view_path" && "$view_path" == "$architecture_abs/views/"* ]] || { printf 'bridge surface %s view link does not resolve under architecture/views' "$surface_id"; return 1; }
+      fi
     fi
   done <<< "$bridge_table"
   (( bridge_rows >= 1 )) || { printf 'product-to-architecture bridge has no routed row'; return 1; }
@@ -1292,7 +1355,8 @@ full_review_population_source_file() { # $1=profile $2=frozen population
     architecture\|architecture-reader-owner) source="$ARCHITECTURE_DIR/README.md" ;;
     architecture\|architecture-direct-owner|architecture\|technical-surface|architecture\|architecture-bridge) source="$ARCHITECTURE_DIR/_manifest.md" ;;
     architecture\|architecture-view)
-      if [[ -f "$ARCHITECTURE_DIR/views/_manifest.md" ]]; then source="$ARCHITECTURE_DIR/views/_manifest.md"; else source="$ARCHITECTURE_DIR/views/README.md"; fi
+      source=$(architecture_view_inventory_file)
+      [[ -f "$source" ]] || source="$ARCHITECTURE_DIR/views/README.md"
       ;;
     *) return 1 ;;
   esac
@@ -1367,7 +1431,7 @@ full_review_expected_targets() { # $1=product|architecture $2=root manifest; POP
     canonical_id="owner:02-architecture/_manifest.md#$target_id"
     printf 'architecture-direct-owner%s%s%s%s%s%s\n' "$sep" "$canonical_id" "$sep" "$owner_class" "$sep" "$owner_key"
   done <<< "$table"
-  views_manifest="$ARCHITECTURE_DIR/views/_manifest.md"
+  views_manifest=$(architecture_view_inventory_file)
   if [[ -f "$views_manifest" ]]; then
     table=$(manifest_primary_table "$views_manifest" architecture-views)
     while IFS='|' read -r _ question owner coverage _; do
@@ -3093,17 +3157,19 @@ check_document_quality() {
           fi
           ;;
         architecture-root)
-          for required_pattern in 'views/README\.md' '(runtime owner|运行时[[:space:]]*(owner|所有者))' '(invariant|不变量)' '(context|上下文|系统边界)'; do
+          local root_patterns=('(runtime owner|运行时[[:space:]]*(owner|所有者))' '(invariant|不变量)' '(context|上下文|系统边界)')
+          architecture_is_single_level "$manifest" || root_patterns+=('views/README\.md')
+          for required_pattern in "${root_patterns[@]}"; do
             if ! printf '%s\n' "$primary_table" | grep -qiE "$required_pattern"; then
               add_fail "[MANIFEST-COMPLETENESS] architecture-root manifest misses required recovery class '$required_pattern': $manifest"
               manifest_fail_count=$((manifest_fail_count + 1))
             fi
           done
-          if ! grep -qiE 'current-target-gap\.md' "$manifest"; then
+          if ! architecture_is_single_level "$manifest" && ! grep -qiE 'current-target-gap\.md' "$manifest"; then
             add_fail "[MANIFEST-COMPLETENESS] architecture-root manifest misses required recovery class 'current-target-gap\\.md': $manifest"
             manifest_fail_count=$((manifest_fail_count + 1))
           fi
-          if ! printf '%s\n' "$primary_table" | grep -qE '\]\(\./[0-9]{2}-[^/)]+/README\.md\)'; then
+          if ! architecture_is_single_level "$manifest" && ! printf '%s\n' "$primary_table" | grep -qE '\]\(\./[0-9]{2}-[^/)]+/README\.md\)'; then
             add_fail "[MANIFEST-COMPLETENESS] architecture-root manifest does not index any direct numbered runtime-owner domain: $manifest"
             manifest_fail_count=$((manifest_fail_count + 1))
           fi
@@ -3317,6 +3383,7 @@ check_document_quality() {
   if document_area_is_covered architecture; then
     local architecture_reader_surfaces=(README.md views/README.md views/operating-model.md views/critical-journeys.md views/current-target-gap.md views/state-and-data-lifecycle.md views/contracts-and-trust-boundaries.md views/failure-and-recovery.md)
     document_quality_v260_active && architecture_reader_surfaces+=(views/deployment-and-observability.md)
+    architecture_is_single_level && architecture_reader_surfaces=(README.md)
     for required in "${architecture_reader_surfaces[@]}"; do
       if [[ ! -f "$ARCHITECTURE_DIR/$required" ]] && ! surface_exception_present "$ARCHITECTURE_DIR/_manifest.md" "$required"; then
         add_fail "[SURFACE-COVERAGE] covered architecture area is missing default reader surface: $ARCHITECTURE_DIR/$required"
@@ -3392,8 +3459,10 @@ architecture_area_covered_reason() {
   local dir manifest expected artifact reason owner_reason root_artifact
   [[ -f "$ARCHITECTURE_DIR/README.md" ]] || { printf 'missing architecture root README'; return 1; }
   [[ -f "$ARCHITECTURE_DIR/_manifest.md" ]] || { printf 'missing architecture root manifest'; return 1; }
-  [[ -f "$ARCHITECTURE_DIR/views/README.md" ]] || { printf 'missing architecture views README'; return 1; }
-  [[ -f "$ARCHITECTURE_DIR/views/_manifest.md" ]] || { printf 'missing architecture views manifest'; return 1; }
+  if ! architecture_is_single_level; then
+    [[ -f "$ARCHITECTURE_DIR/views/README.md" ]] || { printf 'missing architecture views README'; return 1; }
+    [[ -f "$ARCHITECTURE_DIR/views/_manifest.md" ]] || { printf 'missing architecture views manifest'; return 1; }
+  fi
   owner_reason=$(validate_v260_architecture_owner_inventory "$ARCHITECTURE_DIR/_manifest.md" 2>/dev/null || true)
   [[ -z "$owner_reason" ]] || { printf 'root owner inventory is incoherent: %s' "$owner_reason"; return 1; }
   while IFS= read -r -d '' dir; do

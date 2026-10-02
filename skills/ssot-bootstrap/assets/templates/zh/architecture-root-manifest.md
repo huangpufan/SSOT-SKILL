@@ -10,6 +10,18 @@ intent_recovery: gap
 <!-- 将本模板渲染为 02-architecture/_manifest.md。这里恢复架构形态与证据；
      系统解释仍在根文档、视图与领域中。声称 covered 前替换 gap 行。 -->
 
+<!-- 单层变体：仅在证据支持一个完整运行时所有者时采用（architecture.md §11）。
+     在 frontmatter 添加 architecture_layout: single-level 与有证据的
+     single_level_reason。只登记一个指向 ./README.md 的 runtime owner；各表默认的
+     view/domain 链接改为根正文锚点，保留技术表面及每条产品桥接。把视图问题表放在
+     本清单，列名为 问题类别 / 叙事所有者 / 覆盖 / 证据或闭合；以下键各出现一次：
+     operating-model、critical-journeys、state-and-data-lifecycle、
+     contracts-and-trust-boundaries、failure-and-recovery、
+     deployment-and-observability、current-target-gap。每项链接到真实根正文锚点，
+     保留当前状态与证据，或链接有具体理由的 not_applicable 解释。所有者失效与退役
+     条件也留在本清单。不创建 views/ 或编号领域目录；完整架构冷读审查仍须覆盖根
+     所有者及全部七项问题路由。声称 covered 前删除本写作说明。 -->
+
 ## 架构主干覆盖
 
 覆盖与证据栏保留协议值：`gap` 表示仍有缺口，`missing` 表示证据缺失；完成后要

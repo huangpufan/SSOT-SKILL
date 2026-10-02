@@ -454,11 +454,14 @@ fixed product headings.
 - `02-architecture/NN-<domain>/`: Concrete architecture domains — the stable owners of detailed runtime facts inside the technical trunk. What a domain owns is defined solely by [`architecture.md §3`](architecture.md#3-thin-defaults); what a domain reader surface must teach is defined by [`reader-quality.md §4`](reader-quality.md#4-architecture-completeness). New domains are direct children of `02-architecture/` and carry a two-digit reading-order prefix.
 - Legacy compatibility: existing unnumbered `architecture/<domain>/README.md` or `architecture/domains/<domain>/README.md` can still serve as a domain authoritative location until protocol audit migration runs. New bootstrap must not create `architecture/domains/`.
 
-**Applicability**: Always applicable. New bootstrap and major architecture reorganization prefer `views/ + direct numbered domains`; small CLI/library may have only a single-level `02-architecture/README.md`; large kernels/monorepos must recursively decompose into architecture domains.
+**Applicability**: Always applicable. New bootstrap and major architecture reorganization prefer `views/ + direct numbered domains`; a repository with one coherent runtime owner may use the reviewed single-level body plus root manifest defined in [`architecture.md §11`](architecture.md#11-lightweight-mode); independent runtime owners require architecture domains regardless of code size.
 
 **Information architecture**: the default model is a Runtime Owner Map. Root
 routes to runtime owners and global invariants; views keep only cross-owner
 technical views; domains own the detailed runtime/state/contract/failure facts.
+In reviewed single-level mode, that one owner is the root README; the root
+manifest retains the full owner, technical-surface, product-bridge, and
+view-question inventories without manufacturing domain or view directories.
 
 **Design intent / truth narrative (v2.47)**:
 

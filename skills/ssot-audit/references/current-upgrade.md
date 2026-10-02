@@ -10,6 +10,27 @@ files.
 
 ## Version Ledger
 
+### v2.75
+
+**Upgrade goal**: support one coherent runtime owner with one architecture
+README and a root manifest. The optional `architecture_layout: single-level`
+mode keeps technical surfaces, product bridging, all seven architecture
+question routes, evidence, and full reader review. A public API, compatibility
+promise, or local store alone does not imply an independent domain.
+
+**Impact**: `semantic_impact=medium`; implements the already-documented
+lightweight alternative with explicit manifest routing. No automatic tree
+migration or new independent-review trigger is introduced.
+
+**Impact checklist**:
+
+| Check | Audit action | Done criterion |
+|---|---|---|
+| Existing architecture shape | Use independence evidence, not repository size alone. | Multiple real owners remain faceted; one-row camouflage is rejected by semantic review. |
+| Single-level adoption | At a reviewed v2.60+ baseline, declare layout/reason and register one runtime owner linked to the root. | No numbered domains or views directory; every technical surface and product bridge still resolves. |
+| Cross-owner questions | Place all seven question dispositions in the root manifest with body anchors and evidence/reasons. | Missing questions or anchors fail; non-applicability has a reader-facing explanation. |
+| Coverage | Run the unchanged full cold-reader and stop-review gates. | Layout metadata alone cannot earn covered; reviewer policy remains status-protocol §6. |
+
 ### v2.74
 
 **Upgrade goal**: generated data should already match its owning schema.

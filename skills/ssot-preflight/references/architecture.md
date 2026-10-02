@@ -95,8 +95,10 @@ Default root content:
 - short Current / Target / Gap posture and gap index link;
 - evidence and coverage pointer.
 
-Root may summarize views/domains, but it does not own full flow, state,
-contract, failure, or resource detail. If root needs long tables to be
+In the default faceted layout, root may summarize views/domains, but it does
+not own full flow, state, contract, failure, or resource detail. The reviewed
+single-level layout in §11 instead makes the root the one runtime owner and
+keeps those details there. If root needs long tables to be
 understood, the missing model belongs in prose or in a lower owner. Root is not
 a domain checklist.
 
@@ -371,22 +373,53 @@ row.
 
 ## 11. Lightweight Mode
 
-Small CLI/library repos may keep only `02-architecture/README.md` when there are no
-multiple public API surfaces, adapters, persistent state owners, plugin
-mechanisms, compatibility commitments, or independent failure boundaries.
+A repository with one coherent runtime owner may keep one reader body,
+`02-architecture/README.md`, plus its root `_manifest.md`. Judge independence,
+not line count or the mere presence of a public API, compatibility commitment,
+local state, or adapter: those can all belong to one boundary. An independently
+changing state writer, contract, lifecycle, trust boundary, failure/recovery
+owner, or verification responsibility is a reason to split. Do not hide several
+owners in one registry row to qualify.
 
-Lightweight mode still needs:
+The root owns the full current flow, state, contracts, failure/recovery,
+verification, and current/target/gap story. It still needs a mental model,
+owner anchor, evidence-based stop reason, coverage depth/scope, applicable
+boundary/context and flow diagrams, and the same cold-reader review. Explain
+all actual load-bearing contracts; do not invent extra ones for a numeric quota.
+Root manifest metadata and review artifacts remain separate from the prose.
 
-- the mental model;
-- owner anchor;
-- stop reason;
-- evidence summary;
-- coverage depth/scope;
-- boundary/context diagram when claiming a domain is covered;
-- stop review.
+This layout requires a tracked protocol baseline of v2.60 or later, where the
+full owner, view-question, and reader-review gates are active. An older
+consumer first completes its protocol upgrade; adding a layout field does not
+relax the older baseline requirements.
 
-When new independent state, contract, lifecycle, trust, failure, or verification
-semantics appear, exit lightweight mode and split.
+Declare `architecture_layout: single-level` and a concrete
+`single_level_reason:` in the root manifest frontmatter. The owner registry has
+exactly one `runtime` row linked to `./README.md`; the technical-surface
+registry and complete product bridge remain mandatory. Omit `views/` and
+numbered domain directories. In the default layout, omit the layout field or
+use `architecture_layout: faceted`.
+
+The root manifest also carries the usual view-question table (`Question class`,
+`Narrative owner`, `Coverage`, `Evidence or closure`). Keep the seven stable
+question keys exactly once: `operating-model`, `critical-journeys`,
+`state-and-data-lifecycle`, `contracts-and-trust-boundaries`,
+`failure-and-recovery`, `deployment-and-observability`, and
+`current-target-gap`. Each routes to a resolving root-body anchor, carries a
+current architecture state or a reasoned `not_applicable`, and names evidence
+or the boundary reason. Questions may share one coherent prose section; seven
+keys do not require seven headings. A non-applicable concern still links the
+body explanation of why. Product bridge failure/operations links likewise
+point to root-body anchors. Record document invalidation and retirement in the
+root manifest, since no domain manifest owns them.
+
+The full architecture review covers this one owner and all seven question
+routes, with unchanged truth, completeness, fingerprints, and stop-review
+gates. A layout declaration is not review evidence. Reviewer selection follows
+[`status-protocol.md §6`](status-protocol.md#6-stop-review-gate); single-level
+mode adds no independent-review exception. When an independent owner appears,
+migrate its facts and registry routes into the faceted layout
+before renewing `covered`; preserve stable surface IDs and source evidence.
 
 ## 12. Anti-Patterns
 

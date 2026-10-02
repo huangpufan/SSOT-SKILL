@@ -453,6 +453,7 @@ write_v260_review() {
   local product_reader_count=0 product_surface_count=0 product_bridge_count=0
   local architecture_reader_count=0 architecture_owner_count=0 architecture_view_count=0 architecture_surface_count=0 architecture_bridge_count=0
   local target_id owner_link target_kind target_disposition assigned_task evidence_link product_bridge_inventory architecture_view_inventory
+  local architecture_primary_owner=../02-architecture/01-runtime/README.md architecture_views_file architecture_views_base
   local -a task_rows task_classes dimension_rows profile_ids target_rows
   ssot_dir=$(cd "$(dirname "$file")/.." && pwd -P)
   root=$(dirname "$ssot_dir")
@@ -547,6 +548,12 @@ write_v260_review() {
       '| architecture-product-trace | Outcome reviewer traces a product surface to runtime truth and operations | Ask the implementation Agent to preserve the surface-to-runtime boundary | The product surface resolves to one owner state boundary and operations view | Stop when architecture strengthens or changes the product promise | SSOT/README.md | SSOT/01-product/_manifest.md; SSOT/02-architecture/_manifest.md | 4 | Surface, owner, state boundary, and view recovered | pass | [architecture inventory](../02-architecture/_manifest.md); one cross-scope trace sampled | pass |'
       '| architecture-inventory-evidence | Reviewer checks owner, technical registry, evidence fitness, and gaps | Ask the implementation Agent to disposition every owner technical surface and Q gap | Every registered surface and concern has one owner and fitting evidence limit | Escalate when an owner is inferred from the tree or evidence is only a path | SSOT/README.md | SSOT/02-architecture/_manifest.md | 3 | Owner and surface dispositions plus evidence limits recovered | pass | [architecture inventory](../02-architecture/_manifest.md); exhaustive source audit is outside this task | pass |'
     )
+    if grep -q '^architecture_layout: single-level$' "$ssot_dir/02-architecture/_manifest.md" 2>/dev/null; then
+      architecture_primary_owner='../02-architecture/README.md'
+      for row in "${!task_rows[@]}"; do
+        task_rows[$row]="${task_rows[$row]//02-architecture\/views\/README.md/02-architecture\/README.md}"
+      done
+    fi
     profile_ids=(C01 C02 C03 C04 C05 C06 C07 C08 C09 A01 A02 A03 A04 A05 A06 A07 A08 A09 A10 A11 A12 A13 A14 A15 A16 A17 A18 Q01 Q02 Q03 Q04 Q05 Q06 Q07 Q08 Q09 Q10 Q11 Q12 Q13 Q14 Q15 Q16 Q17 Q18 Q19 Q20 Q21)
 
     for row in \
@@ -576,23 +583,29 @@ write_v260_review() {
         active && /^\|/ { owner=trim($4); if(match(owner,/\]\(([^)]+[.]md)\)/)){link=substr(owner,RSTART+2,RLENGTH-3); print trim($2) sprintf("%c",28) trim($3) sprintf("%c",28) link}; next }
         active { exit }
       ' "$ssot_dir/02-architecture/_manifest.md")
-      if [[ -f "$ssot_dir/02-architecture/views/_manifest.md" ]]; then
-        while IFS=$'\034' read -r target_id owner_link; do
+      architecture_views_file="$ssot_dir/02-architecture/views/_manifest.md"
+      architecture_views_base='../02-architecture/views/'
+      if [[ "$architecture_primary_owner" == '../02-architecture/README.md' ]]; then
+        architecture_views_file="$ssot_dir/02-architecture/_manifest.md"
+        architecture_views_base='../02-architecture/'
+      fi
+      if [[ -f "$architecture_views_file" ]]; then
+        while IFS=$'\034' read -r target_id owner_link target_disposition; do
           [[ -n "$target_id" ]] || continue
-          owner_link="../02-architecture/views/${owner_link#./}"
-          target_rows+=("| view:$target_id | cross-owner-view | covered | [owner/body]($owner_link) | architecture-failure-recovery | Preserve this cross-owner view and its delegated diagnosis or recovery decision. | pass | [view evidence]($owner_link); this documentation sample does not execute the cross-owner path. |")
+          owner_link="$architecture_views_base${owner_link#./}"
+          target_rows+=("| view:$target_id | cross-owner-view | $target_disposition | [owner/body]($owner_link) | architecture-failure-recovery | Preserve this cross-owner view and its delegated diagnosis or recovery decision. | pass | [view evidence]($owner_link); this documentation sample does not execute the cross-owner path. |")
           architecture_view_count=$((architecture_view_count + 1))
         done < <(awk -F'|' '
           function trim(v){gsub(/^[[:space:]`]+|[[:space:]`]+$/,"",v);return v}
           /^\|/ && $0 ~ /(Question class|问题类别)/ { active=1; next }
           active && /^\|[[:space:]:|-]+\|[[:space:]:|-]+(\|[[:space:]:|-]+)+\|?[[:space:]]*$/ { next }
-          active && /^\|/ { question=tolower(trim($2)); gsub(/[^a-z0-9]+/,"-",question); gsub(/^-+|-+$/,"",question); owner=trim($3); if(match(owner,/\]\(([^)]+[.]md)\)/)){link=substr(owner,RSTART+2,RLENGTH-3); print question sprintf("%c",28) link}; next }
+          active && /^\|/ { question=tolower(trim($2)); gsub(/[^a-z0-9]+/,"-",question); gsub(/^-+|-+$/,"",question); owner=trim($3); if(match(owner,/\]\(([^)]+[.]md(#[^)]*)?)\)/)){link=substr(owner,RSTART+2,RLENGTH-3); print question sprintf("%c",28) link sprintf("%c",28) trim($4)}; next }
           active { exit }
-        ' "$ssot_dir/02-architecture/views/_manifest.md")
+        ' "$architecture_views_file")
       fi
       while IFS=$'\034' read -r target_id target_disposition owner_link; do
         [[ -n "$target_id" ]] || continue
-        target_rows+=("| $target_id | technical-surface | $target_disposition | [owner/body](../02-architecture/01-runtime/README.md) | architecture-inventory-evidence | Keep this technical surface registered to one owner with fitting evidence and limits. | pass | [architecture evidence](../02-architecture/01-runtime/README.md); this inventory sample does not execute the surface. |")
+        target_rows+=("| $target_id | technical-surface | $target_disposition | [owner/body]($architecture_primary_owner) | architecture-inventory-evidence | Keep this technical surface registered to one owner with fitting evidence and limits. | pass | [architecture evidence]($architecture_primary_owner); this inventory sample does not execute the surface. |")
         architecture_surface_count=$((architecture_surface_count + 1))
       done < <(awk -F'|' '
         function trim(v){gsub(/^[[:space:]`]+|[[:space:]`]+$/,"",v);return v}
@@ -603,7 +616,7 @@ write_v260_review() {
       ' "$ssot_dir/02-architecture/_manifest.md")
       while IFS=$'\034' read -r target_id target_disposition; do
         [[ -n "$target_id" ]] || continue
-        target_rows+=("| bridge:$target_id | bridge | $target_disposition | [architecture owner](../02-architecture/01-runtime/README.md) | architecture-product-trace | Preserve this product-to-runtime bridge without strengthening the product promise. | pass | [architecture evidence](../02-architecture/01-runtime/README.md); this review does not execute the bridge. |")
+        target_rows+=("| bridge:$target_id | bridge | $target_disposition | [architecture owner]($architecture_primary_owner) | architecture-product-trace | Preserve this product-to-runtime bridge without strengthening the product promise. | pass | [architecture evidence]($architecture_primary_owner); this review does not execute the bridge. |")
         architecture_bridge_count=$((architecture_bridge_count + 1))
       done < <(awk -F'|' '
         function trim(v){gsub(/^[[:space:]`]+|[[:space:]`]+$/,"",v);return v}
@@ -615,6 +628,7 @@ write_v260_review() {
     fi
     architecture_view_inventory='../02-architecture/views/README.md'
     [[ -f "$ssot_dir/02-architecture/views/_manifest.md" ]] && architecture_view_inventory='../02-architecture/views/_manifest.md'
+    [[ "$architecture_primary_owner" == '../02-architecture/README.md' ]] && architecture_view_inventory='../02-architecture/_manifest.md'
   fi
 
   if ! grep -q '^## Stop Review Gate$' "$ssot_dir/STATUS.md"; then
@@ -1284,6 +1298,130 @@ write_v260_review "$T/SSOT/.bootstrap/reader-review.md" "SSOT/02-architecture"
 out=$(run_quality "$T")
 assert_not_contains "valid architecture inventory has no owner-inventory failure" "$out" "[OWNER-INVENTORY]"
 assert_not_contains "valid architecture review has no review-evidence failure" "$out" "[READER-REVIEW-EVIDENCE]"
+
+# Reuse the same inventory/review scenario with its single owner located at root.
+S=$(mktemp -d -p "$TMPDIR"); cp -R "$T/." "$S/"
+rm -rf "$S/SSOT/02-architecture/views" "$S/SSOT/02-architecture/01-runtime"
+sed_inplace '/^manifest_archetype: architecture-root$/a\
+architecture_layout: single-level\
+single_level_reason: One stateless library owner handles input validation and return values; source and tests show no independent runtime boundary.' "$S/SSOT/02-architecture/_manifest.md"
+sed_inplace 's@\./01-runtime/README.md@./README.md@g; s@views/current-target-gap.md@README.md#current-target-gap@g; s@\./views/README.md#failure@./README.md#failure-and-recovery@g; s@views/README.md@README.md@g' "$S/SSOT/02-architecture/_manifest.md"
+sed_inplace '1i\
+---\
+intent_recovery: covered\
+---\
+# Library architecture\
+' "$S/SSOT/02-architecture/README.md"
+cat >> "$S/SSOT/02-architecture/README.md" <<'SINGLE_ROOT'
+
+## Operating model
+
+A library caller asks this one owner to validate a value and return its normalized form. All entrypoints share the same in-memory state and error contract; splitting them would create several pages for one decision. The source and contract tests are the evidence for that narrow boundary, not a claim about future versions.
+
+## Critical journeys
+
+A caller supplies input, the owner validates it, then returns the result. Invalid input produces an explicit validation error without changing caller state. A contributor can delegate a change to this path and ask for both valid-input and invalid-input results before accepting it.
+
+## State and data lifecycle
+
+Only temporary call-local values exist. The caller owns any persistence before and after the call, so the library cannot restore an external database or claim its retention policy. The architecture remains single-level only while no separate writer or lifecycle appears.
+
+## Contracts and trust boundaries
+
+Arguments are untrusted until validated. One public contract defines returned values and errors; this implementation has no authentication service or secrets. A new independently owned integration or permission boundary requires decomposition review.
+
+## Failure and recovery
+
+The library returns a validation error to the caller and leaves its state untouched. The caller corrects input before retrying; this owner neither retries external operations nor invents an operator recovery service. Regression evidence covers rejection without mutation.
+
+## Deployment and observability
+
+The package runs inside its caller process, which owns deployment and operational logging. A caller diagnoses a failure using the returned error and the package version. A release changes the library artifact; it does not introduce a separate deployed runtime unit.
+
+## Current target gap
+
+The current library handles local validation. External service calls and durable storage are outside its present contract, with no promised target implementation. Any proposal introducing them must revisit the owner boundary before this structure can remain covered.
+SINGLE_ROOT
+cat >> "$S/SSOT/02-architecture/_manifest.md" <<'SINGLE_VIEWS'
+
+| Question class | Narrative owner | Coverage | Evidence or closure |
+|---|---|---|---|
+| operating-model | [Operating model](./README.md#operating-model) | contract | evidence: tests/test_runtime.py validates the one-owner boundary |
+| critical-journeys | [Critical journeys](./README.md#critical-journeys) | contract | evidence: tests/test_runtime.py traces request and response |
+| state-and-data-lifecycle | [State lifecycle](./README.md#state-and-data-lifecycle) | contract | evidence: src/runtime.py keeps call-local state |
+| contracts-and-trust-boundaries | [Trust boundary](./README.md#contracts-and-trust-boundaries) | contract | evidence: tests/test_runtime.py validates untrusted input |
+| failure-and-recovery | [Failure recovery](./README.md#failure-and-recovery) | contract | evidence: tests/test_runtime.py covers rejection without mutation |
+| deployment-and-observability | [Deployment and diagnosis](./README.md#deployment-and-observability) | contract | evidence: src/runtime.py returns errors to the caller process |
+| current-target-gap | [Current target gap](./README.md#current-target-gap) | contract | evidence: src/runtime.py contains no separate target runtime |
+SINGLE_VIEWS
+write_exact_area_status "$S"
+sed_inplace 's@^| architecture | gap |.*@| architecture | covered | [Architecture](./02-architecture/README.md) |@' "$S/SSOT/STATUS.md"
+write_v260_review "$S/SSOT/.bootstrap/reader-review.md" "SSOT/02-architecture"
+single_out=$(run_quality "$S"); single_code=$?
+assert_no_fail_tag "single-level library keeps a complete owner inventory" "$single_out" "[OWNER-INVENTORY]"
+assert_no_fail_tag "single-level library needs no invented domain/view files" "$single_out" "[SURFACE-COVERAGE]"
+assert_no_fail_tag "single-level library preserves root and seven view-question recovery" "$single_out" "[MANIFEST-COMPLETENESS]"
+assert_no_fail_tag "single-level library passes the same full reader-review gate" "$single_out" "[READER-REVIEW-EVIDENCE]"
+assert_exit "reviewed single-level architecture passes focused CLI" "$single_code" 0
+normal_out=$(run_normal "$S")
+assert_not_contains "normal CLI accepts the reviewed single-level covered aggregate" "$normal_out" "[AREA-STATUS] architecture covered aggregate is incoherent"
+cp "$S/SSOT/STATUS.md" "$S/status-current"
+sed_inplace 's/`2.60`/`2.59`/' "$S/SSOT/STATUS.md"
+single_out=$(run_quality "$S")
+assert_has_fail_tag "older baseline cannot use single-level to waive required surfaces" "$single_out" "[SURFACE-COVERAGE]"
+assert_has_fail_tag "older baseline retains manifest completeness requirements" "$single_out" "[MANIFEST-COMPLETENESS]"
+cp "$S/status-current" "$S/SSOT/STATUS.md"
+
+# Short evidence and Chinese boundary reasoning are not weaker merely because
+# they use fewer characters. Keep the full review and real source pointer.
+cp "$S/src/runtime.py" "$S/src/a.py"
+sed_inplace 's/^single_level_reason:.*/single_level_reason: 单一状态所有者/' "$S/SSOT/02-architecture/_manifest.md"
+sed_inplace '/^| operating-model |/s@evidence: tests/test_runtime.py validates the one-owner boundary@src/a.py@' "$S/SSOT/02-architecture/_manifest.md"
+sed_inplace '/^| architecture | covered | agent:test |/d' "$S/SSOT/STATUS.md"
+write_v260_review "$S/SSOT/.bootstrap/reader-review.md" "SSOT/02-architecture"
+single_out=$(run_quality "$S"); single_code=$?
+assert_no_fail_tag "short single-level reason and evidence retain the owner gate" "$single_out" "[OWNER-INVENTORY]"
+assert_exit "short meaningful reason and evidence pass the reviewed CLI" "$single_code" 0
+cp "$S/SSOT/02-architecture/_manifest.md" "$S/single-level-valid"
+
+for invalid_reason in '' '<reason>'; do
+  sed_inplace "s/^single_level_reason:.*/single_level_reason: $invalid_reason/" "$S/SSOT/02-architecture/_manifest.md"
+  single_out=$(run_quality "$S")
+  assert_has_fail_tag "single-level rejects ${invalid_reason:-empty} reason" "$single_out" "[OWNER-INVENTORY]"
+  cp "$S/single-level-valid" "$S/SSOT/02-architecture/_manifest.md"
+done
+for invalid_evidence in '' '<evidence>'; do
+  sed_inplace "/^| operating-model |/s@ | src/a.py |@ | $invalid_evidence |@" "$S/SSOT/02-architecture/_manifest.md"
+  single_out=$(run_quality "$S")
+  assert_has_fail_tag "single-level rejects ${invalid_evidence:-empty} evidence" "$single_out" "[OWNER-INVENTORY]"
+  cp "$S/single-level-valid" "$S/SSOT/02-architecture/_manifest.md"
+done
+
+sed_inplace '/^| owner:runtime |/a\
+| owner:second | runtime | [Other runtime](./README.md) | contract | evidence: tests/test_runtime.py |' "$S/SSOT/02-architecture/_manifest.md"
+single_out=$(run_quality "$S")
+assert_has_fail_tag "single-level declaration cannot hide two runtime owners" "$single_out" "[OWNER-INVENTORY]"
+cp "$S/single-level-valid" "$S/SSOT/02-architecture/_manifest.md"
+
+mkdir "$S/SSOT/02-architecture/02-worker"
+single_out=$(run_quality "$S")
+assert_has_fail_tag "single-level declaration cannot hide a numbered runtime domain" "$single_out" "[OWNER-INVENTORY]"
+rmdir "$S/SSOT/02-architecture/02-worker"
+
+sed_inplace '/^| failure-and-recovery |/d' "$S/SSOT/02-architecture/_manifest.md"
+single_out=$(run_quality "$S")
+assert_has_fail_tag "single-level still requires failure and recovery explanation" "$single_out" "[OWNER-INVENTORY]"
+cp "$S/single-level-valid" "$S/SSOT/02-architecture/_manifest.md"
+
+sed_inplace 's/README.md#failure-and-recovery/README.md#missing-recovery/g' "$S/SSOT/02-architecture/_manifest.md"
+single_out=$(run_quality "$S")
+assert_has_fail_tag "single-level rejects missing narrative anchors" "$single_out" "[OWNER-INVENTORY]"
+cp "$S/single-level-valid" "$S/SSOT/02-architecture/_manifest.md"
+
+rm "$S/SSOT/.bootstrap/reader-review.md"
+single_out=$(run_quality "$S")
+assert_has_fail_tag "single-level layout without review cannot claim covered" "$single_out" "[READER-REVIEW-EVIDENCE]"
+rm -rf "$S"
 
 cp "$T/SSOT/02-architecture/_manifest.md" "$T/architecture-kind-valid"
 sed_inplace 's/tech:web-entry, tech:cli-entry/tech:missing/' "$T/SSOT/02-architecture/_manifest.md"

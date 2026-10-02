@@ -76,7 +76,7 @@ The agent should examine workspace config files, build-system config, deployment
 
 **Architecture decomposition candidates**
 
-The recon phase must produce 2-4 architecture candidate decomposition axes and recommend one main axis. The recommendation reason must explain how that axis explains runtime flow, state ownership, failure modes, contract boundaries and change risk; pre-built domains must also state `why separate` and at least one independence signal.
+The recon phase compares the meaningful architecture decomposition candidates supported by repository evidence and recommends one main axis. A coherent single-owner repository may recommend reviewed single-level mode without inventing extra candidate axes or domain boundaries. The recommendation reason must explain how that axis explains runtime flow, state ownership, failure modes, contract boundaries and change risk; pre-built domains must also state `why separate` and at least one independence signal.
 
 Before recommending the main axis, first record evidence-guided decomposition signals: entrypoints, call/dependency edges, shared state/resource, runtime flow, failure/recovery boundary, contract surface, tests, configs, scripts, ADR/source material. These signals are only candidate clues; current facts still need code, config, schema, test or runtime evidence.
 
@@ -181,6 +181,15 @@ Phase 1 creates no passing review artifact. During Phase 3, use
 architecture. Use [`scope-review.md`](../assets/templates/en/scope-review.md) for
 process, records, glossary, root, and STATUS. The latter is a lightweight exact
 profile gate and must not copy the product/architecture 16-leaf score.
+
+For a repository with one coherent runtime owner, apply
+[`architecture.md §11`](../../ssot-preflight/references/architecture.md#11-lightweight-mode)
+instead of instantiating the default views and domains in outputs 6–7. Create
+one architecture README and root manifest; the latter registers the root owner,
+technical surfaces, complete product bridge, and seven view-question routes.
+Keep the same reader-quality and stop-review gates. A small file count alone
+does not justify single-level mode, and one public API or local store alone does
+not force a split.
 
 ### Language discipline when instantiating templates
 

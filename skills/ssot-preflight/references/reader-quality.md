@@ -592,7 +592,10 @@ derives from that single ownership definition and does not restate it.
 
 The architecture trunk collectively answers every applicable question below.
 The root teaches the system; views explain cross-owner relationships; domains
-own detailed runtime truth.
+own detailed runtime truth. In the reviewed single-level layout defined by
+[`architecture.md §11`](architecture.md#11-lightweight-mode), the root itself
+owns the one runtime boundary and the applicable view explanations; the same
+completeness questions and cold-reader gate apply.
 
 The v2.60 architecture completeness profile is exact. Its 48 rows are all
 common items `C01`-`C09`, all architecture items `A01`-`A18`, and all shared
@@ -634,7 +637,9 @@ The root explains, in this order:
 - a short current/target/gap posture.
 
 One useful context diagram is better than several overlapping inventories.
-Root detail stops where a view or domain becomes the owner.
+Root detail stops where a view or domain becomes the owner. A single-level
+root has no lower owner and therefore teaches the full current flow, state,
+contracts, and failure/recovery story itself.
 
 ### Cross-owner views
 
@@ -717,7 +722,7 @@ table everywhere:
 |---|---|---|
 | `product-root` | core product spine/capability/journey rows plus finite user-surface inventory across all twelve classes, maturity, evidence/closure | apex registry, runtime implementation mirror |
 | `product-collection` | one row per child owner, maturity, evidence/closure | root completeness rows, apex registry |
-| `architecture-root` | every direct runtime/support/target owner, views, global invariants, CTG, product bridge, unique technical surface registry | child symbol inventories |
+| `architecture-root` | every direct runtime/support/target owner (or the single root runtime owner), view-question routes, global invariants, CTG, product bridge, unique technical surface registry | child symbol inventories |
 | `architecture-views` | one row per cross-owner view, including deployment/observability, and required question class | apex registry, domain symbols |
 | `architecture-domain` | boundary, core state/contracts/flows, stable evidence pins, document invalidation/retirement conditions | global apex or capability mirrors |
 
@@ -743,7 +748,13 @@ participants, but one owner remains authoritative. The architecture-views
 manifest enumerates every default cross-owner view or a reasoned
 `not_applicable` disposition.
 
-The direct numbered directory set and owner-registry rows are one-to-one. Each
+In the default faceted layout, the direct numbered directory set and
+owner-registry rows are one-to-one. The reviewed `single-level` alternative
+registers exactly one root `runtime` owner and keeps its seven view-question
+dispositions in the root manifest, with resolving root-body anchors, evidence,
+and reasons as specified in architecture §11. The frozen architecture-view
+population then comes from that table; it is not empty merely because there is
+no `views/` directory. Each
 owner row uses a stable `owner:<slug>` ID and one resolving Markdown link to its
 reader body. Every technical surface references one registered owner ID, uses a
 globally unique stable anchor whose repository path resolves, and has fitting
@@ -758,7 +769,8 @@ Its surface-ID multiset equals the product inventory exactly: every current,
 limited, target, and out surface appears once, with no extra or duplicate row.
 Current/limited/target rows reference a registered owner ID, state the contract
 or planned state boundary, and link to a resolving Markdown view under
-`02-architecture/views/`; target may route to an owner classified `target`.
+`02-architecture/views/`, or to a root-body anchor in reviewed single-level
+mode; target may route to an owner classified `target`.
 An `out` surface uses a named `not_applicable` disposition in the runtime-owner,
 boundary, and view cells rather than inventing a runtime implementation.
 

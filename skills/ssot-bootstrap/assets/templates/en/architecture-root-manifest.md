@@ -11,6 +11,22 @@ intent_recovery: gap
      architecture shape and evidence; system explanation stays in the root,
      views, and domains. Replace gap rows before claiming covered. -->
 
+<!-- Single-level variant: use only after evidence supports one coherent runtime
+     owner (architecture.md §11). Add architecture_layout: single-level and an
+     evidence-based single_level_reason to frontmatter. Register exactly one
+     runtime owner at ./README.md; replace default view/domain links in all
+     tables with root-body anchors. Keep technical surfaces and every product
+     bridge row. Add the view-question table here, with Question class / Narrative
+     owner / Coverage / Evidence or closure columns and exactly these keys:
+     operating-model, critical-journeys, state-and-data-lifecycle,
+     contracts-and-trust-boundaries, failure-and-recovery,
+     deployment-and-observability, current-target-gap. Every question links a
+     resolving root-body anchor and keeps current state/evidence or a reasoned
+     not_applicable explanation. Preserve owner invalidation/retirement here.
+     No views/ or numbered domain directories are needed; the full architecture
+     cold-reader review still covers the root owner and all seven question routes.
+     Remove this authoring note before covered. -->
+
 ## Architecture trunk coverage
 
 | Required architecture question | Unique narrative owner | Coverage | Evidence | Closure action |
