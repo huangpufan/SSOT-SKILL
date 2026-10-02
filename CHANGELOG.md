@@ -85,6 +85,7 @@ versions. This file only restates headline changes.
   runtime is worse than an honest gap.
 
 ### Fixed
+- v2.71: Replace arbitrary entrypoint word/table limits with task-complete skill guidance and preserve necessary procedures, knowledge, and recovery routes.
 - v2.70: Use the canonical Pending Captures schema and lifecycle everywhere while preserving frozen historical capture records.
 - v2.69: Bind audit baselines to fixed, fully reviewed ranges; preserve unread sessions, resumed content, merged history, and reverted events.
 - v2.68: Allow scoped Doctor diagnostics despite unrelated structural debt while preserving every relevant pass and coverage gate.

@@ -52,21 +52,15 @@ for skill in "${SKILLS[@]}"; do
   fi
 done
 
-# 3b. Non-router SKILL bodies stay as activation prompts. Detailed manuals
-# belong in references; ssot-preflight alone owns the bundle routing exception.
+# 3b. Every entrypoint needs a body. Word counts and table sizes do not prove
+# that a skill preserves its required branches; review those semantically.
 for skill in ssot-bootstrap ssot-closeout ssot-audit ssot-doctor ssot-skill; do
   SKILL_MD="$PROJECT_ROOT/skills/$skill/SKILL.md"
   BODY="$(awk 'BEGIN{fences=0} /^---[[:space:]]*$/{fences++;next} fences>=2{print}' "$SKILL_MD")"
-  BODY_WORDS="$(printf '%s\n' "$BODY" | wc -w | tr -d '[:space:]')"
-  if [[ "$BODY_WORDS" -le 60 ]]; then
-    pass "$skill: SKILL.md body stays within the 60-word activation budget ($BODY_WORDS)"
+  if [[ -n "$(printf '%s\n' "$BODY" | tr -d '[:space:]')" ]]; then
+    pass "$skill: SKILL.md body is present"
   else
-    fail "$skill: SKILL.md body exceeds the 60-word activation budget ($BODY_WORDS)"
-  fi
-  if printf '%s\n' "$BODY" | grep -qE '^\|'; then
-    fail "$skill: SKILL.md body contains a routing/manual table"
-  else
-    pass "$skill: SKILL.md body delegates detailed routing to references"
+    fail "$skill: SKILL.md body is empty"
   fi
 done
 

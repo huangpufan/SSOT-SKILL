@@ -1,139 +1,57 @@
 <!-- SSOT-SKILL bundle companion; owned by install.sh -->
 
-# SKILL.md Style — the grill-me distillation
+# SKILL.md Style — task-complete entrypoints
 
-This file is the acceptance standard for the *prose body* of every `SKILL.md`
-in this bundle. It does **not** govern frontmatter (`name`, `description`,
-`metadata.protocol_version`), `references/*.md`, `assets/`, or installer
-behaviour — those are mechanical contracts owned elsewhere.
+This file governs the prose body of this bundle's `SKILL.md` files.
+Frontmatter, references, templates, scripts, and installer contracts retain
+their own owners. The goal is the shortest reliable path through the task,
+not a fixed word count or a single prompting style.
 
-The standard is reverse-engineered from Anthropic's `grill-me` skill, whose
-body is ~60 words and outperforms multi-page playbooks. Read it first:
+## Keep the decisions the skill must make
 
-```
-Interview me relentlessly about every aspect of this plan until we reach
-a shared understanding. Walk down each branch of the design tree,
-resolving dependencies between decisions one-by-one. For each question,
-provide your recommended answer.
+A useful entrypoint lets an agent select the applicable branch, find its
+instructions, respect its boundaries, and recognise when the work is done.
+Evaluate each sentence against these five purposes:
 
-Ask the questions one at a time.
+1. **Purpose and outcome.** State the useful result and its completion
+   condition. A posture such as "reconcile the whole batch" can help, but
+   cannot replace the evidence needed to decide that reconciliation holds.
+2. **Routing.** Keep the branch choice and a resolving reference with a clear
+   loading condition. A skill may be invoked directly without a prior
+   preflight; do not assume another skill's contents are already in context.
+3. **Essential procedure.** Keep an ordered step where order affects safety
+   or correctness, or where the operation is specific to this protocol.
+   Generic file-reading instructions can go; a required baseline check or
+   write-before-advance dependency cannot disappear merely because it is a
+   checklist.
+4. **Boundaries and recovery.** Preserve non-obvious permission, ownership,
+   evidence, and failure rules. Explain the allowed next action when a gate
+   cannot clear. Route shared detail to its unique owner without hiding a
+   boundary that the agent needs before selecting the route.
+5. **Useful knowledge.** Preserve distinctions, examples, and caveats that
+   change decisions. Move branch-specific detail to references when doing so
+   reduces unrelated reading; keep the reference reachable at its use site.
 
-If a question can be answered by exploring the codebase, explore the
-codebase instead.
-```
+Use direct instructions where action is needed and explanatory prose where
+it makes a distinction understandable. Structural metaphors, tables, and
+numbered steps are tools, not mandatory or forbidden forms. A small routing
+table can be clearer than a compressed metaphor even when it has more than
+three rows.
 
-That body works for five reasons. They are the five criteria below.
+## Compression without loss
 
----
+Remove duplicate authority, generic advice, and material unrelated to the
+skill's task. Before cutting a rule or reference, inspect its callers and
+identify where its useful meaning will remain. Do not assume protocol
+knowledge is present in model training or that a short unrelated skill's
+length proves the right budget for this workflow.
 
-## The five criteria
-
-A SKILL.md body passes review only if every retained sentence answers
-**yes** to at least one of these — and every cut sentence answered **no**
-to all of them.
-
-### 1. Mode-switch, not manual
-
-Does this sentence put the model into a posture it isn't in by default?
-
-- **Keep**: "Treat any substantive edit as blocked until you've reconciled
-  with STATUS.md."
-- **Cut**: "1. Read SSOT/STATUS.md. 2. Check open adjudications. 3. Check
-  documentation_language…" — the model already knows how to read files in
-  order. The numbered list teaches nothing it doesn't already do; it just
-  drowns the posture sentence.
-
-The model has skills in its weights. SKILL.md activates one, it does not
-re-teach it.
-
-### 2. Outcome condition, not step count
-
-Does this sentence give the model a state it can self-evaluate against?
-
-- **Keep**: "until we reach a shared understanding", "until the routed
-  reads cover this task's evidence needs"
-- **Cut**: "Run steps 1–8 of the preflight checklist" — checklists are
-  mechanical, the model stops when the list ends regardless of whether
-  the actual goal was met.
-
-When the model knows *what done looks like*, it self-corrects. When it
-only knows *what to do next*, it walks off the end.
-
-### 3. Structural metaphor over enumerated rules
-
-Is there a single phrase that imports a whole semantic structure?
-
-- **Keep**: "Walk down each branch of the design tree, resolving
-  dependencies between decisions one-by-one." — one sentence loads tree
-  traversal, dependency ordering, and exhaustiveness.
-- **Cut**: A 14-row table that spells out which task signals map to which
-  files, when the routing is just "use the project's task-entry map and
-  fall back to the nearest topical area."
-
-Use the structure-loading phrase. Move the enumeration to `references/`
-for the cases that genuinely need it.
-
-### 4. One anti-pattern guardrail per high-frequency failure
-
-Does this rule prevent a failure mode the model actually has?
-
-- **Keep** (grill-me): "Ask the questions one at a time." — prevents the
-  model's strong default to dump a 15-question batch.
-- **Keep** (grill-me): "If a question can be answered by exploring the
-  codebase, explore the codebase instead." — counter-corrects the
-  *interview* posture itself, which would otherwise bias toward asking
-  over investigating.
-- **Cut**: "Be thorough", "summarise findings", "use markdown" — the
-  model defaults are already good enough; these dilute the rules that
-  matter.
-
-Every rule has activation cost and dilutes its neighbours. Spend rule
-budget only where the model's default behaviour fails.
-
-### 5. Second-person imperative, not third-person documentation
-
-Is the body written as the prompt the user would have typed, or as a
-spec describing what the skill does?
-
-- **Keep**: "You are on preflight. Decide what to read, what to defer,
-  and what durable facts to capture."
-- **Cut**: "This skill is the mandatory entry point for the bundle. It
-  decides whether work may proceed…" — that's documentation about the
-  skill. The model reads it as *understanding a spec*, not as *acting on
-  an instruction right now*.
-
-If you can paste the body into a chat and it reads as a sensible
-prompt, it's a SKILL.md body. If it only reads sensibly as README prose
-about the skill, it's the wrong register.
-
----
-
-## Anti-patterns specific to this bundle
-
-These have shown up in our own SKILL.md files and are the first things
-to cut on the next pass:
-
-- **Re-declaring what `description:` already says.** The frontmatter
-  description is loaded into the routing context. Repeating "Use this
-  skill for X. Do not use for Y." in the body wastes the body's budget.
-- **Inlining what `references/*.md` already expands.** If the detail is
-  in a reference file, the body should name *when to load* the
-  reference, not what it contains.
-- **Step-by-step workflows that re-derive the bundle's lifecycle.** The
-  bundle order (preflight → work → closeout, with bootstrap/audit/doctor
-  branches) is fixed and already known after the first preflight. Each
-  skill body should assume the lifecycle, not re-explain it.
-- **Cross-skill routing tables longer than three rows.** Three rows is
-  the threshold above which a metaphor or a single "route to the
-  matching lifecycle skill" sentence beats the table.
-- **Defensive prose ("Do not advance tracking baselines without review", "Do not
-  copy source documents") repeated in every skill.** Hoist these
-  invariants to a single place (`references/` or a shared invariants
-  file) and let each skill link, not restate.
-
-**Exception**: `ssot-preflight` plays a gate-and-router role for the whole
-bundle, so its body legitimately keeps the routing table and a short routing
-defense; other skills still target the ≤60-word ceiling.
+There is no 60-word ceiling. Keep every entrypoint as short as its actual
+branches permit; longer text must earn its place through a decision, useful
+context, or necessary recovery path. `ssot-preflight` carries the shared gate
+and router; other skills still need enough context to work when selected
+independently. Detailed manuals belong in references with explicit read
+conditions, not behind vague instructions to "follow the protocol".
 
 ## KISS bridge for references and templates
 
@@ -234,19 +152,21 @@ the bare term plus optional link.
 
 ## Review procedure
 
-When opening a PR that rewrites a `SKILL.md` body:
+When changing a `SKILL.md` body:
 
-1. Paste the **before** body and **after** body side by side in the PR
-   description.
-2. For every sentence in **after**, annotate which of criteria 1–5 it
-   passes.
-3. For every sentence cut from **before**, annotate which criterion it
-   failed (or which `references/*.md` now owns the detail).
-4. Reviewer rejects any retained sentence that fails all five criteria,
-   and any cut sentence whose detail was lost rather than relocated.
+1. Identify the requests and failure paths affected by the change.
+2. Compare before and after: every required branch, boundary, and useful
+   distinction must remain inline or have a resolving, timely read route.
+3. Check an applicable scenario and a nearby non-applicable scenario. For
+   changes that broadly alter decisions, use independent baseline/candidate
+   trials and preserve misses, false triggers, and execution cost.
+4. Run structural checks for bodies, metadata, references, and packaging.
+   These checks do not establish decision quality. Report what was actually
+   exercised and any untested behavior.
 
-The goal is not minimum word count. The goal is that every retained
-sentence earns its activation cost.
+Scale this review to semantic impact. An editorial correction does not need
+sentence-by-sentence annotations or a full behavioral trial. A shorter body
+that loses necessary knowledge does not pass.
 
 ---
 

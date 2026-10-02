@@ -10,6 +10,25 @@ files.
 
 ## Version Ledger
 
+### v2.71
+
+**Upgrade goal**: a short skill must still expose its essential decisions.
+`SKILL_STYLE.md` now evaluates purpose, routing, procedure, boundaries, and
+useful knowledge. It removes the unsupported universal 60-word ceiling and
+routing-table ban, and no longer assumes direct invocation has prior preflight
+context. Shared reader-writing standards remain unchanged.
+
+**Impact**: `semantic_impact=medium`; changes bundle-authoring guidance and
+its structural check, not consumer coverage schemas or install ownership.
+
+**Impact checklist**:
+
+| Check | Audit action | Done criterion |
+|---|---|---|
+| Local skill entrypoints | Preserve essential branches and timely resolving references while pruning duplication. | Useful details are not deleted merely to meet a word count. |
+| Local style checks | Replace size/table failure with actual body and reference validation. | A complete longer entrypoint can pass; an empty body cannot. |
+| Existing consumers | Check whether local author guidance copied the old ceiling. | Update that guidance if present; no mechanical SSOT rewrite is needed. |
+
 ### v2.70
 
 **Upgrade goal**: stop entrypoints from generating retired capture fields or

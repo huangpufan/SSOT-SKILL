@@ -123,6 +123,17 @@ fi
 assert_grep "scenario5b: foreign companion preserved" "$SCENARIO5B/.claude/skills/SKILL_STYLE.md" "FOREIGN COMPANION"
 assert_no_dir "scenario5b: blocked install writes no skill" "$SCENARIO5B/.claude/skills/ssot-preflight"
 
+# Keep the historical ownership signature independent of today's companion
+# wording; deriving this fixture from the candidate tests the wrong version.
+write_legacy_companion() {
+  cat <<'LEGACY_COMPANION'
+# SKILL.md Style — the grill-me distillation
+
+This file is the acceptance standard for the *prose body* of every `SKILL.md`
+in this bundle.
+LEGACY_COMPANION
+}
+
 # Scenario 5bb: a pre-marker bundle companion is safely adopted during upgrade
 SCENARIO5BB="$WORK_ROOT/scenario5bb"
 mkdir -p "$SCENARIO5BB/.claude/skills"
@@ -130,7 +141,7 @@ for skill in ssot-preflight ssot-bootstrap ssot-closeout ssot-audit ssot-doctor 
   mkdir -p "$SCENARIO5BB/.claude/skills/$skill"
   printf '%s\n' "# legacy $skill" > "$SCENARIO5BB/.claude/skills/$skill/SKILL.md"
 done
-tail -n +3 "$PROJECT_ROOT/skills/SKILL_STYLE.md" > "$SCENARIO5BB/.claude/skills/SKILL_STYLE.md"
+write_legacy_companion > "$SCENARIO5BB/.claude/skills/SKILL_STYLE.md"
 HOME="$SCENARIO5BB" SOURCE_DIR="$PROJECT_ROOT" \
   bash "$INSTALLER" --non-interactive --agent claude --scope global --lang en --yes \
   >/dev/null 2>&1 || fail "scenario5bb legacy companion migration exit code"
@@ -143,7 +154,7 @@ assert_grep "scenario5bb: legacy skill bundle is upgraded" \
 # Scenario 5bc: the legacy title alone never authorizes takeover
 SCENARIO5BC="$WORK_ROOT/scenario5bc"
 mkdir -p "$SCENARIO5BC/.claude/skills"
-tail -n +3 "$PROJECT_ROOT/skills/SKILL_STYLE.md" > "$SCENARIO5BC/.claude/skills/SKILL_STYLE.md"
+write_legacy_companion > "$SCENARIO5BC/.claude/skills/SKILL_STYLE.md"
 HOME="$SCENARIO5BC" SOURCE_DIR="$PROJECT_ROOT" \
   bash "$INSTALLER" --non-interactive --agent claude --scope global --lang en --yes \
   >/dev/null 2>&1
