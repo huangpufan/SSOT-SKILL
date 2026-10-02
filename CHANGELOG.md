@@ -85,6 +85,7 @@ versions. This file only restates headline changes.
   runtime is worse than an honest gap.
 
 ### Fixed
+- v2.65: Unify audit reviewer selection with the scoped review policy; ordinary catch-up no longer imposes a second independent-review requirement.
 - Consumer agent instructions now share one marked routing block between the
   installer and bilingual bootstrap templates. The entry distinguishes
   substantive work from trivial tasks, preserves conditional audit/Doctor

@@ -10,6 +10,25 @@ files.
 
 ## Version Ledger
 
+### v2.65
+
+**Upgrade goal**: remove contradictory reviewer requirements from commit and
+session catch-up. Reviewer choice has one owner, `status-protocol.md §6`:
+scoped self-review is the default; its four independent-review exceptions
+remain binding. Segmenting an audit and a session self-check do not bypass
+those exceptions or a `needs-fix` result.
+
+**Impact**: `semantic_impact=medium`; clarifies existing review routing. No
+new field, area, or stop-review trigger.
+
+**Impact checklist**:
+
+| Check | Audit action | Done criterion |
+|---|---|---|
+| Audit-local reviewer rules | Replace unconditional independent-review wording with the §6 route in any local copies. | Ordinary segments/no-op use scoped review; the four exceptions still require independence. |
+| Convergence definition | Interpret repeated convergence through §6; first convergence retains independent review. | No secondary definition demands independence for every later convergence. |
+| Existing review records | Keep actual reviewer identities and outcomes. | No historical review is rewritten or retroactively inferred. |
+
 ### v2.64
 
 **Upgrade goal**: give the project's rules a human adjudication boundary.

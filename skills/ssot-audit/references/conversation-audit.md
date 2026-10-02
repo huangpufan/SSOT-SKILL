@@ -32,6 +32,12 @@ Conversation audit and commit audit (`references/commit-audit.md`) are parallel 
 
 ## Full execution flow (used in proactive catch-up)
 
+Reviewer choice follows [`status-protocol.md §6`](../../ssot-preflight/references/status-protocol.md#6-stop-review-gate):
+use a scoped self-review by default, including a session self-check or `no-op`
+conclusion. When a claim falls under one of that owner's four exceptions,
+obtain the required independent review before accepting it; a lightweight
+self-check cannot substitute for that review.
+
 ```text
 1. Locate the original transcript (see "Transcript location" below)
 2. Read tracked_session, documentation_language and documentation_language_evidence from STATUS.md
@@ -42,7 +48,7 @@ Conversation audit and commit audit (`references/commit-audit.md`) are parallel 
    -> Source tagged as conversation (with session id or timestamp)
    -> User-provided external material is classified per [`source-material.md`](../../ssot-preflight/references/source-material.md), the source pointer is retained, and the `STATUS.md` source-material absorption is synced
    -> Conclusions concerning code are cross-validated against code
-6. Request an independent reviewer to audit this transcript scope, the write results and any `no-op` / "no update needed" conclusion
+6. Run the applicable scoped stop review for this transcript scope, the write results and any `no-op` / "no update needed" conclusion
    -> `no-more-required-changes`: continue
    -> `needs-fix`: apply remaining changes, then re-review
 7. Update STATUS.md:
@@ -51,7 +57,7 @@ Conversation audit and commit audit (`references/commit-audit.md`) are parallel 
    - Record stop-review gate evidence
 ```
 
-> **Session self-check does not follow this flow** -- session self-check audits the current conversation directly, without locating transcript files or advancing tracked_session. But when the self-check concludes `no-op` / "no update needed", an independent reviewer must still check the current session scope.
+> **Session self-check does not follow this flow** -- session self-check audits the current conversation directly, without locating transcript files or advancing tracked_session. Its `no-op` / "no update needed" conclusion still needs the applicable scoped stop review above.
 
 ---
 
@@ -165,7 +171,7 @@ Before writing, obey the documentation language lock: if `STATUS.md` lacks `docu
 
 In proactive catch-up, conversation audit and commit audit can run independently or together:
 
-- **Independent execution**: each advances its own tracking baseline (`tracked_commit` / `tracked_session`) through its own independent stop review
+- **Independent execution**: each advances its own tracking baseline (`tracked_commit` / `tracked_session`) through its own scoped stop review, with reviewer choice governed by `status-protocol.md §6`
 - **Joint execution**: during a full audit, catch up the backlog of both event sources simultaneously
 - **Cross-validation**: changes discussed in conversation are usually landed via commit -- the two event sources can corroborate each other
 - **Batch history**: session-audit writes close through the same `SSOT/HISTORY.md` row as the covering batch — one row per batch per `update-routing.md §1.6`, Actor `audit`, Note carrying the covered transcript range when useful
@@ -178,7 +184,7 @@ Typical division of labor: decision records in `decisions/` are better extracted
 
 Session self-check is a lightweight application of this file's mapping table -- only the current session, only checking for omissions, no tracked_session advance. Proactive catch-up uses the full flow.
 
-If the agent already wrote all long-lived SSOT knowledge produced by the current conversation in inline updates, session self-check may propose `no-op`, but this stop conclusion holds only after an independent reviewer returns `no-more-required-changes`. When the reviewer finds an omission they return `needs-fix`, the agent fills in and re-reviews.
+If the agent already wrote all long-lived SSOT knowledge produced by the current conversation in inline updates, session self-check may propose `no-op`, but this stop conclusion holds only after the applicable scoped stop review returns `no-more-required-changes`. If the review finds an omission, record `needs-fix`, fill it in, and re-review.
 
 ### Confidence scan
 

@@ -69,7 +69,7 @@ Follow this path before writing STATUS:
 
 | State | Meaning |
 |---|---|
-| `converged` | Current SSOT matches the reviewed commit, session, protocol, and language lock, and an independent reviewer returned `no-more-required-changes` for overall convergence. |
+| `converged` | Current SSOT matches the reviewed commit, session, protocol, and language lock, and the applicable scoped stop review under §6 returned `no-more-required-changes` for overall convergence (independent review for the first declaration). |
 | `in_progress` | Daily maintenance; some areas may still have gaps or stale content. |
 | `catching_up` | A large backlog is being reviewed in segments. |
 | `bootstrap` | First-time SSOT establishment is incomplete. |

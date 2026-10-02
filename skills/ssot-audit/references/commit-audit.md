@@ -16,6 +16,12 @@ This file is the detailed execution reference for the Commit audit part of proac
 
 Independent of task execution, run a full scan over the `tracked_commit..HEAD` diff:
 
+Reviewer choice follows [`status-protocol.md §6`](../../ssot-preflight/references/status-protocol.md#6-stop-review-gate):
+use a scoped self-review by default, including each segment and any `no-op`
+conclusion. When a claim falls under one of that owner's four exceptions,
+obtain the required independent review before accepting it; splitting the
+audit into segments does not waive that requirement.
+
 ```text
 1. Read tracked_commit, tracked_skill_version, documentation_language and documentation_language_evidence from STATUS.md; then read `SSOT/HISTORY.md` rows whose Commit falls inside the `tracked_commit..HEAD` range — each row marks a batch a writing skill already reconciled (`no-op` = closeout ran and found nothing durable; a range with no rows = no closeout ever ran). Rows weight where audit attention goes; they do not skip the diff review
 2. Assess change size (see "Size-adaptive strategy" below)
@@ -29,9 +35,9 @@ Independent of task execution, run a full scan over the `tracked_commit..HEAD` d
    - Treat benchmark run output, profiler dumps, CI performance summaries, and dated score tables as evidence. Do not write chronological measurement history into `benchmark/` unless it changes a stable benchmark fact: suite, workload, metric, environment, runner command, floor, comparison rule, trend interpretation, known gap, or consuming owner link.
 5. Check area by area: is the current documentation still accurate?
 6. Update content in all affected areas; new/modified SSOT body, headings and table labels must use `documentation_language`
-7. Request an independent reviewer to audit this commit-audit scope, affected-area updates and any `no-op` / "no update needed" conclusions
-   - Reviewer returns `no-more-required-changes` -> continue
-   - Reviewer returns `needs-fix` -> apply remaining changes and return to step 7
+7. Run the applicable scoped stop review for this commit-audit scope, affected-area updates and any `no-op` / "no update needed" conclusions
+   - Review returns `no-more-required-changes` -> continue
+   - Review returns `needs-fix` -> apply remaining changes and return to step 7
 8. Update STATUS.md:
    - Advance tracked_commit to the current HEAD (or end-of-segment commit)
    - Update area states
@@ -62,7 +68,7 @@ When size >= L:
 
 1. Identify natural boundaries: release tag > merge commit > time window (per week)
 2. Use `git diff --stat` to verify each segment's line count is below M; if still too large, further subdivide
-3. Process segment by segment; after each segment completes and passes independent stop review, advance `tracked_commit` to the segment end commit
+3. Process segment by segment; after each segment completes and passes the applicable scoped stop review, advance `tracked_commit` to the segment end commit
 4. If a segment's diff is still too large and cannot be split by time boundary, batch by file type (configs/interfaces first, then implementation)
 
 ### Intermediate checkpoints
@@ -70,7 +76,7 @@ When size >= L:
 The agent may advance `tracked_commit` to a segment's end commit after that segment completes:
 
 - Before advancing, confirm areas affected by that segment have been updated
-- Before advancing, an independent reviewer must return `no-more-required-changes` for that segment
+- Before advancing, the applicable scoped stop review must return `no-more-required-changes` for that segment
 - Set `coverage_result` to `catching_up` (catching up, not yet at HEAD)
 - After reaching HEAD, `coverage_result` may return to `converged` only after the final-scope stop review passes; otherwise it stays `in_progress`
 

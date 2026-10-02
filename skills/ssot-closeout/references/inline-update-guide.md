@@ -124,9 +124,9 @@ Before updating any SSOT file, read its current content first to ensure:
 
 After updating area content, sync STATUS.md:
 
-- Before advancing `tracked_commit` to the current HEAD (if this change is committed), the updater may self-review per the default self-review rule in status-protocol.md §7. Exceptions that require an independent reviewer: (1) bootstrap overall `passed`, (2) `documentation_language` change, (3) protocol upgrade `semantic_impact=high`, (4) first declaration of `coverage_result=converged`.
+- Before advancing `tracked_commit` to the current HEAD (if this change is committed), use the reviewer policy in [`status-protocol.md §6`](../../ssot-preflight/references/status-protocol.md#6-stop-review-gate): scoped self-review by default, with independent review required for its four exceptions.
 - Before advancing `tracked_skill_version` to the current `ssot-preflight` `metadata.protocol_version`, complete the protocol-upgrade review first. Start at the audit router `protocol-upgrades.md`; it points to `current-upgrade.md` or the archive range needed for the project tracking baseline. Upgrades with `semantic_impact=none`, `low`, or `medium` may self-review; `medium` still needs a standalone checklist in the current/archive ledger; `high` requires an independent reviewer returning `no-more-required-changes`.
-- Update affected area state (e.g. `gap` -> `covered`, `covered` -> `stale`); `covered` is a stop conclusion but area-level `covered` defaults to self-review per §7, `coverage_result=converged` is one of the 4 exceptions.
+- Update affected area state (e.g. `gap` -> `covered`, `covered` -> `stale`); reviewer choice for these stop conclusions follows `status-protocol.md §6`.
 - Update the source-material absorption matrix: source material read or changed in this run must record classification, authoritative location, absorption state, conflict/adjudication and last check
 - Update the open-gaps list
 - Add or update adjudications discovered mid-run; remind the user once but do not block the current task by default
@@ -146,7 +146,7 @@ authoritative owner and leave STATUS as a pointer.
 
 Re-read the latest version of STATUS.md before updating. If this run fills in or changes `documentation_language`, sync `documentation_language_evidence`; language changes must have adjudication / review evidence.
 
-If the inline-check conclusion is `no-op` / "no update needed", record the no-op basis; if the scope falls under one of the 4 exceptions, proceed with independent review per status-protocol.md §7.
+If the inline-check conclusion is `no-op` / "no update needed", record the no-op basis and apply the reviewer policy in `status-protocol.md §6`.
 
 ### 2.6 Adjudication registration
 
