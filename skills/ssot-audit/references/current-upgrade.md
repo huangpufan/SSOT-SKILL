@@ -10,6 +10,23 @@ files.
 
 ## Version Ledger
 
+### v2.74
+
+**Upgrade goal**: generated data should already match its owning schema.
+Chinese architecture state hints retain canonical tokens with explanations,
+fixed surface-kind cells contain only their keys, and both research templates
+use the knowledge confidence state machine rather than high/medium/low.
+
+**Impact**: `semantic_impact=low`; template corrections to existing contracts,
+with no new enum, field, or review trigger.
+
+**Consumer action**: when touching an instantiated affected table, distinguish
+its intended meaning and convert invalid machine values to the canonical token.
+Preserve the natural-language explanation outside fixed key cells. Research
+measurement uncertainty remains useful in method/evidence/limits; it is not a
+substitute for the knowledge state. Do not infer source-backed status from an
+old high-confidence label without examining the evidence.
+
 ### v2.73
 
 **Upgrade goal**: route research at claim granularity. A single experiment can

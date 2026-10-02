@@ -43,7 +43,7 @@ do_not_use_for: <current-production-authority-or-broader-claim>
 
 ## 结论
 
-证据说明了什么？先写当前答案，再写置信程度和最重要的边界。
+证据说明了什么？先写当前答案，再写置信状态和最重要的边界。
 
 ## 适用性与边界
 
@@ -96,9 +96,14 @@ do_not_use_for: <current-production-authority-or-broader-claim>
 每一行都是可提升到长期 SSOT 所有者的候选结论。结论要足够窄，未来代理才能
 明确选择提升、拒绝或重新检查。
 
-| 结论 | 证据 | 置信程度 | 候选所有者 | 提升状态 |
+<!-- 使用 knowledge-integrity.md §1 与 §3 拥有的置信状态。每条尚未验证的
+     结论只填写一个显式状态 token。通过规定审查后，verified 是隐式状态：去掉
+     置信标记，保留结论、审查证据、范围与限制。适用的量化不确定性应与测量方法
+     和限制一起写入证据。 -->
+
+| 结论 | 证据 | 置信状态 | 候选所有者 | 提升状态 |
 |-------|----------|------------|-----------------|------------------|
-| | | `high`（高）/ `medium`（中）/ `low`（低） | `SSOT/...` | `pending`（待处理）/ `promoted`（已提升）/ `rejected`（已拒绝） |
+| | | `hypothesis`（假说）/ `candidate`（候选）/ `source-backed`（证据支持） | `SSOT/...` | `pending`（待处理）/ `promoted`（已提升）/ `rejected`（已拒绝） |
 
 ## 已提升到的 SSOT 所有者
 

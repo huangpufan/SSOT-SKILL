@@ -582,6 +582,61 @@ for lang in en zh; do
   fi
 done
 
+# Templates are generation inputs: each suggested machine value must be a
+# canonical token. Localized explanations may describe a choice, but fixed
+# registry keys must already be ready to copy as data.
+template_enum_choices() { # stdin=one slash-separated choice cell
+  awk '
+    {
+      n=split($0, choices, "/")
+      for (i=1; i<=n; i++) {
+        value=choices[i]; gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
+        if (match(value, /`[a-z][a-z-]*`/)) value=substr(value, RSTART+1, RLENGTH-2)
+        printf "%s%s", (i==1 ? "" : "|"), value
+      }
+      print ""
+    }
+  '
+}
+enum_set() { tr '|' '\n' | LC_ALL=C sort | paste -sd '|' -; }
+architecture_states=$(grep -oE 'contract\|design\|poc\|debt\|mixed' "$PROJECT_ROOT/skills/ssot-preflight/references/reader-quality.md" | head -1)
+confidence_states=$(sed -nE 's/^confidence:[[:space:]]*//p' "$PROJECT_ROOT/skills/ssot-preflight/references/knowledge-integrity.md" | head -1 | tr -d '[:space:]')
+for lang in en zh; do
+  architecture_manifest="$TEMPLATE_ROOT/$lang/architecture-root-manifest.md"
+  for row_kind in owner tech; do
+    choices=$(awk -F'|' -v row_kind="$row_kind" '$2 ~ (row_kind ":<slug>") {print $5; exit}' "$architecture_manifest" | template_enum_choices)
+    if [[ -n "$architecture_states" && "$(printf '%s\n' "$choices" | enum_set)" == "$(printf '%s\n' "$architecture_states" | enum_set)" ]]; then
+      pass "$lang architecture $row_kind state choices generate canonical machine values"
+    else
+      fail "$lang architecture $row_kind state choices generate canonical machine values ($choices)"
+    fi
+  done
+  kind_keys=$(awk -F'|' '
+    /^\|/ && ($0 ~ /Surface kind.*Disposition/ || $0 ~ /表面类型.*处置/) {active=1; next}
+    active && /^\|/ {
+      key=$2; gsub(/^[[:space:]`]+|[[:space:]`]+$/, "", key)
+      if (key ~ /^[-:]+$/) next
+      printf "%s%s", (count++ ? "|" : ""), key; next
+    }
+    active {exit}
+    END {print ""}
+  ' "$architecture_manifest")
+  if [[ "$(printf '%s\n' "$kind_keys" | enum_set)" == 'contract|entry|external-integration|operator-surface|write-store' ]]; then
+    pass "$lang architecture fixed surface-kind cells copy as canonical registry keys"
+  else
+    fail "$lang architecture fixed surface-kind cells copy as canonical registry keys ($kind_keys)"
+  fi
+  choices=$(awk -F'|' '
+    /^\|/ && ($0 ~ /Confidence/ || $0 ~ /置信程度|置信状态/) {active=1; next}
+    active && /^\|/ {if ($0 ~ /^\|[-|[:space:]:]+$/) next; print $4; exit}
+  ' "$TEMPLATE_ROOT/$lang/research-entry.md" | template_enum_choices)
+  if [[ -n "$confidence_states" && "$(printf '%s\n' "$choices" | enum_set)" == "$(printf '%s\n' "$confidence_states" | enum_set)" ]]; then
+    pass "$lang research confidence choices follow the explicit knowledge state machine"
+  else
+    fail "$lang research confidence choices follow the explicit knowledge state machine ($choices)"
+  fi
+done
+
 legacy_manifest_branch=$(awk '
   /For `2\.45 <= tracked_skill_version < 2\.48`/ { inside=1 }
   inside { print }

@@ -2,9 +2,9 @@
 name: ssot-preflight
 description: Repository SSOT preflight before substantive code, config, docs, review, debugging, refactoring, or planning work. Use to check SSOT/STATUS.md, open adjudications, documentation language, protocol version, minimal SSOT read routing, and in-task SSOT write triggers. Do not use for pure operations, trivial format-only edits, or non-repository chat.
 metadata:
-  protocol_version: "2.73"
+  protocol_version: "2.74"
   bundle: "SSOT Skill"
-  semantic_impact: medium
+  semantic_impact: low
 ---
 
 # SSOT Preflight

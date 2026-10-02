@@ -33,7 +33,7 @@ intent_recovery: gap
 
 | 所有者 ID | 所有者类别 | 叙事所有者 | 当前状态 | 证据或闭合 |
 |---|---|---|---|---|
-| `owner:<slug>` | `runtime`（当前运行时）/ `support`（支撑）/ `target`（目标） | [所有者](./NN-<domain>/README.md) | 契约 / 设计 / POC / 债务 / 混合 | `闭合: <可证伪边界或证据条件>` |
+| `owner:<slug>` | `runtime`（当前运行时）/ `support`（支撑）/ `target`（目标） | [所有者](./NN-<domain>/README.md) | `contract`（契约）/ `design`（设计）/ `poc`（概念验证）/ `debt`（债务）/ `mixed`（混合） | `闭合: <可证伪边界或证据条件>` |
 
 ## 产品到运行时桥接
 
@@ -64,13 +64,17 @@ intent_recovery: gap
 <!-- 以下五类各保留一行。applicable 至少列一个同类已登记 tech ID；
      not_applicable 写具体原因且不能有该类登记行，不能为了填表伪造表面。 -->
 
+类型键保留原样：`entry` 是入口，`write-store` 是写入存储，`contract` 是契约，
+`operator-surface` 是操作者表面，`external-integration` 是外部集成。中文解释
+不写入下面的固定类型键单元格；处置选项也只填写选中的协议值。
+
 | 表面类型 | 处置 | 已登记表面 | 处置原因 |
 |---|---|---|---|
-| `entry`（入口） | applicable / not_applicable | `tech:<slug>` / none | |
-| `write-store`（写入存储） | applicable / not_applicable | `tech:<slug>` / none | |
-| `contract`（契约） | applicable / not_applicable | `tech:<slug>` / none | |
-| `operator-surface`（操作者表面） | applicable / not_applicable | `tech:<slug>` / none | |
-| `external-integration`（外部集成） | applicable / not_applicable | `tech:<slug>` / none | |
+| `entry` | applicable / not_applicable | `tech:<slug>` / none | |
+| `write-store` | applicable / not_applicable | `tech:<slug>` / none | |
+| `contract` | applicable / not_applicable | `tech:<slug>` / none | |
+| `operator-surface` | applicable / not_applicable | `tech:<slug>` / none | |
+| `external-integration` | applicable / not_applicable | `tech:<slug>` / none | |
 
 ## 当前、目标与缺口覆盖
 

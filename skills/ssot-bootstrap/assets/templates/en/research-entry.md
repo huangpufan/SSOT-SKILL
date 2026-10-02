@@ -43,7 +43,7 @@ What question was this research trying to answer? State the decision pressure or
 
 ## Conclusion
 
-What did the evidence show? Start with the current answer, then name the confidence level and the most important boundary.
+What did the evidence show? Start with the current answer, then name the confidence state and the most important boundary.
 
 ## Applicability and Boundaries
 
@@ -95,9 +95,15 @@ Record paths, options, or hypotheses that did not hold. These findings are usefu
 
 Each row is a candidate for promotion into a durable SSOT owner. Keep the claim narrow enough that a future agent can either promote, reject, or recheck it.
 
+<!-- Use the confidence states owned by knowledge-integrity.md §1 and §3.
+     Select one explicit state token per unverified claim. After qualifying
+     review, verified is implicit: remove the confidence marker while retaining
+     the claim, review evidence, scope, and limits. Measured uncertainty, when
+     relevant, belongs with its method and limits in the evidence. -->
+
 | Claim | Evidence | Confidence | Candidate owner | Promotion status |
 |-------|----------|------------|-----------------|------------------|
-| | | high / medium / low | `SSOT/...` | pending / promoted / rejected |
+| | | hypothesis / candidate / source-backed | `SSOT/...` | pending / promoted / rejected |
 
 ## Promoted SSOT Owners
 
