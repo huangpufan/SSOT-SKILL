@@ -10,6 +10,25 @@ files.
 
 ## Version Ledger
 
+### v2.68
+
+**Upgrade goal**: separate diagnostic progress from a successful stop claim.
+Run L1 first, classify findings against the requested scope and its shared
+dependencies, then continue interpretable L2 checks. Damaged prerequisites,
+relevant failures, strict warnings, and unavailable checks still constrain the
+claims they affect. A scoped diagnosis never proves whole-repository coverage.
+
+**Impact**: `semantic_impact=medium`; changes diagnostic routing without adding
+or relaxing a coverage state or required review artifact.
+
+**Impact checklist**:
+
+| Check | Audit action | Done criterion |
+|---|---|---|
+| Focused Doctor invocation | Include dependent shared owners and classify full lint output. | Unrelated debt stays visible without blocking independent L2 diagnosis. |
+| Unavailable/damaged inputs | Mark dependent checks not assessed and name recovery. | Tool errors and missing prerequisites produce neither content pass nor invented failure. |
+| Stop claim | Recheck all requirements of the claimed scope. | No relevant FAIL, unassessed requirement, or unresolved required L2 change is hidden. |
+
 ### v2.67
 
 **Upgrade goal**: preserve rich evidence without confusing different claims.

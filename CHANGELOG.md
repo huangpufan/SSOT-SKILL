@@ -85,6 +85,7 @@ versions. This file only restates headline changes.
   runtime is worse than an honest gap.
 
 ### Fixed
+- v2.68: Allow scoped Doctor diagnostics despite unrelated structural debt while preserving every relevant pass and coverage gate.
 - v2.67: Match knowledge confidence to authorized intent, static structure, observed execution, and external contracts instead of a code-only evidence hierarchy.
 - v2.66: Scope adjudication blockers to decision-dependent actions, preserving independent work, existing human decisions, and confirmed constraints.
 - v2.65: Unify audit reviewer selection with the scoped review policy; ordinary catch-up no longer imposes a second independent-review requirement.

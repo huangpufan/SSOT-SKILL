@@ -46,26 +46,62 @@ the move.
    - coverage states
    - open adjudications / open gaps / stop-review gate
 
-2. Scan existing SSOT content per this file's checklist.
-   - Finish L1 deterministic checks first.
-   - Enter L2 semantic checks after L1 fully passes.
+2. Declare the review scope, dependent shared owners, and intended stop claim.
+   - Run L1 deterministic checks first and retain their output and exit status.
+   - Classify findings by their effect on that scope, as described below.
+   - Repair damaged inputs before dependent L2 checks; continue interpretable checks.
 
-3. Output the stale list and recommended fix actions.
+3. Report scoped findings, unassessed checks and their reasons, unrelated debt,
+   and recommended fix actions separately.
 
 4. The agent may fix directly, or report to the user for decision.
 
 5. If about to declare Doctor passed / no-op / "no update needed", record a scoped stop review; request an independent reviewer only when the claim hits one of the four status-protocol exceptions.
-   - no-more-required-changes: may record Doctor pass in the STATUS.md stop-review gate.
+   - no-more-required-changes: may record Doctor pass only for the verified scope in the STATUS.md stop-review gate.
    - needs-fix: apply remaining changes and re-run Doctor and the applicable stop review.
 ```
 
 In standalone scenarios Doctor runs only verification checks; it does not run commit/session audits. In proactive catch-up Doctor usually runs after commit/session audits to verify the trustworthiness of existing SSOT against current state.
 
+### Scope and diagnostic progress
+
+Set scope from the requested review and the claim it must support. Include
+shared registers, contracts, owners, and evidence on which that claim depends;
+a finding is not unrelated merely because its file is outside the named area.
+Keep the full lint result visible even when the semantic review is focused.
+
+Classify L1 results before deciding which L2 checks can run:
+
+- **Damaged prerequisite:** a malformed register, missing owner, or broken
+  evidence route makes a dependent check uninterpretable. Repair that input
+  before running the check; until then record the check as `not assessed`,
+  with the missing prerequisite. Other interpretable checks may continue.
+- **Relevant FAIL:** retain the required fix and block `passed`, `no-op`, or
+  coverage claims for the affected scope. A structural failure does not prevent
+  other useful semantic diagnosis of that scope.
+- **Unrelated debt:** report the finding with its affected scope and why it
+  does not affect this review. It does not block this scope's L2 checks or
+  justify silently expanding the task into a repository-wide repair.
+- **WARN or unavailable check:** confirm a warning's meaning and record its
+  disposition; a heuristic signal alone does not prove a semantic defect.
+  A tool error or unavailable input means the check was not assessed, not that
+  the content failed or passed. Resolve that evidence gap before a claim that
+  requires the check.
+
+Lint exit `1` reports warnings; exit `2` reports failures; exit `3` reports a
+script/invocation error. Under `--strict`, warnings are promoted to failures
+and retain that gate effect. Diagnostic progress never overrides the selected
+gate policy or a required reader-review check.
+
 ---
 
 ## 2. Checklist
 
-The checklist has two layers. L1 deterministic checks can be executed quickly by the agent (results are pass/fail). L2 semantic checks need agent judgement. Doctor executes L1 first, then enters L2 after L1 fully passes. Neither layer changes the reviewer policy: use a scoped self-review by default and independent review only for the four exceptions in `status-protocol.md` §6.
+The checklist has two layers. L1 checks report structural failures and
+heuristic warnings; L2 checks need agent judgement. Run L1 first, then select
+interpretable L2 checks using §1's scope and prerequisite rules. Neither layer
+changes the reviewer policy: use a scoped self-review by default and independent
+review only for the four exceptions in `status-protocol.md` §6.
 
 ### 2.1 L1 deterministic checks
 
@@ -529,6 +565,15 @@ Tag semantics:
 ## 5. Pass / No-op review
 
 If Doctor finds no issue, it still needs a scoped stop-review record before writing `passed` or `no-op`. The default is a scoped self-review recorded as `reviewer_role: scoped-self-review`. Use an independent reviewer only for bootstrap overall `passed`, a `documentation_language` change, a `semantic_impact=high` protocol upgrade, or the first declaration of `coverage_result=converged`.
+
+The proposed claim must have no relevant L1 failures, no required checks left
+unassessed, and no unresolved required L2 changes. Disposition relevant warnings
+under the selected lint mode and the claimed state's rules. A repository-wide
+Doctor pass requires repository-wide L1 cleanliness and the applicable L2
+review; a focused pass names its exact scope and leaves unrelated debt visible.
+A focused diagnostic result does not establish an area's `covered` state or
+overall `converged`: those claims still need their full protocol-defined scope,
+artifacts, and Stop Review Gate evidence.
 
 The reviewer should read:
 

@@ -5,10 +5,10 @@ description: Verify SSOT health, run deterministic lint checks, perform scoped s
 
 # SSOT Doctor
 
-Verify existing SSOT; do not author truth or catch up changes. Run bundled
-lint, then follow [`doctor.md`](references/doctor.md) and
+Verify existing SSOT; do not author truth or catch up changes. Declare scope
+and dependencies, run lint, then follow [`doctor.md`](references/doctor.md) and
 [`reader-quality.md`](../ssot-preflight/references/reader-quality.md).
-Structural success never substitutes for semantic review. Doctor stops on its
-own definition of done, not deferred elsewhere: L1 lint clean, L2 checks
-return `no-more-required-changes` or a `needs-fix` list, and claimed
-`covered`/`partial`/`converged` match Stop Review Gate rows.
+Continue interpretable semantic checks despite unrelated failures. Relevant L1
+failures block pass/coverage claims; damaged inputs block dependent checks.
+Stop with matching scoped L1/L2 evidence and Stop Review Gate rows.
+Repository-wide pass requires repository-wide checks.
