@@ -10,6 +10,26 @@ files.
 
 ## Version Ledger
 
+### v2.69
+
+**Upgrade goal**: a tracking baseline represents reviewed coverage, not the
+newest event opened. Commit audit freezes endpoints, checks ancestry/history,
+and examines event history alongside the net diff. Session audit records an
+ordered inventory and read boundaries, advancing only through the reviewed
+prefix while retaining missing or appended material as resumable gaps.
+
+**Impact**: `semantic_impact=medium`; strengthens the meaning of existing
+tracking fields without adding a new STATUS field or automatic migration.
+
+**Impact checklist**:
+
+| Check | Audit action | Done criterion |
+|---|---|---|
+| Historical baseline evidence | Check saved range/inventory and excluded material. | Unknown prior coverage is recorded as a gap; do not infer it from a latest-event marker. |
+| Commit audit | Freeze start/end SHAs, verify ancestry and available history, disposition events and resulting state. | Paths, file-type batches, merges, or later-only ranges cannot silently advance over unreviewed work. |
+| Session audit | Save inventory order/cutoff and transcript read boundaries; reload earlier gaps/appends. | Latest-first reading remains possible, but advancement requires a contiguous reviewed prefix. |
+| Concurrent changes | Re-read STATUS and preserve changes beyond the frozen endpoint. | The review authorizes only its actual range, never a moving HEAD or unseen session append. |
+
 ### v2.68
 
 **Upgrade goal**: separate diagnostic progress from a successful stop claim.

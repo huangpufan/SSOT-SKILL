@@ -365,6 +365,15 @@ The canonical reader-facing name is **tracking baseline**: the reviewed commit,
 session, and protocol version recorded in STATUS. Localised templates translate
 this term consistently; older names belong only to historical records.
 
+For catch-up, `tracked_commit` is a checkpoint whose intervening events and
+affected areas have reviewed dispositions from the previous baseline.
+`tracked_session` is the contiguous reviewed prefix of the recorded session
+inventory, bound to its saved transcript read boundaries. A later reviewed
+subset does not erase preceding gaps, and appended content in an older session
+must be queued again. Detailed range and recovery procedures belong to the
+commit/session audit references; keep inventory details in their review
+artifact rather than STATUS cells.
+
 The current SSOT Skill protocol version comes from `metadata.protocol_version`
 in the loaded/installed `ssot-preflight/SKILL.md`. The applied project protocol
 is `tracked_skill_version` in STATUS.
@@ -408,8 +417,8 @@ Event-source coverage:
 
 | Field | Value |
 |---|---|
-| `tracked_commit` | Latest commit reviewed by SSOT. |
-| `tracked_session` | Latest conversation/session reviewed by SSOT. |
+| `tracked_commit` | Checkpoint through which the audited commit range is fully reconciled; link the range review. |
+| `tracked_session` | End of the contiguous reviewed session inventory; link ordering, read boundaries, and gap evidence. |
 | `tracked_skill_version` | Protocol version reviewed and applied. |
 | `documentation_language` | Locked SSOT body language. |
 | `documentation_language_evidence` | Evidence or user decision behind the language lock. |

@@ -5,7 +5,7 @@ This file serves two flows of `$ssot-audit`:
 - **Session self-check**: at each session's end, the agent uses this file's mapping tables to review the current conversation and confirm no inline updates were missed.
 - **Proactive catch-up (Session audit part)**: when the user initiates catch-up, the agent uses this file's full flow to audit old transcripts.
 
-Conversation audit and commit audit (`references/commit-audit.md`) are parallel protocols: commit audit extracts area-level changes from `git diff`, conversation audit extracts long-lived SSOT knowledge from the transcript. Both share `$ssot-closeout`'s write discipline and area-mapping logic.
+Conversation audit and commit audit (`references/commit-audit.md`) are parallel protocols: commit audit reconciles commit events and endpoint changes, conversation audit extracts long-lived SSOT knowledge from transcripts. Both share `$ssot-closeout`'s write discipline and area-mapping logic.
 
 ---
 
@@ -13,6 +13,7 @@ Conversation audit and commit audit (`references/commit-audit.md`) are parallel 
 
 - [Use cases](#use-cases)
 - [Full execution flow (used in proactive catch-up)](#full-execution-flow-used-in-proactive-catch-up)
+- [Session coverage boundary](#session-coverage-boundary)
 - [Transcript location](#transcript-location)
 - [Transcript reading strategy](#transcript-reading-strategy)
 - [Transcript-to-area mapping](#transcript-to-area-mapping)
@@ -39,9 +40,9 @@ obtain the required independent review before accepting it; a lightweight
 self-check cannot substitute for that review.
 
 ```text
-1. Locate the original transcript (see "Transcript location" below)
+1. Locate the original transcripts (see "Transcript location" below)
 2. Read tracked_session, documentation_language and documentation_language_evidence from STATUS.md
-3. Filter new transcripts after tracked_session
+3. Freeze the requested session inventory, order, and read boundaries per "Session coverage boundary"; include unresolved earlier gaps and resumed transcript content
 4. Read the transcript and identify long-lived SSOT knowledge (see "Transcript-to-area mapping" below)
 5. Update affected areas per `$ssot-closeout` write routing
    -> New/modified SSOT body, headings and table labels use documentation_language
@@ -52,12 +53,45 @@ self-check cannot substitute for that review.
    -> `no-more-required-changes`: continue
    -> `needs-fix`: apply remaining changes, then re-review
 7. Update STATUS.md:
-   - Advance tracked_session to the most recent audited session
+   - Advance tracked_session only through the contiguous reviewed prefix allowed by the session coverage boundary
    - Update affected area states
    - Record stop-review gate evidence
 ```
 
 > **Session self-check does not follow this flow** -- session self-check audits the current conversation directly, without locating transcript files or advancing tracked_session. Its `no-op` / "no update needed" conclusion still needs the applicable scoped stop review above.
+
+## Session coverage boundary
+
+At audit start, record the requested scope and an ordered inventory of relevant
+sessions, with stable IDs and source locations. Prefer a harness's explicit
+sequence; otherwise document the timestamp field and stable ID tie-breaker
+used. File names, directory listing order, and opaque session IDs are not
+chronology. Record the inventory cutoff and a read boundary for each transcript
+(such as its last event ID or byte offset with a content hash), so later appends
+are not silently included in a completed review. Keep this small inventory and
+coverage evidence in the audit artifact; STATUS carries only its pointer.
+
+Treat `tracked_session` as the end of the contiguous reviewed prefix in that
+inventory, not the newest session opened. Prioritize recent material when it
+helps, but retain each earlier unread, missing, or unresolved item as a gap.
+An examined item can receive a concrete no-op disposition; age alone or
+implementation in a later commit does not prove its decision rationale has
+been reviewed. A selected-session audit can finish its requested subset while
+leaving the global baseline unchanged. Advance only after all preceding items
+have reviewed dispositions and the applicable stop review authorizes the
+combined prefix. An inventory with uncertain scope or ordering cannot support
+an unqualified global coverage claim.
+
+Before filtering by the baseline, reload prior gaps and compare saved read
+boundaries for resumed sessions. New content appended to an already reviewed
+session must be queued even if its ID or start time is older than
+`tracked_session`; the session marker alone is not an incremental cursor.
+Keep the old marker as evidence of its saved snapshot while that new-content
+gap is open; it cannot authorize further advancement or current convergence.
+When a missing or unreadable transcript becomes available, read that gap and
+reuse still-valid later review evidence, then reassess the contiguous prefix.
+Re-read STATUS before recording advancement so concurrent work is reconciled
+rather than overwritten.
 
 ---
 
@@ -72,7 +106,12 @@ Different harnesses have different transcript locations and formats. Search in t
 | Codex | Session log directory | Varies | -- |
 | Other | Convention varies | -- | Agent determines per harness docs |
 
-**On location failure**: if the agent cannot find a transcript file (harness keeps no record, no permission, unknown path), note the reason in STATUS.md and do not block other work. Conversation audit is "do it when material is available, skip when it is not" -- unlike commit audit, which can always `git log`.
+**On location failure**: if a relevant transcript is absent or unreadable
+(harness keeps no record, no permission, unknown path), record its known ID or
+time range, the reason, and a recovery action in the audit evidence, linked from
+a STATUS gap. Continue available material and other work, but do not advance
+`tracked_session` across the missing item or report it as reviewed. Commit
+history can also be unavailable; neither source's absence proves a no-op.
 
 **Special case for the current session**: the agent can audit the current conversation directly without locating a transcript file. This is the most common scenario -- at task end, review whether the current conversation produced long-lived SSOT knowledge worth recording.
 
@@ -171,7 +210,7 @@ Before writing, obey the documentation language lock: if `STATUS.md` lacks `docu
 | Situation | Strategy |
 |---|---|
 | Few (1-3) unaudited sessions | Read transcripts one by one and extract long-lived SSOT knowledge |
-| Many unaudited sessions | Prioritize recent sessions; older sessions may be deprioritized or skipped -- conversation knowledge usually ages worse than commit changes |
+| Many unaudited sessions | Segment the frozen inventory. Recent sessions may be read first, but earlier gaps remain resumable and limit baseline advancement to the contiguous reviewed prefix. |
 
 **Recency judgement**: conversation knowledge may already be reflected or overturned by later commits. The agent should cross-validate conversation conclusions against the current code state to avoid writing stale information.
 
