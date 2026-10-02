@@ -125,24 +125,45 @@ check_links_in() {
   # Strip fenced code blocks before extracting links
   local stripped
   stripped="$(awk 'BEGIN{infence=0} /^```/{infence=!infence; next} !infence' "$file")"
-  # Extract markdown link targets ending in .md or .sh
-  printf '%s\n' "$stripped" | grep -oE '\]\([^)]+\.(md|sh)\)' 2>/dev/null | sed -E 's/^\]\(([^)]+)\)$/\1/' | while read -r target; do
+  local target clean_target resolved failed=0
+  # Keep the loop in this shell so failures reach the suite's exit status.
+  # Fragments/queries still name a file, and migration helpers are Python.
+  while IFS= read -r target; do
     # Strip anchor and query
-    local clean_target="${target%%#*}"
+    clean_target="${target%%#*}"
     clean_target="${clean_target%%\?*}"
     [[ -z "$clean_target" ]] && continue
     # Skip absolute http(s) links
     [[ "$clean_target" =~ ^https?:// ]] && continue
     # Resolve relative to file_dir (portable: readlink -f is GNU-only, use python3)
-    local resolved
     resolved="$(cd "$file_dir" 2>/dev/null && python3 -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "$clean_target" 2>/dev/null || true)"
     if [[ -z "$resolved" || ! -e "$resolved" ]]; then
       echo "  FAIL : link broken in ${file#"$PROJECT_ROOT"/}: $clean_target"
-      return 1
+      failed=1
     fi
-  done
-  return 0
+  done < <(printf '%s\n' "$stripped" | grep -oE '\]\([^)]+\.(md|sh|py)([?#][^)]*)?\)' 2>/dev/null | sed -E 's/^\]\(([^)]+)\)$/\1/')
+  return "$failed"
 }
+
+# Exercise the failure path too: a printed diagnostic must make the checker
+# fail, including when a missing file is linked with a fragment or query.
+LINK_PROBE_DIR="$(mktemp -d)"
+trap 'rm -rf "$LINK_PROBE_DIR"' EXIT
+for target in missing.md missing.md#heading missing.sh missing.py missing.md?raw=1; do
+  printf '[missing](%s)\n' "$target" > "$LINK_PROBE_DIR/probe.md"
+  if check_links_in "$LINK_PROBE_DIR/probe.md" > "$LINK_PROBE_DIR/result.log"; then
+    fail "link checker accepted a missing target: $target"
+  else
+    pass "link checker rejects a missing target: $target"
+  fi
+done
+printf '# Existing\n' > "$LINK_PROBE_DIR/existing.md"
+printf '[existing](existing.md#heading)\n[external](https://example.test/missing.md)\n\n```markdown\n[example](missing.md)\n```\n' > "$LINK_PROBE_DIR/probe.md"
+if check_links_in "$LINK_PROBE_DIR/probe.md" > "$LINK_PROBE_DIR/result.log"; then
+  pass "link checker accepts existing files and ignores external URLs and fenced examples"
+else
+  fail "link checker rejected valid or example links"
+fi
 
 LINK_FAILS=0
 while IFS= read -r f; do

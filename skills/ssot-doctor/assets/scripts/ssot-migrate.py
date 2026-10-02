@@ -130,11 +130,24 @@ def is_canonical_header(header_cells, canon_cols):
 
 
 def split_row(line):
-    return [c.strip() for c in line.strip().strip('|').split('|')]
+    # An escaped pipe is cell content, even inside an inline-code span. Strip
+    # only the outer delimiters so empty first/last cells retain their places.
+    cells = re.split(r'(?<!\\)\|', line.strip())
+    if not cells[0]:
+        cells.pop(0)
+    if cells and not cells[-1]:
+        cells.pop()
+    return [c.strip() for c in cells]
 
 
-def classify_cell(cell):
+def classify_cell(cell, canon_cols):
     low = cell.lower().strip('` ')
+    # Exact canonical/localized meanings win over broad legacy keywords:
+    # "Proposed owner" is not "Responsible owner", and Scope belongs to the
+    # review gate while Affected scope belongs to gaps/adjudications.
+    for canon in canon_cols:
+        if low == canon.lower() or low in HEADER_ALIASES.get(canon, []):
+            return CANON_TO_KEY[canon]
     for key, words in COLUMN_KEYWORDS:
         for w in words:
             if low == w or low.startswith(w + ' ') or low.endswith(' ' + w):
@@ -142,54 +155,66 @@ def classify_cell(cell):
     return None
 
 
-def col_values(rows, idx):
-    return [r[idx] for r in rows if idx < len(r) and r[idx]]
+def prose_lines(lines):
+    """Yield real Markdown lines, excluding backtick/tilde fenced examples."""
+    fence = None
+    for i, line in enumerate(lines):
+        marker = re.match(r'^ {0,3}(`{3,}|~{3,})(.*)$', line)
+        if fence:
+            if (marker and marker[1][0] == fence[0]
+                    and len(marker[1]) >= len(fence) and not marker[2].strip()):
+                fence = None
+            continue
+        if marker:
+            fence = marker[1]
+            continue
+        yield i, line
 
 
-def migrate_section(lines, start, section, changes):
+def migrate_section(lines, start, end, section, changes, used_ids):
     canon_cols = CANONICAL[section]
     canon_keys = [CANON_TO_KEY[c] for c in canon_cols]
-    header_idx = start
-    while header_idx < len(lines) and not lines[header_idx].lstrip().startswith('|'):
-        header_idx += 1
-    if header_idx >= len(lines):
-        return start
+    header_idx = None
+    for offset, line in prose_lines(lines[start:end]):
+        idx = start + offset
+        if (line.lstrip().startswith('|') and idx + 1 < end
+                and SEP_RE.match(lines[idx + 1].strip())):
+            header_idx = idx
+            break
+    if header_idx is None:
+        return
     header_cells = split_row(lines[header_idx])
     if is_canonical_header(header_cells, canon_cols):
-        return header_idx + 1  # already canonical (any documentation language)
+        # Earlier versions changed the header/data width but left the old
+        # separator, so even a canonical header may still render as plain text.
+        if len(split_row(lines[header_idx + 1])) != len(canon_cols):
+            lines[header_idx + 1] = '|' + '---|' * len(canon_cols)
+            changes.append(f'{section}: repaired table separator width')
+        return  # already canonical (any documentation language)
 
     # collect data rows (skip separators) until the table ends
-    rows, end = [], header_idx + 1
-    while end < len(lines):
-        line = lines[end]
+    rows, row_idx = [], header_idx + 2
+    while row_idx < end:
+        line = lines[row_idx]
         if not line.lstrip().startswith('|'):
             break
-        if not SEP_RE.match(line):
+        if not SEP_RE.match(line.strip()):
             cells = split_row(line)
             if any(cells):
-                rows.append((end, cells))
-        end += 1
+                rows.append((row_idx, cells))
+        row_idx += 1
 
     # assign each source column to a canonical key (first wins; extras join)
-    col_to_key = [classify_cell(c) for c in header_cells]
+    col_to_key = [classify_cell(c, canon_cols) for c in header_cells]
     if 'id' not in col_to_key and 'id' in canon_keys and col_to_key and col_to_key[0] is None:
         # a name-like first column is scope content, not an ID
         col_to_key[0] = 'affected' if 'affected' not in col_to_key else 'question'
-    # owner/route duality: if only one is present and its data is link-like,
-    # the legacy column serves both contract surfaces
-    if 'owner' in canon_keys and 'route' in canon_keys:
-        for have, want in (('owner', 'route'), ('route', 'owner')):
-            if have in col_to_key and want not in col_to_key:
-                idx = col_to_key.index(have)
-                vals = col_values([c for _, c in rows], idx)
-                if vals and sum(1 for v in vals if LINK_RE.match(v)) * 2 >= len(vals):
-                    col_to_key[idx] = want
-                break
     prefix = ID_RE.get(section)
     today = datetime.date.today().strftime('%Y%m%d')
     seq = 0
 
     lines[header_idx] = '| ' + ' | '.join(canon_cols) + ' |'
+    lines[header_idx + 1] = '|' + '---|' * len(canon_cols)
     changes.append(f'{section}: header -> canonical {len(canon_cols)} columns')
     for line_idx, cells in rows:
         buckets = {k: [] for k in canon_keys}
@@ -207,37 +232,52 @@ def migrate_section(lines, start, section, changes):
         if leftover:
             sink = SINK[section]
             out[sink] = (out[sink] + '; ' if out[sink] else '') + '; '.join(leftover)
-        # valid stable ID or generated one; displaced value goes to Affected
+        # Preserve stable IDs (including code formatting). Named legacy IDs
+        # move to scope or Reason; captures have no Affected scope column.
         if 'ID' in out:
-            if not ID_OK.match(out['ID']):
+            stable_id = out['ID'].strip('` ')
+            if not ID_OK.fullmatch(stable_id) or not stable_id.startswith(prefix + '-'):
                 displaced = out['ID']
-                seq += 1
-                out['ID'] = f'{prefix}-{today}-{seq:02d}'
+                while True:
+                    seq += 1
+                    if seq > 99:
+                        raise ValueError(f'{section}: no free {prefix}-{today}-NN ID remains; '
+                                         'assign stable IDs before migrating')
+                    candidate = f'{prefix}-{today}-{seq:02d}'
+                    if candidate not in used_ids:
+                        break
+                out['ID'] = candidate
+                used_ids.add(candidate)
                 if displaced:
-                    aff = 'Affected scope / task'
+                    aff = 'Affected scope / task' if 'Affected scope / task' in out else SINK[section]
                     out[aff] = (displaced + '; ' + out[aff]) if out[aff] else displaced
-        # owner/route dual-fill
+        # A legacy link can serve both contracts. A person's name cannot
+        # become a resolving route merely because that column was absent.
         if 'Responsible owner' in out and 'Resolving route' in out:
-            if out['Responsible owner'] and not out['Resolving route']:
+            if LINK_RE.match(out['Responsible owner']) and not out['Resolving route']:
                 out['Resolving route'] = out['Responsible owner']
-            elif out['Resolving route'] and not out['Responsible owner']:
+            elif LINK_RE.match(out['Resolving route']) and not out['Responsible owner']:
                 out['Responsible owner'] = out['Resolving route']
         lines[line_idx] = '| ' + ' | '.join(out[c] for c in canon_cols) + ' |'
-    return end
 
 
 def migrate_status(path, dry_run):
     with open(path, encoding='utf-8') as f:
         lines = f.read().splitlines()
-    i, changed = 0, []
-    while i < len(lines):
-        m = re.match(r'^##\s+(.+?)\s*$', lines[i])
-        if m:
-            sec = SECTION_ALIASES.get(m.group(1).lower(), SECTION_ALIASES.get(m.group(1)))
-            if sec:
-                i = migrate_section(lines, i + 1, sec, changed)
-                continue
-        i += 1
+    changed = []
+    # Reserve IDs from the entire document before allocating any, including
+    # later rows and canonical tables that do not themselves need migration.
+    used_ids = set(re.findall(r'\b(?:GAP|ADJ|CAP|SRC)-\d{8}-\d{2}\b', '\n'.join(lines)))
+    headings = [(i, re.match(r'^ {0,3}(#{1,2})\s+(.+?)\s*#*\s*$', line))
+                for i, line in prose_lines(lines)]
+    headings = [(i, match) for i, match in headings if match]
+    for pos, (i, match) in enumerate(headings):
+        if match[1] != '##':
+            continue
+        section = SECTION_ALIASES.get(match[2].lower())
+        if section:
+            end = headings[pos + 1][0] if pos + 1 < len(headings) else len(lines)
+            migrate_section(lines, i + 1, end, section, changed, used_ids)
     if not changed:
         return False
     if not dry_run:
@@ -330,14 +370,21 @@ def main():
     ap = argparse.ArgumentParser(description='Migrate legacy SSOT schemas to canonical v2.60+ shape.')
     ap.add_argument('ssot_dir')
     ap.add_argument('--dry-run', action='store_true')
-    ap.add_argument('--status-only', action='store_true')
-    ap.add_argument('--records-only', action='store_true')
+    scope = ap.add_mutually_exclusive_group()
+    scope.add_argument('--status-only', action='store_true')
+    scope.add_argument('--records-only', action='store_true')
     a = ap.parse_args()
-    root = a.ssot_dir.rstrip('/')
+    root = os.path.normpath(a.ssot_dir)
+    if not os.path.isdir(root):
+        ap.error(f'SSOT directory not found: {root}')
     status = os.path.join(root, 'STATUS.md')
     did = []
     if not a.records_only and os.path.isfile(status):
-        if migrate_status(status, a.dry_run):
+        try:
+            status_changed = migrate_status(status, a.dry_run)
+        except ValueError as exc:
+            ap.error(str(exc))
+        if status_changed:
             did.append(f'{status}: rewrote non-canonical STATUS tables')
     if not a.records_only:
         if ensure_history(root, a.dry_run):

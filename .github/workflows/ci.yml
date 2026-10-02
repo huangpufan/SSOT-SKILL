@@ -69,7 +69,7 @@ jobs:
             bash -n tests/test-document-quality-lint.sh
           fi
       - name: Check Python helpers
-        run: python3 -m py_compile skills/ssot-audit/assets/scripts/migrate-faceted-layout.py
+        run: python3 -m py_compile skills/ssot-audit/assets/scripts/migrate-faceted-layout.py skills/ssot-doctor/assets/scripts/ssot-migrate.py tests/test-status-migration.py
 
   shellcheck:
     name: shellcheck
@@ -94,6 +94,8 @@ jobs:
         run: bash skills/ssot-doctor/assets/scripts/test/run-tests.sh
       - name: Run faceted-layout migration tests
         run: bash tests/test-faceted-layout-migration.sh
+      - name: Run STATUS migration tests
+        run: python3 tests/test-status-migration.py
       - name: Run document-quality lint tests
         run: bash tests/test-document-quality-lint.sh
 

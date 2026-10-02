@@ -90,15 +90,17 @@ def build_moves(ssot_dir: Path) -> list[Move]:
         domains_dir = arch_dir / "domains"
     if domains_dir.exists():
         used: set[int] = set()
-        if arch_dir.exists():
-            existing_arch_children = arch_dir.iterdir()
-        else:
-            existing_arch_children = ()
-        for existing in existing_arch_children:
-            if existing.is_dir() and existing.name != "domains":
-                match = re.match(r"^(\d{2})-", existing.name)
-                if match:
-                    used.add(int(match.group(1)))
+        # Reserve every retained prefix before allocating any new ones. Some
+        # direct domains still live under the legacy architecture parent;
+        # already numbered nested domains keep their prefixes as well.
+        for container in (arch_dir, ssot_dir / "architecture", domains_dir):
+            if not container.is_dir():
+                continue
+            for existing in container.iterdir():
+                if existing.is_dir():
+                    match = re.match(r"^(\d{2})-", existing.name)
+                    if match:
+                        used.add(int(match.group(1)))
 
         for domain in sorted(domains_dir.iterdir(), key=lambda p: p.name):
             if domain.name in {"README.md", "_manifest.md"}:
@@ -138,6 +140,7 @@ def mapped_path(path: Path, moves: list[Move]) -> Path:
 def validate_moves(moves: list[Move], ssot_dir: Path) -> list[str]:
     errors: list[str] = []
     destinations: dict[Path, Path] = {}
+    top_moves = [move for move in moves if move.src.parent == ssot_dir]
     for move in moves:
         if not move.src.exists():
             continue
@@ -149,13 +152,28 @@ def validate_moves(moves: list[Move], ssot_dir: Path) -> list[str]:
                 f"both {display(destinations[dst], ssot_dir)} and {display(move.src, ssot_dir)}"
             )
         destinations[dst] = move.src
-        if move.dst.exists() and src != dst:
-            if is_empty_dir(move.src):
+        # Check both today's destination and content that will arrive there
+        # when its ancestor is moved. Otherwise shutil.move nests directories
+        # (or replaces files), and the subsequent link rewrite can overwrite
+        # an existing owner without ever reporting a conflict.
+        occupants = [move.dst]
+        for parent_move in top_moves:
+            if parent_move == move:
                 continue
-            errors.append(
-                f"target exists; resolve before migration: {display(move.dst, ssot_dir)} "
-                f"(source {display(move.src, ssot_dir)})"
-            )
+            try:
+                relative = move.dst.relative_to(parent_move.dst)
+            except ValueError:
+                continue
+            occupants.append(parent_move.src / relative)
+        for occupant in occupants:
+            if occupant.exists() and occupant.resolve() != src:
+                if is_empty_dir(move.src):
+                    continue
+                errors.append(
+                    f"target exists; resolve before migration: {display(move.dst, ssot_dir)} "
+                    f"(source {display(move.src, ssot_dir)}; existing {display(occupant, ssot_dir)})"
+                )
+                break
     return errors
 
 

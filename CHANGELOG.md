@@ -86,6 +86,16 @@ versions. This file only restates headline changes.
 
 ### Fixed
 - v2.65: Unify audit reviewer selection with the scoped review policy; ordinary catch-up no longer imposes a second independent-review requirement.
+- Faceted-layout migration checks destinations that become occupied after a
+  parent directory moves, preventing existing owner documents or domain indexes
+  from being overwritten. Domain numbering reserves prefixes in both layouts.
+- Legacy STATUS migration preserves column meanings, escaped pipes, and existing
+  stable IDs; rewrites table separators; avoids duplicate generated IDs; and
+  leaves other sections and fenced examples untouched. Named capture IDs no
+  longer crash migration, and exhausted ID space fails before writing.
+- Bundle link checks now return failure for missing files instead of printing
+  an error followed by a passing summary, including script links and links with
+  fragments or queries. Migration regressions run in CI.
 - Consumer agent instructions now share one marked routing block between the
   installer and bilingual bootstrap templates. The entry distinguishes
   substantive work from trivial tasks, preserves conditional audit/Doctor

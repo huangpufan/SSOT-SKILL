@@ -3,7 +3,7 @@
 set -uo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-MIGRATE="$PROJECT_ROOT/skills/ssot-audit/assets/scripts/migrate-faceted-layout.py"
+MIGRATE="${SSOT_LAYOUT_MIGRATOR:-$PROJECT_ROOT/skills/ssot-audit/assets/scripts/migrate-faceted-layout.py}"
 PASS=0
 FAIL=0
 WORK_ROOT="$(mktemp -d)"
@@ -132,6 +132,38 @@ assert_grep "conflict names target" <(printf '%s\n' "$out") "target exists"
 assert_file "legacy source kept after conflict" "$T/SSOT/product/README.md"
 assert_file "canonical target kept after conflict" "$T/SSOT/01-product/README.md"
 assert_equal "conflict preserves all file bytes" "$after" "$before"
+
+echo "== S4 nested conflicts are detected before moving their parent =="
+for conflict in domain index; do
+  T="$WORK_ROOT/inherited-$conflict-conflict"
+  mkdir -p "$T/SSOT/architecture/domains/01-runtime" "$T/SSOT/architecture/01-runtime"
+  if [[ "$conflict" == domain ]]; then
+    printf 'EXISTING OWNER\n' > "$T/SSOT/architecture/01-runtime/README.md"
+    printf 'LEGACY DOMAIN\n' > "$T/SSOT/architecture/domains/01-runtime/README.md"
+  else
+    printf 'EXISTING INDEX\n' > "$T/SSOT/architecture/domain-index.md"
+    printf 'LEGACY INDEX\n' > "$T/SSOT/architecture/domains/README.md"
+  fi
+  before="$(tree_digest "$T")"
+  out="$(python3 "$MIGRATE" "$T/SSOT" --dry-run 2>&1)"; rc=$?
+  assert_exit "$conflict conflict dry-run exits 2" "$rc" "2"
+  out="$(python3 "$MIGRATE" "$T/SSOT" 2>&1)"; rc=$?
+  assert_exit "$conflict conflict apply exits 2" "$rc" "2"
+  after="$(tree_digest "$T")"
+  assert_equal "$conflict conflict leaves all paths and bytes intact" "$after" "$before"
+done
+
+echo "== S5 domain numbering reserves existing and already numbered domains =="
+T="$WORK_ROOT/mixed-domains"
+mkdir -p "$T/SSOT/architecture/01-current" "$T/SSOT/architecture/domains/02-legacy" "$T/SSOT/architecture/domains/runtime"
+printf 'CURRENT OWNER\n' > "$T/SSOT/architecture/01-current/README.md"
+printf 'NUMBERED DOMAIN\n' > "$T/SSOT/architecture/domains/02-legacy/README.md"
+printf 'RUNTIME DOMAIN\n' > "$T/SSOT/architecture/domains/runtime/README.md"
+out="$(python3 "$MIGRATE" "$T/SSOT" 2>&1)"; rc=$?
+assert_exit "mixed domain migration succeeds" "$rc" "0"
+assert_grep "current owner survives" "$T/SSOT/02-architecture/01-current/README.md" 'CURRENT OWNER'
+assert_grep "numbered domain survives" "$T/SSOT/02-architecture/02-legacy/README.md" 'NUMBERED DOMAIN'
+assert_grep "unnumbered domain gets unused prefix" "$T/SSOT/02-architecture/03-runtime/README.md" 'RUNTIME DOMAIN'
 
 echo
 echo "=== RESULT: pass=$PASS fail=$FAIL ==="

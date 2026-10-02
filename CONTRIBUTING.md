@@ -26,6 +26,10 @@ bash -n install.sh
 bash skills/ssot-doctor/assets/scripts/test/run-tests.sh
 bash tests/test-bundle-shape.sh
 bash tests/test-installer-e2e.sh
+bash tests/test-faceted-layout-migration.sh
+python3 tests/test-status-migration.py
+bash tests/test-document-quality-contract.sh
+bash tests/test-document-quality-lint.sh
 ```
 
 CI runs the same set plus `shellcheck`.
@@ -37,6 +41,7 @@ CI runs the same set plus `shellcheck`.
 - [ ] `run-tests.sh` passes
 - [ ] `test-bundle-shape.sh` passes
 - [ ] `test-installer-e2e.sh` passes
+- [ ] Both migration helpers pass their consumer-document regression tests
 - [ ] If protocol-bumping: `VERSION` updated and `CHANGELOG.md` entry added
 - [ ] If touching cross-skill references: every `[text](../path)` link verified
 - [ ] If touching templates: both `templates/en/` and `templates/zh/` updated
