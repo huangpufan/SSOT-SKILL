@@ -85,6 +85,7 @@ versions. This file only restates headline changes.
   runtime is worse than an honest gap.
 
 ### Fixed
+- v2.76: Bound adapter diagnostics to the managed block while preserving handwritten startup rules and legacy generated-file checks.
 - v2.75: Make the documented single-owner architecture layout usable without fabricated domain/view directories, preserving complete inventories and reader review.
 - v2.74: Make bilingual architecture and research templates emit canonical state and registry tokens instead of translated or unrelated confidence scales.
 - v2.73: Allow research evidence retention, supported-claim promotion, and unresolved-claim preservation together, with one authority per conclusion.

@@ -15,7 +15,10 @@ This file is the semantic owner of the "thin adapter" relationship between SSOT 
 SSOT is canonical; startup entries generated/hosted by SSOT should remain in thin-adapter form. Handwritten or mixed startup files may keep repository commands, workflows, architectural constraints, model/config rules or test strategy, but these long-lived facts must accept `[CORE-REF]` review.
 
 - **Single authoritative location**: long-lived knowledge is maintained only in `SSOT/`. Long-lived facts inside AGENTS.md, CLAUDE.md, .cursor/rules etc. are either absorbed and pointed at SSOT, or marked in the core-reference-document review as still needing to be kept and re-checked.
-- **Generated adapter is a router**: an adapter with `<!-- SSOT-generated ... -->` marker is responsible for telling the agent "go read SSOT", not for restating SSOT content.
+- **Generated adapter is a router**: the canonical `SSOT-SKILL:BEGIN` /
+  `SSOT-SKILL:END` block routes the agent to SSOT. It may be the whole startup
+  entry or one managed section of a handwritten file. Legacy whole-file
+  `<!-- SSOT-generated ... -->` adapters remain supported.
 - **Generated output is rebuildable**: a generated adapter can be regenerated from SSOT at any time; losing it does not affect long-lived knowledge.
 - **Preserve user content**: inspect the existing file and applicable write
   authorization before generation. A generated marker is not permission to
@@ -27,18 +30,33 @@ Authority relationships:
 | Type | Form | Check path |
 |---|---|---|
 | `thin-adapter` | Has SSOT-generated marker, contains only SSOT routing and a small summary | `[ADAPTER]` + `[CONSUMPTION]`; gives `[CORE-REF]` suggestions when the summary crosses the boundary |
-| `mixed` | Handwritten or generated file with both SSOT routing and command/workflow/architecture/test/config facts | `[CONSUMPTION]` + `[CORE-REF]`; `[ADAPTER]` only when a generated marker is present |
+| `mixed` | Handwritten or generated file with both SSOT routing and command/workflow/architecture/test/config facts | `[CONSUMPTION]` + `[CORE-REF]`; `[ADAPTER]` checks the declared managed block, not the handwritten file's total length |
 | `source-material` | Mostly handwritten source material, may not have SSOT routing | `[CORE-REF]`; if the project expects the agent to consume SSOT automatically, also give a `[CONSUMPTION]` suggestion |
 
 ---
 
 ## 2. Adapter content spec
 
-A generated thin-adapter file does not exceed 50 lines and contains the following blocks:
+A managed adapter block has exactly one ordered pair of canonical boundaries
+and does not exceed 50 physical lines, including both marker lines. Count only
+that block in a mixed file; handwritten rules before or after it stay outside
+the size gate. Missing, reversed, duplicated, nested, or malformed boundaries
+are `[ADAPTER]` warnings, promoted to failures under `--strict`. Marker examples
+inside fenced or indented code are not live boundaries.
+
+For compatibility, a legacy file with an `SSOT-generated` marker in its first
+three lines and no block boundaries still receives the whole-file 50-line
+check. Do not guess which of its unmarked sections are handwritten: first
+establish an explicit managed block while preserving unrelated content under
+the existing authorization. A bounded block does not require a whole-file
+generation marker; the installer deliberately prints only the block.
+
+A full generated adapter may also provide the following surrounding material;
+optional source metadata remains checked independently of the size boundary:
 
 | Block | Required | Description |
 |---|---|---|
-| Generated marker | Yes | First-line comment `<!-- SSOT-generated | generated_at: ... -->`, marks SSOT generation with generation date |
+| Generated marker | Whole-file form | First-line comment `<!-- SSOT-generated | generated_at: ... -->`, marks whole-file generation; omit it when adding only a managed block to a handwritten file |
 | SSOT source hash line | Recommended | Second-line comment `<!-- SSOT-source: <path>@<hash> ... -->`, records the SSOT source file and content hash this generation was based on, for ssot-lint drift verification |
 | Project identity | Yes | One-sentence positioning from the opening line of `SSOT/README.md` |
 | SSOT read instruction | Yes | Tells the agent to use `$ssot-preflight` first, then navigate per the `SSOT/README.md` entry routing |
@@ -65,7 +83,7 @@ A generated thin adapter must not contain:
 Pre-generation checks:
 
 1. Does the target file already exist?
-2. If so, does it have a generated marker (first line matches `<!-- SSOT-generated` or equivalent comment)?
+2. If so, does it have a canonical managed block or a legacy whole-file generated marker? Resolve damaged or duplicate boundaries before replacing a managed section.
 3. Identify the generated section and any handwritten additions. Within
    existing authorization, update only the affected routing or derived summary
    and preserve unrelated content. A handwritten file may receive an authorized
@@ -82,14 +100,21 @@ Generation method (v2.13): the adapter is instantiated by the agent from the tem
 
 ## 4. Doctor integration
 
-Adapter checks are split into L1 deterministic and L2 semantic layers, consistent with Doctor's layered verification protocol. Here L1 only covers thin adapters with the SSOT-generated marker; handwritten or mixed startup files are not reported as `[ADAPTER]` for lacking a marker or exceeding 50 lines. Here L2 only covers "is the adapter summary out of bounds"; the correctness of repository commands, directory map, workflows, architectural constraints, model/config rules or test strategy belongs to `[CORE-REF]`; the reachability of the SSOT read chain belongs to `[CONSUMPTION]`; neither belongs to `[ADAPTER]`.
+Adapter checks are split into L1 deterministic and L2 semantic layers,
+consistent with Doctor's layered verification protocol. L1 applies §2's
+managed-block boundary and legacy whole-file fallback. An unmarked handwritten
+file has no adapter shape obligation. A mixed file's declared block is checked
+without treating its unrelated commands or harness rules as generated lines.
+L2 checks the generated summary's scope; correctness of repository commands,
+directory maps, workflows, architecture, configuration, or testing facts
+belongs to `[CORE-REF]`. Startup-route reachability belongs to `[CONSUMPTION]`.
 
 **L1 deterministic checks** (auto pass/fail):
 
-- Does the SSOT-generated thin-adapter marker exist with correct format?
+- Does a declared managed block have exactly one complete, ordered boundary pair?
 - Is the optional `SSOT-source` hash line correctly formatted, does the source file exist, and does the hash match?
-- Does the SSOT-generated thin adapter exceed 50 lines?
-- If it contains an SSOT source hash line: does the declared source file exist, and does the current content hash match what is declared (mismatch hints possible stale)?
+- Does the declared block, or the legacy whole file when no block is declared,
+  exceed 50 lines? Source-hash examples in code do not replace live metadata.
 
 **L2 semantic checks** (need agent judgment):
 

@@ -1036,6 +1036,13 @@ out=$(run "$T"); code=$?
 assert_no_fail_tag "zh boundary has no INV-REGISTRY fail" "$out" "[INV-REGISTRY]"
 rm -rf "$T"
 
+echo "== S71 bounded generated adapter blocks preserve handwritten rules =="
+if bash "$(dirname "$0")/test-adapter-blocks.sh"; then
+  PASS=$((PASS + 1))
+else
+  FAIL=$((FAIL + 1))
+fi
+
 echo ""
 echo "===== summary: PASS=$PASS FAIL=$FAIL ====="
 [[ "$FAIL" -eq 0 ]] && exit 0 || exit 1

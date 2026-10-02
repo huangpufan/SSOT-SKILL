@@ -10,6 +10,14 @@ files.
 
 ## Version Ledger
 
+### v2.76
+
+- **Impact:** medium — adapter shape diagnostics change for mixed startup files; existing source-drift checks remain.
+- **Problem:** whole-file length checks treated handwritten rules as generated output, while block-only adapters could bypass boundary checks.
+- **Change:** inspect one ordered canonical managed block, count only its physical lines, reject damaged or repeated boundaries, and ignore marker/hash examples in code. Legacy generated files without block markers retain whole-file checking.
+- **Consumer action:** repair only the managed portion under existing authorization; preserve unrelated startup rules. Invalid boundaries remain warnings (failures under strict mode). No consumer file is rewritten by lint.
+- **Validation:** 26 real CLI scenarios cover mixed and legacy files, malformed boundaries, source drift, fenced/indented examples, and unchanged input bytes. Doctor suite passed 211 checks before the final mixed-indent refinement; all 26 adapter cases passed afterward.
+
 ### v2.75
 
 **Upgrade goal**: support one coherent runtime owner with one architecture

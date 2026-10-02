@@ -4841,13 +4841,10 @@ fi
 
 # ---------- check 7: SSOT-generated thin adapter marker and size (v2.13 / v2.17 boundary) ----------
 # Startup reference files live in the repo root (parent of SSOT_DIR), not inside SSOT/.
-# Only files carrying the SSOT-generated marker count as generated thin adapters and are
-# subject to [ADAPTER] shape checks. Hand-written or mixed startup files do NOT trigger
-# ADAPTER for missing marker; their SSOT routing is covered by check 9, and their factual
-# correctness by CORE-REF.
-ADAPTER_MARKER='<!-- SSOT-generated'
+# A canonical SSOT-SKILL block owns only its bounded text, including in mixed files.
+# Legacy generated files without block markers retain whole-file size checking.
+# Unmarked handwritten files have no ADAPTER shape obligation; check 9 owns routing.
 declare -a STARTUP_REF_FILES=()
-declare -a GENERATED_ADAPTER_FILES=()
 for ref_name in "AGENTS.md" "CLAUDE.md" "GEMINI.md"; do
   [[ -f "$REPO_ROOT/$ref_name" ]] && STARTUP_REF_FILES+=("$REPO_ROOT/$ref_name")
 done
@@ -4862,43 +4859,77 @@ if [[ -d "$REPO_ROOT/.windsurf/rules" ]]; then
   done < <(find "$REPO_ROOT/.windsurf/rules" -maxdepth 1 -type f -print0)
 fi
 
-for sf in "${STARTUP_REF_FILES[@]}"; do
-  if head -n 3 "$sf" | grep -qF "$ADAPTER_MARKER"; then
-    GENERATED_ADAPTER_FILES+=("$sf")
-  fi
-done
-
-if [[ "${#GENERATED_ADAPTER_FILES[@]}" -gt 0 ]]; then
-  adapter_issue=0
-  for af in "${GENERATED_ADAPTER_FILES[@]}"; do
-    lines=$(wc -l < "$af" | tr -d ' ')
+adapter_issue=0
+adapter_checked=0
+for af in "${STARTUP_REF_FILES[@]}"; do
+  # Keep physical line numbers for size checks, but do not recognize marker
+  # examples inside fenced code as live block boundaries. One complete block
+  # is required whenever any SSOT-SKILL boundary is declared.
+  IFS=$'\t' read -r adapter_mode lines adapter_begins adapter_ends adapter_malformed adapter_source_line < <(awk '
+    {
+      text=$0; sub(/\r$/, "", text)
+      if (match(text, /^[ ]?[ ]?[ ]?(```+|~~~+)/)) {
+        fence=substr(text, RSTART, RLENGTH); sub(/^[ ]*/, "", fence)
+        rest=substr(text, RSTART + RLENGTH)
+        if (!in_fence && !(substr(fence,1,1)=="`" && index(rest,"`"))) {
+          in_fence=1; fence_char=substr(fence,1,1); fence_len=length(fence); next
+        }
+        if (substr(fence,1,1)==fence_char && length(fence)>=fence_len && rest ~ /^[[:space:]]*$/) { in_fence=0; next }
+      }
+      if (in_fence) next
+      if (text ~ /^    / || text ~ /^[ ]?[ ]?[ ]?\t/) next
+      if (FNR<=3 && index(text, "<!-- SSOT-generated")) legacy=1
+      if (!source_line && text ~ /^[[:space:]]*<!--[[:space:]]*SSOT-source:/) source_line=FNR
+      if (text !~ /^[[:space:]]*<!--[[:space:]]*SSOT-SKILL:/) next
+      sub(/^[[:space:]]*/, "", text); sub(/[[:space:]]*$/, "", text)
+      if (text=="<!-- SSOT-SKILL:BEGIN -->") { begins++; start=FNR }
+      else if (text=="<!-- SSOT-SKILL:END -->") { ends++; finish=FNR }
+      else malformed++
+    }
+    END {
+      if (begins || ends || malformed) {
+        mode=(begins==1 && ends==1 && start<finish && !malformed) ? "block" : "invalid"
+        size=finish-start+1
+      } else { mode=legacy ? "legacy" : "none"; size=NR }
+      printf "%s\t%d\t%d\t%d\t%d\t%d\n", mode, size, begins, ends, malformed, source_line
+    }
+  ' "$af")
+  [[ "$adapter_mode" == "none" ]] && continue
+  adapter_checked=$((adapter_checked + 1))
+  if [[ "$adapter_mode" == "invalid" ]]; then
+    add_warn "[ADAPTER] invalid SSOT-SKILL block boundary; expected one ordered BEGIN/END pair (BEGIN=$adapter_begins END=$adapter_ends malformed=$adapter_malformed): $af"
+    adapter_issue=$((adapter_issue + 1))
+  else
     if [[ "$lines" -gt 50 ]]; then
-      add_warn "SSOT-generated thin adapter exceeds 50 lines (should be routing + core invariants only): $af ($lines lines)"
+      add_warn "[ADAPTER] SSOT-generated thin adapter exceeds 50 lines ($adapter_mode scope; handwritten text outside a bounded block is excluded): $af ($lines lines)"
       adapter_issue=$((adapter_issue + 1))
     fi
-    # If a SSOT-source hash line is declared, verify the source file hasn't drifted (v2.13).
-    # Missing declaration is not enforced.
-    src_line=$(grep -m1 '<!-- SSOT-source:' "$af" || true)
-    if [[ -n "$src_line" ]]; then
-      refs=$(printf '%s' "$src_line" | sed -E 's/^.*SSOT-source:[[:space:]]*//; s/[[:space:]]*-->.*$//')
-      for ref in $refs; do
-        [[ "$ref" != *@* ]] && continue
-        src_path="${ref%@*}"
-        declared_hash="${ref##*@}"
-        abs_src="$REPO_ROOT/$src_path"
-        if [[ ! -f "$abs_src" ]]; then
-          add_warn "SSOT-generated thin adapter references a missing SSOT source file: $src_path ($af)"
-          adapter_issue=$((adapter_issue + 1))
-        elif [[ "$(ssot_hash "$abs_src")" != "$declared_hash" ]]; then
-          add_warn "SSOT-generated thin adapter: source file changed, may need regeneration: $src_path ($af)"
-          adapter_issue=$((adapter_issue + 1))
-        fi
-      done
-    fi
-  done
-  if [[ "$adapter_issue" -eq 0 ]]; then
-    add_pass "SSOT-generated thin adapters: marker and size OK"
   fi
+  # Optional source metadata may precede the block in a generated template.
+  # Preserve existing hash checking independently of the block size boundary.
+  src_line=""
+  if [[ "$adapter_source_line" -gt 0 ]]; then
+    src_line=$(sed -n "${adapter_source_line}p" "$af")
+  fi
+  if [[ -n "$src_line" ]]; then
+    refs=$(printf '%s' "$src_line" | sed -E 's/^.*SSOT-source:[[:space:]]*//; s/[[:space:]]*-->.*$//')
+    for ref in $refs; do
+      [[ "$ref" != *@* ]] && continue
+      src_path="${ref%@*}"
+      declared_hash="${ref##*@}"
+      abs_src="$REPO_ROOT/$src_path"
+      if [[ ! -f "$abs_src" ]]; then
+        add_warn "SSOT-generated thin adapter references a missing SSOT source file: $src_path ($af)"
+        adapter_issue=$((adapter_issue + 1))
+      elif [[ "$(ssot_hash "$abs_src")" != "$declared_hash" ]]; then
+        add_warn "SSOT-generated thin adapter: source file changed, may need regeneration: $src_path ($af)"
+        adapter_issue=$((adapter_issue + 1))
+      fi
+    done
+  fi
+done
+if [[ "$adapter_checked" -gt 0 && "$adapter_issue" -eq 0 ]]; then
+  add_pass "SSOT-generated thin adapters: marker and size OK"
 fi
 
 # ---------- check 8: evidence symbol-anchor freshness (v2.13) ----------
