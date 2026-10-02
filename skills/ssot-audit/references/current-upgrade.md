@@ -10,6 +10,28 @@ files.
 
 ## Version Ledger
 
+### v2.72
+
+**Upgrade goal**: make consumption findings match observable behavior rather
+than one tool vocabulary or startup route. Count eligible tasks across code,
+configuration, documentation, review and planning; separate used, inadequate,
+skipped and unobservable samples. Availability, actual reading, decision use,
+and automatic selection are separate questions. Existing repair authorization
+does not need to be requested again, and authorization never substitutes for
+review evidence.
+
+**Impact**: `semantic_impact=medium`; changes the on-demand diagnostic protocol,
+not the preflight eligibility rules or STATUS schema.
+
+**Impact checklist**:
+
+| Check | Audit action | Done criterion |
+|---|---|---|
+| Prior consumption findings | Recheck decisions whose only evidence was missing Read/Glob events or a broken static chain. | Actual shell/context reads are recognized and unsupported causal attributions are qualified. |
+| Sample counts | Apply one primary observation per eligible sample and show availability/visibility limits. | Unknown samples are not counted as skipped; mixed success/failure is not double-counted. |
+| Proposed repairs | Match the observed break to installation, routing, content, or execution before changing text. | A missing log alone cannot justify rewriting a description. |
+| Authorization and impact | Reuse existing scoped authorization and the shared impact/reviewer policy. | Diagnostic-only requests remain read-only; editorial changes do not acquire high-impact gates by filename. |
+
 ### v2.71
 
 **Upgrade goal**: a short skill must still expose its essential decisions.

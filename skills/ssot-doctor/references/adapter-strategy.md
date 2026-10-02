@@ -17,7 +17,9 @@ SSOT is canonical; startup entries generated/hosted by SSOT should remain in thi
 - **Single authoritative location**: long-lived knowledge is maintained only in `SSOT/`. Long-lived facts inside AGENTS.md, CLAUDE.md, .cursor/rules etc. are either absorbed and pointed at SSOT, or marked in the core-reference-document review as still needing to be kept and re-checked.
 - **Generated adapter is a router**: an adapter with `<!-- SSOT-generated ... -->` marker is responsible for telling the agent "go read SSOT", not for restating SSOT content.
 - **Generated output is rebuildable**: a generated adapter can be regenerated from SSOT at any time; losing it does not affect long-lived knowledge.
-- **Do not overwrite user content**: before generating an adapter, check whether the target file already exists and is not SSOT-generated (no generated marker); on conflict, report rather than overwrite.
+- **Preserve user content**: inspect the existing file and applicable write
+  authorization before generation. A generated marker is not permission to
+  discard later handwritten additions; prefer a scoped routing update.
 - **Role separation**: `[ADAPTER]` only checks marker, size, optional source hash and summary boundary of SSOT-generated thin adapters; `[CONSUMPTION]` checks whether a startup/reference file forms an effective SSOT trigger chain; `[CORE-REF]` checks whether facts in startup/reference files are still correct. Handwritten files without a marker are not reported under `[ADAPTER]` for lacking a marker.
 
 Authority relationships:
@@ -58,14 +60,21 @@ A generated thin adapter must not contain:
 |---|---|---|
 | Bootstrap Phase 1 | Recon finds the repo has or needs an agent instruction file | Generate a thin adapter from the template |
 | Explicit user request | User asks to create or update AGENTS.md/CLAUDE.md etc. | Generate or update from the template |
-| SSOT core-invariant change | Inline update modifies architecture core invariants | Remind the user the adapter may need syncing (do not auto-update) |
+| SSOT core-invariant change | Inline update modifies architecture core invariants | Sync affected generated summaries when the task authorizes adapter maintenance; otherwise report the concrete proposed update. |
 
 Pre-generation checks:
 
 1. Does the target file already exist?
 2. If so, does it have a generated marker (first line matches `<!-- SSOT-generated` or equivalent comment)?
-3. Has marker -> may update. No marker -> report conflict, do not overwrite.
-4. On conflict, report and classify as `mixed` or `source-material`; only when the repo wants the file to be SSOT-hosted, or when long-lived facts have already been moved into SSOT and the user authorizes, recommend replacing with a thin adapter.
+3. Identify the generated section and any handwritten additions. Within
+   existing authorization, update only the affected routing or derived summary
+   and preserve unrelated content. A handwritten file may receive an authorized
+   scoped routing edit without being replaced by a generated adapter.
+4. Replacing a mixed or handwritten file wholesale requires authorization for
+   that replacement and a disposition for its existing facts/harness rules.
+   If missing, report the conflict and concrete proposal. Existing explicit
+   authorization need not be requested again; follow
+   [`consumption-audit.md` §2](consumption-audit.md#2-core-rule-suggest-by-default-change-only-after-authorization).
 
 Generation method (v2.13): the adapter is instantiated by the agent from the template. **No independent generator program is introduced on purpose**, to control complexity. During generation, `[SHOULD]` compute the content hash of the referenced SSOT source file and write the SSOT source hash line; algorithm `sha256sum <file> | cut -c1-12` (use `shasum -a 256` when `sha256sum` is unavailable, consistent with [`assets/scripts/ssot-lint.sh`](../assets/scripts/ssot-lint.sh)). ssot-lint later compares the current hash to detect source drift -- this is the minimal "generate by agent, verify by script" combination.
 
@@ -101,7 +110,7 @@ Output tags:
 |---|---|
 | Maintaining independent long-lived facts in AGENTS.md/CLAUDE.md | Authoritative location splits; future agents cannot tell which is authoritative |
 | Copying full SSOT protocol into the adapter | The adapter bloats; maintaining the same rule in two places drifts |
-| Auto-updating the adapter without reminding the user | The user may have added non-SSOT harness-specific configuration in the adapter |
+| Treating a generated marker as permission to replace the whole file | Later handwritten harness rules can be lost; check authorization and preserve unrelated content. |
 | Putting hypothesis/candidate knowledge into the adapter | Uncertain knowledge leaks into files not governed by SSOT |
 | Putting summaries of all gotchas/decisions/architecture into the adapter | The adapter should only hold the highest-priority core invariants; detailed info should be read from SSOT |
 | Reporting handwritten startup files only as `[ADAPTER]` for marker/size issues | Misses outdated commands, workflow state, architectural boundaries or test strategy; must also run `[CORE-REF]` |
