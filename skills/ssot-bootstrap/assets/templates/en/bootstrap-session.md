@@ -1,6 +1,9 @@
 # Session NNN: <scope description>
 
-> Bootstrap temporary file. Each independent exploration unit (one run of a sub-Agent) produces one session file; before final cleanup, all sessions must pass stop review.
+> Bootstrap exploration record. Each independent exploration unit (one run of a sub-Agent) produces one session file; before final cleanup, all sessions must pass stop review.
+> Retain referenced evidence, unique findings, rejected alternatives, and review
+> challenges as historical evidence after their current facts reach the proper
+> owners. A completed session is not disposable merely because bootstrap ends.
 >
 > **Write rule**: each Agent only writes its own session file and does not edit other sessions.
 

@@ -1,6 +1,6 @@
 ---
 name: ssot-bootstrap
-description: Bootstrap or continue repository SSOT creation. Use when SSOT/ is missing, SSOT/.bootstrap/ exists, SSOT/STATUS.md coverage_result is bootstrap, or the user asks to create a repository SSOT. Do not use for normal code-task preflight or routine closeout in an already bootstrapped repo.
+description: Bootstrap or continue repository SSOT creation. Use when SSOT/ is missing, SSOT/STATUS.md coverage_result is bootstrap, an active bootstrap manifest has unfinished phases, or the user asks to create a repository SSOT. Retained review artifacts under .bootstrap/ alone do not mean setup is unfinished. Do not use for normal code-task preflight or routine closeout in an already bootstrapped repo.
 ---
 
 # SSOT Bootstrap

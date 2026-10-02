@@ -10,6 +10,16 @@ files.
 
 ## Version Ledger
 
+### v2.77
+
+**Upgrade goal**: finish coordination without deleting the evidence supporting coverage and decisions. Review records, referenced sessions, unique findings and frozen routes remain available; only redundant unreferenced coordination without an active writer may be removed. Retained history alone does not restart bootstrap.
+
+**Impact**: `semantic_impact=medium`; changes cleanup and continuation routing. Existing review requirements still apply; no automatic deletion or consumer migration is introduced.
+
+**Consumer action**: inspect active Phase Progress, STATUS and final completion evidence together. Preserve useful manifest/session records and recon routes, check links and affected review fingerprints after archival, and mark cleanup done only after actual checks. Reconcile contradictory completion claims without discarding records. Existing missing evidence remains a named recovery gap.
+
+**Validation**: targeted positive/negative review cases plus independent execution on a seven-file synthetic consumer. The fixed candidate retained six initial files, removed one redundant session, preserved four original file hashes and resolved all 17 final links. Baseline review also prevented evidence loss but migrated unique evidence before deleting three coordination files. The first candidate attempt encountered protocol version drift and remained blocked; only the separate frozen-version rerun supports completion. These observations do not prove a full bootstrap or subsequent ordinary development task.
+
 ### v2.76
 
 - **Impact:** medium — adapter shape diagnostics change for mixed startup files; existing source-drift checks remain.

@@ -15,7 +15,20 @@ When an agent first faces a repository without SSOT, use this protocol to establ
 
 ## 0. Applicability and prerequisites
 
-**Trigger condition**: no `SSOT/` directory exists in the repository.
+**Trigger condition**: `SSOT/` is missing, `SSOT/STATUS.md` records
+`coverage_result: bootstrap`, an active bootstrap manifest has unfinished
+phases, or the user explicitly requests creation/continuation.
+
+The presence of `.bootstrap/` alone is not a trigger: that directory also
+stores durable review evidence after initialization. Read STATUS and, when
+present, the manifest's Phase Progress and completion evidence. A current
+`pending`, `active`, or `blocked` phase means unfinished coordination; a
+historical manifest or retained review/session files do not. If STATUS claims
+completion while the manifest appears unfinished, reconcile them against the
+final review and cleanup evidence. Preserve the records; retire stale
+coordination only when completion is established, otherwise resume the missing
+work and correct unsupported status. Do not restart completed phases or infer
+success from the directory being absent.
 
 **Prerequisites**:
 
@@ -146,7 +159,7 @@ Repository scripts and utilities are by default first identified from repo scrip
 
 ### Output
 
-Recon results are stored as `SSOT/.bootstrap/recon.md`. This report must contain documentation-language lock detection results, evidence and whether the user has been asked. This report is the reference for every subsequent phase until bootstrap completes and is cleaned up with `.bootstrap/`.
+Recon results are stored as `SSOT/.bootstrap/recon.md`. This report must contain documentation-language lock detection results, evidence and whether the user has been asked. It remains the reference for subsequent phases; Phase 4 archives it and preserves its reference route rather than deleting the evidence directory.
 
 Template in [`assets/templates/{en,zh}/recon-report.md`](../assets/templates/en/recon-report.md) (pick the variant matching the project's `documentation_language`).
 
@@ -193,7 +206,7 @@ not force a split.
 
 ### Language discipline when instantiating templates
 
-When rendering any template from `assets/templates/{en,zh}/`, pick the variant matching the `documentation_language` locked in Phase 0 (and mirrored to `SSOT/STATUS.md`), then translate headings, table labels, placeholders, and helper notes into that language. Keep code identifiers, paths, commands, API names, enum values, and direct quotations verbatim regardless of the language lock. The same rule applies to the bootstrap-only files (`recon.md`, `manifest.md`, session logs) before they are archived (`recon.md` → `04-records/decisions/0000-bootstrap-recon.md`) or deleted at Phase 4.
+When rendering any template from `assets/templates/{en,zh}/`, pick the variant matching the `documentation_language` locked in Phase 0 (and mirrored to `SSOT/STATUS.md`), then translate headings, table labels, placeholders, and helper notes into that language. Keep code identifiers, paths, commands, API names, enum values, and direct quotations verbatim regardless of the language lock. The same rule applies to bootstrap coordination files (`recon.md`, `manifest.md`, session logs); Phase 4 decides which become historical evidence and which redundant files can be removed.
 
 ### Skeleton adaptation
 
@@ -442,10 +455,16 @@ Segmented-convergence progress is recorded in the convergence-check area of mani
 
 ## 5. Phase 4: Cleanup
 
-After bootstrap completes (convergence check passed and the independent reviewer returns `no-more-required-changes` on Phase 4 cleanup):
+Cleanup retires coordination, not evidence. Begin after convergence review
+passes, and obtain the independent reviewer's `no-more-required-changes` on
+the concrete retention/cleanup plan before removing anything. Keep bootstrap
+active until the actions and final checks below have actually finished.
 
 1. **Archive recon.md rather than delete** (v2.12 added):
-   - `[MUST]` Move `SSOT/.bootstrap/recon.md` to `SSOT/04-records/decisions/0000-bootstrap-recon.md`
+   - Archive `SSOT/.bootstrap/recon.md` at
+     `SSOT/04-records/decisions/0000-bootstrap-recon.md`. If the source is
+     frozen or relocation would invalidate retained evidence, keep it intact
+     at its original path and make the archive entry point to it instead.
    - Add frontmatter at the file head:
      ```yaml
      ---
@@ -457,21 +476,52 @@ After bootstrap completes (convergence check passed and the independent reviewer
      ```
    - No need to rewrite the body; preserve original recon evidence (language detection, size, topology, architecture decomposition candidates, source-material inventory, recommended strategy)
    - Add a pointer in the `SSOT/04-records/decisions/README.md` index, marking it as "archaeology entry, recording the decision context of the initial bootstrap"
+   - Check inbound anchors and links inside the archived material. Preserve
+     referenced anchors with a resolving route from the old location, or
+     update live references to the archive. Do not rewrite frozen historical
+     evidence merely to make a move convenient; retain its old route.
 
-2. Delete process files in `SSOT/.bootstrap/` (manifest.md, sessions/)
-   - manifest and session logs are process logs; their value disappears with bootstrap completion
-   - Long-lived stop-review summaries must first be transcribed to `STATUS.md` (see step 3)
+2. **Classify and retain coordination evidence** before cleanup:
+   - Check `manifest.md` and each session for unique findings, rejected
+     alternatives, exploration/sampling limits, decisions, unresolved work,
+     reviewer challenges, and inbound references. A process-log label does not
+     make that information disposable.
+   - Absorb current long-lived facts into their owners and route unresolved
+     findings into STATUS/record owners. Retain the original supporting
+     evidence; a STATUS summary is not a replacement for a reviewed artifact.
+   - Keep reader-review and scope-review artifacts, their supporting files,
+     and all live or frozen evidence targets at resolving paths. Keep useful
+     manifest/session records in place as historical records, with a short
+     historical/completion note where editable; they are not current fact or
+     assignment owners. Frozen records remain unchanged and receive an
+     external historical pointer when needed.
+   - Remove only redundant, unreferenced coordination files after confirming
+     their useful content is retained elsewhere and no worker still writes
+     them. Retaining them is valid when value or references are uncertain.
+     Never recursively delete `.bootstrap/` as a completion step.
 
-3. Update `SSOT/STATUS.md`:
-   - Change `coverage_result` from `bootstrap` to `converged`
+3. **Record the actual result and verify retained routes**:
    - Confirm `tracked_skill_version` still equals current `ssot-preflight` `metadata.protocol_version`; if the bundle protocol was upgraded mid-way, run protocol-upgrade review first
    - Confirm `documentation_language` and `documentation_language_evidence` exist; if mid-way language switch is needed, complete adjudication and independent review first
    - Confirm the source-material absorption matrix contains material read during bootstrap that still has long-lived value, plus each material's authoritative location / absorption state / conflict adjudication
    - Update each area's state
    - Clean up resolved entries in open gaps
-   - Transcribe the final stop-review summary as evidence for `converged` and the `tracked_commit` / `tracked_session` / `tracked_skill_version` baselines
+   - Link the final stop-review artifact and its scope/authorisation from
+     STATUS for `converged` and the tracking baselines. Reopen the links from
+     STATUS, retained manifests, and owner evidence fields; confirm their
+     targets and applicable fingerprints still hold after archival/absorption.
+     Refresh an affected review before relying on it.
+   - After those checks pass, change `coverage_result` from `bootstrap` to
+     `converged` under its review gate. Mark the manifest's cleanup phase
+     `done` and identify any retained manifest as historical, with a link to
+     that completion evidence. If cleanup or review is incomplete, keep the
+     phase `active`/`blocked` and name the remaining work; planned retention or
+     a green earlier phase is not completion.
 
-**Rationale (v2.12)**: recon.md contains long-lived decision evidence such as "why architecture was decomposed into these N domains" and "why certain source material was marked as stale". Previously requiring overall deletion of `.bootstrap/` after convergence caused this archaeological information to be lost permanently, leaving future maintainers without context when facing architectural reorganization. manifest and session logs are still cleaned -- they are process coordination logs and have lower long-lived value than decision records.
+Recon, manifest, and session records can each explain why an owner boundary
+was selected or why a coverage claim was accepted. Their current coordination
+role ends at completion; their evidentiary value depends on their contents and
+references. `.bootstrap/` remains a valid durable evidence location.
 
 ---
 
@@ -513,8 +563,8 @@ In single-agent scenarios, the same agent can act as both coordinator and worker
 ### 6.2 Flow for a new agent entering bootstrap
 
 ```text
-1. Detect SSOT/.bootstrap/ exists -> identify as bootstrap in progress
-2. Read SSOT/.bootstrap/recon.md -> get repo overview
+1. Apply §0 to STATUS and active Phase Progress, not directory presence alone
+2. Read SSOT/.bootstrap/recon.md (or its archive route) -> get repo overview
 3. Read SSOT/.bootstrap/manifest.md -> get global progress and area assignment
 4. If coordinator role:
    a. Scan recent session logs under sessions/ for detailed context

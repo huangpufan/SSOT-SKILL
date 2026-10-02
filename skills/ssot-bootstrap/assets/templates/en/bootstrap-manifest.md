@@ -1,13 +1,20 @@
 # Bootstrap Manifest
 
-> Temporary coordinator register. Delete `.bootstrap/` after bootstrap completes
-> and stop reviews pass. Only the coordinator updates this file; worker agents
-> do not edit it directly.
+> Bootstrap coordinator register. Only the coordinator updates this file;
+> worker agents do not edit it directly. At cleanup, preserve review artifacts,
+> referenced evidence, and unique findings. Retain this register as historical
+> when it still supports a decision; remove it only when redundant and unreferenced.
+> Never delete `.bootstrap/` as a whole.
 >
 > Manifest tracks work progress (`pending` / `active` / `done` / `blocked`).
 > `STATUS.md` tracks content quality (`covered` / `gap` / `stale` / `unknown` /
 > `not_applicable` / `conflict`). Manifest `done` never auto-means STATUS
 > `covered`.
+>
+> Active Phase Progress determines unfinished work, not this directory's
+> presence. After cleanup and its final checks actually pass, mark the cleanup
+> phase `done` and add a historical completion note linking the STATUS review
+> evidence. Until then keep the unfinished phase visible.
 
 ## Repository Overview
 

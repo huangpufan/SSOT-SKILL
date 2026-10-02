@@ -2,7 +2,7 @@
 name: ssot-preflight
 description: Repository SSOT preflight before substantive code, config, docs, review, debugging, refactoring, or planning work. Use to check SSOT/STATUS.md, open adjudications, documentation language, protocol version, minimal SSOT read routing, and in-task SSOT write triggers. Do not use for pure operations, trivial format-only edits, or non-repository chat.
 metadata:
-  protocol_version: "2.76"
+  protocol_version: "2.77"
   bundle: "SSOT Skill"
   semantic_impact: medium
 ---
@@ -144,7 +144,7 @@ semantics lives in `$ssot-closeout references/promotion-rationale.md`.
 
 | Situation | Skill |
 |---|---|
-| No `SSOT/` yet, `.bootstrap/` present, or `coverage_result: bootstrap` | `$ssot-bootstrap` |
+| No `SSOT/` yet, `coverage_result: bootstrap`, or an active bootstrap manifest has unfinished phases (retained `.bootstrap/` review artifacts alone do not trigger this route) | `$ssot-bootstrap` |
 | About to commit, `claim_done`, or finalise after substantive change | `$ssot-closeout` |
 | Catch up commits / sessions, or protocol version is behind | `$ssot-audit` |
 | Health check, independent stop review, CORE-REF / ADAPTER / CONSUMPTION | `$ssot-doctor` |
