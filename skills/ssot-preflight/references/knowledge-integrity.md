@@ -43,8 +43,8 @@ at most `source-backed` claims. A reproducible packet can raise a distilled
 claim row to `source-backed` when it names the method, inputs, artifacts, and
 boundary clearly enough for recheck. It does not make the claim a normal
 verified SSOT fact by itself. Promotion to the implicit `verified` default
-requires the relevant product, architecture, decision, testing, bug, gotcha, or
-debt owner to absorb the long-lived fact and a later independent review or
+requires the relevant product, architecture, decision, testing, benchmark, bug,
+gotcha, or debt owner to absorb the long-lived fact and a later independent review or
 subsequent session to confirm that owner-level evidence still holds.
 
 ### 1.1 Product/architecture reader-recovery axis (v2.43; task-based v2.60)

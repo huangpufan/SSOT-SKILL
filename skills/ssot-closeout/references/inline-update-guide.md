@@ -189,20 +189,36 @@ an audited exclusion. If they contain strong current-fact words but are not
 authoritative, include `absorbed_to`, `do_not_use_for`, and `review_on` so a
 future agent knows what not to rely on.
 
-When research/PoC output is produced, closeout must choose exactly one of four
-routes:
+For research/PoC output, disposition reusable claims individually. Packet
+maintenance and claim promotion can happen in the same batch:
 
-- create `SSOT/04-records/research/NNNN-<slug>.md` with the reproducible
-  evidence packet and reusable claim rows;
-- update an existing research record when this batch extends or invalidates the
-  same packet;
-- promote durable claim rows into the relevant product, architecture, decision,
-  testing, bug, gotcha, or debt owner, linking back to the packet as evidence;
-- discard the output with a concrete reason, such as non-reproducible,
-  superseded, or no reusable claim.
+- Create `SSOT/04-records/research/NNNN-<slug>.md`, or update the existing
+  packet for the same question, to preserve useful method, inputs, observations,
+  evidence, limitations, and negative findings. A new packet is unnecessary
+  when an existing evidence owner already preserves what the next reader needs.
+- Promote each supported durable conclusion into its unique product,
+  architecture, decision, testing, benchmark, bug, gotcha, or debt owner. Link
+  back to the retained packet or existing evidence owner; a packet records the
+  promoted owner and promotion state rather than maintaining a second
+  current-fact body. Apply
+  [`knowledge-integrity.md`](../../ssot-preflight/references/knowledge-integrity.md)
+  to the particular claim: useful evidence does not imply verified status,
+  adoption, implementation, or validity outside the experiment's scope.
+- Keep useful unresolved claims in the packet with their confidence, promotion
+  state, missing evidence, and recheck trigger. Retain rejected hypotheses or
+  negative results when they prevent repeated investigation. Neither uncertainty
+  nor a negative result is by itself a reason to discard the evidence.
+- Exclude material from durable capture when it has no reusable claim or
+  evidence, duplicates an existing owner, or has been superseded with a retained
+  successor pointer; record the concrete reason. Exclusion from SSOT capture
+  does not authorize deleting source files or retained evidence.
 
-Research records are not authority mirrors. Raw docs, external artifacts, and
-working PoC files still follow source-material lifecycle downgrade rules.
+For example, one experiment can preserve its measurements, promote a supported
+workload constraint to the benchmark owner, and leave a broader performance
+hypothesis pending in the same packet. Each promoted conclusion has one current
+authority; the packet preserves the bounded observation and provenance.
+Raw docs, external artifacts, and working PoC files still follow source-material
+lifecycle downgrade rules.
 
 ---
 

@@ -85,6 +85,7 @@ versions. This file only restates headline changes.
   runtime is worse than an honest gap.
 
 ### Fixed
+- v2.73: Allow research evidence retention, supported-claim promotion, and unresolved-claim preservation together, with one authority per conclusion.
 - v2.72: Diagnose actual SSOT consumption across harnesses, separate missing observations from proven misses, and honor existing scoped repair authorization.
 - v2.71: Replace arbitrary entrypoint word/table limits with task-complete skill guidance and preserve necessary procedures, knowledge, and recovery routes.
 - v2.70: Use the canonical Pending Captures schema and lifecycle everywhere while preserving frozen historical capture records.

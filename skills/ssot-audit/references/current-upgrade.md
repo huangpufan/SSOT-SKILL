@@ -10,6 +10,25 @@ files.
 
 ## Version Ledger
 
+### v2.73
+
+**Upgrade goal**: route research at claim granularity. A single experiment can
+retain reproducible evidence, promote a supported conclusion to its owner, and
+keep a broader hypothesis unresolved. Creating or updating an evidence packet
+is compatible with promotion; existing evidence owners can be reused. Excluding
+material from capture is not authorization to delete its source.
+
+**Impact**: `semantic_impact=medium`; clarifies research ownership and closeout
+routing without adding a record type or confidence state.
+
+**Impact checklist**:
+
+| Check | Audit action | Done criterion |
+|---|---|---|
+| Mixed research outcomes | Disposition each reusable claim and useful negative finding. | Supported facts reach their owners while unresolved scope remains visible. |
+| Packet and owner | Preserve bounded evidence and link promoted conclusions to their unique authority. | No forced choice between keeping evidence and absorbing knowledge; no duplicate current-fact body. |
+| Evidence already retained | Reuse an existing adequate evidence owner. | No empty packet is created solely to satisfy routing. |
+
 ### v2.72
 
 **Upgrade goal**: make consumption findings match observable behavior rather

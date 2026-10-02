@@ -163,13 +163,15 @@ testing, release, deployment, `03-process/operations/`, or
 only. Working/historical docs may stay outside SSOT, but they must not
 masquerade as current authority.
 
-**Research/PoC output** must receive one closeout disposition before final
-response: create a new `SSOT/04-records/research/NNNN-<slug>.md` packet, update
-an existing packet, promote durable claim rows into the owning product,
-architecture, decision, testing, benchmark, bug, gotcha, or debt files, or
-discard the output with a concrete reason. Research packets preserve
-reproducible evidence and distilled claims; they are not top-level
-`SSOT/research/` and not authority mirrors.
+**Research/PoC output** receives a disposition for each reusable claim, not one
+exclusive route for the whole output. Preserve useful evidence, using a new or
+existing `SSOT/04-records/research/NNNN-<slug>.md` packet when one adds value,
+and promote supported durable conclusions to their unique owners in the same
+batch when appropriate.
+Keep unresolved or negative findings with their limits when they remain useful.
+Follow [`inline-update-guide.md §2.7`](inline-update-guide.md#27-source-material-absorption)
+for promotion, retention, and exclusion; packets remain evidence rather than
+parallel authority bodies.
 
 **SSOT readability/actionability gaps** should fix SSOT-SKILL first when the
 repository owns the bundle and the weakness is repeatable across projects. Then
@@ -328,7 +330,7 @@ bundle first.
 | Current/target diagrams or architecture diagrams | architecture diagrams with current/target separation |
 | High-frequency/high-risk task entry | `SSOT/README.md` task-entry thin index |
 | External material/spec/PRD/design doc | Source-material absorption |
-| Research/PoC produced this batch | `04-records/research/` packet, existing packet update, promoted owner claim, or discarded-with-reason disposition |
+| Research/PoC produced this batch | Disposition claims individually per inline-update guide §2.7: preserve useful evidence and promote supported claims together; retain useful unresolved/negative findings or exclude with a concrete reason |
 | "From now on always..." / "never..." | `development/` discipline |
 | Mock-only test passed but real service differed | `development/` discipline plus originating `bugs/` |
 | Test run output | Usually no SSOT write unless durable testing facts change |
