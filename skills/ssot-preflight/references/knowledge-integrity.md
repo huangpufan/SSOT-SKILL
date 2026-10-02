@@ -23,10 +23,10 @@ hypothesis ──► candidate ──► source-backed ──► verified
 
 | State | Meaning | Permitted authoritative locations |
 |---|---|---|
-| `hypothesis` | Agent inference, no direct evidence | gotchas (mark source), STATUS.md open gaps |
-| `candidate` | Has initial evidence (code comments, commit messages, docs, conversational confirmation) but not code-level cross-verified | Emergent/historical areas (gotchas, bugs, tech-debt, decisions) + architecture gap/unknown annotations |
-| `source-backed` | Has direct code/config/schema/test evidence | All authoritative locations |
-| `verified` | Confirmed by independent reviewer or subsequent session | All authoritative locations; this is the default state, no confidence annotation needed |
+| `hypothesis` | Agent inference, no direct evidence | Explicitly labeled hypothesis rows in research records, gotchas (mark source), STATUS.md open gaps; none establishes current architecture fact |
+| `candidate` | Has initial support, but the evidence does not yet establish the particular claim | Research and emergent/historical areas (gotchas, bugs, tech-debt, decisions) + explicitly proposed or gap/unknown annotations in product/architecture; not current implemented fact |
+| `source-backed` | Has direct evidence appropriate to the claim, with its scope and source recorded (§2) | All authoritative locations, distinguishing intent, implementation, and observation |
+| `verified` | An independent reviewer or subsequent session has checked the claim against fitting evidence and its limits | All authoritative locations; implicit after review, no confidence annotation needed |
 
 States can only be promoted in order, but intermediate states may be skipped (e.g., agent infers and immediately finds code evidence, marks `source-backed` directly). Demotion may go from any state to any lower state or be deleted outright.
 
@@ -138,20 +138,35 @@ not separate activities.
 
 ## 2. Write-time annotation
 
-When writing long-lived knowledge to SSOT, the agent determines default confidence by knowledge source:
+When writing long-lived knowledge, first identify what the claim asserts.
+Split mixed statements such as "the user requires offline mode and it works"
+into intent and implementation/observation claims. Evidence that establishes
+one does not establish the other. Then assign confidence to each claim:
 
-| Knowledge source | Default confidence | Description |
+| Claim and evidence | Default confidence | Boundary |
 |---|---|---|
-| Direct derivation from code/config/schema/test | No annotation needed (equivalent to `verified`) | Code itself is evidence |
-| Conclusion confirmed by user in conversation | `candidate` | Conversational confirmation provides initial evidence, still needs code-level cross-verification |
-| Agent code-analysis inference | `candidate` | Has analytic basis but inference may be wrong |
-| Research/PoC record claim row | `candidate` or `source-backed` | Use `source-backed` only when the packet is reproducible and directly supports the claim; never treat the packet alone as `verified` |
-| Agent inference, no direct evidence | `hypothesis` | Verbal agreement, guess, implicit coupling judgment |
+| Accepted product goal, promise, constraint, or decision explicitly established by the responsible user/owner | `source-backed` | Record the decision/directive and its scope. This establishes intent or obligation, not implementation, feasibility, compliance, or delivery. A draft or an agent's suggested requirement remains `candidate`. |
+| Implementation structure or configured value directly established by code/config/schema/test inspection | `source-backed` | State the inspected revision and applicable configuration when material. Test code establishes what is asserted, not that the test ran or the user flow passed. |
+| Observed runtime or user-visible outcome from a recorded execution | `source-backed` | Name the operation, version/environment, inputs or preconditions, observed surface, result, and artifact. A local pass establishes that run; broader reliability, performance, production, or population claims need evidence covering that scope. |
+| External contract, standard, or provider behaviour documented by its authoritative source | `source-backed` for the documented contract | Retain version/date and applicability. This does not establish that this repository or deployment conforms; that requires implementation or execution evidence. |
+| User report, code-analysis inference, comment, historical account, or unvalidated summary about implemented behaviour | `candidate` | Investigate against evidence that observes the asserted behaviour. A user's agreement with an empirical conclusion is not a substitute for that evidence. |
+| Research/PoC record claim row | `candidate` or `source-backed` | Use `source-backed` only for the bounded claim directly supported by the reproducible packet. A hypothesis or generalization beyond the experiment stays uncertain; the packet alone is never `verified`. |
+| Agent inference with no direct evidence | `hypothesis` | Keep the inference distinct from accepted intent and observed fact. |
 
 Write rules:
 
-- Default confidence may be adjusted upward based on actual evidence. E.g., if a conclusion confirmed by user in conversation is also verified by the agent against code, mark directly as `source-backed` rather than `candidate`.
+- Confidence follows evidence fit, not source prestige. An accepted target may
+  be `source-backed` while its implementation is missing; record that gap
+  separately. Code cannot approve a product promise or cancel an accepted
+  constraint. An adjudication registry's `confirmed` state records authority,
+  not the separate `verified` knowledge state here.
+- Inspection or execution by the writer normally establishes `source-backed`;
+  use `verified` only after §3's independent or subsequent-session review.
 - When marking `source-backed`, the `evidence` field must be provided simultaneously (see §5); otherwise use `candidate`.
+- Use file-level confidence only when it applies to the whole file. For mixed
+  claims, annotate the claim or named section with its confidence, source, and
+  evidence; a supported intent must not lend its confidence to an untested
+  implementation claim beside it.
 - Default confidence may not be adjusted downward to bypass write-location restrictions.
 - `hypothesis` must not be written to the authoritative body of architecture views/domains. It may exist as a gap annotation or STATUS.md open gap to mark "verification needed here".
 - Research/PoC packet evidence promoted into an owner keeps a pointer to the
@@ -168,10 +183,10 @@ Promotion is embedded in existing SSOT protocol touchpoints; no dedicated "promo
 
 | Existing protocol touchpoint | Promotion direction | Trigger |
 |---|---|---|
-| Inline update | candidate → source-backed | When the agent modifies code and finds it touched code related to a candidate claim, and the code corroborates the claim |
-| Commit review | candidate → source-backed | When reviewing the diff and finding a new commit corroborates a candidate claim |
-| Conversation self-check | hypothesis → candidate | When the agent reviews this session and finds a hypothesis gained user confirmation or initial evidence in conversation |
-| Stop review | source-backed → verified | When the independent reviewer reviews coverage scope and confirms source-backed claim evidence is valid; remove confidence annotation |
+| Inline update or commit review | candidate → source-backed | The inspected change directly establishes the bounded implementation claim |
+| Execution review | candidate → source-backed | A retained runtime/test/browser result directly establishes the scoped observation |
+| Conversation self-check | hypothesis → candidate or source-backed | Initial support permits candidate; an explicit authorized decision establishes source-backed intent with a retained directive/decision pointer |
+| Stop review | source-backed → verified | The independent reviewer checks the evidence, scope, and claim kind; remove the confidence annotation, retaining provenance and limitations |
 
 When an agent encounters content with confidence annotations, it does not need to actively seek evidence to promote it -- but if relevant evidence happens to be at hand (because doing a code task), update the annotation in passing. Promotion is a by-product of existing work, not an extra task.
 
@@ -179,10 +194,10 @@ When an agent encounters content with confidence annotations, it does not need t
 
 | Demotion trigger | Typical timing | Action |
 |---|---|---|
-| Code change refutes the claim | Commit review, inline update | Demote (source-backed → candidate or lower) or delete, record demotion reason |
+| Code, configuration, or environment change invalidates an implementation/observation claim | Commit review, inline update | Demote (source-backed → candidate or lower) or delete, record demotion reason; a divergence from accepted intent does not revoke that intent |
 | Pointer broken (file/function no longer exists) | Doctor L1 deterministic check | Demote or delete, record reason |
 | New evidence conflicts with claim | Inline update, commit review | Demote or enter open adjudication |
-| User explicit denial | Conversation | Delete or mark resolved/obsolete |
+| Authorized owner changes intent; user disputes an empirical claim | Conversation | Record supersession for changed intent. For an empirical dispute, retain the report and prior evidence, demote the disputed scope pending investigation; neither code nor agreement settles a different claim kind |
 
 Demotion must record the reason; format is not enforced -- may add `demoted_reason` in frontmatter or annotate inline in body.
 
@@ -195,7 +210,10 @@ Demotion must record the reason; format is not enforced -- may add `demoted_reas
 | source-backed → verified (remove annotation) | Independent reviewer (stop review) or agent in a different session confirms |
 | Any demotion | Working agent, executes immediately on discovering evidence invalidation |
 
-verified is an implicit state (no confidence annotation); promotion to verified is equivalent to deleting confidence frontmatter. This aligns with the existing "all SSOT content is trusted by default" principle -- only add confidence when uncertainty needs special marking.
+`verified` is implicit: remove the confidence marker after review, preserving
+evidence pointers, scope, and limitations in metadata or prose. Review does
+not turn an accepted target into delivered behaviour or a bounded observation
+into a universal claim.
 
 ---
 
@@ -206,8 +224,16 @@ verified is an implicit state (no confidence annotation); promotion to verified 
 Specific rules:
 
 - When a region or architecture domain contains `confidence: hypothesis` or `confidence: candidate` content, that scope cannot be marked `covered`.
-- This means to reach `converged`, all hypothesis/candidate must be resolved -- either find evidence and promote to source-backed or verified, or demote to unknown and enter open gaps, or delete.
-- `source-backed` does not block `covered`. It indicates "evidence exists but not yet independently confirmed", compatible with the meaning of `covered` ("content matches code and has stop review").
+- To reach `converged`, resolve the blocking hypothesis/candidate claims with
+  fitting evidence or remove claims that no longer belong in scope. While a
+  claim remains unresolved, keep its confidence marker, set its coverage
+  scope to `unknown`, and register the open gap. `unknown` is a coverage
+  state, not a confidence state; registering the gap records unfinished work
+  and does not remove the `covered`/`converged` block.
+- `source-backed` does not block `covered`: the claim has fitting evidence,
+  while the scope still owes its applicable stop/reader review. A product
+  owner can accurately cover an accepted target and its current delivery gap;
+  coverage of that knowledge is not a claim that the target has shipped.
 - If the team does not pursue `converged` (script/prototype projects), hypothesis/candidate may persist indefinitely without affecting daily development.
 - (v2.60) In product and architecture, `intent_recovery: gap` blocks `covered` for the same scope, even when `confidence` is `verified`. To reach `converged`, every product/architecture owner in the scope must have at least `intent_recovery: partial` with a Pending Capture for the failed or deferred task. Root, process, record, and glossary areas instead use their Area Status row and scoped semantic stop review; they do not carry this frontmatter. Doctor `[INTENT-RECOVERY]` (14Y) gates the product/architecture scope.
 
@@ -220,7 +246,7 @@ Extend the existing `SKILL.md` §3.4 confidence frontmatter:
 ```yaml
 ---
 confidence: hypothesis | candidate | source-backed
-source: conversation | code-analysis | code-comment | git-history | documented
+source: user-directive | conversation | code-analysis | runtime | research | code-comment | git-history | documented
 discovered_at: 2026-05-27
 evidence: "src/auth/handler.ts#retryWithBackoff (retry logic)"
 ---
@@ -231,7 +257,7 @@ Field description:
 | Field | Required | Description |
 |---|---|---|
 | `confidence` | Yes (if not verified) | Current state in the state machine |
-| `source` | Yes | Knowledge source type |
+| `source` | Yes | Knowledge source type; the values above are descriptive, not a closed enum |
 | `discovered_at` | Yes | Discovery date |
 | `evidence` | Required when `source-backed`; recommended for `hypothesis`/`candidate` | Evidence pointer (see §5.1 anchoring rules) |
 
@@ -243,7 +269,14 @@ When `evidence` points to code, `[SHOULD]` anchor to the **symbol name** rather 
 - File-level facts may write only `path`; when pointing to a specific implementation, prefer `path#symbol`.
 - `[MAY]` only for core invariants (architecture-level, security-level) append content-hash or commit SHA to lock version; do not compute hash for every evidence entry, otherwise meaningless code changes trigger noise alerts.
 
-`verified` state needs no frontmatter -- content without confidence annotation is verified.
+For directives, decisions, external contracts, and runtime evidence, use a
+retrievable decision/session reference, versioned source URL, or retained
+execution artifact instead of inventing a code symbol. Preserve enough
+context to recheck the bounded claim; keep sensitive material in its
+authorized evidence store and link permitted metadata rather than copying it.
+
+`verified` needs no confidence marker, but its evidence and limits remain
+recoverable. Absence of a marker is not itself evidence that review occurred.
 
 ---
 
@@ -255,7 +288,7 @@ The old `confidence: inferred` + `needs_verification: true` format is treated as
 |---|---|---|
 | `confidence: inferred` + `needs_verification: true` | `candidate` | Mechanical migration not required; agents handle per new protocol when encountered |
 | `confidence: inferred` (no needs_verification) | `candidate` | Same as above |
-| No confidence annotation | `verified` | No handling needed |
+| No confidence annotation | Implicit `verified` for compatibility | No bulk retagging; when a relevant claim is touched or challenged, apply §2 and demote unsupported certainty rather than treating the missing tag as proof |
 
 Protocol upgrade review (v2.11) does not require traversing all SSOT files for mechanical replacement of old annotations. Agents handle old formats by the equivalence relation when encountered in daily maintenance.
 

@@ -10,6 +10,26 @@ files.
 
 ## Version Ledger
 
+### v2.67
+
+**Upgrade goal**: preserve rich evidence without confusing different claims.
+An explicit authorized goal can establish source-backed intent before delivery;
+static inspection establishes structure; recorded execution establishes its
+bounded observation. Neither user agreement nor code presence proves an
+unobserved empirical outcome. Verification retains scope and provenance.
+
+**Impact**: `semantic_impact=medium`; confidence tokens and owner locations
+remain unchanged. Existing unannotated content is not mechanically retagged.
+
+**Impact checklist**:
+
+| Check | Audit action | Done criterion |
+|---|---|---|
+| Touched mixed claims | Separate target intent, implementation, and execution; use `knowledge-integrity.md §2`. | Each claim has fitting evidence and explicit limits. |
+| Accepted but undelivered goals | Retain the authorized target and a distinct delivery gap. | Missing code does not demote human intent or imply shipment. |
+| Observations and inferred conclusions | Keep revision/environment/input bounds and distinguish test assertions from test runs. | No automatic runtime proof from source inspection or generalized performance from a single run. |
+| Promotion | Apply the existing independent/subsequent-session confidence review. | Removing a confidence label preserves evidence and limitations. |
+
 ### v2.66
 
 **Upgrade goal**: a pending or due-deferred adjudication blocks the actions

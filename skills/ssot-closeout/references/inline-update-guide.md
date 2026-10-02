@@ -93,18 +93,20 @@ Inline updates written into SSOT should tag their source for later audit and ver
 
 | Source | Meaning | Tagging method |
 |---|---|---|
-| Direct derivation from code change | The commit itself is the evidence | No extra tag needed (default) |
+| Direct inspection of code change | Evidence of the inspected structure, not an execution result | Retain the commit/path and assign confidence per `knowledge-integrity.md §2` |
 | Deterministic conclusion from conversation | Long-lived SSOT knowledge produced by conversation | Inline annotation `(source: conversation, <date or session id>)` |
 | Source-material absorption | Long-lived knowledge from README/docs/ADR/runbook or user-provided material | Record original path/URL/session id and classification (`absorb` / `link-only` / `stale/conflict` / `obsolete`) |
-| Agent inference (no direct code evidence) | Verbal agreement, debugging inference, implicit coupling | Use the confidence frontmatter (see the state machine and write-annotation table in [`knowledge-integrity.md`](../../ssot-preflight/references/knowledge-integrity.md)) |
+| Agent inference without fitting direct evidence | Debugging hypothesis or inferred coupling; distinct from an authorized decision | Use the confidence frontmatter (see the state machine and write-annotation table in [`knowledge-integrity.md`](../../ssot-preflight/references/knowledge-integrity.md)) |
 
 ### 2.3 Cross-validation
 
-When a conversation conclusion concerns code implementation, the agent should cross-validate against code:
+For a conversation claim about implementation or runtime behavior, match the
+evidence to that claim under `knowledge-integrity.md §2`: inspect code for
+structure, and recorded execution for observed behavior.
 
 - Validation passes -> source may be tagged `conversation` + `code-analysis`, raising confidence
 - Conversation conclusion does not match code:
-  - If the conclusion describes implemented facts -> code/config/schema/test wins; correct the thin documentation, or mark `stale/conflict` in the SSOT source-material absorption and write the adjudicated authoritative location
+  - If the conclusion describes implementation or runtime facts -> compare revision, configuration, and evidence scope; resolve the bounded claim, or mark `stale/conflict` in the SSOT source-material absorption and write the adjudicated authoritative location
   - If the conclusion describes product intent, product promises, capability, journey, roadmap or product acceptance -> write into the `product/` owner; implementation gaps then link to architecture/testing/tech-debt
   - If the conclusion describes technical design intent, constraints or not-yet-landed decisions -> do not automatically declare code correct; update current/target/gap in architecture views/domains, mark `implementation_state: diverged` or `partial` in the related decision when needed, and write into `open adjudications` in `STATUS.md`
 

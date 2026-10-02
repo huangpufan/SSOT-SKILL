@@ -212,7 +212,7 @@ The following principles apply to repos of all sizes:
 | 4 | Interface definitions (OpenAPI, protobuf, GraphQL schema, type definitions) | Contract boundary |
 | 5 | Implementation code | Only when the above sources are insufficient to answer the question |
 
-**Source material is a clue, not a conclusion**: the source material inventoried in recon should be the starting point when filling the corresponding area -- first build hypotheses from material, then verify with code and config. When describing currently-implemented facts, source material has lower trustworthiness than code/config/schema/test (see §3.4). But `02-architecture/` and `04-records/decisions/` carry design intent, so do not directly overwrite or delete because current code has not landed; on inconsistency, record the implementation state per [`source-material.md`](../../ssot-preflight/references/source-material.md) and enter the adjudication queue.
+**Match evidence to the claim**: begin with the material inventoried in recon, then test each conclusion against evidence appropriate to its kind under [`knowledge-integrity.md §2`](../../ssot-preflight/references/knowledge-integrity.md#2-write-time-annotation). Authorized decisions establish intent, code/config/schema inspection establishes implementation structure, and recorded execution establishes bounded observations; test source alone does not establish a passing run. When implementation differs from accepted intent, retain both and route the gap or conflict under [`source-material.md`](../../ssot-preflight/references/source-material.md); code does not revoke the intent.
 
 **Absorb rather than mirror**: per [`source-material.md`](../../ssot-preflight/references/source-material.md), extract only long-lived knowledge into authoritative locations and keep source pointers, evidence tier and conflict state. README/docs may remain thin documentation, public description or derived output, but cannot be an independent long-lived fact source split from `SSOT/`. Regardless of what language the source material uses, SSOT output language follows `documentation_language` in `STATUS.md`; verbatim quotations stay in the original.
 
@@ -306,33 +306,26 @@ When recon finds tool entries in script directories, package manifest, CI, Makef
 
 ### 3.4 Evidence trustworthiness and exploration efficiency
 
-Evidence has two independent dimensions: **trustworthiness** (who to believe on conflict) and **exploration efficiency** (what to look at first to build understanding fastest). Their orders are exactly reversed.
+Choose evidence by the claim it can establish, not a universal ranking of
+file types. Use the claim/evidence table in
+[`knowledge-integrity.md §2`](../../ssot-preflight/references/knowledge-integrity.md#2-write-time-annotation):
+authorized intent, inspected implementation structure, observed execution,
+and external contracts answer different questions. Static code and test
+assertions do not prove that a user flow ran; observed code behavior does not
+cancel a human-approved promise.
 
-**Trustworthiness order** (high -> low):
+Exploration order is a cost decision. A README, decision, or runbook often
+provides useful orientation before config and code; debugging may instead
+start from a failing execution or trace. Follow the cheapest route that can
+establish the task's claims, recording revision, environment, and limits when
+material. Starting with a document neither certifies nor discredits it.
 
-```text
-Tier A: code behaviour (run results, actual import/export, real call chains)
-  -> Implemented facts. Code wins when describing current landed behaviour.
-Tier B: configuration files (package.json, Dockerfile, CI config, schema)
-  -> Close to implemented facts. Machine-parseable, usually in sync with code, but may have unused config.
-Tier C: code comments / commit messages
-  -> Developers' immediate intent records, but may be stale or inaccurate.
-Tier D: source material (README, ADR, ARCHITECTURE.md, docs/, runbook, user-provided material)
-  -> Source material may lag; architecture Current / Target / Gap and invariants / constraints and ADRs are design-intent authorities, but not implemented-fact authorities.
-```
-
-**Exploration-efficiency order** (high -> low):
-
-Source material > config files > code structure > code content > Git history. Material has low trustworthiness but is most efficient as a starting point -- first build initial understanding from material, then verify and correct with code and config.
-
-**Core principle**: source material is a clue; code/config/schema/test is the judge of implemented facts; `02-architecture/` and `04-records/decisions/` are the judges of design intent. The agent should:
-
-1. Build hypotheses quickly from source material (high exploration efficiency)
-2. Validate hypotheses with code and config (high trustworthiness)
-3. When source material is inconsistent with implemented facts, code/config/schema/test wins; note the divergence in SSOT ("material claims X but code is actually Y")
-4. When implemented facts are inconsistent with design intent, do not auto-rewrite design intent; mark `implementation_state: diverged` or `partial` in the decision, and write into `open adjudications` in `STATUS.md`
-
-This is consistent with `$ssot-preflight`'s "implemented facts vs design intent" principle: distinguish them first, then handle conflict.
+When sources disagree, first check that they describe the same claim,
+revision, configuration, and scope. Preserve a mismatch as evidence: correct
+an unsupported implementation claim, retain an accepted target beside its
+implementation gap, or open an adjudication when protected intent conflicts
+with reality. Do not select a winner by filename or collapse Current, Target,
+and Gap into one story.
 
 ### 3.5 Depth-calibration guide
 

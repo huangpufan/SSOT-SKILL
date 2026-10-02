@@ -149,11 +149,11 @@ produce the comprehension verdict.
 
 ### 2.2 L2 semantic checks
 
-L2 checks require the agent to read code/config/schema/test and judge semantic consistency. Results need agent judgement; reviewer choice still follows `status-protocol.md` §6 rather than making every semantic check independently reviewed.
+L2 checks require evidence appropriate to each claim (authorized intent, inspected implementation, recorded execution, or external contract) and judgement of semantic consistency. Results need agent judgement; reviewer choice still follows `status-protocol.md` §6 rather than making every semantic check independently reviewed.
 
 | # | Check | Criterion | Fix action |
 |---|---|---|---|
-| 8 | confidence entry verification | Do `confidence: hypothesis` or `candidate` entries now have code evidence to promote or refute? When multiple entries are pending, prioritize by `discovered_at` from old to new. | If evidence exists, promote; if refuted, demote, delete or mark obsolete |
+| 8 | confidence entry verification | Do `confidence: hypothesis` or `candidate` entries now have claim-appropriate evidence under `knowledge-integrity.md §2` to promote or refute? When multiple entries are pending, prioritize by `discovered_at` from old to new. | If evidence exists, promote; if refuted, demote, delete or mark obsolete |
 | 9 | `DOC-LANGUAGE` semantics | Does SSOT Markdown body, headings or table labels deviate from the locked language? Any unadjudicated language switch? | Language switch enters open adjudications and stop-review gate |
 | 10 | decisions implementation-state consistency | Any `implementation_state: diverged` without a corresponding adjudication in STATUS.md? Any pending/partial/implemented inconsistent with current code? | Update implementation_state and add/update adjudication |
 | 11 | adjudication-queue validity | Do pending/deferred/resolved/superseded match current facts? Have deferred items hit the revisit condition, and which actions depend on the unresolved decision? | Update queue state; apply the affected-scope and blocking/retrigger rules in [`status-protocol.md` §5](../../ssot-preflight/references/status-protocol.md#5-adjudications-and-gaps) to pending or due deferred items. |

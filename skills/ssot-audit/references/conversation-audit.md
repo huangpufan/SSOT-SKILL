@@ -150,7 +150,17 @@ Content written into SSOT by conversation audit should tag its source as `conver
 - Source field in entry metadata
 - Footnote reference
 
-When a conversation conclusion concerns code implementation, the agent should cross-validate against code. If validation passes, the source may be tagged `conversation` + `code-analysis`, raising confidence. If the conversation conclusion does not match code, use `$ssot-preflight`'s "implemented facts vs product/technical intent" rule and the conflict-adjudication rules in [`source-material.md`](../../ssot-preflight/references/source-material.md) to distinguish authority: when describing implemented facts, code/config/schema/test wins; when describing product intent, product promises, capability, journey, roadmap or product acceptance, the `product/` area owns the conclusion and the implementation gap is linked back to architecture/testing/tech-debt; when describing technical design intent, constraints or not-yet-landed decisions, do not auto-declare code correct -- update current/target/gap in architecture views/domains, mark `implementation_state: diverged` or record the constraint conflict if needed, and write into `open adjudications` in `STATUS.md`. `stale/conflict` cannot be marked and then skipped.
+For each conversation conclusion, use the claim/evidence distinction in
+[`knowledge-integrity.md §2`](../../ssot-preflight/references/knowledge-integrity.md#2-write-time-annotation).
+Inspect code/config/schema for implementation structure and recorded execution
+for runtime observations; neither substitutes for an authorized product or
+design decision. Compare revision, configuration, and scope before resolving
+a disagreement. Accepted product intent stays with its product owner and
+links to the delivery gap; protected technical intent retains its authority
+while architecture records Current/Target/Gap and an adjudication when needed.
+Tag the actual source and evidence, not an inferred execution. Follow
+[`source-material.md`](../../ssot-preflight/references/source-material.md) for
+conflict routing; `stale/conflict` is not permission to drop the issue.
 
 Before writing, obey the documentation language lock: if `STATUS.md` lacks `documentation_language`, detect only from root README, `docs/`, ADRs, runbooks, subsystem READMEs and user-provided external material; on mixed language, insufficient evidence or no detectable documents, ask the user first. Do not fall back to the current conversation language. Verbatim quotations, code identifiers, paths, commands, API names and enum values stay in the original.
 
