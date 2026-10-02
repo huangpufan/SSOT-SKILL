@@ -2,26 +2,33 @@
 name: ssot-preflight
 description: Repository SSOT preflight before substantive code, config, docs, review, debugging, refactoring, or planning work. Use to check SSOT/STATUS.md, open adjudications, documentation language, protocol version, minimal SSOT read routing, and in-task SSOT write triggers. Do not use for pure operations, trivial format-only edits, or non-repository chat.
 metadata:
-  protocol_version: "2.65"
+  protocol_version: "2.66"
   bundle: "SSOT Skill"
   semantic_impact: medium
 ---
 
 # SSOT Preflight
 
-You are at the start of substantive repository work. Your job here is not to
-do the work — it is to decide what's safe to read, what's blocked, and what
-durable facts you must capture as you go. Do not write code or docs until
-this gate clears.
+You are at the start of substantive repository work. Identify which planned
+actions depend on unresolved decisions and which durable facts to capture.
+Read-only investigation may proceed to establish scope and evidence; clear
+the applicable gates before changing code or docs in the affected scope.
 
 ## Clear the gate
 
-Read `SSOT/STATUS.md` first. Treat any substantive change as blocked until
-you have answered, in order:
+Read `SSOT/STATUS.md` first. Before a substantive change, answer, in order:
 
-- **Adjudications.** Any `pending` item under `## 开放裁决项` (or legacy
-  `## 待裁决项`), or a `deferred` item whose revisit condition has fired,
-  blocks ordinary work until resolved or re-deferred.
+- **Adjudications.** Read `## Open Adjudications` / `## 开放裁决项`
+  (legacy `## 待裁决项`). A `pending` item, or a `deferred` item whose
+  revisit condition has fired, blocks only actions that depend on its
+  unresolved decision: match the affected scope/task and blocking condition,
+  including shared contracts and explicitly repository-wide rules. Continue
+  unrelated work and read-only investigation. A future deferred item does not
+  block by itself; existing confirmed rules still bind. Apply an existing
+  explicit user decision when it settles the item, recording its authority;
+  do not ask for the same decision again or re-defer an item on your own.
+  For unclear scope, inspect the owner and hold only potentially dependent
+  changes while clarifying. See `references/status-protocol.md §5`.
 - **Adjudication boundary (v2.64).** Rows under the `SSOT/README.md`
   `## 裁决边界` / `## Adjudication boundary` section are rules established
   by human decision. If your task would alter the behaviour a registered

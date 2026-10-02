@@ -10,6 +10,25 @@ files.
 
 ## Version Ledger
 
+### v2.66
+
+**Upgrade goal**: a pending or due-deferred adjudication blocks the actions
+that depend on its unresolved decision, including shared contracts and an
+explicit repository-wide boundary. Unrelated work and read-only investigation
+can continue. Existing human authority settles an item without repeat approval;
+agents cannot silently waive, narrow, or re-defer the protected decision.
+
+**Impact**: `semantic_impact=medium`; clarifies the scope of the existing gate
+without changing the adjudication schema or decision authority.
+
+**Impact checklist**:
+
+| Check | Audit action | Done criterion |
+|---|---|---|
+| Open adjudication impact | Inspect affected scope and blocking/revisit condition. | The dependent action is identifiable; global scope is explicit when justified. |
+| Entry and inline behavior | Apply `status-protocol.md §5` at entry and mid-task. | No global stop for unrelated work; no mid-task exemption for dependent changes. |
+| Decision provenance | Reuse still-applicable human decisions and retain closure evidence. | No duplicate permission question or agent-invented deferral. |
+
 ### v2.65
 
 **Upgrade goal**: remove contradictory reviewer requirements from commit and

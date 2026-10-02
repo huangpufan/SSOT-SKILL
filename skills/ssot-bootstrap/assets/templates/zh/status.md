@@ -163,7 +163,10 @@
 `superseded`（已取代）。
 
 <!-- 真实 ID 使用 ADJ-YYYYMMDD-NN。状态：pending / deferred / resolved /
-     superseded；未闭合行的闭合证据写 `none: open`。 -->
+     superseded；未闭合行的闭合证据写 `none: open`。pending 或已到复核条件的
+     deferred 只阻断指定范围内依赖该裁决的变更；无关工作与只读取证可以继续。
+     全仓范围须明确标出，并写清阻断或复核触发条件。已有明确人工裁决应直接使用，
+     不得自行授权延期。语义见 ssot-preflight references/status-protocol.md §5。 -->
 
 | ID | 状态 | 受影响范围或任务 | 问题或缺失证据 | 责任所有者 | 阻断或复核触发条件 | 解决路由 | 闭合或取代证据 |
 |---|---|---|---|---|---|---|---|

@@ -156,7 +156,12 @@
 ## Open Adjudications
 
 <!-- Real IDs use ADJ-YYYYMMDD-NN. State: pending / deferred / resolved /
-     superseded. Open rows use `none: open` for closure evidence. -->
+     superseded. Open rows use `none: open` for closure evidence. Pending or
+     due-deferred items block decision-dependent changes in the named scope;
+     unrelated work and read-only investigation can continue. State any
+     repository-wide scope explicitly and name the blocking/revisit condition.
+     Apply existing human decision authority; do not self-authorise deferral.
+     Semantics: ssot-preflight references/status-protocol.md §5. -->
 
 | ID | State | Affected scope / task | Question / missing evidence | Responsible owner | Blocking / retrigger condition | Resolving route | Closure / supersession evidence |
 |---|---|---|---|---|---|---|---|

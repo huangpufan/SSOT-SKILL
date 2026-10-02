@@ -50,8 +50,10 @@ Follow this path before writing STATUS:
 
 1. Re-read the current file. If another actor advanced a tracking baseline, review on
    the new baseline.
-2. Check open adjudications. `pending` entries and due `deferred` entries block
-   ordinary work until resolved, superseded, or re-deferred.
+2. Check open adjudications against the planned action. `pending` entries and
+   due `deferred` entries block decision-dependent changes in their affected
+   scope, not unrelated work or read-only investigation. Apply §5, including
+   existing decision authority, before asking for a new decision.
 3. Check the language lock. New SSOT body text must match
    `documentation_language` except for paths, commands, identifiers, enum
    values, API names, and direct quotes.
@@ -226,22 +228,50 @@ coverage state or points to a gap/adjudication.
 
 ## 5. Adjudications and Gaps
 
-Open adjudications are the new-session gate. A `pending` item blocks ordinary
-work. A `deferred` item blocks once its `revisit_condition` fires. Legal states:
+Open adjudications constrain actions that depend on an unresolved decision.
+At task entry and when a conflict is discovered mid-task, read the affected
+scope/task and blocking/retrigger condition together. Match semantic impact,
+including shared state, contracts, or an explicitly repository-wide rule;
+matching only the edited path can miss a real dependency. An unrelated
+pending item does not block the task. Legal states:
 
 | Status | Meaning |
 |---|---|
-| `pending` | Blocks new-session entry. |
-| `deferred` | Does not block until `revisit_condition` is met. |
+| `pending` | Blocks changes that depend on this unresolved decision in its affected scope. |
+| `deferred` | Does not block by itself before `revisit_condition` is met; once due, apply the same scope/dependency check as `pending`. |
 | `resolved` | Adjudicated; retained for history. |
 | `superseded` | Replaced by another adjudication; pointer retained. |
 
-The blocking prompt stays brief:
+Use the following decision path:
+
+1. Determine whether the planned action needs the unresolved decision. A
+   repository-wide boundary may affect many tasks; its explicit scope and
+   blocking condition determine which actions it constrains. Do not narrow a
+   real shared dependency merely to bypass the gate.
+2. Continue unrelated actions and read-only investigation, including reading
+   evidence, reviewing alternatives, and preparing a concrete proposal. These
+   actions must not silently settle the decision or change the protected
+   behaviour. Existing permissions and confirmed boundaries still apply.
+3. If the scope or trigger is unclear, inspect the linked owner and decision
+   evidence. Keep potentially dependent changes on hold while obtaining only
+   the missing clarification; do not turn missing scope into a whole-repo
+   stop or an assumption that the item is irrelevant.
+4. If an explicit current user directive or a still-applicable recorded human
+   decision already settles the issue, use it and record the closure evidence.
+   Do not request the same approval again. If that authority does not settle
+   the issue, ask for the necessary decision and continue independent work.
+5. Resolve, supersede, or re-defer only with applicable decision authority.
+   An agent may record the decision but must not invent approval, change the
+   scope to evade a blocker, or re-defer an item merely to continue. A future
+   deferred item is not a waiver of an existing confirmed rule.
+
+The blocking prompt names only the decision-dependent actions and stays brief:
 
 ```text
-The following pending adjudications must be processed before continuing:
-- ADJ-YYYYMMDD-NN (scope): question; needed_by; links
+The following adjudication blocks <dependent action>:
+- ADJ-YYYYMMDD-NN (scope): question; blocking condition; links
 Please choose for each: accept / reject / alternative plan / defer.
+Independent work that can continue: <actions, or none>.
 ```
 
 Open gaps record unresolved information gaps by area/view/domain. A gap may not
@@ -256,6 +286,12 @@ resolving Markdown link or explicit `$ssot-*` route. `resolved` or
 `superseded` rows additionally link closure or supersession evidence. Starter
 rows may be completely empty; a partly filled row is a real row and must pass
 the full contract.
+
+For adjudications, name repository-wide scope explicitly when justified;
+otherwise identify the affected owner, contract, workflow, or task. The
+blocking condition states which decision-dependent action must wait. Record
+a deferral's observable revisit signal in that same condition cell. Discovering
+an item mid-task does not exempt an affected action from this rule.
 
 The `Blocking / retrigger condition` cell is also the contract surface for §3's
 registered blockers: when a gap blocks a protocol claim, name the claim token

@@ -129,7 +129,7 @@ After updating area content, sync STATUS.md:
 - Update affected area state (e.g. `gap` -> `covered`, `covered` -> `stale`); reviewer choice for these stop conclusions follows `status-protocol.md §6`.
 - Update the source-material absorption matrix: source material read or changed in this run must record classification, authoritative location, absorption state, conflict/adjudication and last check
 - Update the open-gaps list
-- Add or update adjudications discovered mid-run; remind the user once but do not block the current task by default
+- Add or update adjudications discovered mid-run; apply the same scope/dependency gate as at task entry (`status-protocol.md §5`)
 
 Open gaps must have an owner or next action. A gap row that says "create debt
 later" is not routed; either create the debt entry now or mark the gap with the
@@ -150,7 +150,12 @@ If the inline-check conclusion is `no-op` / "no update needed", record the no-op
 
 ### 2.6 Adjudication registration
 
-For situations that need adjudication but should not interrupt the current task, write into `open adjudications` in `STATUS.md`:
+For situations that need adjudication, register the affected scope, unresolved
+question, decision-dependent action, and resolving owner under open
+adjudications in `STATUS.md`. Follow
+[`status-protocol.md §5`](../../ssot-preflight/references/status-protocol.md#5-adjudications-and-gaps):
+continue independent work and fact gathering, but hold changes that require
+the unresolved decision. Discovery mid-task is not an exemption.
 
 | Scenario | Action |
 |---|---|
@@ -158,13 +163,19 @@ For situations that need adjudication but should not interrupt the current task,
 | Two design intents conflict with each other | Keep links to both sides, add/update the adjudication |
 | Fact sources cannot be merged and will affect future implementation | Mark the related area `conflict`, add/update the adjudication |
 
-New entries use `ADJ-YYYYMMDD-NN`, status defaults to `pending`. Remind once during the run:
+New entries use `ADJ-YYYYMMDD-NN`, state defaults to `pending`. If an existing
+explicit user decision settles the issue, record its authority and resolve the
+item. Otherwise name the impact once during the run:
 
 ```text
-Found adjudication needed ADJ-YYYYMMDD-NN: <issue>. Not blocking the current task, recorded in STATUS.md.
+ADJ-YYYYMMDD-NN: <issue>; blocks <dependent action, or none in this task>.
+Independent work that can continue: <actions, or none>. Decision route: <owner>.
 ```
 
-If the user opts to defer, status becomes `deferred` and `revisit_condition` is recorded; if unspecified, use "re-adjudicate at next session".
+If the user opts to defer, record `deferred` and the agreed revisit condition
+in the condition cell. If no timing is specified, make the proposed
+next-session review explicit; do not silently treat it as approved or as a
+waiver of a confirmed rule.
 
 ### 2.7 Source-material absorption
 
