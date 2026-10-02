@@ -74,7 +74,17 @@ audit, not the audit narrative itself: use short anchored evidence strings and
 explanation in the authoritative owner or review artifact and cite it from the
 block.
 
-**CAP- row** — the exact 8-column CAP schema (`ID | Source | Proposed owner | Reason | Priority/trigger | Responsible owner | State | Closure evidence`) is owned solely by `status-protocol.md §8 Appendix A`. This file owns only the move/rationale semantics: the two evidence streams (`stream_a`/`stream_b`), the five self-check questions, and the `<!-- rule -->` / `<!-- move -->` blocks. The `altitude_guess` / `signal_source` vocabulary survives only as cell content inside the Appendix-A `Reason` / `Priority / trigger` cells, not as columns of its own.
+**CAP- row** — use the schema and lifecycle owned solely by
+[`status-protocol.md §8 Appendix A`](../../ssot-preflight/references/status-protocol.md#8-appendix-a-exact-table-schemas).
+This file owns the two evidence streams, the five self-check questions, and
+the rule/move blocks, not a second capture schema. Park an unresolved signal
+as `pending`; retain its anchored source and distinguish a literal user
+directive from the agent's interpretation of a recurring pattern. A proposed
+altitude is a hypothesis about placement, not permission to promote. Record
+it in the existing reason/trigger cells only when it helps the next review.
+`deferred-export` describes an export trigger on a `deferred` capture; it is
+not a state. Routing a capture names the receiving owner; absorption requires
+evidence that the durable fact reached that owner.
 
 ## When to invoke doctor stop-review
 

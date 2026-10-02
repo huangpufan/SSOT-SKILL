@@ -55,17 +55,41 @@ version through the current upgrade file.
 
 ## Bundle Captures
 
-Provisional agent-method rule captures destined for SSOT-SKILL bundle apex
-(`AGENTS.md` or a specific `SKILL.md`). Sourced from consumer repos'
-`deferred-export` rows during the audit protocol-upgrades cadence; `$ssot-audit`
-emits the move block that promotes a row into its apex destination.
+Provisional agent-method captures whose proposed owner is in this bundle.
+They enter through an authorised audit of consumer evidence; capture alone
+does not authorise a cross-repository write or decide the rule's altitude.
+`$ssot-audit` evaluates the evidence and routes any justified move through
+[`promotion-rationale.md`](../../ssot-closeout/references/promotion-rationale.md).
 
 During a deliberate catch-up, run the large-window two-stream scan across the
 segmented commit/session range; cross-batch incident concentration and
-apex/authority drift are invisible to one-batch closeout. Harvest each
-consumer's `deferred-export` rows into this bundle inbox. If an expected
-transcript is unavailable, keep the missing evidence visible in a deferred
-CAP row instead of inventing or silently skipping the signal.
+apex/authority drift are invisible to one-batch closeout. A consumer awaiting
+bundle review uses `State: deferred` with its export/review condition in
+`Priority / trigger`; `deferred-export` is trigger context, not a state.
+Preserve the originating repository and capture/source anchor when recording
+an authorised intake here. If an expected transcript is unavailable, retain
+that evidence gap and the next review trigger rather than inventing the
+signal or claiming it absorbed.
+
+### Current captures
+
+New rows use only the schema and lifecycle in
+[`status-protocol.md §8 Appendix A`](../../ssot-preflight/references/status-protocol.md#8-appendix-a-exact-table-schemas).
+The table is a register: proposed and responsible owners route to existing
+bundle files or lifecycle skills; narrative belongs in the linked owner.
+There are no current captures.
+
+| ID | Source | Proposed owner | Reason | Priority / trigger | Responsible owner | State | Closure evidence |
+|---|---|---|---|---|---|---|---|
+
+### Historical captures before v2.61 — read-only
+
+The original rows below preserve historical evidence and outcomes verbatim.
+Their retired columns, free-text states, source placeholders, and past rule
+proposals are not templates or current authority. Do not append new captures
+here or infer present behaviour from a historical `routed` outcome; consult
+the current rule owner. Reopening an old signal creates a current-schema row
+with a link back to this history and fresh evidence.
 
 | id | captured_at | about | altitude_guess | rule | evidence | signal_source | status |
 |---|---|---|---|---|---|---|---|
@@ -73,5 +97,5 @@ CAP row instead of inventing or silently skipping the signal.
 | CAP-20260619-01 | 2026-06-19 | agent-method | bundle | Two-step rename phase 2 (cycle-4): promote `[FORK]` (14W) from WARN-only to slice-scoped hard blocker. Cycle-3 phase 1 extracted `architecture/control-plane/` as the unique runtime owner; `backend-runtime/README.md` kept the control-plane shell + Symbols/Failure-trace table rows as a redirect layer. Without a hard-blocker step, non-owner READMEs can drift back into copying control-plane facts. Promotion rule: inside the active cycle's slice scope, `[FORK]` blocks the affected area's `covered` mark until the fact is migrated to its unique runtime owner and non-owner locations are reduced to a single-line link. WARN-only outside the active slice. | path:projects/SSOT-SKILL/skills/ssot-doctor/references/doctor.md (rows 14W + Coverage hard blockers list); the origin project's backend-runtime README (cycle-3 redirect shell §"Control plane (moved)" with explicit cycle-4 promotion note); the origin project's control-plane README (new unique runtime owner extracted in cycle-3 commit `<commit>`) | repo-signal | routed (cycle-4 doctor.md row 14W v2.41 hard-blocker clause now enforces it; preflight protocol_version 2.40 → 2.41) |
 | CAP-20260619-02 | 2026-06-19 | agent-method | bundle | Tighten cold-agent-sim §2 prompt template: schema expanded from 3-field `{intent, hop1_path, hop2_anchor}` to 6-field `{intent, hop1_path, hop2_anchor, hops_used, verdict, reasoning}`; new "Routing-only mandate" subsection (v2.42) explicitly disambiguates `verdict=FAIL` as "cannot route to SSOT anchor" (NOT "commit appears unaligned with SSOT consensus"). Cycle-3 + cycle-4 surfaced ~25-30% of trials drifting from "route to owner" mode into "validate commit text vs SSOT consensus" mode under ambiguous prompts (cycle-3 trials `<commit>` + `<commit>`; cycle-4 trials `<commit>`/T1+T3 + `<commit>` ×3 + `<commit>`/T1+T3 + `<commit>`/T2). The prompt template shape was the suspected cause. Cycle-5 regression with the tightened prompt tests whether schema-deviation drops below 10%. | path:projects/SSOT-SKILL/skills/ssot-doctor/references/cold-agent-sim.md §2 (Output schema row + new "Routing-only mandate" subsection, v2.42); path:projects/SSOT-SKILL/skills/ssot-doctor/assets/cold-agent-sim/cycle-example.md (§6 deviation 2); path:projects/SSOT-SKILL/skills/ssot-doctor/assets/cold-agent-sim/cycle-example.md (results table — `<commit>` + `<commit>` + `<commit>` fails all schema-deviation); path:projects/SSOT-SKILL/skills/ssot-doctor/assets/cold-agent-sim/cycle-example.md (regression results under v2.42 prompt; preflight protocol_version 2.41 → 2.42; VERSION 2.38 → 2.42 catch-up) | repo-signal | routed (cycle-5 phase 1; cold-agent-sim.md §2 v2.42 prompt-template clause now in force) |
 
-> CAP- row enums and the move-block mechanism: see
-> `$ssot-closeout references/promotion-rationale.md`.
+> Current capture states and schema are owned by `status-protocol.md §8
+> Appendix A`; move semantics are owned by `promotion-rationale.md`.

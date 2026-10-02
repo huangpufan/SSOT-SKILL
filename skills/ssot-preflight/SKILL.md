@@ -2,7 +2,7 @@
 name: ssot-preflight
 description: Repository SSOT preflight before substantive code, config, docs, review, debugging, refactoring, or planning work. Use to check SSOT/STATUS.md, open adjudications, documentation language, protocol version, minimal SSOT read routing, and in-task SSOT write triggers. Do not use for pure operations, trivial format-only edits, or non-repository chat.
 metadata:
-  protocol_version: "2.69"
+  protocol_version: "2.70"
   bundle: "SSOT Skill"
   semantic_impact: medium
 ---
@@ -131,11 +131,14 @@ Watch the user's prompts for an explicit lift-or-kill directive
 turns, or recent prompts clustering in one domain. When one surfaces
 and the rule is not already a clear durable fact you can write into the
 unique authority per the section above, park one `CAP-` row
-(`signal_source: user-directive`, `status: open`) in
-`SSOT/STATUS.md ## Pending Captures` and let `$ssot-closeout` or
-`$ssot-audit` route it. Do not promote, do not edit any other SSOT
-file. Detail on the two evidence streams and the move schema lives in
-`$ssot-closeout references/promotion-rationale.md`.
+in `SSOT/STATUS.md ## Pending Captures` using the sole schema in
+`references/status-protocol.md §8 Appendix A`: start at `State: pending`,
+retain the user-directive source and session/date anchor, and name a proposed
+owner, responsible route, and review trigger. An inferred pattern is a
+candidate interpretation, not a user-approved rule. Let `$ssot-closeout` or
+`$ssot-audit` route it; parking the signal does not itself authorise promotion
+or edits to another owner. Detail on the two evidence streams and move
+semantics lives in `$ssot-closeout references/promotion-rationale.md`.
 
 ## When this skill is wrong, route out
 

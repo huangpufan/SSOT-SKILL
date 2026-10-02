@@ -85,6 +85,7 @@ versions. This file only restates headline changes.
   runtime is worse than an honest gap.
 
 ### Fixed
+- v2.70: Use the canonical Pending Captures schema and lifecycle everywhere while preserving frozen historical capture records.
 - v2.69: Bind audit baselines to fixed, fully reviewed ranges; preserve unread sessions, resumed content, merged history, and reverted events.
 - v2.68: Allow scoped Doctor diagnostics despite unrelated structural debt while preserving every relevant pass and coverage gate.
 - v2.67: Match knowledge confidence to authorized intent, static structure, observed execution, and external contracts instead of a code-only evidence hierarchy.

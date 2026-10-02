@@ -496,6 +496,39 @@ questions. This Appendix A table is the sole owner of the eight-column pending
 captures schema; every other reference must point here rather than restate the
 columns.
 
+`Source` preserves a retrievable session/date, commit, file, or external-source
+anchor. It may identify `user-directive` or `repo-signal` as context, without
+adding a separate column. `Reason` distinguishes an explicit directive from
+an agent-inferred pattern and explains why the signal may outlive this task.
+`Proposed owner` links the intended existing owner; when placement is still
+unclear, link the narrowest existing intake owner and mark the choice
+provisional in `Reason`. Do not invent a nonexistent owner merely to fill the
+cell. `Responsible owner` names the existing owner link or lifecycle-skill
+route that will dispose the capture. A capture proposes future disposition;
+it does not grant authority to change a rule or widen the task's write scope.
+
+Capture states mean:
+
+- `pending`: recorded and awaiting disposition; this is the initial state.
+- `routed`: assigned to a receiving owner or follow-up route, without claiming
+  the fact has already been absorbed. Keep that route reachable from the row.
+- `absorbed`: incorporated into the unique owner, with a closure link showing
+  the resulting fact and any required decision or review evidence.
+- `deferred`: deliberately awaiting the observable review trigger in
+  `Priority / trigger`; retain the reason and responsible route. Bundle export
+  intent such as `deferred-export` belongs in this cell, not in `State`.
+- `expired`: no longer useful or applicable, with a closure link preserving
+  the reason; expiry is not a substitute for unresolved required work.
+
+Open captures use `none: open` or a concrete follow-up route in `Closure
+evidence`. The word `open` is not a capture state. When touching a legacy row,
+map `open` or `proposed` to `pending`, and preserve source dates, rule wording,
+evidence, and routing context in the matching cells or a linked historical
+record. Interpret other legacy outcomes from their evidence rather than
+guessing that `routed`, `resolved`, or free-text completion means `absorbed`.
+Explicitly frozen historical tables may retain their original bytes if they
+are labeled read-only and are not used as templates for new captures.
+
 Stop review gate:
 
 | Scope | Stop claim | Reviewer | Reviewer role | Reviewed at | Result | Evidence | Remaining changes | Authorises |

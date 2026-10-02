@@ -10,6 +10,25 @@ files.
 
 ## Version Ledger
 
+### v2.70
+
+**Upgrade goal**: stop entrypoints from generating retired capture fields or
+an illegal `open` state. Pending Captures has one eight-column schema and five
+states owned by `status-protocol.md §8`. Preserve source provenance, a usable
+owner/route, and the distinction between routing and actual absorption.
+
+**Impact**: `semantic_impact=medium`; repairs instructions to match the existing
+schema. No new STATUS field or state is introduced.
+
+**Impact checklist**:
+
+| Check | Audit action | Done criterion |
+|---|---|---|
+| New captures | Follow the canonical schema, start unresolved captures at pending, and retain traceable source/context. | No `signal_source` column or `open`/`deferred-export` state is emitted. |
+| Touched legacy captures | Map known legacy states while preserving source, rationale, and evidence. | Routed is not mistaken for absorbed; ambiguous history remains explicit. |
+| Frozen history | Keep original rows read-only with a distinct current intake. | Historical bytes survive and no new row uses the retired shape. |
+| Rule promotion/export | Preserve existing decision and write-scope boundaries. | A capture proposes disposition; it grants no cross-repository or global-rule authorization. |
+
 ### v2.69
 
 **Upgrade goal**: a tracking baseline represents reviewed coverage, not the
