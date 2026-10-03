@@ -7,7 +7,22 @@ actionability, and decision-overturn checks.
 The default path is a decision tree. The tables are fallback reference, not the
 normal execution path.
 
-## 1. Routing In Five Questions
+## 0. Entry check
+
+Closeout may be invoked without a prior preflight, so check three facts in
+`SSOT/STATUS.md` before writing anything:
+
+- No `SSOT/` or no `STATUS.md`: nothing to reconcile. Offer `$ssot-bootstrap`
+  as `ssot-preflight` describes and otherwise end the closeout with a one-line
+  "no SSOT" note; do not create `HISTORY.md` or other files in a vacuum.
+- `coverage_result: bootstrap` or an active bootstrap manifest: bootstrap owns
+  the structure. Closeout limits itself to the session log and `HISTORY.md`
+  rows the manifest asks for, and does not declare coverage.
+- `tracked_skill_version` behind the loaded protocol (or missing): route to
+  `$ssot-audit` before writing SSOT bodies or advancing a baseline, and say so
+  in the final response.
+
+## 1. Routing In Six Questions
 
 1. **What changed?** Identify whether the source is code/config/schema, tests,
    docs/source material, SSOT/protocol/template text, conversation signal,

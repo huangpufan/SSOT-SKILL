@@ -2,7 +2,7 @@
 name: ssot-preflight
 description: Repository SSOT preflight before substantive code, config, docs, review, debugging, refactoring, or planning work. Use to check SSOT/STATUS.md, open adjudications, documentation language, protocol version, minimal SSOT read routing, and in-task SSOT write triggers. Do not use for pure operations, trivial format-only edits, or non-repository chat.
 metadata:
-  protocol_version: "2.85"
+  protocol_version: "2.86"
   bundle: "SSOT Skill"
   semantic_impact: medium
 ---
@@ -42,8 +42,12 @@ Read `SSOT/STATUS.md` first. Before a substantive change, answer, in order:
   evidence; SSOT Markdown you write this task must match it — except for
   paths, commands, identifiers, enum values, API names, and direct quotes.
 - **Protocol version.** Compare this file's `metadata.protocol_version`
-  against `STATUS.md` `tracked_skill_version`. Project behind -> stop, route
-  to `$ssot-audit`. Installed bundle behind project -> report stale install;
+  against `STATUS.md` `tracked_skill_version`. Project behind (or the version
+  is missing / `unknown/legacy`) -> report the lag and route to `$ssot-audit`
+  before any SSOT write or tracking-baseline advance. Read-only investigation
+  and changes that write no SSOT may proceed meanwhile, and closeout must
+  not write new-protocol content into an unaudited STATUS. Installed bundle
+  behind project -> report stale install;
   never downgrade the project. If the user names a newer source checkout of
   the bundle (or one is vendored in the repository) than the installed copy
   currently being read, report the install as stale and reinstall from that

@@ -5,7 +5,9 @@ description: SSOT closeout before final response, claim_done, or commit after su
 
 # SSOT Closeout
 
-Reconcile the whole batch, not only the diff. Follow
+Reconcile the whole batch, not only the diff. Check the entry conditions in
+[`update-routing.md §0`](references/update-routing.md#0-entry-check) first (SSOT
+exists, bootstrap not active, protocol not behind), then follow
 [`update-routing.md`](references/update-routing.md) and
 [`inline-update-guide.md`](references/inline-update-guide.md); load
 [`reader-quality.md`](../ssot-preflight/references/reader-quality.md) before changing reader bodies. Stop only when every durable

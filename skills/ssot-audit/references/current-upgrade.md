@@ -10,6 +10,17 @@ files.
 
 ## Version Ledger
 
+### v2.86
+
+**Upgrade goal**: A project one release behind is the normal state, so stopping every task at preflight made the gate unusable. The gate now protects what it exists for: SSOT writes and baseline advances. Closeout, which may run without preflight, checks the same conditions itself.
+
+**Impact**: `semantic_impact=medium`; narrows a hard stop and adds an entry check to closeout. No new area, state, or review gate.
+
+| Check | Audit action | Done criterion |
+|---|---|---|
+| Protocol lag | Run a feature task in a project behind the installed bundle. | The lag is reported; code work proceeds; audit precedes any SSOT write or baseline advance. |
+| Closeout entry | Invoke closeout with no SSOT, with bootstrap active, and with a behind baseline. | Closeout ends with a note, limits itself to bootstrap session records, or routes to audit respectively; it never creates HISTORY.md in a vacuum or writes new-protocol content into an unaudited STATUS. |
+
 ### v2.85
 
 **Upgrade goal**: Remove assumptions that only held for the bundle author's own repositories, so other repository kinds are not told to produce evidence that does not exist for them.
