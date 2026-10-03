@@ -10,6 +10,18 @@ files.
 
 ## Version Ledger
 
+### v2.85
+
+**Upgrade goal**: Remove assumptions that only held for the bundle author's own repositories, so other repository kinds are not told to produce evidence that does not exist for them.
+
+**Impact**: `semantic_impact=medium`; neutralises anchor vocabulary and fixes a Doctor lint defect. No new area, state, or review gate.
+
+| Check | Audit action | Done criterion |
+|---|---|---|
+| Anchors | Review architecture contract rows for SYMBOL-PIN, SURFACE-PIN and FAILURE-TRACE. | Rows use the surface kind and test layout of this repository; no web-only, Python-only or single-framework evidence is demanded. |
+| Stale install | Check how an installed bundle is compared with a newer checkout. | Only a checkout the user names or the repository vendors is consulted; no fixed local path is assumed. |
+| Version binding | Run lint with two installed copies at different versions. | The claim is judged against the newest artifact found in any agent directory. |
+
 ### v2.84
 
 **Upgrade goal**: Independent review was required in more places than the stop-review owner allows, with no definition and no outcome when a harness has no second reviewer. status-protocol §6 now defines independence and the no-reviewer path; other files link to it.

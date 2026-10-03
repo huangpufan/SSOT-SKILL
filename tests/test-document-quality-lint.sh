@@ -2472,6 +2472,17 @@ out=$(run_normal "$T" || true)
 assert_has_fail_tag "tracked version outrunning installed artifact fails" "$out" "[SKILL-VERSION-BINDING]"
 rm -rf "$T"
 
+echo "== V62j2 binding uses the newest artifact across any agent directory =="
+T=$(mktemp -d -p "$TMPDIR")
+write_exact_area_status "$T"
+sed_inplace 's/| tracked_skill_version | `2.60` |/| tracked_skill_version | `2.70` |/' "$T/SSOT/STATUS.md"
+mkdir -p "$T/.agents/skills/ssot-preflight" "$T/.windsurf/skills/ssot-preflight"
+printf -- '---\nmetadata:\n  protocol_version: "2.60"\n---\n# preflight\n' > "$T/.agents/skills/ssot-preflight/SKILL.md"
+printf -- '---\nmetadata:\n  protocol_version: "2.70"\n---\n# preflight\n' > "$T/.windsurf/skills/ssot-preflight/SKILL.md"
+out=$(run_normal "$T" || true)
+assert_no_fail_tag "claim equal to the newest artifact in a non-listed agent directory does not fail" "$out" "[SKILL-VERSION-BINDING]"
+rm -rf "$T"
+
 echo "== V62k failure digest groups large failure sets by check =="
 T=$(mktemp -d -p "$TMPDIR")
 write_exact_area_status "$T"

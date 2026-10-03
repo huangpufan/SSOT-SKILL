@@ -85,6 +85,7 @@ versions. This file only restates headline changes.
   runtime is worse than an honest gap.
 
 ### Fixed
+- v2.85: Remove author-environment assumptions: stale-install check no longer names a private checkout path; surface/symbol/failure anchors fit libraries, CLIs and jobs, not only web apps; the unfounded Playwright doctor claim is gone; version-binding lint finds any agent's install and compares against the newest artifact instead of the oldest.
 - v2.84: Define an independent reviewer once and give a no-deadlock path when none is available; bootstrap, area-model, Doctor and session templates now defer to status-protocol §6 instead of demanding independence in more places than it does.
 - v2.83: Make bootstrap an offered, user-authorised step when SSOT is missing, so an unrelated task is not blocked behind a multi-session setup; adapter blocks and entry scenarios carry the decline path.
 - v2.82: Preserve consequential product, process, and operating decisions even when reversible or local, while keeping routine edits out of the decision register.

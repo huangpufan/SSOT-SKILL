@@ -174,7 +174,7 @@ them as a universal heading checklist):
   or `tests/...::test_*` anchor for each invariant / contract row. A line number
   may be auxiliary but must not be the only stable anchor; Doctor
   `[SYMBOL-PIN]` (14S) gates this;
-- **surface anchors** (v2.39) — for each contract row, name the user-observable surface: API route + handler, SQL identifier, DOM selector + component + Playwright test, or CLI command location; doctor `[SURFACE-PIN]` (14T) gates this;
+- **surface anchors** (v2.39) — for each contract row, name the user-observable surface in the form that fits this repository: API route + handler, SQL identifier, UI element + component + browser test, CLI command location, public library symbol, or job/queue name; doctor `[SURFACE-PIN]` (14T) gates this;
 - **failure trace** (v2.39) — for each failure / recovery row, name the regression test or `BUG-NNNN` entry that owns it; doctor `[FAILURE-TRACE]` (14U) gates this;
 - **state tags** (v2.39) — every invariant / contract row carries `state: contract | design | poc | debt` inline (see `ssot-bootstrap` §3.7); doctor `[STATE-TAG]` (14V) gates this;
 - **playbook** (v2.39) — when the domain owns ≥3 mechanical task branches (e.g. "add a new SDK adapter", "migrate a schema column"), the domain ships a sibling `playbook.md` modeled on `SSOT/02-architecture/NN-<domain>/playbook.md`; the README explains the runtime and links the operational procedure instead of duplicating it. Doctor `[PLAYBOOK]` (14R) gates this;
@@ -517,6 +517,8 @@ rows must resolve all three anchors today; `design` / `poc` rows link the
 next-step evidence; `debt` rows link `DEBT-NNNN`. Empty cells are not
 acceptable; mark the row `gap` if any anchor is missing.
 
-This registry is what closes the loop on CLAUDE-MAXIM-2 (Browser DOM evidence
-must be Playwright, not jsdom): a `contract`-state row in a capability file
-that does not name a Playwright test is doctor-blocked.
+This registry closes the loop between a stated contract and its evidence: a
+`contract`-state row in a capability file must name the test or other
+verifiable evidence that proves it, at the fidelity the project's own rules
+require (for example a real-browser test rather than a simulated DOM, when the
+project declares that rule). The test framework is the project's choice.

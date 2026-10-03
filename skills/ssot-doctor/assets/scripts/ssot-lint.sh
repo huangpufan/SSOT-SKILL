@@ -6147,13 +6147,10 @@ fi
 if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_SKILL_VERSION" "2.60"; then
   svb_repo_root=$(dirname "$SSOT_DIR")
   svb_best=""
-  for svb_candidate in \
-    "$svb_repo_root/.agents/skills/ssot-preflight/SKILL.md" \
-    "$svb_repo_root/.claude/skills/ssot-preflight/SKILL.md" \
-    "$svb_repo_root/.cursor/skills/ssot-preflight/SKILL.md" \
-    "$svb_repo_root/.devin/skills/ssot-preflight/SKILL.md" \
-    "$svb_repo_root/projects/SSOT-SKILL/VERSION" \
-    "$svb_repo_root/SSOT-SKILL/VERSION"; do
+  # Any agent's installed copy (<agent-dir>/skills/ssot-preflight/SKILL.md, at
+  # most four levels deep) or a vendored/pinned bundle checkout (a SSOT-SKILL
+  # directory carrying a VERSION file).
+  while IFS= read -r -d '' svb_candidate; do
     [[ -f "$svb_candidate" ]] || continue
     if [[ "$svb_candidate" == */VERSION ]]; then
       svb_v=$(tr -d '[:space:]' < "$svb_candidate" | head -c 10)
@@ -6161,8 +6158,9 @@ if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_
       svb_v=$(grep -oE 'protocol_version:[[:space:]]*"?[0-9]+\.[0-9]+' "$svb_candidate" | grep -oE '[0-9]+\.[0-9]+' | head -1 || true)
     fi
     [[ -n "$svb_v" ]] || continue
-    if [[ -z "$svb_best" ]] || version_ge "$svb_best" "$svb_v"; then svb_best="$svb_v"; fi
-  done
+    if [[ -z "$svb_best" ]] || { version_ge "$svb_v" "$svb_best" && [[ "$svb_v" != "$svb_best" ]]; }; then svb_best="$svb_v"; fi
+  done < <(find "$svb_repo_root" -maxdepth 5 \( -name node_modules -o -name .git \) -prune -o \
+    \( \( -path '*/skills/ssot-preflight/SKILL.md' -type f \) -o \( -path '*/SSOT-SKILL/VERSION' -type f \) \) -print0 2>/dev/null || true)
   if [[ -n "$svb_best" && -n "$STATUS_SKILL_VERSION" ]]; then
     if version_ge "$STATUS_SKILL_VERSION" "$svb_best" && [[ "$STATUS_SKILL_VERSION" != "$svb_best" ]]; then
       add_fail "[SKILL-VERSION-BINDING] tracked_skill_version=$STATUS_SKILL_VERSION outruns every installed/pinned artifact (newest found: $svb_best); a fresh checkout silently reverts — install the claimed artifact or lower the claim"

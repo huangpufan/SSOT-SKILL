@@ -2,7 +2,7 @@
 name: ssot-preflight
 description: Repository SSOT preflight before substantive code, config, docs, review, debugging, refactoring, or planning work. Use to check SSOT/STATUS.md, open adjudications, documentation language, protocol version, minimal SSOT read routing, and in-task SSOT write triggers. Do not use for pure operations, trivial format-only edits, or non-repository chat.
 metadata:
-  protocol_version: "2.84"
+  protocol_version: "2.85"
   bundle: "SSOT Skill"
   semantic_impact: medium
 ---
@@ -44,11 +44,10 @@ Read `SSOT/STATUS.md` first. Before a substantive change, answer, in order:
 - **Protocol version.** Compare this file's `metadata.protocol_version`
   against `STATUS.md` `tracked_skill_version`. Project behind -> stop, route
   to `$ssot-audit`. Installed bundle behind project -> report stale install;
-  never downgrade the project. If a source checkout under
-  `projects/SSOT-SKILL/` is newer than the runtime-installed skill copy
-  currently being read (`.agents/skills`, `.codex/skills`, `.claude/skills`,
-  etc.), report the install as stale and reinstall from the source checkout
-  before relying on new protocol clauses.
+  never downgrade the project. If the user names a newer source checkout of
+  the bundle (or one is vendored in the repository) than the installed copy
+  currently being read, report the install as stale and reinstall from that
+  checkout before relying on new protocol clauses.
 - **Freshness floor (conditional).** This binds only where a coverage claim
   exists: any Area Status `covered` / `partial`, or `coverage_result:
   converged`. When it binds, `tracked_commit` must be ancestor-or-equal of
