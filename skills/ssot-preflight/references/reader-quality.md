@@ -87,6 +87,23 @@ contextual summary that says why the linked fact matters here, but it must not
 redefine the contract, state, or acceptance rule. Link to the owner for the
 authoritative body.
 
+**Vocabulary in context.** The glossary owns an indexed term's canonical
+meaning and spelling; the product, architecture, or process owner explains
+what happens in its own scope. At first use, link the exact glossary entry or
+definition anchor and explain enough for this reader to follow the local
+story. A paraphrase, example, consequence, or necessary state label may take
+more than one sentence. Judge whether it is accurate, relevant, and derived
+from the owner, not its word count. Keep a compact term row as a route; place
+the explanation in the surrounding prose when it needs space.
+
+For example, an attempt can have one glossary definition while a recovery
+page explains how retries appear together and which failure an operator should
+inspect. That page owns the recovery behaviour, not another definition of
+attempt. A second independently maintained definition, conflicting scope,
+invented state set, or copied full contract is a fork even if it fits in one
+sentence. Correct the fork at its owner and update dependent explanations;
+do not evade ownership by renaming the same concept or deleting useful context.
+
 Summaries are derived from unique owners. When a maturity, current behaviour,
 boundary, or closure condition appears in more than one reader surface, audit
 all copies together and resolve any conflict before claiming coverage. The

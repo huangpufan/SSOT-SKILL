@@ -10,7 +10,7 @@
      invalidation direction. Glossary coverage is governed by Area Status and
      a semantic stop review; per-file intent_recovery is product/architecture-only. -->
 
-**One-sentence definition**: <≤ 25 words, positively defined; do not introduce the term with "X is not Y" first>.
+**One-sentence definition**: <give a concise positive definition; retain the boundary needed to distinguish the term>.
 
 ## Extended definition
 
@@ -69,8 +69,8 @@ Template notes (v2.51):
    `## Not to be confused with`, not in the headline.
 3. `## Used in` is the inverse index: readers who land here jump to the
    non-glossary owners that consume this term.
-4. KISS mini-card permitted form (v2.51, see `SKILL_STYLE.md`): inside the
-   consuming owner's prose, the term may appear as
-   `**Term** (def: <≤ 15-word clause> → [CORE-REF: glossary/<term>.md])`
-   without violating 15F.
+4. For first-use context in another owner, follow reader-quality.md §2:
+   link this exact definition and explain the local example or consequence.
+   Keep the canonical meaning here; length alone does not make an explanation
+   a second definition.
 -->

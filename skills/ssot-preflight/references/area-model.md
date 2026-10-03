@@ -554,24 +554,12 @@ actually uses such a term; a repository without that vocabulary simply gives
 family 5 the appropriate evidence-backed disposition.
 
 **Single-prose-owner rule for indexed vocabulary**: each real term listed in
-the six-family inventory has exactly one prose owner in `glossary/`.
-`01-product/product-model.md` product-language section, `02-architecture/views/*`,
-`02-architecture/NN-<domain>/README.md`, and `03-process/development/discipline.md` may
-reference an indexed term, but only as a thin pointer row containing **at
-most**: term name, ONE sentence of user-visible / runtime-owner /
-discipline-side angle (no schema-enum repetition, no claim-routing
-consequence list, no string-form / state-transition prose, no `Avoid
-saying` anti-pattern that itself reasserts the code semantics), and a
-`[CORE-REF: glossary/README.md#<anchor>]` link. A second sentence of
-prose, a redefinition under a different rubric ("product semantics" /
-"runtime semantics"), or restating the schema-enum / `path:LNN` evidence
-in the secondary location is doctor-blocked even when the secondary
-location adds an `Avoid saying` column. If the secondary location requires
-more than one sentence to make the term useful at that altitude, split
-that prose into the corresponding `01-product/capabilities/<capability>.md`
-body or `02-architecture/NN-<domain>/README.md` invariants block keyed to a
-non-canonical-vocab capability term, and keep the term row at this
-altitude one-sentence-thin.
+the six-family inventory has exactly one definition owner in `glossary/`.
+Other owners link that dedicated file or unique README/topic anchor and use
+the contextual-explanation rule in
+[`reader-quality.md §2`](reader-quality.md#2-shared-writing-contract).
+The glossary owns meaning; the relevant domain owns behaviour. A local
+explanation does not require a new term, extra file, or competing definition.
 
 Deferring a discovered term through `STATUS.md` or another area does not satisfy
 the inventory. The term entry or a reasoned family disposition must be present

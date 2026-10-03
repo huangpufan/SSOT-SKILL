@@ -10,6 +10,23 @@ files.
 
 ## Version Ledger
 
+### v2.79
+
+**Upgrade goal**: keep one canonical term definition while letting each owner
+teach its own behaviour. Remove the blanket one-sentence/15-word limit on
+contextual explanations; judge actual definition forks instead. Shared reader
+guidance stays in `reader-quality.md`, with routes from style, areas, templates,
+and Doctor rather than parallel rubrics.
+
+**Impact**: `semantic_impact=medium`; adjusts vocabulary review, not the
+six-family inventory, meaning of terms, or any coverage requirement.
+
+| Check | Audit action | Done criterion |
+|---|---|---|
+| Local explanation | Preserve useful examples and consequences beside an exact definition link. | The reader can understand the local story without a second authoritative definition. |
+| Competing definitions | Compare meaning, scope, states, and maintenance ownership. | Conflicts and copied contracts still fail; sentence count is not a substitute for review. |
+| Existing consumers | Repair an over-thinned explanation when its area is touched. | No bulk rewrite, new term, or file split solely to evade a prose limit. |
+
 ### v2.78
 
 **Upgrade goal**: generate diagrams that Mermaid can actually parse. Use native

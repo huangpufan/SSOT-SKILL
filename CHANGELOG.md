@@ -85,6 +85,7 @@ versions. This file only restates headline changes.
   runtime is worse than an honest gap.
 
 ### Fixed
+- v2.79: Preserve useful contextual vocabulary explanations without duplicating authority; consolidate their writing rule in reader-quality instead of sentence and word limits.
 - v2.78: Generate native Mermaid comments, reject invalid HTML markers inside diagram fences, and parse every bilingual template diagram in CI.
 - v2.77: Retain bootstrap review evidence and referenced exploration records; determine unfinished setup from active phases and completion evidence rather than directory presence.
 - v2.76: Bound adapter diagnostics to the managed block while preserving handwritten startup rules and legacy generated-file checks.

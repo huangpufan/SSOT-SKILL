@@ -10,7 +10,7 @@ finite scenario set proves general agent quality.
 | Finding | Failure mechanism | Disposition |
 |---|---|---|
 | Mermaid generation | HTML comments inside fences are accepted by local checks but rejected by Mermaid. | v2.78 changes templates and lint together and adds real-parser CI coverage. |
-| Vocabulary explanation | One-sentence/15-word restrictions conflict with locally understandable prose; style, area, and Doctor files duplicate policy. | Review contextual explanation against actual definition forks. |
+| Vocabulary explanation | One-sentence/15-word restrictions conflict with locally understandable prose; style, area, and Doctor files duplicate policy. | v2.79 centralises the rule and preserves contextual explanation while rejecting definition forks. |
 | Coverage structure | STATUS forbids architecture scope rows while later permitting them, and describes only faceted covered layouts. | Reconcile with scoped roll-up and reviewed single-level contracts. |
 | Record retirement | Deprecated/retracted records are told to invent successors; the successor lint accepts blank keys and unverified prose. | Separate withdrawal from replacement and check real successor routes. |
 
@@ -38,3 +38,21 @@ all 16 shipped fences and rejected both invalid controls. The candidate passed
 (211), and `tests/test-installer-e2e.sh` (92). `bash -n`, `git diff --check`,
 and ShellCheck with CI's `-S warning -e SC2034` policy passed. Browser layout
 and remote CI execution are not established by these local checks.
+
+## v2.79 verification
+
+Two independent agents read frozen baseline/candidate protocols, starting at
+closeout. In both trials the glossary uniquely defined an attempt as one
+execution of the same task. The proposed runtime text was: “Each retry creates
+another attempt of the same task. The recovery screen groups these attempts so
+the operator can inspect why the previous execution stopped.” It included the
+definition link and introduced no state enum. Baseline required combining the
+sentences because of `area-model.md`; candidate retained both. Both rejected a
+control that redefined an attempt as a new independent task and invented states.
+
+These are bounded editing decisions under supplied facts, not full consumer
+closeout runs or proof of better prose on unseen tasks. The baseline read 12
+files for six scenarios; the candidate read six for two, so those counts do not
+establish a reading-cost improvement. Shape (51), document contracts (189),
+installer regression (92), and `git diff --check` passed for v2.79. Existing
+glossary families, domain ownership, and reader review gates remain in force.
