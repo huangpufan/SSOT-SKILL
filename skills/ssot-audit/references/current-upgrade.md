@@ -10,6 +10,23 @@ files.
 
 ## Version Ledger
 
+### v2.82
+
+**Upgrade goal**: preserve lasting decision rationale without restricting
+records to architecture changes that are irreversible or cross-domain. The
+selection rule lives in area-model §2.9; closeout routes there and both index
+templates describe the same scope. Current behaviour still has its existing
+product, architecture, or process owner.
+
+**Impact**: `semantic_impact=medium`; corrects decision-admission boundaries.
+No new area, state axis, required record count, or review gate.
+
+| Check | Audit action | Done criterion |
+|---|---|---|
+| Lasting choices | Review previously excluded local/reversible product, process, and operating trade-offs. | Necessary rationale and rejected alternatives have a durable owner; eligibility does not depend on architectural breadth or reversal cost alone. |
+| Routine edits | Check for records that merely narrate a rename or another edit without lasting meaning. | Diff/commit notes remain sufficient; no new permanent record is required. |
+| Ownership | Inspect a choice's existing rationale and current behaviour owners before adding an entry. | Existing rationale is reused and the current contract is not copied into a competing authority. |
+
 ### v2.81
 
 **Upgrade goal**: let a retired decision or term honestly have no replacement,

@@ -13,7 +13,7 @@ finite scenario set proves general agent quality.
 | Vocabulary explanation | One-sentence/15-word restrictions conflict with locally understandable prose; style, area, and Doctor files duplicate policy. | v2.79 centralises the rule and preserves contextual explanation while rejecting definition forks. |
 | Coverage structure | STATUS forbids architecture scope rows while later permitting them, describes only faceted covered layouts, and rejects some required stop claims. | v2.80 reconciles scoped roll-up, reviewed single-level layouts, and stop-claim enums across protocol, templates, and lint. |
 | Record retirement | Deprecated/retracted records are told to invent successors; the successor lint accepts blank keys and unverified prose. | v2.81 separates retirement from replacement and checks resolving successor routes across the five record collections. |
-| Decision scope | The owner admits only hard-to-reverse or cross-domain decisions, and the English index calls the collection architecture-only; general routing also sends lasting trade-offs there. | Reconcile selection with the durable rationale the next reader needs, while excluding routine edits. |
+| Decision scope | The owner admits only hard-to-reverse or cross-domain decisions, and the English index calls the collection architecture-only; general routing also sends lasting trade-offs there. | v2.82 admits consequential product/process/operating rationale without forcing records for routine edits or duplicating an existing rationale owner. |
 
 ## Evidence boundaries
 
@@ -117,3 +117,25 @@ editing choices, not general lifecycle correctness on unseen repositories.
 The trial and directed follow-up read 15 snapshot files, used 27 execution/time
 calls, and took about ten minutes including writing; the extended scenario set
 does not support a speed comparison with baseline.
+
+## v2.82 verification
+
+Independent agents read closeout in the preceding and candidate snapshots for
+the same two proposed edits. The first case was an accepted, easily reversible,
+single-module product choice: explicit local export instead of default cloud
+backup, with known alternatives and manual-saving cost. Its current product
+owner was accurate but did not preserve the lasting rationale. Baseline
+rejected a decision entry because §2.9 required reversal cost or cross-domain
+impact, despite broader routing rules; it kept the rationale in the product
+owner instead. Candidate accepted the decision entry, preserving current
+behaviour in its product owner and checking for existing rationale before
+creating a duplicate. Both rejected a new decision entry for a semantics-free
+local variable rename. No consumer files or coverage claims were changed.
+
+Baseline read six protocol files with 16 execution/time calls; candidate read
+five with 12, each roughly three minutes including reporting. These are single
+trials, not a statistically meaningful navigation or performance comparison.
+The observed gain is resolution of this admission conflict, not proof that
+every future decision is selected correctly. Final shape (51), document
+contracts (189), installer regression (92), and `git diff --check` passed.
+The lint implementation is unchanged from the v2.81 checks above.

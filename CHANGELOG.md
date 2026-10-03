@@ -85,6 +85,7 @@ versions. This file only restates headline changes.
   runtime is worse than an honest gap.
 
 ### Fixed
+- v2.82: Preserve consequential product, process, and operating decisions even when reversible or local, while keeping routine edits out of the decision register.
 - v2.81: Distinguish retirement without replacement from supersession; preserve history and validate real successor routes across nested record collections.
 - v2.80: Reconcile scoped coverage and single-level architecture rules; validate scope owners, exact reviews, and non-applicable roll-ups without inventing directories.
 - v2.79: Preserve useful contextual vocabulary explanations without duplicating authority; consolidate their writing rule in reader-quality instead of sentence and word limits.

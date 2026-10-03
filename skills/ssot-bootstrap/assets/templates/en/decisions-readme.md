@@ -7,7 +7,11 @@
      Q01-Q21. Covered collections use the exact lightweight R14 index-to-entry
      contract: unique ID, both state axes, and one resolving entry-owner link. -->
 
-> Index of architecture decisions. Each entry records why a choice was made, what alternatives were rejected, and what the consequences are. Before making a new cross-domain or hard-to-reverse decision, scan this index for context.
+This index preserves consequential product, architecture, engineering-process,
+and operating choices. Each entry explains the alternatives, trade-offs, and
+conditions behind a lasting rule. A choice can matter even when it is easy to
+reverse or affects one module. Before changing such a rule, find its rationale
+here; routine edits without a lasting trade-off do not need new entries.
 
 ## How to use this index
 

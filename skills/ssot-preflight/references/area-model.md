@@ -852,7 +852,27 @@ decision, consequences, scope of impact, and lifecycle fields:
 - `diverged`: Current implementation conflicts with decision intent; must simultaneously write into `STATUS.md` open adjudications.
 - `superseded`: Decision replaced by a new decision; no longer the current design intent.
 
-Record only decisions that are hard to reverse or have cross-architecture-domain impact; do not record daily implementation details. Overridden old decisions stay in place and are marked, not physically archived, to preserve historical context and link integrity. Old ADRs imported during bootstrap or audit that legitimately lack a creation commit must still record `introduced_in` as the commit that brought them into `SSOT/04-records/decisions/`; `created_on` reflects the original authoring date when it is recoverable, otherwise the import date with a one-line note in the body explaining the gap.
+Record consequential choices whose rationale future maintainers need to
+understand a lasting product, architecture, engineering-process, or operating
+rule. Hard-to-reverse and cross-domain choices are common cases, not admission
+requirements. A reversible choice within one module also qualifies when losing
+its alternatives, trade-offs, or decision conditions would invite a mistaken
+change or repeated debate. Examples include an offline product default, a
+release-evidence policy, or a deliberate recovery trade-off.
+
+Do not turn routine edits into decision records: a local rename with no changed
+meaning and no lasting trade-off belongs in its diff or commit note. Reuse an
+existing decision entry for the same choice. Keep current behaviour and rules
+in their product, architecture, or process owner and link the rationale;
+do not duplicate the full current contract in the decision record or force a
+new record when an existing durable owner already preserves the same rationale.
+
+Overridden old decisions stay in place and are marked, not physically archived,
+to preserve historical context and link integrity. Old ADRs imported during
+bootstrap or audit that legitimately lack a creation commit must still record
+`introduced_in` as the commit that brought them into `SSOT/04-records/decisions/`;
+`created_on` reflects the original authoring date when recoverable, otherwise
+the import date with a one-line note explaining the gap.
 
 A `pending`, `partial`, or `diverged` ADR without both `closure_condition`
 and `revisit_signal` is doctor-blocked (`15B [ADR-CLOSURE]`). The two fields

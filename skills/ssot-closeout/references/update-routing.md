@@ -44,6 +44,11 @@ bug-instance takeaway -> `bugs/<entry>.md`, recurring live duty -> conditional
 `03-process/security-and-compliance/`. Never create a new top-level area just
 because a fact is hard to route.
 
+Decision-entry selection follows
+[`area-model.md §2.9`](../../ssot-preflight/references/area-model.md#29-04-recordsdecisions):
+retain consequential rationale across these areas without making routine edits
+into permanent records.
+
 ## 1.5 Verification Layer and Worktree Boundary
 
 Two failure modes recur in real batches and both survive today because nothing
