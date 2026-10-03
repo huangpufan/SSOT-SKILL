@@ -10,6 +10,24 @@ files.
 
 ## Version Ledger
 
+### v2.80
+
+**Upgrade goal**: make optional scoped Area Status progress match its declared
+contract. Every baseline area, including research records, can carry one-level
+scopes. Scope claims use the parent owner and an exact scoped review; scope
+names do not create directories. STATUS routes single-level architecture to
+its existing layout authority instead of requiring absent faceted children.
+
+**Impact**: `semantic_impact=medium`; corrects schema/owner handling and
+aggregation. Full reader reviews and aggregate coverage requirements remain.
+
+| Check | Audit action | Done criterion |
+|---|---|---|
+| Scope rows | Check parent owner, scope slug, Notes route and exact stop review. | Valid scoped progress is accepted; missing owners/reviews and recursive or invented area tokens fail. |
+| Stop claims | Use the canonical claim matching the review, including partial, passed, done, single-level, and stop-split. | The exact register schema and templates accept every claim required by status-protocol §6 and reject invented claims. |
+| Aggregation | Keep gapped scope visible and dispose genuine non-applicability. | A parent never hides a gap or claims non-applicability over applicable work; inapplicable slices do not lower applicable siblings. |
+| Architecture layout | Apply architecture.md §11 when its conditions hold. | Single-level review requires complete evidence, not fabricated child directories. |
+
 ### v2.79
 
 **Upgrade goal**: keep one canonical term definition while letting each owner

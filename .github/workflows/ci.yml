@@ -96,6 +96,8 @@ jobs:
         run: bash tests/test-faceted-layout-migration.sh
       - name: Run STATUS migration tests
         run: python3 tests/test-status-migration.py
+      - name: Run lint protocol boundary tests
+        run: python3 tests/test-lint-protocol-boundaries.py
       - name: Run document-quality lint tests
         run: bash tests/test-document-quality-lint.sh
 

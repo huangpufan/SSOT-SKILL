@@ -11,7 +11,7 @@ finite scenario set proves general agent quality.
 |---|---|---|
 | Mermaid generation | HTML comments inside fences are accepted by local checks but rejected by Mermaid. | v2.78 changes templates and lint together and adds real-parser CI coverage. |
 | Vocabulary explanation | One-sentence/15-word restrictions conflict with locally understandable prose; style, area, and Doctor files duplicate policy. | v2.79 centralises the rule and preserves contextual explanation while rejecting definition forks. |
-| Coverage structure | STATUS forbids architecture scope rows while later permitting them, and describes only faceted covered layouts. | Reconcile with scoped roll-up and reviewed single-level contracts. |
+| Coverage structure | STATUS forbids architecture scope rows while later permitting them, describes only faceted covered layouts, and rejects some required stop claims. | v2.80 reconciles scoped roll-up, reviewed single-level layouts, and stop-claim enums across protocol, templates, and lint. |
 | Record retirement | Deprecated/retracted records are told to invent successors; the successor lint accepts blank keys and unverified prose. | Separate withdrawal from replacement and check real successor routes. |
 
 ## Evidence boundaries
@@ -56,3 +56,30 @@ files for six scenarios; the candidate read six for two, so those counts do not
 establish a reading-cost improvement. Shape (51), document contracts (189),
 installer regression (92), and `git diff --check` passed for v2.79. Existing
 glossary families, domain ownership, and reader review gates remain in force.
+
+## v2.80 verification
+
+The initial real-CLI boundary suite reproduced six failing test methods: valid
+scope names were rejected, scoped rows looked for an invented child-directory
+owner or skipped owner checks, and non-applicable scopes were not aggregated
+correctly. The final suite has 11 passing methods, including subcases for all
+17 area names, exact scoped reviews, missing owners, parent coverage/depth,
+conditional applicability, invalid scope names, and every documented stop-claim
+token. It also confirms that lint leaves input Markdown unchanged. The fixture
+intentionally omits unrelated full-reader evidence; these assertions establish
+specific lint boundaries, not overall consumer convergence.
+
+An independent agent read the frozen candidate for scoped architecture progress
+and a reviewed single-level layout. It accepted both and rejected a parent
+claiming covered while a child remained gap. It also caught a candidate defect:
+the exact Stop Review Gate enum rejected the `partial` token required by the
+scoped-row rule. The final fix aligns the reference table, bilingual templates,
+and parser; the CLI suite now checks that token and other previously omitted
+documented claims. The independent trial itself remains a record of that
+pre-correction candidate, not evidence that the agent retested the final tree.
+
+Final local checks passed shape (51), document contracts (189), document-quality
+lint (263), Doctor (211), the boundary suite (11), Bash syntax, and configured
+ShellCheck. The final reference-table enumeration was also checked against the
+template and parser tokens. None of these checks claims a complete bootstrap or
+that single-level documentation is appropriate for every repository.

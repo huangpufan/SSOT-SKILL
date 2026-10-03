@@ -85,6 +85,7 @@ versions. This file only restates headline changes.
   runtime is worse than an honest gap.
 
 ### Fixed
+- v2.80: Reconcile scoped coverage and single-level architecture rules; validate scope owners, exact reviews, and non-applicable roll-ups without inventing directories.
 - v2.79: Preserve useful contextual vocabulary explanations without duplicating authority; consolidate their writing rule in reader-quality instead of sentence and word limits.
 - v2.78: Generate native Mermaid comments, reject invalid HTML markers inside diagram fences, and parse every bilingual template diagram in CI.
 - v2.77: Retain bootstrap review evidence and referenced exploration records; determine unfinished setup from active phases and completion evidence rather than directory presence.

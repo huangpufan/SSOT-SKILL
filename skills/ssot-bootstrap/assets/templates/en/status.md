@@ -140,7 +140,8 @@
 
 ## Stop Review Gate
 
-<!-- Stop claim: converged / covered / no-op / tracked_commit / tracked_session /
+<!-- Stop claim: converged / covered / partial / passed / done / no-op / single-level /
+     stop-split / tracked_commit / tracked_session /
      tracked_skill_version / protocol-upgrade / documentation_language. Reviewer
      role: scoped-self-review / independent-reviewer /
      independent-cold-reader. Product or architecture high-impact adoption uses

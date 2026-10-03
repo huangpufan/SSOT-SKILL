@@ -28,6 +28,7 @@ bash tests/test-bundle-shape.sh
 bash tests/test-installer-e2e.sh
 bash tests/test-faceted-layout-migration.sh
 python3 tests/test-status-migration.py
+python3 tests/test-lint-protocol-boundaries.py
 bash tests/test-document-quality-contract.sh
 bash tests/test-document-quality-lint.sh
 ```

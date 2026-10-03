@@ -3513,7 +3513,7 @@ if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_
     case "$area" in
       product|architecture|process|development|testing|benchmark|deployment|release|operations|security-and-compliance|records|decisions|"research records"|gotchas|bugs|tech-debt|glossary) ;;
       *)
-        if [[ "$area" =~ ^(product|architecture|process|development|testing|benchmark|deployment|release|operations|security-and-compliance|records|decisions|gotchas|bugs|tech-debt|glossary)/[a-z0-9][a-z0-9-]*$ ]]; then
+        if [[ "$area" =~ ^(product|architecture|process|development|testing|benchmark|deployment|release|operations|security-and-compliance|records|decisions|research\ records|gotchas|bugs|tech-debt|glossary)/[a-z0-9][a-z0-9-]*$ ]]; then
           # Scoped row "<area>/<scope>" (v2.61, opt-in): recursion caps at one
           # level, so the scope slug must not itself contain a slash. The regex
           # above already forbids a second slash; nothing further to validate here.
@@ -3537,6 +3537,7 @@ if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_
     fi
     AREA_STATUS_SEEN[$area]="$line_no"
     AREA_STATUS_VALUE[$area]="$status"
+    area_base=${area%%/*}
     [[ -n "$depth" ]] && AREA_DEPTH_VALUE[$area]="$depth"
 
     # Optional "Coverage depth" column (v2.61): reuse architecture.md §10
@@ -3563,6 +3564,11 @@ if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_
       add_fail "[AREA-STATUS] non-empty Status '$status' for $area needs a resolving owner/gap route in Notes: $STATUS_FILE:$line_no"
       AREA_STATUS_FAIL_COUNT=$((AREA_STATUS_FAIL_COUNT + 1))
     fi
+    if [[ "$area" == */* && "$status" =~ ^(covered|partial)$ ]] &&
+       ! status_passing_stop_exists "$area" "$status" "area:$area:$status"; then
+      add_fail "[AREA-STATUS] $status $area needs a passing scoped stop review authorising area:$area:$status: $STATUS_FILE:$line_no"
+      AREA_STATUS_FAIL_COUNT=$((AREA_STATUS_FAIL_COUNT + 1))
+    fi
     if [[ "$status" == "covered" ]]; then
       if [[ "$area" =~ ^x-[a-z0-9][a-z0-9-]*$ ]]; then
         { [[ "$(manifest_markdown_link_count "$notes")" -eq 1 ]] && manifest_markdown_link_resolves "$STATUS_FILE" "$notes"; } || {
@@ -3570,12 +3576,12 @@ if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_
           AREA_STATUS_FAIL_COUNT=$((AREA_STATUS_FAIL_COUNT + 1))
         }
       else
-        owner_rel=$(canonical_area_rel "$area" 2>/dev/null || true)
+        owner_rel=$(canonical_area_rel "$area_base" 2>/dev/null || true)
         if [[ -z "$owner_rel" || ! -f "$SSOT_DIR/$owner_rel/README.md" ]]; then
           add_fail "[AREA-STATUS] covered $area requires canonical owner README: $SSOT_DIR/${owner_rel:-<unresolved>}/README.md"
           AREA_STATUS_FAIL_COUNT=$((AREA_STATUS_FAIL_COUNT + 1))
         fi
-        if [[ "$(status_notes_canonical_owner_count "$area" "$notes")" -ne 1 ]]; then
+        if [[ "$(status_notes_canonical_owner_count "$area_base" "$notes")" -ne 1 ]]; then
           add_fail "[AREA-STATUS] covered $area Notes must link its canonical owner README exactly once: $STATUS_FILE:$line_no"
           AREA_STATUS_FAIL_COUNT=$((AREA_STATUS_FAIL_COUNT + 1))
         fi
@@ -3593,15 +3599,15 @@ if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_
       # independent-review precondition, so lint stays lighter than "covered".
       # For a scoped row "<area>/<scope>" the canonical owner is the parent
       # area's README; for a baseline row it is the area's own README.
-      if [[ "$area" != */* && "$area" != x-* ]]; then
-        owner_rel=$(canonical_area_rel "$area" 2>/dev/null || true)
+      if [[ "$area" != x-* ]]; then
+        owner_rel=$(canonical_area_rel "$area_base" 2>/dev/null || true)
         if [[ -z "$owner_rel" || ! -f "$SSOT_DIR/$owner_rel/README.md" ]]; then
           add_fail "[AREA-STATUS] partial $area requires canonical owner README: $SSOT_DIR/${owner_rel:-<unresolved>}/README.md"
           AREA_STATUS_FAIL_COUNT=$((AREA_STATUS_FAIL_COUNT + 1))
         fi
       fi
     elif [[ "$status" == "not_applicable" ]]; then
-      case "$area" in
+      case "$area_base" in
         testing|benchmark|deployment|release|operations|security-and-compliance|"research records") ;;
         *)
           add_fail "[AREA-STATUS] not_applicable is not legal for always-applicable area $area: $STATUS_FILE:$line_no"
@@ -3678,7 +3684,7 @@ if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_
     case "$1" in
       covered) printf '3\n' ;;
       partial) printf '2\n' ;;
-      not_applicable) printf '1\n' ;;
+      not_applicable) printf '3\n' ;; # reasoned non-applicability is fully disposed
       *) printf '0\n' ;; # gap/stale/unknown/conflict/blank are non-claims
     esac
   }
@@ -3699,8 +3705,14 @@ if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_
     for scoped in "${!AREA_STATUS_SEEN[@]}"; do
       [[ "$scoped" == "$parent/"* ]] || continue
       any_scoped=1
+      if [[ "$parent_status" == not_applicable && "${AREA_STATUS_VALUE[$scoped]:-}" != not_applicable ]]; then
+        add_fail "[STATUS-AGGREGATE] not_applicable parent '$parent' has an applicable or unresolved scope '$scoped'"
+        AREA_STATUS_FAIL_COUNT=$((AREA_STATUS_FAIL_COUNT + 1))
+      fi
       s_rank=$(area_status_rank "${AREA_STATUS_VALUE[$scoped]:-}")
       (( s_rank < weakest_status_rank )) && weakest_status_rank=$s_rank
+      # An inapplicable slice has no reading depth to measure.
+      [[ "${AREA_STATUS_VALUE[$scoped]:-}" == not_applicable ]] && continue
       # Depth-column consistency: once the parent carries the column, every
       # scoped row of that area must carry it too (and vice versa).
       if [[ "$parent_has_depth" -eq 1 && -z "${AREA_DEPTH_VALUE[$scoped]:-}" ]]; then
@@ -3872,7 +3884,7 @@ if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_
 
   while IFS=$'\034' read -r scope claim reviewer role reviewed_at result evidence remaining authorises; do
     [[ -n "$scope" && -n "$reviewer" && -n "$authorises" ]] || { add_fail "[STATUS-EXACT-SCHEMA] stop-review row has empty scope/reviewer/authorises"; STATUS_EXACT_FAIL_COUNT=$((STATUS_EXACT_FAIL_COUNT + 1)); }
-    [[ "$claim" =~ ^(covered|converged|no-op|tracked_commit|tracked_session|tracked_skill_version|protocol-upgrade|documentation_language)$ && "$role" =~ ^(scoped-self-review|independent-reviewer|independent-cold-reader)$ && "$result" =~ ^(no-more-required-changes|needs-fix)$ ]] || { add_fail "[STATUS-EXACT-SCHEMA] stop-review '$scope' has invalid claim/role/result"; STATUS_EXACT_FAIL_COUNT=$((STATUS_EXACT_FAIL_COUNT + 1)); }
+    [[ "$claim" =~ ^(covered|partial|converged|passed|done|no-op|single-level|stop-split|tracked_commit|tracked_session|tracked_skill_version|protocol-upgrade|documentation_language)$ && "$role" =~ ^(scoped-self-review|independent-reviewer|independent-cold-reader)$ && "$result" =~ ^(no-more-required-changes|needs-fix)$ ]] || { add_fail "[STATUS-EXACT-SCHEMA] stop-review '$scope' has invalid claim/role/result"; STATUS_EXACT_FAIL_COUNT=$((STATUS_EXACT_FAIL_COUNT + 1)); }
     [[ "$role" != independent-cold-reader || ( "$scope" =~ ^(product|architecture)$ && "$claim" == covered && "$authorises" == "area:$scope:covered" ) ]] || { add_fail "[STATUS-EXACT-SCHEMA] independent-cold-reader is only valid for product/architecture covered full-review rows"; STATUS_EXACT_FAIL_COUNT=$((STATUS_EXACT_FAIL_COUNT + 1)); }
     [[ "$reviewed_at" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}([T ][0-9]{2}:[0-9]{2}(:[0-9]{2})?([Zz]|[+-][0-9]{2}:[0-9]{2})?)?$ ]] || { add_fail "[STATUS-EXACT-SCHEMA] stop-review '$scope' reviewed_at is not an ISO date/time"; STATUS_EXACT_FAIL_COUNT=$((STATUS_EXACT_FAIL_COUNT + 1)); }
     status_exact_one_link "$evidence" || { add_fail "[STATUS-EXACT-SCHEMA] stop-review '$scope' Evidence must be one resolving Markdown link"; STATUS_EXACT_FAIL_COUNT=$((STATUS_EXACT_FAIL_COUNT + 1)); }

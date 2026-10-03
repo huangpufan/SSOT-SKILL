@@ -37,8 +37,10 @@ The Area Status baseline is exact: `product`, `architecture`, `process`,
 `security-and-compliance`, `records`, `decisions`, `research records`,
 `gotchas`, `bugs`, `tech-debt`, and `glossary` each appear once. `process` and
 `records` are aggregate reader routers, not substitutes for their child rows.
+Optional scope rows use `<area>/<scope>` under one of those baseline areas,
+as defined in §3; the scope is one lowercase alphanumeric/hyphen slug.
 An extension row uses `x-<slug>` and its Notes cell contains `extension:` plus
-one resolving Markdown owner link. Any other token is a schema error.
+one resolving Markdown owner link. Other tokens are schema errors.
 
 Write the matching section when its fact changes. If the fact needs a causal
 explanation, command transcript, or history, write that in the durable owner or
@@ -104,27 +106,41 @@ gotchas, bugs, and technical debt to meet the same condition. A child gap,
 stale state, unknown, or conflict therefore keeps its aggregate router from
 `covered`.
 
-Product and architecture do not add child rows to Area Status. Their one
-aggregate row is synthesised from their manifests and structured reader
-review. In particular, `architecture: covered` requires the architecture root,
-the views collection, and every direct numbered domain to have its canonical
-reader README and location-specific manifest; the root owner registry must be
-one-to-one with those numbered domains, and every covered manifest must route
-to a current passing review artifact. A missing or incoherent child therefore
-keeps the architecture aggregate from `covered`, but never creates an
-`architecture/views` STATUS row.
+Product and architecture retain one baseline aggregate each, synthesised from
+their manifests and structured reader review. Optional scope rows below can
+show reviewed segments; they are not a mandatory mirror of directories. In
+the faceted layout, `architecture: covered` requires the root, views
+collection, and every direct numbered domain to have its canonical README and
+location-specific manifest, with a coherent owner registry and current passing
+review. The reviewed single-level alternative follows
+[`architecture.md §11`](architecture.md#11-lightweight-mode), using the root
+owner and manifest without fabricated views or domains. Missing or incoherent
+required children block the aggregate in either layout.
 
 Large repos may optionally decompose an Area Status row into scoped
 `<area>/<scope>` rows (for example `architecture/billing-runtime` or
 `testing/e2e`) so that segment boundaries and uncovered scope are visible in
 STATUS. The 17-row baseline stays mandatory: each baseline row is the computed
 roll-up of its scoped children, never a claim made independently of them.
-Recursion caps at one level; a scope has no sub-scopes, and deeper
-decomposition means the scope should become a first-class architecture domain.
+Recursion caps at one level; a scope has no sub-scopes. Keep deeper progress
+detail in its owner rather than turning accounting slices into architecture
+domains without evidence of independent responsibility.
+Every scoped `partial`/`covered` claim requires the parent area's canonical
+README and a stop review naming the exact scope and
+`authorises=area:<area>/<scope>:<state>`. Covered Notes link that parent README
+(a scoped section anchor is allowed); detail and evidence may link onward to
+the actual owners. A scope slug does not prescribe a new directory. Scope rows
+do not bypass manifests, full reader reviews, file-level recovery stamps, or
+aggregate coverage gates.
 Roll-up uses the existing asymmetric aggregation algebra, not a new
 weakest-wins total order: a scoped child at `gap`, `stale`, `unknown`, or
 `conflict` blocks the baseline row's `covered`/`partial` claim, exactly as the
-`process`/`records` aggregate rule above generalises. When the optional
+`process`/`records` aggregate rule above generalises. A reasoned
+`not_applicable` scope is a disposition, not a coverage shortfall; it is
+neutral when rolling up applicable siblings and has no required reading-depth
+value. A parent may be `not_applicable`
+only when all its scopes are also `not_applicable`. Scoped non-applicability
+is permitted only for the same conditional areas as their parent. When the optional
 Coverage depth column is present, the baseline row's depth is the weakest
 scoped-child depth (`deep` < `sampled` < `inferred` < `unknown`). A parent
 never claims a status or depth stronger than its weakest scoped child;
@@ -307,10 +323,14 @@ lint warns `[SUPERSEDE-LINK]`.
 
 ## 6. Stop Review Gate
 
-Each time you prepare to declare `converged`, `covered`, `passed`, `done`,
+Each time you prepare to declare `converged`, `covered`, `partial`, `passed`, `done`,
 `no-op`, `no update needed`, accept `single-level` or a stop split, change
 `documentation_language`, or advance `tracked_commit`, `tracked_session`, or
 `tracked_skill_version`, first create a stop-review record.
+
+Use `no-op` for “no update needed” and `stop-split` for accepting a stop-split
+decision. `single-level` records layout acceptance; it does not by itself
+authorise `covered`. Appendix A lists the same claim tokens the validator accepts.
 
 The record says: scope, stop claim, reviewer, reviewer role, reviewed time,
 result, evidence pointer, remaining changes, and exactly what the review
@@ -533,7 +553,7 @@ Stop review gate:
 
 | Scope | Stop claim | Reviewer | Reviewer role | Reviewed at | Result | Evidence | Remaining changes | Authorises |
 |---|---|---|---|---|---|---|---|---|
-| scope | covered / converged / no-op / tracked_commit / tracked_session / tracked_skill_version / protocol-upgrade / documentation_language | stable reviewer ID | scoped-self-review / independent-reviewer / independent-cold-reader | ISO date or time | no-more-required-changes / needs-fix | exactly one resolving Markdown artifact link | required fixes or none | exact tracking baseline or area claim authorised |
+| scope | covered / partial / converged / passed / done / no-op / single-level / stop-split / tracked_commit / tracked_session / tracked_skill_version / protocol-upgrade / documentation_language | stable reviewer ID | scoped-self-review / independent-reviewer / independent-cold-reader | ISO date or time | no-more-required-changes / needs-fix | exactly one resolving Markdown artifact link | required fixes or none | exact tracking baseline or area claim authorised |
 
 When a case needs additional chronology, reasoning, commands, or evidence,
 place those details in an appendix/evidence artifact and keep these exact

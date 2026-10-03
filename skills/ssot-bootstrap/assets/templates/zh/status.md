@@ -145,7 +145,8 @@
 
 结果使用 `no-more-required-changes`（无需再改）或 `needs-fix`（需要修改）。
 
-<!-- 停止结论：converged / covered / no-op / tracked_commit / tracked_session /
+<!-- 停止结论：converged / covered / partial / passed / done / no-op / single-level /
+     stop-split / tracked_commit / tracked_session /
      tracked_skill_version / protocol-upgrade / documentation_language。评审者
      角色：scoped-self-review / independent-reviewer /
      independent-cold-reader。产品或架构的高影响采用使用
