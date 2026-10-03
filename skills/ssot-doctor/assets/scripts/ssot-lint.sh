@@ -6189,25 +6189,59 @@ if [[ -f "$STATUS_FILE" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_
   [[ "$EPHEMERAL_WARN_COUNT" -eq 0 ]] && add_pass "[EPHEMERAL-EVIDENCE] register and review artifacts link durable evidence only"
 fi
 
-# ---------- check 40: [SUPERSEDE-LINK] (v2.62) superseded records name their heir ----------
-# A record marked superseded without a `superseded_by:` pointer leaves the cold
-# reader holding a dead end. The convention costs one line.
+# ---------- check 40: [SUPERSEDE-LINK] (v2.62; route validation v2.81) ----------
+# Supersession asserts a replacement. Retirement without replacement does not.
+# Resolve the route, leaving replacement meaning and aggregated entries to L2.
+record_successor_route_resolves() { # $1=record $2=scalar path or Markdown link
+  local record="$1" route="$2" resolved
+  [[ -n "$route" ]] || return 1
+  if [[ "$(manifest_markdown_link_count "$route")" -eq 0 ]]; then
+    route="[successor]($route)"
+  fi
+  [[ "$(manifest_markdown_link_count "$route")" -eq 1 ]] || return 1
+  markdown_link_resolves_with_anchor "$record" "$route" || return 1
+  resolved=$(manifest_markdown_link_resolved_path "$record" "$route") || return 1
+  [[ "$resolved" != "$(realpath "$record")" ]]
+}
+
+record_has_successor_route() { # $1=file with a superseded lifecycle
+  local record="$1" key route line next_line=0
+  for key in superseded_by replaced_by; do
+    route=$(review_frontmatter_value "$record" "$key")
+    record_successor_route_resolves "$record" "$route" && return 0
+  done
+  while IFS= read -r line; do
+    if [[ "$next_line" -eq 1 ]] || printf '%s\n' "$line" | grep -qiE 'superseded by|replaced by|被.*取代|已被.*替代'; then
+      route=$(printf '%s\n' "$line" | awk 'match($0, /\[[^][]+\]\([^()]+[.]md(#[^()]*)?\)/) {print substr($0,RSTART,RLENGTH);exit}')
+      record_successor_route_resolves "$record" "$route" && return 0
+    fi
+    next_line=0
+    # A label or wrapped sentence can put its link on the next visible line.
+    if printf '%s\n' "$line" | grep -qiE 'superseded by|replaced by|被.*取代|已被.*替代'; then next_line=1; fi
+  done < <(review_visible_markdown "$record")
+  return 1
+}
+
 if [[ -d "$SSOT_DIR" && -n "$STATUS_SKILL_VERSION" ]] && version_ge "$STATUS_SKILL_VERSION" "2.60"; then
   SUPERSEDE_WARN_COUNT=0
-  for sup_dir in "$DECISIONS_DIR" "$RESEARCH_AREA_DIR" "$TECH_DEBT_DIR" "$BUGS_DIR"; do
+  for sup_dir in "$DECISIONS_DIR" "$RESEARCH_AREA_DIR" "$TECH_DEBT_DIR" "$BUGS_DIR" "$GOTCHAS_DIR"; do
     [[ -d "$sup_dir" ]] || continue
     while IFS= read -r -d '' sup_file; do
-      sup_status=$(yaml_frontmatter "$sup_file" | awk -F: '/^(record_status|status|implementation_state):[[:space:]]*/ { v=$2; gsub(/[ "`]/, "", v); print tolower(v); exit }')
+      if yaml_frontmatter "$sup_file" | grep -q '^record_status:'; then
+        sup_status=$(review_frontmatter_value "$sup_file" record_status)
+      else
+        sup_status=$(review_frontmatter_value "$sup_file" status)
+      fi
       [[ "$sup_status" == "superseded" ]] || continue
-      if ! yaml_frontmatter "$sup_file" | grep -qE '^(superseded_by|retracted|replaced_by):' && ! grep -qE 'superseded by|replaced by|被.*取代|已被.*替代' "$sup_file"; then
-        add_warn "[SUPERSEDE-LINK] $sup_file is superseded but names no superseded_by/replaced_by successor"
+      if ! record_has_successor_route "$sup_file"; then
+        add_warn "[SUPERSEDE-LINK] $sup_file is superseded but has no resolving superseded_by/replaced_by successor route"
         SUPERSEDE_WARN_COUNT=$((SUPERSEDE_WARN_COUNT + 1))
       fi
       [[ "$SUPERSEDE_WARN_COUNT" -ge 10 ]] && break
-    done < <(find "$sup_dir" -maxdepth 1 -name '*.md' -type f -print0 2>/dev/null || true)
+    done < <(find "$sup_dir" -name '*.md' ! -name 'README.md' -type f -print0 2>/dev/null || true)
     [[ "$SUPERSEDE_WARN_COUNT" -ge 10 ]] && break
   done
-  [[ "$SUPERSEDE_WARN_COUNT" -eq 0 ]] && add_pass "[SUPERSEDE-LINK] every superseded record names its successor"
+  [[ "$SUPERSEDE_WARN_COUNT" -eq 0 ]] && add_pass "[SUPERSEDE-LINK] every superseded record file has a resolving successor route"
 fi
 
 # ---------- check 41: [HISTORY-LOG] (v2.63) append-only batch write log ----------

@@ -2457,8 +2457,9 @@ T=$(mktemp -d -p "$TMPDIR")
 write_exact_area_status "$T"
 mkdir -p "$T/SSOT/04-records/decisions"
 printf -- '---\nrecord_status: superseded\nsuperseded_by: 0002-new.md\n---\n# Old decision\n' > "$T/SSOT/04-records/decisions/0001-old.md"
+printf '# Replacement decision\n' > "$T/SSOT/04-records/decisions/0002-new.md"
 out=$(run_normal "$T" || true)
-assert_no_warn_tag "superseded record with superseded_by does not warn" "$out" "[SUPERSEDE-LINK]"
+assert_no_warn_tag "superseded record with resolving superseded_by does not warn" "$out" "[SUPERSEDE-LINK]"
 rm -rf "$T"
 
 echo "== V62j tracked_skill_version must not outrun installed artifacts =="

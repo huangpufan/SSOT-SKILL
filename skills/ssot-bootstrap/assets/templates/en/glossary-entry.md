@@ -56,8 +56,9 @@ definition and the documents or features that use it to be reviewed.>
 ## Term lifecycle
 
 <State `active`, `deprecated`, or `retired`. For a deprecated or retired term,
-name its replacement, the migration direction, and the event that completes
-retirement.>
+link its replacement and migration route when one exists; otherwise state
+that no replacement exists. Explain the reason, any remaining-use
+or compatibility boundary, and the evidence or event that completes retirement.>
 
 <!--
 Template notes (v2.51):

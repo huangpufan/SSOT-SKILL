@@ -159,6 +159,84 @@ class LintBoundaryTest(unittest.TestCase):
         self.reviews = [('review-sample', 'invented-claim')]
         self.assertTrue(any('invalid claim/role/result' in s for s in self.area_failures()))
 
+    def record(self, name, fields, body='', area='decisions'):
+        path = self.ssot / AREAS[area] / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(f'---\n{fields}\n---\n# Record\n\n{body}\n')
+        return path
+
+    def successor_warnings(self):
+        return [s for s in self.lint()['warns'] if '[SUPERSEDE-LINK]' in s]
+
+    def test_supersession_rejects_empty_broken_and_decorative_routes(self):
+        self.record('0002-new.md', 'record_status: accepted', '## Replacement\n')
+        invalid = {
+            'blank': ('superseded_by:', ''),
+            'missing': ('superseded_by: missing.md', ''),
+            'retracted-flag': ('retracted: true', ''),
+            'unlinked-prose': ('', 'This is superseded by another decision.'),
+            'self': ('superseded_by: old-self.md', ''),
+            'bad-anchor': ('superseded_by: 0002-new.md#absent', ''),
+            'example': ('', '```md\nSuperseded by [new](0002-new.md).\n```'),
+            'comment': ('', '<!-- Superseded by [new](0002-new.md). -->'),
+            'unrelated-link': ('', 'Related background: [new](0002-new.md).'),
+        }
+        for name, (fields, body) in invalid.items():
+            self.record(f'old-{name}.md', 'record_status: superseded\n' + fields, body)
+        warnings = self.successor_warnings()
+        for name in invalid:
+            with self.subTest(route=name):
+                self.assertTrue(any(f'old-{name}.md ' in s for s in warnings), warnings)
+
+    def test_supersession_accepts_resolving_fields_and_body_links(self):
+        self.record('0002-new.md', 'record_status: accepted', '## Replacement\n')
+        valid = {
+            'path': ('superseded_by: 0002-new.md', ''),
+            'quoted': ('replaced_by: "0002-new.md#replacement"', ''),
+            'markdown': ("superseded_by: '[New](0002-new.md#replacement)'", ''),
+            'body': ('', 'Superseded by [new](0002-new.md).'),
+            'wrapped': ('', 'This is replaced by\n[new](0002-new.md#replacement).'),
+            'heading': ('', '## Superseded by\n\n[New](0002-new.md)'),
+            'localized': ('', '已被 [新决策](0002-new.md) 取代。'),
+        }
+        for name, (fields, body) in valid.items():
+            self.record(f'old-{name}.md', 'record_status: superseded\n' + fields, body)
+        self.record('nested/old-relative.md',
+                    'record_status: superseded\nsuperseded_by: ../0002-new.md#replacement')
+        self.assertEqual(self.successor_warnings(), [])
+
+    def test_record_lifecycle_takes_precedence_over_other_state_axes(self):
+        self.record('old-implementation.md',
+                    'implementation_state: superseded\nrecord_status: accepted')
+        self.record('old-deprecated.md', 'status: superseded\nrecord_status: deprecated')
+        self.record('old-record.md', 'status: accepted\nrecord_status: superseded')
+        self.record('old-legacy.md', 'status: superseded')
+        warnings = self.successor_warnings()
+        for name in ('record', 'legacy'):
+            self.assertTrue(any(f'old-{name}.md ' in s for s in warnings), warnings)
+        for name in ('implementation', 'deprecated'):
+            self.assertFalse(any(f'old-{name}.md ' in s for s in warnings), warnings)
+
+    def test_nested_superseded_records_in_all_collections_are_checked(self):
+        paths = [self.record('nested/0001-old.md', 'record_status: superseded', area=area)
+                 for area in ('decisions', 'research records', 'gotchas', 'bugs', 'tech-debt')]
+        warnings = self.successor_warnings()
+        for path in paths:
+            self.assertTrue(any(f'{path} ' in s for s in warnings), warnings)
+
+    def test_retirement_and_rejection_do_not_invent_successors(self):
+        for area, fields in (
+            ('decisions', 'record_status: deprecated\nimplementation_state: implemented'),
+            ('research records', 'record_status: validated\nadoption_state: rejected'),
+            ('gotchas', 'record_status: archived\nhazard_state: resolved'),
+            ('bugs', 'record_status: archived\nfailure_state: fixed'),
+            ('tech-debt', 'record_status: archived\nrepayment_state: obsolete'),
+        ):
+            self.record('0001-retired.md', fields,
+                        'Retired without replacement under the recorded owner decision.\n'
+                        'The feature was removed; history and exit evidence remain here.', area)
+        self.assertEqual(self.successor_warnings(), [])
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -12,7 +12,8 @@ finite scenario set proves general agent quality.
 | Mermaid generation | HTML comments inside fences are accepted by local checks but rejected by Mermaid. | v2.78 changes templates and lint together and adds real-parser CI coverage. |
 | Vocabulary explanation | One-sentence/15-word restrictions conflict with locally understandable prose; style, area, and Doctor files duplicate policy. | v2.79 centralises the rule and preserves contextual explanation while rejecting definition forks. |
 | Coverage structure | STATUS forbids architecture scope rows while later permitting them, describes only faceted covered layouts, and rejects some required stop claims. | v2.80 reconciles scoped roll-up, reviewed single-level layouts, and stop-claim enums across protocol, templates, and lint. |
-| Record retirement | Deprecated/retracted records are told to invent successors; the successor lint accepts blank keys and unverified prose. | Separate withdrawal from replacement and check real successor routes. |
+| Record retirement | Deprecated/retracted records are told to invent successors; the successor lint accepts blank keys and unverified prose. | v2.81 separates retirement from replacement and checks resolving successor routes across the five record collections. |
+| Decision scope | The owner admits only hard-to-reverse or cross-domain decisions, and the English index calls the collection architecture-only; general routing also sends lasting trade-offs there. | Reconcile selection with the durable rationale the next reader needs, while excluding routine edits. |
 
 ## Evidence boundaries
 
@@ -83,3 +84,36 @@ lint (263), Doctor (211), the boundary suite (11), Bash syntax, and configured
 ShellCheck. The final reference-table enumeration was also checked against the
 template and parser tokens. None of these checks claims a complete bootstrap or
 that single-level documentation is appropriate for every repository.
+
+## v2.81 verification
+
+Five new real-CLI test methods produced nine failed assertions/subcases against
+the preceding lint: blank/missing/self/invalid-anchor routes, withdrawal flags,
+and unlinked claims were accepted; capitalised valid body links, lifecycle-field
+precedence, and nested records were mishandled. The final boundary suite passed
+all 16 methods, including valid scalar/Markdown/anchored/wrapped/localised links,
+all five nested collections, and retirement/rejection without a successor.
+Every invocation checks that the input Markdown is unchanged. These fixtures
+establish file-level diagnostics, not semantic replacement truth or validation
+of aggregated record bodies.
+
+Local checks also passed shape (51), document contracts (189), document-quality
+lint (263), Doctor (211), installer regression (92), layout migration (49),
+STATUS migration (16), Bash syntax, configured ShellCheck, and the unchanged
+Mermaid parser suite (16 fences plus two rejected controls). The document-quality
+successor fixture now creates the successor it claims, rather than treating a
+missing target as a passing example.
+
+The independent closeout trial accepted the authorised deprecated decision
+without a successor and rejected superseded-without-successor. It also found
+two candidate glossary defects: index templates still unconditionally asked
+for a replacement, and the English entry template could turn incomplete
+deprecation into completed retirement. Those findings remain part of the
+trial. A targeted reread of the final G06 and both languages' index/entry
+templates found no remaining conflict for either retired-without-replacement
+or deprecated-with-compatibility-use. No consumer state was advanced and no
+retirement authorisation was requested again. This supports these bounded
+editing choices, not general lifecycle correctness on unseen repositories.
+The trial and directed follow-up read 15 snapshot files, used 27 execution/time
+calls, and took about ten minutes including writing; the extended scenario set
+does not support a speed comparison with baseline.

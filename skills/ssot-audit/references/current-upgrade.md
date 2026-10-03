@@ -10,6 +10,23 @@ files.
 
 ## Version Ledger
 
+### v2.81
+
+**Upgrade goal**: let a retired decision or term honestly have no replacement,
+while ensuring a superseded record actually routes to its successor. Shared
+record lifecycle semantics live in area-model §2.8.3; Doctor and STATUS refer
+there. Blank keys, withdrawal flags, examples, and broken targets do not
+satisfy supersession.
+
+**Impact**: `semantic_impact=medium`; clarifies existing lifecycle states and
+strengthens the WARN-only successor check. No new lifecycle enum or area.
+
+| Check | Audit action | Done criterion |
+|---|---|---|
+| Retirement | Review retired records and terms without replacements. | The reason, existing authority, scope, and exit evidence or remaining-use boundary are explicit; history remains and no successor is invented. |
+| Successor routes | Inspect superseded files across all five record collections, including nested files. | A nonempty field or explicit body link resolves to the actual replacement file/anchor; semantic review confirms replacement meaning and any aggregated entries. |
+| State axes | Prefer record_status over compatibility fields when present. | Implementation progress, research rejection, and document lifecycle remain independent; source-field order does not change successor warnings. |
+
 ### v2.80
 
 **Upgrade goal**: make optional scoped Area Status progress match its declared

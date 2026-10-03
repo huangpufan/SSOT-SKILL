@@ -265,7 +265,7 @@ be both empty and populated.
 | `G03` | Example |
 | `G04` | Non-example or common confusion |
 | `G05` | Unique owner and evidence |
-| `G06` | Related terms, scope, invalidation, and term lifecycle: `active`, `deprecated`, or `retired`, plus replacement and migration direction when the term is no longer active |
+| `G06` | Related terms, scope, invalidation, and term lifecycle: `active`, `deprecated`, or `retired`. For deprecated or retired terms, give the real replacement and migration route, or explicitly state that no replacement exists; explain the reason, remaining-use boundary, and retirement evidence or completion trigger. |
 | `G07` | Canonical spelling, aliases or acronyms, user label, machine token, and translation constraint when they differ |
 | `G08` | Finite glossary inventory across the mandatory term families, with every real entry indexed exactly once and an explicit reason when a family is genuinely empty |
 

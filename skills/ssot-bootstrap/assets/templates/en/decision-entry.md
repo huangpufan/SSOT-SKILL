@@ -75,5 +75,8 @@ rule that matters.>
 
 ## Closure, supersession, and invalidation
 
-<State the falsifiable closure condition, what evidence closes the record,
-what decision supersedes it, and which changed assumption makes it stale.>
+<State the falsifiable closure condition and its evidence, and which changed
+assumption makes this record stale. If another decision replaces it, link that
+decision. If guidance ends without replacement, say so and record the reason,
+existing authority, affected scope, and exit evidence or remaining work;
+preserve the history and keep implementation state separate.>

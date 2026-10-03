@@ -802,6 +802,26 @@ progress. Existing consumers may keep only a documented compatibility field
 until the entry is touched or the collection is advanced to the v2.60 covered
 contract; do not force meaningless file splits merely to migrate metadata.
 
+**Retirement and replacement.** `record_status: superseded` means another
+record now owns the guidance. Preserve the old entry and give a resolving
+successor route in `superseded_by` / `replaced_by` or an explicit superseded-by
+body link. A frontmatter route may be a relative Markdown-file path or a
+Markdown link, with a section anchor when needed; a bare key, withdrawal flag,
+or unlinked claim is not a route. Explain the affected scope and what changed;
+resolving a link alone does not prove that its target replaces the record.
+
+Retirement without replacement is different. Use the applicable lifecycle
+state above, such as `deprecated` for a decision or `archived` for a bug,
+gotcha, or debt; do not invent a successor or a new cross-record status enum.
+State that no replacement exists, why the guidance ended, the authority and
+effective scope of that change, and the evidence or remaining work for ending
+its use. Preserve history and update the collection index and current-use
+routes. An existing authorised retirement needs no second approval. Keep the
+domain axis evidence-based: rejected research need not become superseded,
+and deprecated guidance does not by itself establish implementation progress.
+Doctor's successor lint checks file-level routes; semantic review also checks
+the replacement meaning and any topic-aggregated entries.
+
 ### 2.9 04-records/decisions/
 
 **Responsibility**: Major decisions and reasons. Why this and not that, decision context and consequences.
@@ -819,7 +839,7 @@ decision, consequences, scope of impact, and lifecycle fields:
 - `updated_on`: ISO date of the most recent material edit to the decision body (status flip, implementation_state change, consequence rewrite). Required from the first edit after creation; equals `created_on` if untouched.
 - `introduced_in`: 7+ char git SHA of the commit that first added this decision file to the repository. Required. Lets future agents jump from the decision to the originating change set.
 - `updated_in`: list of 7+ char git SHAs for subsequent material edits, newest last (typically the commit referenced by `updated_on`). Required from the first edit after creation; omit when the file has only ever had its introducing commit.
-- `superseded_by`: optional, pointer to the new decision that overrides this one.
+- `superseded_by`: successor pointer when this decision is replaced; an explicit body link may serve the same role under §2.8.3. Retirement without replacement does not require it.
 - `supersedes`: optional, pointer to the old decision overridden by this one.
 - `closure_condition` (v2.43): required when `implementation_state` is `pending`, `partial`, or `diverged`. A falsifiable predicate a future agent or Doctor can evaluate without re-litigating intent — e.g. `tests/web/test_routes_mutation_free.py::test_no_policy_in_routes passes`, `grep -E 'mutation|policy' src/myapp/web/routes/ returns no match`, `STATUS.md ADJ-NNNN closes with verdict=converged`, `src/myapp/engine/planner.py absent`. Narrative such as "remaining scope is clear" or "route-thinning continues" is not a closure_condition. Omit (or write `not_applicable` with a one-line reason in the body) only when `implementation_state` is `implemented` or `superseded`.
 - `revisit_signal` (v2.43): required when `implementation_state` is `pending`, `partial`, or `diverged`. A concrete trigger that tells a future agent when to re-read this ADR — e.g. `path-glob:src/myapp/web/routes/**`, `commit touches schema.sql`, `new route family is introduced`, `STATUS.md adjudication ADJ-NNNN reopens`. Path globs, file patterns, test names, or named events are acceptable; "when relevant" or "from time to time" is not.

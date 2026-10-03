@@ -314,12 +314,12 @@ registered blockers: when a gap blocks a protocol claim, name the claim token
 (`converged`, `covered`, `tracked_commit`, ...) there so the constraint is
 checkable rather than prose.
 
-The same supersession discipline applies to record files: a decision,
-research, debt, or bug entry whose lifecycle state is `superseded` (or
-`deprecated`/`retracted`) must name its successor — `superseded_by:` in
-frontmatter, or an explicit "superseded by" / "replaced by" link in the body.
-A superseded record with no successor pointer is a dead end for a cold reader;
-lint warns `[SUPERSEDE-LINK]`.
+Record retirement and replacement follow
+[`area-model.md §2.8.3`](area-model.md#283-shared-record-index-and-state-contract).
+Only a `superseded` record asserts that a successor exists; its route must
+resolve. `[SUPERSEDE-LINK]` warns about missing or broken file-level successor
+routes. A reasoned, authorised retirement without replacement preserves the
+record and its history without inventing a successor.
 
 ## 6. Stop Review Gate
 

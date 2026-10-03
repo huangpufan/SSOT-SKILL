@@ -28,8 +28,9 @@ one concrete example, one non-example or common confusion, its unique owner and
 evidence, related terms, canonical spelling, aliases/acronyms, user label,
 machine token, translation constraint, scope, and the change that invalidates
 the definition. It also states whether the term is active, deprecated, or
-retired and, when it is no longer active, what replaces it and how readers
-migrate. Include applicable Q01-Q21 vocabulary without defining the Q
+retired. If it is deprecated or retired, link the real replacement and migration
+route, or say that no replacement exists; explain any remaining use and the
+evidence or event that completes retirement. Include applicable Q01-Q21 vocabulary without defining the Q
 protocol itself. Pay particular attention to privacy/data-governance labels,
 safety and appeal terms, fairness or explanation claims, lifecycle/retirement
 states, output-quality or drift labels, and price/plan/entitlement words: a

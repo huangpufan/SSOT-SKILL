@@ -181,7 +181,7 @@ produce the comprehension verdict.
 | RT | `RECONFIRM-TOKEN` (v2.62) | Is every `re-confirmed at <target>` token dated (`on YYYY-MM-DD`) and, when it names a commit, on this branch's history? | Re-run the scoped self-review and record a dated, on-branch token; an off-branch or undated token cannot be audited. |
 | SV | `SKILL-VERSION-BINDING` (v2.62) | Is `tracked_skill_version` bound to an artifact present in this checkout (installed skill, pinned copy, recorded release)? FAIL when the claim outruns every found artifact; WARN when an installed artifact is newer. | Install the claimed artifact or lower the claim; advance the claim when a newer artifact is genuinely present. |
 | EE | `EPHEMERAL-EVIDENCE` (v2.62) | Do STATUS cells and `.bootstrap/` artifacts point only at durable evidence — no `/tmp`, per-user caches, or machine-local scratch paths? WARN-only. | Move evidence into the repo (a `.bootstrap/` artifact or research packet) or record a content hash. |
-| SL | `SUPERSEDE-LINK` (v2.62) | Does every record file whose lifecycle state is `superseded`/`deprecated`/`retracted` name a successor via `superseded_by:`/`replaced_by:` frontmatter or an explicit body link? WARN-only. | Point the dead record at its heir; a superseded record with no successor is a dead end. |
+| SL | `SUPERSEDE-LINK` (v2.62; route validation v2.81) | Does every superseded record file, including nested records and gotchas, have a resolving successor route? WARN-only; a blank field or unrelated link does not qualify. | Apply [`area-model.md` §2.8.3](../../ssot-preflight/references/area-model.md#283-shared-record-index-and-state-contract). Repair the successor route when replaced; retain a reasoned retirement without inventing a successor. |
 
 ### 2.2 L2 semantic checks
 
@@ -562,7 +562,7 @@ Tag semantics:
 - `[RECONFIRM-TOKEN]` (v2.62, L1): a `re-confirmed at <target>` token is undated (warn) or names a commit not on this branch's history (fail). Re-confirmation is self-attested; it must be auditable. (Doctor row `RT`.)
 - `[SKILL-VERSION-BINDING]` (v2.62, L1): `tracked_skill_version` outruns every installed/pinned artifact a fresh checkout would see (fail), or an installed artifact is newer than the claim (warn). The claim attests to a reproducible artifact, not a dirty worktree. (Doctor row `SV`.)
 - `[EPHEMERAL-EVIDENCE]` (v2.62, L1): STATUS cells or `.bootstrap/` artifacts point at `/tmp`, per-user caches, or other machine-local scratch — evidence that cannot survive a fresh checkout. WARN-only. (Doctor row `EE`.)
-- `[SUPERSEDE-LINK]` (v2.62, L1): a record whose lifecycle state is `superseded`/`deprecated`/`retracted` names no `superseded_by`/`replaced_by` successor. WARN-only. (Doctor row `SL`.)
+- `[SUPERSEDE-LINK]` (v2.62, L1; route validation v2.81): a superseded record file has no resolving successor route. File-level structural check only; replacement meaning and topic-aggregated entries still need semantic review under area-model §2.8.3. WARN-only. (Doctor row `SL`.)
 - `[DIGEST]` (v2.62): when failures reach 8 (warnings 12), the human-readable output ends with a per-check count so the dominant defect class is visible without scrolling hundreds of lines.
 
 ---
