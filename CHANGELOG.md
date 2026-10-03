@@ -85,6 +85,7 @@ versions. This file only restates headline changes.
   runtime is worse than an honest gap.
 
 ### Fixed
+- v2.83: Make bootstrap an offered, user-authorised step when SSOT is missing, so an unrelated task is not blocked behind a multi-session setup; adapter blocks and entry scenarios carry the decline path.
 - v2.82: Preserve consequential product, process, and operating decisions even when reversible or local, while keeping routine edits out of the decision register.
 - v2.81: Distinguish retirement without replacement from supersession; preserve history and validate real successor routes across nested record collections.
 - v2.80: Reconcile scoped coverage and single-level architecture rules; validate scope owners, exact reviews, and non-applicable roll-ups without inventing directories.

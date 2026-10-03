@@ -2,7 +2,7 @@
 name: ssot-preflight
 description: Repository SSOT preflight before substantive code, config, docs, review, debugging, refactoring, or planning work. Use to check SSOT/STATUS.md, open adjudications, documentation language, protocol version, minimal SSOT read routing, and in-task SSOT write triggers. Do not use for pure operations, trivial format-only edits, or non-repository chat.
 metadata:
-  protocol_version: "2.82"
+  protocol_version: "2.83"
   bundle: "SSOT Skill"
   semantic_impact: medium
 ---
@@ -149,6 +149,16 @@ semantics lives in `$ssot-closeout references/promotion-rationale.md`.
 | Catch up commits / sessions, or protocol version is behind | `$ssot-audit` |
 | Health check, independent stop review, CORE-REF / ADAPTER / CONSUMPTION | `$ssot-doctor` |
 | Legacy `$ssot-skill` mention | route via `ssot-skill` shim back here |
+
+**The bootstrap route needs the user's say.** Bootstrap writes a whole
+documentation tree and can take several sessions, so it is not a side effect
+of an unrelated task. When the route fires, the user has not asked for SSOT
+creation, and no user-authorised bootstrap is under way, say that SSOT is
+missing or unfinished, offer to bootstrap now, and otherwise do the requested
+task without the SSOT lifecycle gates (an existing `STATUS.md` adjudication
+that covers the task still applies). Remember the answer for the session. A
+declined or deferred bootstrap leaves nothing to reconcile: closeout applies
+once SSOT exists or the user authorises creating it.
 
 ## Load on demand
 

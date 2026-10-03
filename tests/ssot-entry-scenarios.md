@@ -8,8 +8,8 @@ review cases, not measurements of model reliability.
 | Case | Task and repository state | Expected route and boundary |
 |---|---|---|
 | Ordinary work | Fix a login timeout; SSOT is initialized and current | Preflight before work; closeout before the substantive batch ends. Audit and Doctor run only if a skill routes to them. |
-| First use | Fix a bug; `SSOT/` is missing | Preflight routes to bootstrap; resume the original task after its gates clear. |
-| Interrupted setup | Continue work; bootstrap is unfinished | Resume bootstrap through preflight's route rather than treating the presence of a directory as completion. |
+| First use | Fix a bug; `SSOT/` is missing; user has not asked for SSOT | Preflight offers bootstrap. If the user accepts, bootstrap and then resume the task; if the user declines or defers, fix the bug without lifecycle gates and without closeout until SSOT exists. |
+| Interrupted setup | Continue work; bootstrap is unfinished | Resume bootstrap through preflight's route (offering it first unless the user started it) rather than treating the presence of a directory as completion. |
 | Protocol lag | Implement a feature; the project's tracked protocol is older than the installed bundle | Preflight routes to audit; apply its review requirements before advancing the tracking baseline. |
 | History catch-up | “Bring SSOT up to date with the last ten commits” | Audit the requested range; do not substitute routine closeout or just rewrite tracking fields. |
 | Health check | “Check SSOT health”; no implementation work requested | Doctor; no bootstrap or historical catch-up unless the applicable protocol identifies and routes that separate need. |

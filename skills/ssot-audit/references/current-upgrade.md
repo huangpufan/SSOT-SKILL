@@ -10,6 +10,17 @@ files.
 
 ## Version Ledger
 
+### v2.83
+
+**Upgrade goal**: Bootstrap is repository-wide and can take several sessions, so preflight offers it when SSOT is missing and lets the original task proceed if the user declines or defers. An explicit request, or a bootstrap the user already started, remains authorisation.
+
+**Impact**: `semantic_impact=medium`; adds a user-authorisation branch to the bootstrap route. No new state, area, or review gate.
+
+| Check | Audit action | Done criterion |
+|---|---|---|
+| Route offer | Check the preflight route-out text and the adapter block in the consuming repository. | A missing or unfinished SSOT is reported and offered, not silently started, unless the user asked for it. |
+| Decline path | Check a task run after the user declined. | The task proceeds without lifecycle gates or closeout until SSOT exists; existing STATUS adjudications that cover the task still apply. |
+
 ### v2.82
 
 **Upgrade goal**: preserve lasting decision rationale without restricting

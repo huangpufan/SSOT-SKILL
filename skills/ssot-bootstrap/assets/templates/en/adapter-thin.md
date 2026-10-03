@@ -14,7 +14,7 @@
 
 Apply the installed SSOT skills automatically when their conditions match; users describe tasks normally. Read and follow the selected skill's `SKILL.md`, including its stop and review requirements.
 
-- **Start:** before substantive repository work (code, configuration, documentation, review, debugging, or planning), use `$ssot-preflight`. Follow its `$ssot-bootstrap` route when `SSOT/` is missing or initialization is incomplete, then resume the original task once its gates clear.
+- **Start:** before substantive repository work (code, configuration, documentation, review, debugging, or planning), use `$ssot-preflight`. When `SSOT/` is missing or initialization is incomplete, preflight offers `$ssot-bootstrap`; if the user declines or defers, continue the task without SSOT lifecycle calls until SSOT exists. After a bootstrap, resume the original task once its gates clear.
 - **Capture and close:** keep durable facts in their SSOT owners as work proceeds. Before the final response, `claim_done`, or commit for a substantive change batch, use `$ssot-closeout`; it decides the required updates and batch record, including a no-op when no durable facts changed.
 - **Catch up:** use `$ssot-audit` for requested historical catch-up or when another SSOT skill routes commit, session, or protocol drift there. Advance tracking baselines only after the required review.
 - **Check:** use `$ssot-doctor` for a requested SSOT health check or a review required by another SSOT skill.

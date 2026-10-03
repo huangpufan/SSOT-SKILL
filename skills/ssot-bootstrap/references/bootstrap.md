@@ -19,6 +19,12 @@ When an agent first faces a repository without SSOT, use this protocol to establ
 `coverage_result: bootstrap`, an active bootstrap manifest has unfinished
 phases, or the user explicitly requests creation/continuation.
 
+Bootstrap needs the user's authorisation. When it is triggered only by the
+repository state (for example a bug-fix task landed in a repository without
+`SSOT/`), offer it and continue the original task if the user declines or defers;
+see the route-out section of `ssot-preflight`. An explicit request, or a bootstrap the user
+already started, counts as authorisation.
+
 The presence of `.bootstrap/` alone is not a trigger: that directory also
 stores durable review evidence after initialization. Read STATUS and, when
 present, the manifest's Phase Progress and completion evidence. A current
