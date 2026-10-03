@@ -379,6 +379,20 @@ Daily advancement of `tracked_commit`, `tracked_session`, and
 `tracked_skill_version` outside those four exceptions uses that scoped
 self-review, but the review still must be explicit and scoped.
 
+**What independent means.** The reviewer did not author or edit the reviewed
+scope and starts from a fresh context: a separate subagent, a new session, or a
+human the user names. A different model is not required. This section is the
+only owner of the definition; other files link here.
+
+**When no independent reviewer is available** (for example a harness without
+subagents, with no second session or human at hand), do not self-certify and do
+not wait indefinitely. Leave the claim at its prior state, keep the baseline
+unchanged, save the review packet (scope, artifacts, questions to challenge)
+where the review artifact would live, add an Open Gap that names the blocked
+claim and "needs independent review", and tell the user they can act as the
+reviewer or start a fresh session. Work outside the four exceptions, including
+all `scoped-self-review` claims, continues normally.
+
 ## 7. Tracking baseline and protocol version
 
 The canonical reader-facing name is **tracking baseline**: the reviewed commit,

@@ -59,7 +59,7 @@
 
 > 如果本会话判断 `single-level`（单层）、停止拆分、某区域 `done`（完成）或
 > “无需更新”，必须记录停止审查如何挑战该结论。优先独立评审者；不可用时按
-> `self-reviewed`（自审）降级路径记录范围、依据和跳过项。`needs-fix`（需要修改）
+> `scoped-self-review`（范围自审，见 `status-protocol.md §6`）记录范围、依据和跳过项。`needs-fix`（需要修改）
 > 时不得把范围报为完成。
 
 ## 产品主干判断
@@ -121,8 +121,8 @@
 | | `done`（完成）/ `no-op`（无需动作）/ 无需更新 / `single-level`（单层）/ 停止拆分 | | `no-more-required-changes`（无需再改）/ `needs-fix`（需要修改） | | |
 
 > 高影响初始化结论（整体 `passed`、清理 `.bootstrap/`、提高最终追踪基线）不能自审。
-> 这里记录本会话停止结论受到的评审挑战，或 `self-reviewed`（自审）降级记录；
-> 降级时必须写清已检查项与未检查项。最终全局收敛仍以 `manifest.md` 和
+> 这里记录本会话停止结论受到的评审挑战，或 `scoped-self-review`（范围自审）记录；
+> 自审时必须写清已检查项与未检查项。最终全局收敛仍以 `manifest.md` 和
 > `STATUS.md` 的记录为准。
 
 ## 下次建议

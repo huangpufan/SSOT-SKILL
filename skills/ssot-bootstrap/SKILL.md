@@ -9,5 +9,8 @@ Build SSOT only from observed repository evidence; a filled template is not
 proof. Follow [`bootstrap.md`](references/bootstrap.md) until every phase exit
 holds. Load source-material rules for supplied documents and
 [`reader-quality.md`](../ssot-preflight/references/reader-quality.md) for every
-reader-facing body. Stop only after the required independent Doctor review
-passes; never infer bootstrap completion from structure or lint alone.
+reader-facing body. Stop only after the stop review that
+[`status-protocol.md §6`](../ssot-preflight/references/status-protocol.md)
+requires passes (independent for overall `passed`); if none is available, leave
+the claim unmade and report why. Never infer bootstrap completion from
+structure or lint alone.

@@ -151,7 +151,8 @@ read set.
 ### 1.3 Reviewer setup
 
 For `high-impact-adoption`, use an independent cold reader who has not authored
-the reviewed slice. A `routine` review may use `scoped-self-review` only when
+the reviewed slice. If the harness cannot provide one, follow the no-reviewer
+rule in `status-protocol.md §6` instead of self-certifying. A `routine` review may use `scoped-self-review` only when
 `status-protocol.md §6` permits it. Keep this reviewer role separate from the
 mandatory `implementation-delegator` reader profile. Give the reviewer only:
 

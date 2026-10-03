@@ -10,6 +10,17 @@ files.
 
 ## Version Ledger
 
+### v2.84
+
+**Upgrade goal**: Independent review was required in more places than the stop-review owner allows, with no definition and no outcome when a harness has no second reviewer. status-protocol §6 now defines independence and the no-reviewer path; other files link to it.
+
+**Impact**: `semantic_impact=medium`; removes contradictions and a deadlock. The four independence exceptions are unchanged.
+
+| Check | Audit action | Done criterion |
+|---|---|---|
+| Reviewer policy | Compare bootstrap, area-model, Doctor and templates with status-protocol §6. | Independence is demanded only for the four listed exceptions; Tier `done` and `not_applicable` use scoped self-review. |
+| No reviewer available | Check a high-impact claim made where no independent reviewer exists. | The claim is left unmade, the baseline is unchanged, a gap names the blocked claim, and the user is asked; nothing is self-certified. |
+
 ### v2.83
 
 **Upgrade goal**: Bootstrap is repository-wide and can take several sessions, so preflight offers it when SSOT is missing and lets the original task proceed if the user declines or defers. An explicit request, or a bootstrap the user already started, remains authorisation.

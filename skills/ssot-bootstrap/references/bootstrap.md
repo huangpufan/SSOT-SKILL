@@ -453,7 +453,7 @@ For L/XL repos, auditing all architecture domains and satellite areas at once ma
 
 - Segment by Tier: confirm architecture root/views and context convergence first, then confirm domains and engineering operation areas
 - Segment by architecture domain: for XL repos, check related areas group by group, per top-level architecture domain
-- Total convergence = all segments have an independent reviewer's `no-more-required-changes`
+- Total convergence = all segments have `no-more-required-changes` from the reviewer role `status-protocol.md §6` requires
 
 Segmented-convergence progress is recorded in the convergence-check area of manifest.md.
 
@@ -564,7 +564,7 @@ baseline.
 - Challenges `done`, `passed`, `covered`, `single-level`, stop-decomposition, `no-op` / "no update needed" conclusions
 - Returns `no-more-required-changes` or `needs-fix`; `needs-fix` must list remaining changes
 
-In single-agent scenarios, the same agent can act as both coordinator and worker -- coordinate first (read manifest, decide scope), then execute (explore, fill, write session log), then return to coordinate (update manifest). The stop reviewer must be an independent agent/subagent; without independent review, you cannot write `done` / `passed` / `converged` or clean up `.bootstrap/`.
+In single-agent scenarios, the same agent can act as both coordinator and worker -- coordinate first (read manifest, decide scope), then execute (explore, fill, write session log), then return to coordinate (update manifest). Stop review follows `status-protocol.md §6`: scoped self-review by default (for example a Tier `done`), and an independent reviewer for bootstrap overall `passed` (which includes cleaning up `.bootstrap/`), a language change, and the first `converged`. When an independent reviewer is required but unavailable, follow the no-reviewer rule there: leave the claim unmade, keep `.bootstrap/` in place, record the gap, and ask the user; never self-certify it.
 
 ### 6.2 Flow for a new agent entering bootstrap
 
@@ -599,7 +599,7 @@ Core constraint for parallel: **the same README or entry file can only be writte
 
 Parallel work still respects Tier dependency order: Tier 2 workers may need to read Tier 1 outputs. The coordinator should ensure:
 - Areas within the same Tier may freely parallel
-- Downstream-Tier work is dispatched after upstream Tier reaches at least `done` state; this `done` must already have independent stop review passed
+- Downstream-Tier work is dispatched after upstream Tier reaches at least `done` state; this `done` must already have passed its stop review under `status-protocol.md §6`
 - Exception: if downstream area information sources do not depend on upstream output (e.g. complete deployment info obtained from Dockerfile directly), may start early
 
 **Session numbering**

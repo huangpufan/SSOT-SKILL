@@ -52,7 +52,7 @@
 | Uncovered gaps | |
 | Stop / recursion review challenge | reviewer + result (`no-more-required-changes` / `needs-fix`) + remaining changes |
 
-> If this session concludes `single-level`, stop decomposition, an area as `done`, or `no update required`, record how stop review challenged that conclusion. Prefer an independent reviewer; if unavailable, record scope, basis, and skipped items under the `self-reviewed` degradation path. On `needs-fix`, do not report the scope as complete.
+> If this session concludes `single-level`, stop decomposition, an area as `done`, or `no update required`, record how stop review challenged that conclusion. Prefer an independent reviewer; if unavailable, record scope, basis, and skipped items as `scoped-self-review` (`status-protocol.md §6`). On `needs-fix`, do not report the scope as complete.
 
 ## Product Spine Decisions
 
@@ -108,7 +108,7 @@
 |---|---|---|---|---|---|
 | | done / no-op / no update required / single-level / stop decomposition | | no-more-required-changes / needs-fix | | |
 
-> High-impact bootstrap conclusions (overall `passed`, cleanup of `.bootstrap/`, final tracking-baseline advance) cannot be self-reviewed. Recorded here are reviewer challenges for stop conclusions associated with this session, or `self-reviewed` degradation records; under degradation, you must spell out checked and unchecked items. Final global convergence still defers to the records in manifest and STATUS.md.
+> High-impact bootstrap conclusions (overall `passed`, cleanup of `.bootstrap/`, final tracking-baseline advance) cannot be self-reviewed. Recorded here are reviewer challenges for stop conclusions associated with this session, or `scoped-self-review` records; under self-review, you must spell out checked and unchecked items. Final global convergence still defers to the records in manifest and STATUS.md.
 
 ## Suggestions for Next Session
 

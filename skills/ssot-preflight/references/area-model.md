@@ -1190,7 +1190,7 @@ This area is not applicable to the current repository.
 **Reason**: <specific reason>
 ```
 
-This ensures the structure is complete and unambiguous, and the agent will not mistakenly assume some area is "not filled in yet". `not_applicable` is a legal state, but must give a reason; if used for stop conclusion or `covered`-equivalent judgment, still requires an independent stop review.
+This ensures the structure is complete and unambiguous, and the agent will not mistakenly assume some area is "not filled in yet". `not_applicable` is a legal state, but must give a reason; if used for stop conclusion or `covered`-equivalent judgment, it follows the same stop-review policy as any other disposition (`status-protocol.md §6`).
 
 `03-process/operations/` and `03-process/security-and-compliance/` are
 conditional owners: create them only when their applicability signals fire.
