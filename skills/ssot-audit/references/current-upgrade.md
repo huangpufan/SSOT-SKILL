@@ -10,6 +10,20 @@ files.
 
 ## Version Ledger
 
+### v2.78
+
+**Upgrade goal**: generate diagrams that Mermaid can actually parse. Use native
+`%% diagram_type: ...` comments inside fences; HTML comments remain outside.
+
+**Impact**: `semantic_impact=medium`; changes generated diagram syntax and
+matching lint checks, without changing diagram meaning or coverage gates.
+
+| Check | Audit action | Done criterion |
+|---|---|---|
+| Existing diagrams | Replace HTML type markers inside Mermaid fences with native comments. Preserve graph content and historical evidence. | Changed diagrams parse with Mermaid; lint recognises their type. |
+| Review binding | Refresh affected content fingerprints and perform the applicable scoped review. | An old artifact is not reused against changed reader content. |
+| Generation | Use the bilingual templates; retain real-parser regression coverage. | New diagrams no longer reproduce the invalid marker. |
+
 ### v2.77
 
 **Upgrade goal**: finish coordination without deleting the evidence supporting coverage and decisions. Review records, referenced sessions, unique findings and frozen routes remain available; only redundant unreferenced coordination without an active writer may be removed. Retained history alone does not restart bootstrap.

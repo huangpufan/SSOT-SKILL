@@ -31,7 +31,7 @@ intent_recovery: gap
      Explain who can act at every meaningful transition before summarising it. -->
 
 ```mermaid
-<!-- diagram_type: state -->
+%% diagram_type: state
 stateDiagram-v2
   [*] --> Draft
   Draft --> Active: person starts

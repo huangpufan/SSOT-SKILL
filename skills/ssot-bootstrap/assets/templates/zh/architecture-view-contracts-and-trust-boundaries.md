@@ -15,7 +15,7 @@ intent_recovery: gap
      敏感数据在哪里出现，又必须在哪里脱敏。 -->
 
 ```mermaid
-<!-- diagram_type: component -->
+%% diagram_type: component
 flowchart LR
   caller["外部调用者"] --> edge["已验证身份的边界"]
   edge --> service["已授权服务"]

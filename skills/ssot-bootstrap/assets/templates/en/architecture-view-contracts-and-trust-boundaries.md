@@ -17,7 +17,7 @@ intent_recovery: gap
      and sensitive data appear and where they must be redacted. -->
 
 ```mermaid
-<!-- diagram_type: component -->
+%% diagram_type: component
 flowchart LR
   caller["External caller"] --> edge["Authenticated boundary"]
   edge --> service["Authorised service"]

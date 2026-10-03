@@ -18,7 +18,7 @@ intent_recovery: gap
      through which real work arrives. Define local environment names. -->
 
 ```mermaid
-<!-- diagram_type: component -->
+%% diagram_type: component
 flowchart LR
   person["User or operator"] --> ingress["Ingress"]
   ingress --> unitA["Deployable unit A"]

@@ -16,7 +16,7 @@ intent_recovery: gap
      以及真实工作进入的入口。仓库特有的环境名称应在此定义。 -->
 
 ```mermaid
-<!-- diagram_type: component -->
+%% diagram_type: component
 flowchart LR
   person["用户或操作者"] --> ingress["入口"]
   ingress --> unitA["可部署单元 A"]

@@ -314,6 +314,12 @@ exports are derived artifacts. Externally generated diagrams, screenshots, IDE
 dependency diagrams, and auto dependency graphs are candidates until rewritten
 as maintainable Mermaid with evidence.
 
+Use a native Mermaid comment as the first non-blank line inside each fence:
+`%% diagram_type: component`, `sequence`, `state`, or `flow`. HTML comments
+belong outside the fence; inside it they prevent Mermaid from detecting the
+diagram grammar. Check the actual diagram with a Mermaid parser when changing
+its syntax; a recognised type marker alone does not establish valid grammar.
+
 Every covered runtime-owner domain requires one first-screen boundary/context
 diagram; the architecture root requires a context diagram when its external or
 owner boundary is non-obvious. Additional diagrams are required only when they

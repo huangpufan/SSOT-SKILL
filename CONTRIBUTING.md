@@ -32,7 +32,11 @@ bash tests/test-document-quality-contract.sh
 bash tests/test-document-quality-lint.sh
 ```
 
-CI runs the same set plus `shellcheck`.
+CI runs the same set plus `shellcheck` and real Mermaid parsing. For diagram
+changes, install `mermaid@11.12.0` and `jsdom@26.1.0` into an isolated npm
+prefix, then run `node tests/test-mermaid-templates.mjs <prefix>/node_modules`.
+The parser checks both template languages and deliberately invalid controls;
+it does not review diagram meaning or visual layout.
 
 ## PR checklist
 

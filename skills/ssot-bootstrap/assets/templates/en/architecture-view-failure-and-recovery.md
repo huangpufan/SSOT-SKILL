@@ -17,7 +17,7 @@ intent_recovery: gap
      visible degradation, operator action, and evidence that confirms recovery. -->
 
 ```mermaid
-<!-- diagram_type: component -->
+%% diagram_type: component
 flowchart LR
   user["User or operator"] --> coordinator["Coordinator"]
   coordinator -->|owned work| owner["Runtime owner"]

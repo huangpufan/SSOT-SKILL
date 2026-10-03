@@ -16,7 +16,7 @@ intent_recovery: gap
      先定义术语，再出现 ID。 -->
 
 ```mermaid
-<!-- diagram_type: component -->
+%% diagram_type: component
 flowchart LR
   caller["调用者"] --> owner["当前运行时所有者"]
   owner --> state[("拥有的状态或资源")]

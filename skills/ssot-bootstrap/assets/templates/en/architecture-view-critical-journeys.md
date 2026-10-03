@@ -17,7 +17,7 @@ intent_recovery: gap
      correlation handle an operator uses to follow the same work. -->
 
 ```mermaid
-<!-- diagram_type: component -->
+%% diagram_type: component
 flowchart LR
   user["User or operator"] -->|request| entry["Entry boundary"]
   entry -->|validated work| coordinator["Coordinator"]

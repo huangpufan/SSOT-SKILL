@@ -122,7 +122,7 @@ for lang in en zh; do
       inside { print; exit }
     ' "$domain")
     h2_count=$(grep -cE '^##[[:space:]]' "$domain" || true)
-    if [[ -n "$first_mermaid" && "$first_mermaid" -le 60 && ( -z "$first_table" || "$first_mermaid" -lt "$first_table" ) && "$first_diagram_tag" == '<!-- diagram_type: component -->' ]]; then
+    if [[ -n "$first_mermaid" && "$first_mermaid" -le 60 && ( -z "$first_table" || "$first_mermaid" -lt "$first_table" ) && "$first_diagram_tag" == '%% diagram_type: component' ]]; then
       pass "$lang architecture domain puts a component diagram before the first table and within 60 lines"
     else
       fail "$lang architecture domain puts a component diagram before the first table and within 60 lines"
@@ -143,7 +143,7 @@ for lang in en zh; do
       inside && !checked && /^[[:space:]]*$/ { next }
       inside && !checked {
         checked=1
-        if ($0 !~ /^[[:space:]]*<!--[[:space:]]*diagram_type:[[:space:]]*(component|sequence|state|flow)[[:space:]]*-->[[:space:]]*$/) misses++
+        if ($0 !~ /^[[:space:]]*%%[[:space:]]*diagram_type:[[:space:]]*(component|sequence|state|flow)[[:space:]]*$/) misses++
       }
       inside && /^```[[:space:]]*$/ { if (!checked) misses++; inside=0 }
       END { print misses + 0 }

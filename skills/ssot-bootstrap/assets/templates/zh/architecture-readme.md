@@ -29,7 +29,7 @@ intent_recovery: gap
      与最重要的信任边界，再给出图。 -->
 
 ```mermaid
-<!-- diagram_type: component -->
+%% diagram_type: component
 flowchart LR
   person["用户或操作者"] --> entry["产品入口"]
   entry --> coordinator["工作协调者"]

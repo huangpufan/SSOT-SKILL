@@ -18,7 +18,7 @@ intent_recovery: gap
      that prevents conflicting truth. -->
 
 ```mermaid
-<!-- diagram_type: component -->
+%% diagram_type: component
 flowchart LR
   input["Validated input"] --> writer["Write owner"]
   writer --> durable[("Durable record")]

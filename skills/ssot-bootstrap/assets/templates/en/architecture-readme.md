@@ -33,7 +33,7 @@ that holds each runtime fact:
      the most important trust boundary before showing the diagram. -->
 
 ```mermaid
-<!-- diagram_type: component -->
+%% diagram_type: component
 flowchart LR
   person["User or operator"] --> entry["Product entry"]
   entry --> coordinator["Work coordinator"]

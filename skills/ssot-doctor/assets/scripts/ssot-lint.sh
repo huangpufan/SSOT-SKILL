@@ -3347,7 +3347,7 @@ check_document_quality() {
         /^```mermaid[[:space:]]*$/ { fence=NR; inside=1; next }
         inside && /^[[:space:]]*$/ { next }
         inside {
-          if ($0 ~ /^[[:space:]]*<!--[[:space:]]*diagram_type:[[:space:]]*component[[:space:]]*-->[[:space:]]*$/)
+          if ($0 ~ /^[[:space:]]*%%[[:space:]]*diagram_type:[[:space:]]*component[[:space:]]*$/)
             print fence "|component"
           else
             print fence "|wrong-or-missing"
@@ -3357,7 +3357,7 @@ check_document_quality() {
       first_mermaid=${diagram_info%%|*}
       diagram_type=${diagram_info#*|}
       if [[ -z "$diagram_info" || "$diagram_type" != "component" || "$first_mermaid" -gt 60 || ( -n "$first_table" && "$first_mermaid" -gt "$first_table" ) ]]; then
-        add_fail "[DIAGRAM-FIRST] (15V) covered architecture domain needs a Mermaid component/boundary diagram tagged '<!-- diagram_type: component -->' within 60 lines and before its first table: $readme"
+        add_fail "[DIAGRAM-FIRST] (15V) covered architecture domain needs a Mermaid component/boundary diagram tagged '%% diagram_type: component' within 60 lines and before its first table: $readme"
         diagram_fail_count=$((diagram_fail_count + 1))
       fi
     done < <(find "$ARCHITECTURE_DIR" -name 'README.md' -type f -print0 2>/dev/null || true)
@@ -5301,7 +5301,7 @@ if [[ -d "$ARCHITECTURE_DIR" ]]; then
     # this shell rather than losing them in a pipeline subshell.
     while IFS='|' read -r status filepath lineno; do
       if [[ "$status" == "MISS" ]]; then
-        add_warn "[DIAGRAM-TYPE-TAG] (15U) Mermaid block has a missing/invalid first-line diagram_type tag or mixes diagram kinds: $filepath (fence opened near line $lineno)"
+        add_warn "[DIAGRAM-TYPE-TAG] (15U) Mermaid block has a missing/invalid first-line Mermaid comment (%% diagram_type: component|sequence|state|flow) or mixes diagram kinds: $filepath (fence opened near line $lineno)"
         DT_WARN_COUNT=$((DT_WARN_COUNT + 1))
         [[ "$DT_WARN_COUNT" -ge 20 ]] && break
       fi
@@ -5316,7 +5316,7 @@ if [[ -d "$ARCHITECTURE_DIR" ]]; then
         if (!checked && $0 ~ /^[[:space:]]*$/) { next }
         if (!checked) {
           checked=1
-          if ($0 ~ /^[[:space:]]*<!--[[:space:]]*diagram_type:[[:space:]]*(component|sequence|state|flow)[[:space:]]*-->[[:space:]]*$/) {
+          if ($0 ~ /^[[:space:]]*%%[[:space:]]*diagram_type:[[:space:]]*(component|sequence|state|flow)[[:space:]]*$/) {
             valid=1
             if ($0 ~ /diagram_type:[[:space:]]*component/) dtype="component"
             else if ($0 ~ /diagram_type:[[:space:]]*sequence/) dtype="sequence"

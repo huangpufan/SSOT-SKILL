@@ -15,7 +15,7 @@ intent_recovery: gap
      重启行为、可见降级、操作者动作，以及确认恢复的证据。 -->
 
 ```mermaid
-<!-- diagram_type: component -->
+%% diagram_type: component
 flowchart LR
   user["用户或操作者"] --> coordinator["协调者"]
   coordinator -->|所有者工作| owner["运行时所有者"]

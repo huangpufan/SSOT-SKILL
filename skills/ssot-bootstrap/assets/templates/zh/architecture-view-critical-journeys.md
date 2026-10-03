@@ -15,7 +15,7 @@ intent_recovery: gap
      结果。写出操作者追踪同一工作的关联标识。 -->
 
 ```mermaid
-<!-- diagram_type: component -->
+%% diagram_type: component
 flowchart LR
   user["用户或操作者"] -->|提交请求| entry["入口边界"]
   entry -->|已校验的工作| coordinator["协调者"]

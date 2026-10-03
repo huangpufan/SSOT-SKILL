@@ -16,7 +16,7 @@ intent_recovery: gap
      或协调规则。 -->
 
 ```mermaid
-<!-- diagram_type: component -->
+%% diagram_type: component
 flowchart LR
   input["已校验输入"] --> writer["写入所有者"]
   writer --> durable[("持久记录")]

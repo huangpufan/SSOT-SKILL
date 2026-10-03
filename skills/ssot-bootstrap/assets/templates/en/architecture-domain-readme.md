@@ -17,7 +17,7 @@ intent_recovery: gap
      nearest owner a newcomer might confuse with it. Define terms before IDs. -->
 
 ```mermaid
-<!-- diagram_type: component -->
+%% diagram_type: component
 flowchart LR
   caller["Caller"] --> owner["This runtime owner"]
   owner --> state[("Owned state or resource")]

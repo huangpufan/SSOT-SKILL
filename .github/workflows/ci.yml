@@ -99,6 +99,19 @@ jobs:
       - name: Run document-quality lint tests
         run: bash tests/test-document-quality-lint.sh
 
+  mermaid-templates:
+    name: parse generated diagram syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install isolated parser dependencies
+        run: npm install --prefix "$RUNNER_TEMP/ssot-mermaid" mermaid@11.12.0 jsdom@26.1.0 --no-audit --no-fund
+      - name: Parse bilingual template diagrams
+        run: node tests/test-mermaid-templates.mjs "$RUNNER_TEMP/ssot-mermaid/node_modules"
+
   bundle-shape:
     name: bundle shape & link integrity
     strategy:

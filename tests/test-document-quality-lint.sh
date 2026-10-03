@@ -1125,10 +1125,10 @@ printf '%s\n' \
   '# Runtime domain' '' \
   'This domain owns one runtime boundary and explains its callers and result.' '' \
   'The next paragraph explains state ownership and representative recovery.' '' \
-  '```mermaid' '<!-- diagram_type: sequence -->' 'sequenceDiagram' '  User->>Web: request' '```' \
+  '```mermaid' '%% diagram_type: sequence' 'sequenceDiagram' '  User->>Web: request' '```' \
   '' '| State | Owner |' '|---|---|' '| run | web |' > "$T/SSOT/02-architecture/01-runtime/README.md"
 out=$(run_quality "$T"); code=$?
-assert_contains "sequence-only first screen fails the component boundary requirement" "$out" "tagged '<!-- diagram_type: component -->'"
+assert_contains "sequence-only first screen fails the component boundary requirement" "$out" "tagged '%% diagram_type: component'"
 assert_exit "sequence-only covered domain exits 2" "$code" "2"
 rm -rf "$T"
 
@@ -1138,12 +1138,14 @@ printf '| tracked_skill_version | `2.58` |\n| documentation_language | zh-CN |\n
 printf '%s\n' \
   '---' 'intent_recovery: gap' '---' '# Runtime' '' \
   '```mermaid' 'flowchart LR' '  A --> B' '```' '' \
-  '```mermaid' '<!-- diagram_type: database -->' 'flowchart LR' '  DB --> API' '```' '' \
-  '```mermaid' '<!-- diagram_type: component -->' 'sequenceDiagram' '  A->>B: mixed' '```' > "$T/SSOT/02-architecture/01-runtime/README.md"
+  '```mermaid' '%% diagram_type: database' 'flowchart LR' '  DB --> API' '```' '' \
+  '```mermaid' '%% diagram_type: component' 'sequenceDiagram' '  A->>B: mixed' '```' '' \
+  '```mermaid' '<!-- diagram_type: component -->' 'flowchart LR' '  A --> B' '```' '' \
+  '```mermaid' '%% diagram_type: component' 'flowchart LR' '  A --> B' '```' > "$T/SSOT/02-architecture/01-runtime/README.md"
 normal_out=$(bash "$LINT" "$T/SSOT" 2>&1)
 tag_hits=$(printf '%s\n' "$normal_out" | grep -c '\[DIAGRAM-TYPE-TAG\].*fence opened' || true)
 assert_contains "normal lint reports a missing or invalid diagram type tag" "$normal_out" "[DIAGRAM-TYPE-TAG]"
-assert_exit "state machine reports missing, invalid, and mixed diagram contracts" "$tag_hits" "3"
+assert_exit "state machine accepts native comments and rejects missing, invalid, mixed, and HTML tags" "$tag_hits" "4"
 rm -rf "$T"
 
 echo "== Q17 multi-directory meta scan inherits the common v2.59 tracking baseline =="
@@ -1255,7 +1257,7 @@ printf '%s\n\n%s\n' \
   'The runtime owner accepts a request, changes its owned state, and returns one visible result through a boundary that no sibling domain writes.' \
   'When the request fails, this owner records the failure, exposes the diagnostic signal, and gives the operator one bounded recovery route.' \
   > "$T/SSOT/02-architecture/01-runtime/README.md"
-printf '%s\n' '```mermaid' '<!-- diagram_type: component -->' 'flowchart LR' '  A[Request] --> B[Runtime owner]' '```' >> "$T/SSOT/02-architecture/01-runtime/README.md"
+printf '%s\n' '```mermaid' '%% diagram_type: component' 'flowchart LR' '  A[Request] --> B[Runtime owner]' '```' >> "$T/SSOT/02-architecture/01-runtime/README.md"
 printf '%s\n\n%s\n' \
   'The cross-owner view explains where an operator starts diagnosis and which runtime owner must answer for the failed request.' \
   'It keeps the recovery route and deployment signal together without copying the domain contract or product promise.' \

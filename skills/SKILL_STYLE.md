@@ -125,7 +125,7 @@ templates: when `bootstrap-readme.md` is rendered from `architecture-domain-
 readme.md`, the four slots are already there.
 
 **Diagram typing.** Each Mermaid block in an architecture template carries a
-`<!-- diagram_type: component | sequence | state | flow -->` HTML comment as
+`%% diagram_type: component | sequence | state | flow` Mermaid comment as
 its first fenced-block line. One type per block — do not mix component edges
 with sequence arrows in one diagram. Subsystem pages should ship a component
 diagram in the first screen, before any table. Doctor `15U [DIAGRAM-TYPE-TAG]`

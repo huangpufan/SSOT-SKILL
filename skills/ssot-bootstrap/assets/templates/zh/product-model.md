@@ -27,7 +27,7 @@ intent_recovery: gap
      先说明每个重要转移由谁采取行动，再用图概括。 -->
 
 ```mermaid
-<!-- diagram_type: state -->
+%% diagram_type: state
 stateDiagram-v2
   [*] --> Draft
   state "草稿" as Draft

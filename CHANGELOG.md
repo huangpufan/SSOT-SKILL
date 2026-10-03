@@ -85,6 +85,7 @@ versions. This file only restates headline changes.
   runtime is worse than an honest gap.
 
 ### Fixed
+- v2.78: Generate native Mermaid comments, reject invalid HTML markers inside diagram fences, and parse every bilingual template diagram in CI.
 - v2.77: Retain bootstrap review evidence and referenced exploration records; determine unfinished setup from active phases and completion evidence rather than directory presence.
 - v2.76: Bound adapter diagnostics to the managed block while preserving handwritten startup rules and legacy generated-file checks.
 - v2.75: Make the documented single-owner architecture layout usable without fabricated domain/view directories, preserving complete inventories and reader review.
