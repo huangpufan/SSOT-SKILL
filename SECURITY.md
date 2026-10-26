@@ -27,8 +27,8 @@ SSOT-SKILL ships:
 - A Bash installer (`install.sh`) that copies skill bundles into an agent's
   config directory and may shell out to `git`, `curl`, and standard POSIX
   utilities.
-- Shell test scaffolding under `tests/*.sh` and a lint helper
-  (`ssot-lint.sh`).
+- Test scaffolding under `tests/` and the read-only checker
+  (`ssot-check.py`).
 - Markdown protocol documents and templates under `skills/`.
 
 The bundle does not run a long-lived service. The realistic attack surface

@@ -1,4 +1,4 @@
 interface:
   display_name: "SSOT Doctor"
-  short_description: "Check whether SSOT is trustworthy"
-  default_prompt: "Use $ssot-doctor to check SSOT health or review stop gates."
+  short_description: "Check, review, or catch up SSOT"
+  default_prompt: "Use $ssot-doctor to check SSOT health, review it against the code, or catch it up on past commits."

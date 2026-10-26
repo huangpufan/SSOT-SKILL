@@ -1,15 +1,88 @@
 ---
 name: ssot-closeout
-description: SSOT closeout before final response, claim_done, or commit after substantive repository changes. Use to absorb code/diff/conversation/test changes into SSOT, resolve in-task SSOT deltas, and decide whether no-op, status updates, audit, or doctor are needed. Do not use for initial task preflight, full historical catch-up, or full health checks.
+description: Update the repository's SSOT at the end of a substantive change batch, before the final response or commit. Records decisions, changed contracts or behavior, new traps, changed commands, temporary workarounds, and lasting user directives in their single owner, and removes the statements they supersede. Writes nothing when no durable fact changed. Do not use for typo or formatting edits or at the start of a task.
 ---
 
 # SSOT Closeout
 
-Reconcile the whole batch, not only the diff. Check the entry conditions in
-[`update-routing.md §0`](references/update-routing.md#0-entry-check) first (SSOT
-exists, bootstrap not active, protocol not behind), then follow
-[`update-routing.md`](references/update-routing.md) and
-[`inline-update-guide.md`](references/inline-update-guide.md); load
-[`reader-quality.md`](../ssot-preflight/references/reader-quality.md) before changing reader bodies. Stop only when every durable
-change, failure, caveat, temporary surface, and tracking-baseline issue has one
-owner or a concrete no-op disposition, and any required Doctor review passes.
+Bring `SSOT/` in line with what this batch changed: the diff, the decisions
+made in the conversation, and what you observed while working. What to store,
+where it lives, and how to write it are defined in
+[`memory-model.md`](../ssot-preflight/references/memory-model.md).
+
+## Before you start
+
+- **No `SSOT/` directory.** Nothing to do, unless the user asked to create one
+  (that is `$ssot-bootstrap`).
+- **Not v3** (`SSOT/README.md` has no `ssot_format: 3`, usually a v2 layout
+  with `STATUS.md`). Do not write. List
+  the durable facts from this batch for the user, explain that SSOT stays
+  read-only until it is migrated, and offer the migration with
+  `$ssot-bootstrap`.
+- **Setup unfinished** (`SSOT/BOOTSTRAP.md` exists). Update documents that
+  already exist. Note anything else in `BOOTSTRAP.md` so setup picks it up.
+
+The batch is the work done in this task. If other people's changes are in
+the tree, or `HEAD` moved underneath you, do not record facts from them that
+you have not verified. Tell the user, and leave them to a `$ssot-doctor`
+catch-up.
+
+## Steps
+
+1. **List the candidates.** Go through the batch and look for:
+   - decisions made, and alternatives the user rejected;
+   - contracts, APIs, data formats, or behavior that users rely on and that
+     changed;
+   - traps you hit, with their cause;
+   - build, test, release, or deploy commands that changed;
+   - temporary workarounds added, with their removal condition;
+   - lasting directives from the user;
+   - findings that will keep guiding work: a failed approach, an unexplained
+     observation, a research result;
+   - SSOT statements this work proved wrong.
+
+   Before you decide there is nothing, open the owners that describe the
+   parts this batch touched, plus any related problems preflight surfaced,
+   and compare them with what is now true. A statement that is now wrong
+   must be fixed or removed, even if the fact behind it could be recovered
+   from the code. "Could be recovered from the code" only decides what to
+   add, never what to leave wrong. If the owners still hold, write nothing:
+   no logs, no timestamps, no "checked" markers. Say so in your report.
+   If you already updated the owners during the work, that counts.
+2. **Write each one in its single owner.** Use the README's routes and the
+   model's layout. Update in place, in the present tense. Add a decision
+   record for a consequential choice. Record a lasting user directive as a
+   confirmed invariant, with the user and date, and put its explanation in
+   the owner the row links to. A one-time choice the user made goes to a
+   decision record instead.
+   Label anything decided but not built as planned.
+3. **Remove what it supersedes.** Search `SSOT/` and the agent instruction
+   files (`AGENTS.md`, `CLAUDE.md`) for older statements of the same fact
+   (names, numbers, the old behavior) that still act as current guidance,
+   and fix or delete them. A rule kept short in an instruction file and
+   explained in `SSOT/` changes in both places. If you renamed or split a
+   file or heading, fix the links to it across the repository. History keeps its meaning: in a past
+   decision or research note, leave the old behavior as written, set a
+   replaced decision's status to `superseded by NNNN`, and link the successor.
+4. **Protect people's rules.** Change a confirmed invariant, or an accepted
+   decision a person made, only on an explicit user decision. A decision in this conversation
+   counts, and so does an earlier one that is already recorded and applies.
+   Record it with its date. Without one, pause only the work that depends on
+   the change, and ask.
+5. **Check.** Run the checker that ships with `ssot-doctor`:
+   `python3 <ssot-doctor skill directory>/assets/scripts/ssot-check.py SSOT`.
+   Fix the errors this batch introduced, plus any that affect what you wrote.
+   Report other errors without fixing them, and do not present a scoped check
+   as a clean bill for the whole SSOT. Then reread each changed passage as a
+   newcomer would.
+6. **Report.** In your final response, name the SSOT files you changed and
+   why. If you changed nothing, name the owners you compared and say why
+   nothing in them became wrong or missing.
+
+Put SSOT edits in the same commit as the change they describe, if the
+project's commit rules allow it. Committing and pushing follow the project's
+existing rules; this skill grants no extra authority.
+
+You are done when every candidate is written to its owner or explicitly
+judged not durable, and the checker reports no errors in what this batch
+wrote. Errors elsewhere are reported, not fixed.

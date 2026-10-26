@@ -30,7 +30,7 @@ HOME="$SCENARIO1" SOURCE_DIR="$PROJECT_ROOT" \
 
 CLAUDE_BASE="$SCENARIO1/.claude/skills"
 assert_dir "scenario1: claude base created" "$CLAUDE_BASE"
-assert_file "scenario1: bundle-level SKILL_STYLE companion installed" "$CLAUDE_BASE/SKILL_STYLE.md"
+assert_no_file "scenario1: no bundle-level companion since 3.0" "$CLAUDE_BASE/SKILL_STYLE.md"
 for skill in ssot-preflight ssot-bootstrap ssot-closeout ssot-audit ssot-doctor ssot-skill; do
   assert_file "scenario1: $skill SKILL.md" "$CLAUDE_BASE/$skill/SKILL.md"
   assert_file "scenario1: $skill openai.yaml" "$CLAUDE_BASE/$skill/agents/openai.yaml"
@@ -38,17 +38,16 @@ done
 assert_dir "scenario1: templates dir flattened" "$CLAUDE_BASE/ssot-bootstrap/assets/templates"
 assert_no_dir "scenario1: no en/ subdir in installed templates" "$CLAUDE_BASE/ssot-bootstrap/assets/templates/en"
 assert_no_dir "scenario1: no zh/ subdir in installed templates" "$CLAUDE_BASE/ssot-bootstrap/assets/templates/zh"
-assert_file "scenario1: architecture-readme template present" "$CLAUDE_BASE/ssot-bootstrap/assets/templates/architecture-readme.md"
-assert_file "scenario1: audit current-upgrade installed" "$CLAUDE_BASE/ssot-audit/references/current-upgrade.md"
-assert_file "scenario1: audit archive index installed" "$CLAUDE_BASE/ssot-audit/references/archive/index.md"
-assert_file "scenario1: audit faceted migration helper installed" "$CLAUDE_BASE/ssot-audit/assets/scripts/migrate-faceted-layout.py"
+assert_file "scenario1: root README template present" "$CLAUDE_BASE/ssot-bootstrap/assets/templates/ssot-readme.md"
+assert_file "scenario1: memory model reference installed" "$CLAUDE_BASE/ssot-preflight/references/memory-model.md"
+assert_file "scenario1: bootstrap reference installed" "$CLAUDE_BASE/ssot-bootstrap/references/bootstrap.md"
 # English-content check: should NOT contain CJK characters (python3 — macOS grep lacks -P)
-if python3 -c "import sys,re; sys.exit(0 if re.search(r'[一-龥]', open(sys.argv[1], encoding='utf-8').read()) else 1)" "$CLAUDE_BASE/ssot-bootstrap/assets/templates/architecture-readme.md" 2>/dev/null; then
+if python3 -c "import sys,re; sys.exit(0 if re.search(r'[一-龥]', open(sys.argv[1], encoding='utf-8').read()) else 1)" "$CLAUDE_BASE/ssot-bootstrap/assets/templates/architecture.md" 2>/dev/null; then
   fail "scenario1: en templates should not contain Chinese"
 else
   pass "scenario1: en templates have no Chinese"
 fi
-assert_file "scenario1: ssot-lint.sh installed" "$CLAUDE_BASE/ssot-doctor/assets/scripts/ssot-lint.sh"
+assert_file "scenario1: ssot-check.py installed" "$CLAUDE_BASE/ssot-doctor/assets/scripts/ssot-check.py"
 
 # Scenario 2: project install, zh lang, claude only
 SCENARIO2="$WORK_ROOT/scenario2"
@@ -58,18 +57,28 @@ HOME="$SCENARIO2" SOURCE_DIR="$PROJECT_ROOT" \
   >/dev/null 2>&1 || fail "scenario2 install exit code"
 PROJ_BASE="$SCENARIO2/project/.claude/skills"
 assert_dir "scenario2: project skills dir" "$PROJ_BASE"
-assert_file "scenario2: bundle-level SKILL_STYLE companion installed" "$PROJ_BASE/SKILL_STYLE.md"
+assert_no_file "scenario2: no bundle-level companion since 3.0" "$PROJ_BASE/SKILL_STYLE.md"
 assert_file "scenario2: ssot-preflight installed at project" "$PROJ_BASE/ssot-preflight/SKILL.md"
 # zh templates: should contain CJK (use python3 — macOS grep lacks -P)
-if python3 -c "import sys,re; sys.exit(0 if re.search(r'[一-龥]', open(sys.argv[1], encoding='utf-8').read()) else 1)" "$PROJ_BASE/ssot-bootstrap/assets/templates/architecture-readme.md" 2>/dev/null; then
+if python3 -c "import sys,re; sys.exit(0 if re.search(r'[一-龥]', open(sys.argv[1], encoding='utf-8').read()) else 1)" "$PROJ_BASE/ssot-bootstrap/assets/templates/architecture.md" 2>/dev/null; then
   pass "scenario2: zh templates contain Chinese"
 else
   fail "scenario2: zh templates expected Chinese content"
 fi
-if SSOT_TEST_PACKAGE_SHAPE_ONLY=1 bash "$PROJ_BASE/ssot-doctor/assets/scripts/test/run-tests.sh" >/dev/null 2>&1; then
-  pass "scenario2: installed Doctor package-shape self-test accepts flattened templates"
+# The installed checker must accept an SSOT/README.md built from the installed
+# (flattened, translated) template once its placeholders are filled.
+mkdir -p "$SCENARIO2/project/SSOT"
+sed -e 's/<初建时考察的提交>//' "$PROJ_BASE/ssot-bootstrap/assets/templates/ssot-readme.md" \
+  > "$SCENARIO2/project/SSOT/README.md"
+for doc in product architecture process gotchas glossary; do
+  cp "$PROJ_BASE/ssot-bootstrap/assets/templates/$doc.md" "$SCENARIO2/project/SSOT/$doc.md"
+done
+mkdir -p "$SCENARIO2/project/SSOT/decisions"
+if python3 "$PROJ_BASE/ssot-doctor/assets/scripts/ssot-check.py" "$SCENARIO2/project/SSOT" >"$SCENARIO2/check.log" 2>&1; then
+  pass "scenario2: installed checker accepts an SSOT built from installed zh templates"
 else
-  fail "scenario2: installed Doctor package-shape self-test rejects flattened templates"
+  fail "scenario2: installed checker rejects installed zh templates"
+  cat "$SCENARIO2/check.log"
 fi
 
 # Scenario 3: multiple agents
@@ -86,13 +95,17 @@ SCENARIO4="$WORK_ROOT/scenario4"
 mkdir -p "$SCENARIO4"
 HOME="$SCENARIO4" SOURCE_DIR="$PROJECT_ROOT" \
   bash "$INSTALLER" --non-interactive --agent claude --scope global --lang en --yes >/dev/null 2>&1
-# Touch a sentinel to ensure overwrite happens
+# Touch a sentinel to ensure overwrite happens, and leave the companion file an
+# older (pre-3.0) bundle installed, which this bundle no longer ships.
 echo "OLD" > "$SCENARIO4/.claude/skills/ssot-preflight/SENTINEL"
+printf '%s\n# old style guide\n' '<!-- SSOT-SKILL bundle companion; owned by install.sh -->' \
+  > "$SCENARIO4/.claude/skills/SKILL_STYLE.md"
 HOME="$SCENARIO4" SOURCE_DIR="$PROJECT_ROOT" \
   bash -c "cd '$SCENARIO4' && bash '$INSTALLER' --upgrade" >/dev/null 2>&1 || fail "scenario4 upgrade exit code"
 # SKILL.md should still exist after upgrade
 assert_file "scenario4: SKILL.md after upgrade" "$SCENARIO4/.claude/skills/ssot-preflight/SKILL.md"
-assert_file "scenario4: companion file survives upgrade" "$SCENARIO4/.claude/skills/SKILL_STYLE.md"
+assert_no_file "scenario4: sentinel replaced by upgrade" "$SCENARIO4/.claude/skills/ssot-preflight/SENTINEL"
+assert_no_file "scenario4: retired owned companion removed by upgrade" "$SCENARIO4/.claude/skills/SKILL_STYLE.md"
 
 # Scenario 5: uninstall
 SCENARIO5="$WORK_ROOT/scenario5"
@@ -107,21 +120,15 @@ assert_no_dir "scenario5: ssot-skill removed" "$SCENARIO5/.claude/skills/ssot-sk
 assert_no_file "scenario5: owned companion removed" "$SCENARIO5/.claude/skills/SKILL_STYLE.md"
 assert_dir "scenario5: base skills dir preserved" "$SCENARIO5/.claude/skills"
 
-# Scenario 5b: install never overwrites an unowned shared-root file
+# Scenario 5b: install never touches an unowned shared-root file
 SCENARIO5B="$WORK_ROOT/scenario5b"
 mkdir -p "$SCENARIO5B/.claude/skills"
 printf 'FOREIGN COMPANION\n' > "$SCENARIO5B/.claude/skills/SKILL_STYLE.md"
 HOME="$SCENARIO5B" SOURCE_DIR="$PROJECT_ROOT" \
   bash "$INSTALLER" --non-interactive --agent claude --scope global --lang en --yes \
-  >/dev/null 2>&1
-SCENARIO5B_RC=$?
-if [[ $SCENARIO5B_RC -ne 0 ]]; then
-  pass "scenario5b: unowned companion blocks install"
-else
-  fail "scenario5b: unowned companion should block install"
-fi
+  >/dev/null 2>&1 || fail "scenario5b install exit code"
 assert_grep "scenario5b: foreign companion preserved" "$SCENARIO5B/.claude/skills/SKILL_STYLE.md" "FOREIGN COMPANION"
-assert_no_dir "scenario5b: blocked install writes no skill" "$SCENARIO5B/.claude/skills/ssot-preflight"
+assert_file "scenario5b: install proceeds beside a foreign file" "$SCENARIO5B/.claude/skills/ssot-preflight/SKILL.md"
 
 # Keep the historical ownership signature independent of today's companion
 # wording; deriving this fixture from the candidate tests the wrong version.
@@ -134,7 +141,7 @@ in this bundle.
 LEGACY_COMPANION
 }
 
-# Scenario 5bb: a pre-marker bundle companion is safely adopted during upgrade
+# Scenario 5bb: a pre-marker companion from an old bundle is retired on upgrade
 SCENARIO5BB="$WORK_ROOT/scenario5bb"
 mkdir -p "$SCENARIO5BB/.claude/skills"
 for skill in ssot-preflight ssot-bootstrap ssot-closeout ssot-audit ssot-doctor ssot-skill; do
@@ -145,8 +152,7 @@ write_legacy_companion > "$SCENARIO5BB/.claude/skills/SKILL_STYLE.md"
 HOME="$SCENARIO5BB" SOURCE_DIR="$PROJECT_ROOT" \
   bash "$INSTALLER" --non-interactive --agent claude --scope global --lang en --yes \
   >/dev/null 2>&1 || fail "scenario5bb legacy companion migration exit code"
-assert_grep "scenario5bb: legacy companion receives ownership marker" \
-  "$SCENARIO5BB/.claude/skills/SKILL_STYLE.md" "SSOT-SKILL bundle companion; owned by install.sh"
+assert_no_file "scenario5bb: legacy companion retired" "$SCENARIO5BB/.claude/skills/SKILL_STYLE.md"
 assert_grep "scenario5bb: legacy skill bundle is upgraded" \
   "$SCENARIO5BB/.claude/skills/ssot-preflight/SKILL.md" \
   "protocol_version: \"$(cat "$PROJECT_ROOT/VERSION" | tr -d '[:space:]')\""
@@ -157,15 +163,9 @@ mkdir -p "$SCENARIO5BC/.claude/skills"
 write_legacy_companion > "$SCENARIO5BC/.claude/skills/SKILL_STYLE.md"
 HOME="$SCENARIO5BC" SOURCE_DIR="$PROJECT_ROOT" \
   bash "$INSTALLER" --non-interactive --agent claude --scope global --lang en --yes \
-  >/dev/null 2>&1
-SCENARIO5BC_RC=$?
-if [[ $SCENARIO5BC_RC -ne 0 ]]; then
-  pass "scenario5bc: legacy-looking companion without bundle skills blocks install"
-else
-  fail "scenario5bc: incomplete legacy signature should block install"
-fi
-assert_no_grep "scenario5bc: blocked legacy-looking file remains unclaimed" \
-  "$SCENARIO5BC/.claude/skills/SKILL_STYLE.md" "SSOT-SKILL bundle companion; owned by install.sh"
+  >/dev/null 2>&1 || fail "scenario5bc install exit code"
+assert_grep "scenario5bc: legacy-looking file without the old bundle is not claimed" \
+  "$SCENARIO5BC/.claude/skills/SKILL_STYLE.md" "the grill-me distillation"
 
 # Scenario 5c: uninstall preserves a companion replaced by another owner
 SCENARIO5C="$WORK_ROOT/scenario5c"
@@ -576,7 +576,8 @@ for lang in ('en', 'zh'):
     template = templates / lang / 'adapter-thin.md'
     expected = block(template.read_text())
     assert len(template.read_text().splitlines()) <= 50
-    assert len(re.findall(r'\$ssot-(?:preflight|bootstrap|closeout|audit|doctor)\b', expected)) == 5
+    for route in ('preflight', 'bootstrap', 'closeout', 'doctor'):
+        assert ('$ssot-' + route) in expected, route
     assert 'SSOT-generated' not in expected and '<project-name>' not in expected and '<项目名>' not in expected
     for action in ('install', 'upgrade'):
         args = ('--quickstart', '--lang', lang) if action == 'install' else ('--upgrade',)
@@ -626,6 +627,73 @@ then
   pass "scenario23: shared instructions survive install/upgrade and reject malformed sources safely"
 else
   fail "scenario23: instruction output, template parity, or failure preservation is wrong"
+fi
+
+# Scenario 24: --ref installs a tagged generation instead of main. The fixture
+# repository has an older tagged bundle (different protocol version, still
+# shipping the pre-3.0 companion file) and the current bundle on main.
+SCENARIO24="$WORK_ROOT/scenario24"
+REF_SRC="$SCENARIO24/source"
+mkdir -p "$REF_SRC" "$SCENARIO24/home"
+cp -R "$PROJECT_ROOT/skills" "$REF_SRC/skills"
+cp "$PROJECT_ROOT/VERSION" "$REF_SRC/VERSION"
+sed -i.bak 's/protocol_version: "[^"]*"/protocol_version: "2.99-fixture"/' "$REF_SRC/skills/ssot-preflight/SKILL.md"
+rm -f "$REF_SRC/skills/ssot-preflight/SKILL.md.bak"
+printf '%s\n# old style guide\n' '<!-- SSOT-SKILL bundle companion; owned by install.sh -->' > "$REF_SRC/skills/SKILL_STYLE.md"
+git -C "$REF_SRC" init -q
+git -C "$REF_SRC" symbolic-ref HEAD refs/heads/main
+REF_GIT=(git -C "$REF_SRC" -c core.hooksPath=/dev/null -c commit.gpgsign=false -c user.name=SSOT-test -c user.email=ssot-test@example.invalid)
+"${REF_GIT[@]}" add -A && "${REF_GIT[@]}" commit -qm 'old generation' && "${REF_GIT[@]}" tag old-gen
+rm -rf "$REF_SRC/skills" && cp -R "$PROJECT_ROOT/skills" "$REF_SRC/skills"
+"${REF_GIT[@]}" add -A && "${REF_GIT[@]}" commit -qm 'current generation'
+CURRENT_VERSION="$(tr -d '[:space:]' < "$PROJECT_ROOT/VERSION")"
+
+ref_install() { # $1=project dir, rest=extra args
+  local project="$1"; shift
+  mkdir -p "$project"
+  (cd "$project" && env -u SOURCE_DIR HOME="$SCENARIO24/home" SSOT_SKILL_REPO_URL="$REF_SRC" \
+    bash "$INSTALLER" --non-interactive --agent claude-code --scope project --lang en --yes "$@")
+}
+if ref_install "$SCENARIO24/tagged" --ref old-gen >"$SCENARIO24/tagged.log" 2>&1; then
+  pass "scenario24: --ref <tag> install succeeds"
+else
+  fail "scenario24: --ref <tag> install failed"; cat "$SCENARIO24/tagged.log"
+fi
+assert_grep "scenario24: --ref installs the tagged protocol" \
+  "$SCENARIO24/tagged/.claude/skills/ssot-preflight/SKILL.md" 'protocol_version: "2.99-fixture"'
+assert_grep "scenario24: a tagged bundle's companion is still installed" \
+  "$SCENARIO24/tagged/.claude/skills/SKILL_STYLE.md" "owned by install.sh"
+ref_install "$SCENARIO24/default" >"$SCENARIO24/default.log" 2>&1 || fail "scenario24: default install failed"
+assert_grep "scenario24: without --ref, main is installed" \
+  "$SCENARIO24/default/.claude/skills/ssot-preflight/SKILL.md" "protocol_version: \"$CURRENT_VERSION\""
+ref_install "$SCENARIO24/tagged" --ref main >"$SCENARIO24/back.log" 2>&1 || fail "scenario24: moving back to main failed"
+assert_grep "scenario24: replacing 2.x with 3.x prints the upgrade note" "$SCENARIO24/back.log" "read-only for agents until migrated"
+assert_no_file "scenario24: moving from the tag to main retires the companion" \
+  "$SCENARIO24/tagged/.claude/skills/SKILL_STYLE.md"
+if ref_install "$SCENARIO24/bad" --ref 'old-gen;rm -rf /' >"$SCENARIO24/bad.log" 2>&1; then
+  fail "scenario24: an invalid --ref must be rejected"
+else
+  assert_grep "scenario24: invalid --ref is explained" "$SCENARIO24/bad.log" "invalid --ref"
+fi
+assert_no_dir "scenario24: rejected --ref installs nothing" "$SCENARIO24/bad/.claude/skills/ssot-preflight"
+if (cd "$SCENARIO24" && SOURCE_DIR="$PROJECT_ROOT" bash "$INSTALLER" --non-interactive --agent claude-code \
+  --scope project --lang en --yes --ref old-gen) >"$SCENARIO24/conflict.log" 2>&1; then
+  fail "scenario24: --ref with SOURCE_DIR must be rejected"
+else
+  assert_grep "scenario24: --ref/SOURCE_DIR conflict is explained" "$SCENARIO24/conflict.log" "cannot be combined"
+fi
+# Run from a local checkout: an explicit --ref must not fall back to it.
+mkdir -p "$SCENARIO24/checkout"
+cp "$INSTALLER" "$SCENARIO24/checkout/install.sh"
+cp -R "$PROJECT_ROOT/skills" "$SCENARIO24/checkout/skills"
+mkdir -p "$SCENARIO24/from-checkout"
+if (cd "$SCENARIO24/from-checkout" && env -u SOURCE_DIR HOME="$SCENARIO24/home" SSOT_SKILL_REPO_URL="$REF_SRC" \
+  bash "$SCENARIO24/checkout/install.sh" --non-interactive --agent claude-code --scope project --lang en --yes \
+  --ref old-gen) >"$SCENARIO24/checkout.log" 2>&1; then
+  assert_grep "scenario24: --ref from a local checkout still fetches the ref" \
+    "$SCENARIO24/from-checkout/.claude/skills/ssot-preflight/SKILL.md" 'protocol_version: "2.99-fixture"'
+else
+  fail "scenario24: --ref from a local checkout failed"; cat "$SCENARIO24/checkout.log"
 fi
 
 echo

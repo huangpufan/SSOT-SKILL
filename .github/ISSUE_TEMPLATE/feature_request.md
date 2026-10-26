@@ -14,5 +14,4 @@ What's the agent failure mode or user pain you're addressing?
 
 ## Checklist
 - [ ] I read `AGENTS.md` and `CONTRIBUTING.md`
-- [ ] The change is consistent with the bundle's KISS rule
-- [ ] If it touches a skill protocol, it follows `skills/SKILL_STYLE.md`
+- [ ] It names the real agent failure it fixes, and what it replaces or removes (see `CONTRIBUTING.md`, "Changing the protocol")

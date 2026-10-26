@@ -14,7 +14,7 @@
 
 在这些边界内，Agent 执行任务，外层 **Harness**（围绕 Agent 的工具、检查与执行控制）支撑自动化。
 
-**SSOT Skill 让这些不变量和决策有据可循。** 它把约束及其理由，与架构、证据和已知陷阱一起，保存在随代码版本管理的 `SSOT/` 目录里，让不同会话、不同 Agent 从同一组明确的共识出发。
+**SSOT Skill 让这些不变量和决策有据可循。** 它把约束及其理由，与架构、决策和已知陷阱一起，保存在随代码版本管理的 `SSOT/` 目录里，让不同会话、不同 Agent 从同一组明确的共识出发。
 
 **SSOT** 是 **Single Source of Truth（单一事实源）**：每条长期事实只在一个位置维护，其他文档通过链接引用。本项目提供六个 Skill、Markdown 模板和本地检查脚本，在你已有的编程 Agent 中维护这份共享知识；任务的执行与验证由你的 Harness 和测试设施承担。
 
@@ -58,80 +58,74 @@ curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.
 
 项目指令会让 Agent 在对应时机执行：
 
-- **实质性任务开始前：** 通过 preflight 检查 SSOT 状态，读取相关上下文；缺少 `SSOT/` 或初始化未完成时转入 bootstrap，追踪的协议版本落后时转入 audit。
-- **工作过程中：** 把需要长期保留的事实、决策和证据写入各自的维护位置。
-- **一批实质性工作结束、最终回复或提交前：** 通过 closeout 核对变更并按需更新 SSOT，需要审查时转入 Doctor。没有长期事实变化时，closeout 记录 no-op 批次，无需改写事实正文。
+- **实质性任务开始前：** 读 `SSOT/README.md` 和这次任务涉及的少数几篇文档，核对人定下的规则，指出会影响这次任务的待决问题。如果项目还没有 `SSOT/`，Agent 会提议建立一份；不经你同意，它什么都不会建。
+- **工作过程中：** 留意会比这次任务活得更久的事实，比如一项决定、一处契约变化、踩到的坑，或者你说的一条规矩。
+- **一批实质性改动收尾或提交前：** 把这些事实写到它们该在的位置，并删掉被取代的旧说法。没有长期事实变化时，什么都不写。
 
-日常使用无需逐个选择或手动调用 Skill。首次初始化会探索仓库并审查文档；大型仓库可能需要多个会话，进度会保留以便继续。生成后从 `SSOT/README.md` 开始阅读，在 `SSOT/STATUS.md` 查看已审查的范围和未决事项。
+你不需要在每一步手动选择或调用 Skill。大型项目的初次建立可能需要不止一次会话，进度保存在 `SSOT/BOOTSTRAP.md` 里，完成后删除。建好之后，从 `SSOT/README.md` 开始阅读。
 
 <details>
-<summary>可选：主动初始化或做一次专项检查</summary>
+<summary>可选：直接要求建立或检查</summary>
 
-直接用自然语言提出需求即可：
+也可以用日常语言直接提出：
 
 ```text
-根据代码和已有文档，为这个仓库建立或继续完善 SSOT。
-检查这个仓库的 SSOT 健康状态。
-把最近的提交同步到 SSOT。
+根据代码和现有文档，为这个项目建立 SSOT。
+检查这个项目的 SSOT 是否健康。
+让 SSOT 追上最近的提交。
 ```
 
-也可以指定 Skill，例如“用 `$ssot-doctor` 检查这个仓库的 SSOT”，便于排查未触发等问题。这是发给 Agent 的提示词；具体调用语法因 Agent 而异。
+也可以直接点名 Skill，例如 `使用 $ssot-doctor 检查这个项目的 SSOT。` 这在排查某个 Skill 为什么没有自动触发时有用。这是发给 Agent 的对话指令，不同 Agent 的调用写法可能不同。
 
 </details>
 
 ## Agent 怎样选择 Skill？
 
-Agent 根据任务和仓库状态选择五个生命周期 Skill，第六个兼容旧提示词。下表用于了解工作机制，点击名称可以查看对应协议及详细参考文档。
+Agent 根据任务和项目状态，从四个 Skill 中选择；另外两个名字用来兼容旧的提示词。下表仅供了解。
 
-| 场景 | Skill | 作用 |
+| 情境 | Skill | 作用 |
 |---|---|---|
-| 开始实质性的仓库任务 | [`ssot-preflight`](./skills/ssot-preflight/SKILL.md) | 检查已审查状态、未决事项、语言和版本，定位必读文档 |
-| 创建 `SSOT/` 或继续初始化 | [`ssot-bootstrap`](./skills/ssot-bootstrap/SKILL.md) | 根据证据建立仓库记忆，并审查覆盖情况 |
-| 结束一批实质性变更 | [`ssot-closeout`](./skills/ssot-closeout/SKILL.md) | 在最终回复或提交前，让长期事实与本次变更对齐 |
-| 补齐提交、会话或协议变更 | [`ssot-audit`](./skills/ssot-audit/SKILL.md) | 分段审查历史，更新追踪基线 |
-| 检查文档健康度或审查完成声明 | [`ssot-doctor`](./skills/ssot-doctor/SKILL.md) | 运行结构检查，审查证据、一致性与可读性 |
-| 使用旧的 `$ssot-skill` 提示词 | [`ssot-skill`](./skills/ssot-skill/SKILL.md) | 转到上面五个 Skill 之一 |
-
-**追踪基线**记录文档审查到了哪个提交、会话和协议版本。它不代表每条事实都是最新的，也不代表所有领域已经完整覆盖。
+| 开始一项实质性的项目任务 | [`ssot-preflight`](./skills/ssot-preflight/SKILL.md) | 读取相关记忆，以及约束这次任务的规则 |
+| 新建、继续建立或迁移 `SSOT/` | [`ssot-bootstrap`](./skills/ssot-bootstrap/SKILL.md) | 从项目的代码、历史和文档中建立记忆 |
+| 完成一批实质性改动 | [`ssot-closeout`](./skills/ssot-closeout/SKILL.md) | 记下长期有效的变化；没有就什么都不写 |
+| 检查健康、对照代码审查、追平提交 | [`ssot-doctor`](./skills/ssot-doctor/SKILL.md) | 运行检查器、对照代码审查，并说明查到了哪一步 |
+| 旧提示词里的 `$ssot-audit` 或 `$ssot-skill` | [`ssot-audit`](./skills/ssot-audit/SKILL.md)、[`ssot-skill`](./skills/ssot-skill/SKILL.md) | 转到上面对应的 Skill |
 
 ## 项目里会生成什么？
 
-安装后的 Skill 提供工作指令和工具；项目里的 `SSOT/` 保存它们帮助维护的记忆：
+安装的 Skill 是指令和工具；项目里的 `SSOT/` 是它们维护的记忆：
 
 ```text
-你的需求 → Agent 读取 SSOT → 执行任务 → 按需更新 SSOT
+你的任务 → Agent 读 SSOT → 完成工作 → 有长期变化时更新 SSOT
 ```
 
-主要阅读入口如下：
+只有入口文件是必需的，其他文件在有真实内容可写时才会出现：
 
 ```text
  your-repo/SSOT/
- ├── README.md           项目做什么，各类问题去哪里找答案
- ├── STATUS.md           已审查状态、未决事项、缺口与追踪基线
- ├── HISTORY.md          SSOT 更新批次及所涉及文件的简要记录
- ├── 01-product/         用户、能力、使用流程与验收标准
- ├── 02-architecture/    系统怎样运行、管理状态和处理失败
- │   ├── views/          跨系统边界的整体解释
- │   └── NN-domain/      按仓库实际职责划分的领域细节
- ├── 03-process/         怎样开发、测试、做基准评估、部署和发布
- ├── 04-records/         决策、研究、陷阱、缺陷与技术债
- ├── glossary/           项目专用术语及其含义
- └── .bootstrap/         初始化期间的进度与审查证据
+ ├── README.md        项目是什么、每类任务先看哪里、人定下的规则、待决问题
+ ├── product.md       谁在用、承诺了什么、不做什么
+ ├── architecture.md  由哪些部分组成、谁掌管哪些状态、关键流程、出错与恢复
+ ├── process.md       怎样构建、测试、发布和部署
+ ├── decisions/       事情为什么是现在这样，包括被否决的方案
+ ├── gotchas.md       已经让人栽过跟头的坑
+ ├── glossary.md      新人容易误解的项目用语
+ └── research/        结论仍在指导决定的调查
 ```
 
-架构领域按仓库的实际职责划分；运维、安全与合规流程在适用时纳入。完整结构见[模板索引](./skills/ssot-bootstrap/references/templates-index.md)。
-
-现有 README、设计文档和决策记录是整理过程的输入。长期事实会归入各自的维护位置，导航通过链接指向它们；具体处理方式见[已有资料处理规则](./skills/ssot-preflight/references/source-material.md)。
+文件写大了，会变成同名目录。已有的 README 和设计文档是输入：其中长期有效的事实会搬进 `SSOT/`，原文件改为指向那里，让每条事实只有一个维护位置。
 
 ## 怎样让这份记忆持续有用？
 
-**让委托实施的人也能读懂。** 写作规则要求文档讲清用户场景、当前行为、边界、失败与恢复，以及验收结果所需的证据。读者应该能据此决定让 Agent 做什么，而不必先通读代码。详细验收要求见[读者质量协议](./skills/ssot-preflight/references/reader-quality.md)。
+**只存代码说不清的东西。** 意图、各部分怎样配合、决定及其理由、被否决的方案、陷阱。不抄字段清单、版本号或测试日志：这些过时最快，而且代码里本来就有。
 
-**让结论有证据可查。** 代码、数据结构、测试和实际运行行为仍是当前实现的证据来源。SSOT 保存围绕它们形成的解释与决策，并区分现状、目标和未知事项。
+**写给新来的人看。** 用平实的话，先讲情境再讲机制，段落讲道理，表格只用来查找。不读代码、只负责委托工作的人能看懂，下一个 Agent 也能看懂。具体规则见[记忆模型](./skills/ssot-preflight/references/memory-model.md)。
 
-**明确检查能证明什么。** [本地检查脚本](./skills/ssot-doctor/assets/scripts/ssot-lint.sh)检查结构、链接、追踪一致性等可机械判断的属性，Doctor 再进行 Agent 审查。仅通过脚本检查，不能证明文档真实、易懂或完整；初始化完成还需要独立审查。
+**人定的规则始终由人决定。** 你确认过的规则登记在 `SSOT/README.md` 里。Agent 可以在规则内工作，但不会改规则；任务和规则冲突时，它会停下来问你。
 
-**随 Agent 工作流程维护。** Skill 和项目指令加载后，由 Agent 在工作中触发相应 Skill。这种自动化依赖 Agent 执行项目指令；流程之外发生的改动，会在 Agent 下次处理仓库任务或你要求补齐历史时检查。
+**检查会说明自己的边界。** [检查器](./skills/ssot-doctor/assets/scripts/ssot-check.py)能发现断链、格式错误的规则表和过大的文件，但判断不了文档是否属实、是否好懂；这部分由 Doctor 对照代码审查，并说明查到了哪一步。
+
+**维护跟着 Agent 的工作流走。** 在这个流程之外做的改动，可以在你要求追平时补上。
 
 ## 支持的 Agent
 
@@ -162,7 +156,11 @@ curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.
 请阅读 https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/INSTALL.md，为当前 Agent 更新本项目的 SSOT Skill，保留原模板语言。
 ```
 
-更新后重启 Agent。下一次实质性任务开始时，preflight 会检查项目追踪的协议版本，发现落后时转入 audit 审查升级。替换安装后的 Skill 不会自行迁移 `SSOT/`。卸载时，让 Agent 按指南移除指定范围的安装，并检查是否还有过时的触发指令。
+更新后重启 Agent。替换安装的 Skill 本身不会改动 `SSOT/`。卸载时，让 Agent 按指南移除指定范围的安装，并检查是否还有过时的触发指令。
+
+### 从 2.x 升级
+
+3.0 保留记忆本身，去掉了 v2 的认证机制：分区覆盖状态、`STATUS.md` 和 `HISTORY.md` 账本、评审存档，以及每次发版后的追平审查（[原因](./DESIGN.md)）。升级后，Agent 仍会读 v2 的 `SSOT/`，但在迁移之前不会往里写；项目里调用 v2 `ssot-lint.sh` 的脚本也会失效，直到迁移把它们改接到新检查器。迁移由 Agent 一次完成、作为一个提交，并且需要你同意：对它说"把这个项目的 SSOT 迁移到 v3"即可。想继续用 v2，安装时加 `--ref v2-final`。
 
 <details>
 <summary>手动更新与卸载命令</summary>
@@ -173,6 +171,8 @@ curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.
 set -o pipefail
 curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash -s -- --upgrade --agent codex --scope project
 ```
+
+想固定在已冻结的 v2 协议而不是当前版本，在安装或更新命令后加 `--ref v2-final`。
 
 移除这份安装：
 
@@ -191,7 +191,7 @@ curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.
 
 - [安装指南](./INSTALL.md)：由 Agent 完成安装、写入触发指令，以及网络异常时的备用方式。
 - [更新日志](./CHANGELOG.md)与[当前协议版本](./VERSION)：Skill 包的变更记录。
-- [协议升级指南](./skills/ssot-audit/references/protocol-upgrades.md)：已有项目的文档怎样跟进升级。
+- [设计说明](./DESIGN.md)：Skill 包为什么是现在这个形态，以及 3.0 去掉了什么。
 - [贡献指南](./CONTRIBUTING.md)：怎样提交改进，以及运行本地检查。
 - [AGENTS.md](./AGENTS.md)：Agent 维护**本 Skill 包源仓库**时应遵循的指令。
 - [安全政策](./SECURITY.md)：怎样报告安全漏洞。

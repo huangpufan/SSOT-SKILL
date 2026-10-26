@@ -12,7 +12,9 @@ fi
 # SSOT Skill bundle installer.
 
 REPO_URL="${SSOT_SKILL_REPO_URL:-https://github.com/huangpufan/SSOT-SKILL.git}"
-REPO_BRANCH="main"
+# Branch or tag to install from (--ref / SSOT_REF). Tags pin a protocol
+# generation, e.g. --ref v2-final keeps the v2 protocol after main moved on.
+REPO_REF="main"
 PRIMARY_SKILL="ssot-preflight"
 BUNDLE_SKILLS=(
   "ssot-preflight"
@@ -22,9 +24,16 @@ BUNDLE_SKILLS=(
   "ssot-doctor"
   "ssot-skill"
 )
+# Bundle-level companion files, installed only when the source ships them.
+# Since 3.0 the bundle ships none (SKILL_STYLE.md moved into CONTRIBUTING.md);
+# older sources installed with --ref still do. An installed companion the
+# source no longer ships is removed if this installer owns it.
 BUNDLE_ROOT_FILES=(
   "SKILL_STYLE.md"
 )
+# Compatibility names that route elsewhere; the instruction block need not
+# mention them.
+SHIM_SKILLS=("ssot-skill" "ssot-audit")
 BUNDLE_COMPANION_MARKER='<!-- SSOT-SKILL bundle companion; owned by install.sh -->'
 
 BOLD='\033[1m'
@@ -47,6 +56,7 @@ ARG_LANG=""
 ARG_YES=0
 ARG_NONINTERACTIVE=0
 ARG_UI_LANG=""
+ARG_REF=""
 SOURCE_DIR="${SOURCE_DIR:-}"
 FETCHED_SOURCE_DIR=""
 INSTALL_STAGE=""
@@ -134,6 +144,7 @@ t() {
       RESTART_TIP) echo "合并下方项目指令后，重启 Agent 会话以加载 Skill 和指令。" ;;
       PREFLIGHT_TIP) echo "之后照常提需求；Agent 会在实质性工作前自动使用 \$ssot-preflight。" ;;
       CLOSEOUT_TIP) echo "Agent 会在实质性变更批次的最终回复或提交前自动使用 \$ssot-closeout。" ;;
+      UPGRADE_V3_NOTE) echo "这里原来装的是 SSOT Skill 2.x，现在换成 3.x：使用 v2 SSOT 的仓库在迁移前对 Agent 只读，调用 ssot-lint.sh 的脚本会失效。迁移方法见 https://github.com/huangpufan/SSOT-SKILL/blob/main/INSTALL.md#upgrading-from-2x-to-30 ；想留在 v2，请带 --ref v2-final 重新运行。" ;;
       PROJECT_NOTE) echo "项目级安装仅在 Agent 在该项目根启动时生效。" ;;
       ALSO_GLOBAL_HINT) echo "如需同时全局安装，重新跑命令并追加 --scope global。" ;;
       WIRE_HEADER) echo "下一步：让 Agent 将这段触发指令合并到本仓库的指令文件" ;;
@@ -171,6 +182,7 @@ t() {
       RESTART_TIP) echo "Merge the project instructions below, then restart the Agent session to load skills and instructions." ;;
       PREFLIGHT_TIP) echo "Then describe tasks normally; the Agent uses \$ssot-preflight automatically before substantive work." ;;
       CLOSEOUT_TIP) echo "The Agent uses \$ssot-closeout automatically before a substantive batch's final response or commit." ;;
+      UPGRADE_V3_NOTE) echo "SSOT Skill 2.x was installed here and is now replaced by 3.x: repositories with a v2 SSOT are read-only for agents until migrated, and scripts that call ssot-lint.sh stop working. Migration: https://github.com/huangpufan/SSOT-SKILL/blob/main/INSTALL.md#upgrading-from-2x-to-30 . To stay on v2, re-run with --ref v2-final." ;;
       PROJECT_NOTE) echo "Project installs apply only when the Agent starts in this project root." ;;
       ALSO_GLOBAL_HINT) echo "To also install globally, re-run with --scope global appended." ;;
       WIRE_HEADER) echo "Next: ask your Agent to merge this trigger block into this repo's instructions" ;;
@@ -867,17 +879,22 @@ clone_source() {
     limiter=(gtimeout 15)
   fi
   GIT_TERMINAL_PROMPT=0 "${limiter[@]}" git -c http.lowSpeedLimit=1 -c http.lowSpeedTime=15 \
-    clone --depth 1 --branch "$REPO_BRANCH" "$1" "$SOURCE_DIR"
+    clone --depth 1 --branch "$REPO_REF" "$1" "$SOURCE_DIR"
 }
 
 ensure_source() {
+  # An explicit --ref must be fetched; a local checkout would silently install
+  # whatever happens to be checked out instead.
+  if [[ -n "$ARG_REF" && -n "${SOURCE_DIR:-}" ]]; then
+    die "--ref cannot be combined with SOURCE_DIR; check out the ref in SOURCE_DIR instead"
+  fi
   if [[ -n "${SOURCE_DIR:-}" ]] && [[ -f "$SOURCE_DIR/skills/$PRIMARY_SKILL/SKILL.md" ]]; then
     return 0
   fi
 
   local script_dir
   script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  if [[ -f "$script_dir/skills/$PRIMARY_SKILL/SKILL.md" ]]; then
+  if [[ -z "$ARG_REF" && -f "$script_dir/skills/$PRIMARY_SKILL/SKILL.md" ]]; then
     SOURCE_DIR="$script_dir"
     # refresh VERSION from local source if available
     if [[ -f "$SOURCE_DIR/VERSION" ]]; then
@@ -901,12 +918,13 @@ ensure_source() {
     )
   fi
 
-  local url ok_clone=0 first=1
+  local url ok_clone=0 first=1 last_tried=""
   for url in "${mirrors[@]}"; do
     if [[ $first -eq 0 ]]; then
       warn "primary clone failed, retrying via $url" >&2
     fi
     first=0
+    last_tried="$url"
     if clone_source "$url" >/dev/null 2>&1; then
       ok_clone=1
       break
@@ -920,12 +938,13 @@ ensure_source() {
   if [[ $ok_clone -eq 0 && -z "${SSOT_SKILL_REPO_URL:-}" ]]; then
     # tar.gz fallbacks
     local -a tars=(
-      "https://github.com/huangpufan/SSOT-SKILL/archive/refs/heads/main.tar.gz"
-      "https://gh-proxy.com/https://github.com/huangpufan/SSOT-SKILL/archive/refs/heads/main.tar.gz"
+      "https://github.com/huangpufan/SSOT-SKILL/archive/${REPO_REF}.tar.gz"
+      "https://gh-proxy.com/https://github.com/huangpufan/SSOT-SKILL/archive/${REPO_REF}.tar.gz"
     )
     local tar_url
     for tar_url in "${tars[@]}"; do
       warn "git clone failed for all mirrors, retrying via $tar_url" >&2
+      last_tried="$tar_url"
       rm -rf "$SOURCE_DIR"
       SOURCE_DIR="$(mktemp -d)"
       FETCHED_SOURCE_DIR="$SOURCE_DIR"
@@ -936,7 +955,7 @@ ensure_source() {
     done
   fi
 
-  [[ $ok_clone -eq 1 ]] || die "failed to fetch source from all mirrors (last tried: ${mirrors[-1]})"
+  [[ $ok_clone -eq 1 ]] || die "failed to fetch ref '$REPO_REF' from all mirrors (last tried: $last_tried)"
 
   if [[ -f "$SOURCE_DIR/VERSION" ]]; then
     VERSION="$(tr -d '[:space:]' < "$SOURCE_DIR/VERSION")"
@@ -953,7 +972,7 @@ validate_bundle_source() {
     [[ -f "$source/agents/openai.yaml" ]] || die "missing Agent metadata: $source/agents/openai.yaml"
   done
   for companion in "${BUNDLE_ROOT_FILES[@]}"; do
-    [[ -f "$SOURCE_DIR/skills/$companion" ]] || die "missing bundle companion file: $SOURCE_DIR/skills/$companion"
+    [[ -f "$SOURCE_DIR/skills/$companion" ]] || continue
     head -n 1 "$SOURCE_DIR/skills/$companion" | grep -qF "$BUNDLE_COMPANION_MARKER" ||
       die "bundle companion lacks ownership marker: $SOURCE_DIR/skills/$companion"
   done
@@ -979,6 +998,7 @@ bundle_companion_is_legacy_owned() {
 guard_bundle_root_files() {
   local base="$1" companion target
   for companion in "${BUNDLE_ROOT_FILES[@]}"; do
+    [[ -f "$SOURCE_DIR/skills/$companion" ]] || continue
     target="$base/$companion"
     if [[ -e "$target" ]] && ! bundle_companion_is_owned "$target"; then
       if bundle_companion_is_legacy_owned "$base" "$target"; then
@@ -1032,10 +1052,16 @@ read_wire_block() {
     }
   ' "$template")" || { err "invalid SSOT instruction block: $template"; return 1; }
   for skill in "${BUNDLE_SKILLS[@]}"; do
-    [[ "$skill" == "ssot-skill" ]] && continue # Compatibility shim is not a lifecycle route.
+    [[ " ${SHIM_SKILLS[*]} " == *" $skill "* ]] && continue # Compatibility names are not lifecycle routes.
     [[ "$block" == *"\$$skill"* ]] || { err "missing $skill route in SSOT instruction block: $template"; return 1; }
   done
   printf '%s\n' "$block"
+}
+
+# Print the protocol_version a SKILL.md declares, or nothing if it has none.
+skill_protocol_version() {
+  [[ -f "$1" ]] || return 0
+  sed -nE 's/^[[:space:]]*protocol_version:[[:space:]]*"?([0-9.]+).*/\1/p' "$1" | head -1 || true
 }
 
 # -----------------------------------------------------------------------------
@@ -1058,6 +1084,7 @@ copy_bundle() {
     cp -R "$source" "$stage/$skill"
   done
   for companion in "${BUNDLE_ROOT_FILES[@]}"; do
+    [[ -f "$SOURCE_DIR/skills/$companion" ]] || continue
     cp "$SOURCE_DIR/skills/$companion" "$stage/$companion"
   done
 
@@ -1081,13 +1108,35 @@ copy_bundle() {
   find "$stage" -type d -name "__pycache__" -prune -exec rm -rf {} +
   find "$stage" -type f \( -name "*.pyc" -o -name ".DS_Store" \) -delete
 
+  # A 2.x -> 3.x replacement changes how agents treat existing SSOT folders.
+  local old_version="" new_version=""
+  old_version="$(skill_protocol_version "$base/$PRIMARY_SKILL/SKILL.md")"
+  new_version="$(skill_protocol_version "$stage/$PRIMARY_SKILL/SKILL.md")"
+  if [[ "$old_version" == 2.* && "$new_version" == 3.* ]]; then
+    warn "$(t UPGRADE_V3_NOTE)"
+  fi
+
+  # Decide ownership of retired companions before the new skills land: the
+  # legacy signature requires the *previous* bundle to be present.
+  local -a retired=()
+  for companion in "${BUNDLE_ROOT_FILES[@]}"; do
+    [[ -f "$stage/$companion" ]] && continue
+    if bundle_companion_is_owned "$base/$companion" || bundle_companion_is_legacy_owned "$base" "$base/$companion"; then
+      retired+=("$base/$companion")
+    fi
+  done
+
   for skill in "${BUNDLE_SKILLS[@]}"; do
     local target="$base/$skill"
     [[ -d "$target" ]] && rm -rf "$target"
     mv "$stage/$skill" "$target"
   done
   for companion in "${BUNDLE_ROOT_FILES[@]}"; do
-    mv "$stage/$companion" "$base/$companion"
+    [[ -f "$stage/$companion" ]] && mv "$stage/$companion" "$base/$companion"
+  done
+  local path
+  for path in "${retired[@]+"${retired[@]}"}"; do  # empty-array safe under set -u on bash < 4.4
+    rm -f "$path" # companion an older bundle installed and this one no longer ships
   done
 
   rm -rf "$stage"
@@ -1192,6 +1241,8 @@ OPTIONS:
                             Full canonical list: --list-agents
   --scope <global|project>  Install/uninstall scope; optional upgrade filter
   --lang <en|zh>            Template language (default: en)
+  --ref <branch|tag>        Install from this branch or tag (default: main).
+                            --ref v2-final keeps the frozen v2 protocol.
   --yes, -y                 Skip confirmation
   --non-interactive         Fail instead of prompting when args are missing
   --quickstart              Non-interactive project-local install with autodetect
@@ -1203,7 +1254,7 @@ OPTIONS:
   --help, -h                Show this help
 
 ENVIRONMENT:
-  SSOT_AGENT, SSOT_SCOPE, SSOT_LANG, SSOT_UI_LANG
+  SSOT_AGENT, SSOT_SCOPE, SSOT_LANG, SSOT_UI_LANG, SSOT_REF
   SSOT_YES=1, SSOT_NONINTERACTIVE=1
   SOURCE_DIR                Local source checkout (skip git clone)
 
@@ -1218,6 +1269,9 @@ EXAMPLES:
   # Non-interactive (CI / scripted setups)
   bash install.sh --non-interactive --agent claude-code --scope project --lang en --yes
   bash install.sh --non-interactive --agent all --scope global --lang en --yes
+
+  # Stay on the frozen v2 protocol instead of the current one:
+  curl -fsSL <url>/install.sh | bash -s -- --quickstart --ref v2-final
 
   # Maintenance
   bash install.sh --upgrade --agent codex --scope project
@@ -1245,6 +1299,11 @@ parse_args() {
         ARG_LANG="$2"; shift 2 ;;
       --lang=*)
         ARG_LANG="${1#*=}"; shift ;;
+      --ref)
+        [[ $# -ge 2 ]] || die "--ref requires a value"
+        ARG_REF="$2"; shift 2 ;;
+      --ref=*)
+        ARG_REF="${1#*=}"; shift ;;
       --ui-lang)
         [[ $# -ge 2 ]] || die "--ui-lang requires a value"
         ARG_UI_LANG="$2"; shift 2 ;;
@@ -1279,6 +1338,14 @@ parse_args() {
   [[ -z "$ARG_SCOPE" && -n "${SSOT_SCOPE:-}" ]] && ARG_SCOPE="$SSOT_SCOPE"
   [[ -z "$ARG_LANG"  && -n "${SSOT_LANG:-}"  ]] && ARG_LANG="$SSOT_LANG"
   [[ -z "$ARG_UI_LANG" && -n "${SSOT_UI_LANG:-}" ]] && ARG_UI_LANG="$SSOT_UI_LANG"
+  [[ -z "$ARG_REF" && -n "${SSOT_REF:-}" ]] && ARG_REF="$SSOT_REF"
+  if [[ -n "$ARG_REF" ]]; then
+    # The ref is spliced into a URL and a git argument: allow ordinary
+    # branch and tag names only. Commit SHAs are not accepted by clone --branch.
+    [[ "$ARG_REF" =~ ^[A-Za-z0-9._][A-Za-z0-9._/-]*$ && "$ARG_REF" != *..* ]] ||
+      die "invalid --ref '$ARG_REF': use a branch or tag name"
+    REPO_REF="$ARG_REF"
+  fi
   [[ "${SSOT_YES:-0}" == "1" ]] && ARG_YES=1
   [[ "${SSOT_NONINTERACTIVE:-0}" == "1" ]] && ARG_NONINTERACTIVE=1
 

@@ -18,10 +18,11 @@ globalThis.document = dom.window.document;
 const { default: mermaid } = await import(pathToFileURL(requireTest.resolve('mermaid')));
 mermaid.initialize({ startOnLoad: false });
 
-// The old marker is not a Mermaid comment. Keep the parser's rejection in
-// the regression, so a future wrapper cannot silently strip invalid syntax.
-await assert.rejects(mermaid.parse('<!-- diagram_type: component -->\nflowchart LR\n A --> B'));
-await assert.rejects(mermaid.parse('%% diagram_type: component\nflowchart LR\n A -->'));
+// An HTML comment inside a fence is not a Mermaid comment: the parser rejects
+// it even though Markdown tooling looks fine. Keep that rejection in the
+// regression so a future wrapper cannot silently strip invalid syntax.
+await assert.rejects(mermaid.parse('<!-- note -->\nflowchart LR\n A --> B'));
+await assert.rejects(mermaid.parse('%% note\nflowchart LR\n A -->'));
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)),
   'skills/ssot-bootstrap/assets/templates');
@@ -33,8 +34,7 @@ for (const language of ['en', 'zh']) {
     const markdown = await readFile(resolve(root, language, filename), 'utf8');
     for (const [index, match] of [...markdown.matchAll(/^```mermaid\s*\n([\s\S]*?)^```\s*$/gm)].entries()) {
       const source = match[1];
-      assert.match(source, /^\s*%% diagram_type: (component|sequence|state|flow)\s*\n/,
-        `${language}/${filename}: missing native type comment`);
+      assert.doesNotMatch(source, /<!--/, `${language}/${filename}: HTML comment inside a Mermaid fence`);
       await assert.doesNotReject(() => mermaid.parse(source), `${language}/${filename} diagram ${index + 1}`);
       count++;
       languageCount++;
@@ -42,5 +42,5 @@ for (const language of ['en', 'zh']) {
   }
   assert.ok(languageCount > 0, `No diagrams found for ${language}`);
 }
-console.log(`PASS: ${count} shipped diagrams parsed; invalid marker and malformed grammar rejected`);
+console.log(`PASS: ${count} shipped diagrams parsed; HTML comment and malformed grammar rejected`);
 dom.window.close();

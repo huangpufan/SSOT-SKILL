@@ -14,7 +14,7 @@ We believe coding agents will evolve toward automating design, implementation, a
 
 Within those boundaries, agents do the work, supported by the **harness**: the tools, checks, and execution controls around them.
 
-**SSOT Skill gives those invariants and decisions a durable home.** It maintains a version-controlled `SSOT/` directory, preserving the constraints and their rationale alongside architecture, evidence, and known pitfalls. Across sessions and agents, the work starts from the same explicit agreements.
+**SSOT Skill gives those invariants and decisions a durable home.** It maintains a version-controlled `SSOT/` directory, preserving the constraints and their rationale alongside architecture, decisions, and known pitfalls. Across sessions and agents, the work starts from the same explicit agreements.
 
 **SSOT** means **Single Source of Truth**: each durable fact has one maintained home; other documents link to it. The bundle provides six skills, Markdown templates, and a local checker inside your existing coding agent. It maintains the shared knowledge; your harness and tests execute and verify the work.
 
@@ -58,11 +58,11 @@ Investigate and fix the login timeout, and verify the fix.
 
 The repository instructions tell the agent when to act:
 
-- **Before substantive work:** check SSOT state and read the relevant context through preflight. Missing or unfinished `SSOT/` routes to bootstrap; an older tracked protocol routes to audit.
-- **During work:** capture durable facts, decisions, and evidence in their maintained homes.
-- **Before finishing or committing a substantive batch:** run closeout, reconcile the changes with SSOT, and route to Doctor when review is required. When durable facts are unchanged, closeout records a no-op batch without rewriting those facts.
+- **Before substantive work:** read `SSOT/README.md` and the few documents the task touches, check the rules people decided, and surface open questions that affect the task. If the repository has no `SSOT/` yet, the agent offers to create one; nothing is created without your agreement.
+- **During work:** notice facts that will outlive the task, such as a decision, a changed contract, a trap, or a rule you state.
+- **Before finishing or committing a substantive batch:** record those facts where they belong and remove the statements they replace. When nothing durable changed, nothing is written.
 
-You do not need to select or invoke a skill at every step. Initial bootstrap explores the repository and reviews its documentation; large repositories may need several sessions, with progress saved for continuation. Read the result at `SSOT/README.md` and check `SSOT/STATUS.md` for reviewed areas and open issues.
+You do not need to select or invoke a skill at every step. Creating the memory for a large repository may take more than one session; progress is saved in `SSOT/BOOTSTRAP.md` until setup is done. Then read the result at `SSOT/README.md`.
 
 <details>
 <summary>Optional: request setup or a focused check directly</summary>
@@ -70,7 +70,7 @@ You do not need to select or invoke a skill at every step. Initial bootstrap exp
 You can ask in ordinary language:
 
 ```text
-Create or continue this repository's SSOT from its code and existing documentation.
+Create an SSOT for this repository from its code and existing documentation.
 Check the health of this repository's SSOT.
 Catch SSOT up with the recent commits.
 ```
@@ -81,57 +81,51 @@ Naming a skill explicitly is also available, for example `Use $ssot-doctor to ch
 
 ## How the agent selects skills
 
-The agent selects from five lifecycle skills according to the task and repository state; the sixth preserves compatibility with older prompts. This table explains the routing for reference. Follow a skill link for its protocol and detailed references.
+The agent selects from four skills according to the task and repository state; two more names keep older prompts working. This table explains the routing for reference.
 
 | Situation | Skill | Purpose |
 |---|---|---|
-| Starting a substantive repository task | [`ssot-preflight`](./skills/ssot-preflight/SKILL.md) | Check reviewed state, unresolved decisions, language, and version; route the necessary reading |
-| Creating `SSOT/` or resuming its initial setup | [`ssot-bootstrap`](./skills/ssot-bootstrap/SKILL.md) | Build repository memory from evidence and review its coverage |
-| Finishing a substantive change batch | [`ssot-closeout`](./skills/ssot-closeout/SKILL.md) | Reconcile changes with durable facts before the final response or commit |
-| Catching up on commits, sessions, or protocol changes | [`ssot-audit`](./skills/ssot-audit/SKILL.md) | Review history in segments and update the tracking baseline |
-| Checking documentation health or reviewing a completion claim | [`ssot-doctor`](./skills/ssot-doctor/SKILL.md) | Run structural checks and review evidence, consistency, and readability |
-| Using an older `$ssot-skill` prompt | [`ssot-skill`](./skills/ssot-skill/SKILL.md) | Route to one of the five skills above |
-
-The **tracking baseline** records which commit, session, and protocol version the documentation has reviewed. It is not a claim that every fact is current or every area is complete.
+| Starting a substantive repository task | [`ssot-preflight`](./skills/ssot-preflight/SKILL.md) | Read the relevant memory and the rules that bind the task |
+| Creating, continuing, or migrating `SSOT/` | [`ssot-bootstrap`](./skills/ssot-bootstrap/SKILL.md) | Build the memory from the repository's code, history, and documents |
+| Finishing a substantive change batch | [`ssot-closeout`](./skills/ssot-closeout/SKILL.md) | Record what changed for good, or write nothing |
+| Checking health, reviewing, or catching up on commits | [`ssot-doctor`](./skills/ssot-doctor/SKILL.md) | Run the checker, review against the code, and report what was checked |
+| Older prompts naming `$ssot-audit` or `$ssot-skill` | [`ssot-audit`](./skills/ssot-audit/SKILL.md), [`ssot-skill`](./skills/ssot-skill/SKILL.md) | Route to the skills above |
 
 ## What appears in your repository?
 
-The installed skills are the instructions and tools. Your repository's `SSOT/` is the memory they help maintain:
+The installed skills are the instructions and tools. Your repository's `SSOT/` is the memory they maintain:
 
 ```text
-Your task → agent reads SSOT → does the work → updates SSOT as needed
+Your task → agent reads SSOT → does the work → updates SSOT if something durable changed
 ```
 
-The main reading paths are:
+Only the entry file is required; the others appear when there is something true to put in them:
 
 ```text
  your-repo/SSOT/
- ├── README.md           What this repository does and where to find answers
- ├── STATUS.md           Reviewed state, open decisions, gaps, and tracking baseline
- ├── HISTORY.md          Brief log of SSOT update batches and the files they touched
- ├── 01-product/         Users, capabilities, journeys, and acceptance criteria
- ├── 02-architecture/    How the system works, owns state, and handles failure
- │   ├── views/          Explanations that span system boundaries
- │   └── NN-domain/      Details for a repository-specific responsibility boundary
- ├── 03-process/         How to develop, test, benchmark, deploy, and release
- ├── 04-records/         Decisions, research, pitfalls, bugs, and technical debt
- ├── glossary/           Repository-specific terms and their meanings
- └── .bootstrap/         Progress and review evidence during initial setup
+ ├── README.md        What the project is, where to look for each task, the rules people decided, open questions
+ ├── product.md       Who uses it, what it promises, what it does not do
+ ├── architecture.md  The parts, who owns which state, key flows, failure and recovery
+ ├── process.md       How to build, test, release, and deploy
+ ├── decisions/       Why things are the way they are, including rejected options
+ ├── gotchas.md       Traps that have already cost time
+ ├── glossary.md      Project terms a newcomer would misread
+ └── research/        Investigations whose conclusions still guide decisions
 ```
 
-Architecture domains follow the repository's actual responsibilities. Operations and security/compliance process areas are included when applicable. See the [template index](./skills/ssot-bootstrap/references/templates-index.md) for the detailed layout.
-
-Existing READMEs, design documents, and decisions are input to this process. Durable facts are consolidated into their designated owners, with navigation links pointing readers there; see the [source-material rules](./skills/ssot-preflight/references/source-material.md).
+A file that grows large becomes a folder of the same name. Existing READMEs and design documents are input: their lasting facts move into `SSOT/`, and the originals point there, so each fact has one maintained home.
 
 ## What keeps the memory useful?
 
-**Readable by people who delegate implementation.** The writing rules ask documents to explain the user situation, current behavior, boundaries, failure and recovery, and the evidence needed to accept a result. A reader should be able to decide what to ask an agent to do without first reconstructing the code. Detailed acceptance criteria live in the [reader-quality protocol](./skills/ssot-preflight/references/reader-quality.md).
+**It stores what the code cannot tell you.** Intent, how the parts fit together, decisions with their reasons, rejected options, and traps. It does not copy field lists, version numbers, or test logs, because those go stale fastest and the code already holds them.
 
-**Evidence stays attached to claims.** Code, schemas, tests, and observed runtime behavior remain the evidence for current implementation. SSOT preserves the explanations and decisions around them, and distinguishes current behavior, intended behavior, and unknowns.
+**It is written for someone new.** Plain words, the situation before the mechanism, prose for reasons and tables only for lookups. A person who delegates work without reading code should be able to follow it; so can the next agent. The rules live in the [memory model](./skills/ssot-preflight/references/memory-model.md).
 
-**Checks have explicit limits.** The [local checker](./skills/ssot-doctor/assets/scripts/ssot-lint.sh) checks mechanically decidable properties such as structure, links, and tracking consistency. Doctor adds agent review. Passing lint alone does not prove a document is true, understandable, or complete; bootstrap completion requires independent review.
+**People's rules stay people's decisions.** Rules you confirm are listed in `SSOT/README.md`. An agent may work within them but never changes them; a task that conflicts with one stops and asks you.
 
-**Maintenance follows the agent workflow.** Once the skills and repository instructions are loaded, the agent triggers the appropriate skills as it works. This automation depends on the agent following those instructions; changes made outside that workflow are reviewed when the agent next works in the repository or you request a catch-up.
+**Checks state their limits.** The [checker](./skills/ssot-doctor/assets/scripts/ssot-check.py) finds broken links, a malformed rules table, and oversized files. It cannot tell whether a document is true or readable; Doctor reviews that against the code and says how far it looked.
+
+**Maintenance follows the agent workflow.** Changes made outside that workflow are picked up when you ask for a catch-up.
 
 ## Supported agents
 
@@ -162,7 +156,11 @@ Ask your agent to handle updates through the same guide:
 Read https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/INSTALL.md and update SSOT Skill for this agent in the current project. Preserve the template language.
 ```
 
-Restart the agent afterward. At the next substantive task, preflight checks the repository's tracked protocol and routes an older version to audit for upgrade review. Replacing the installed skills does not migrate `SSOT/` by itself. To uninstall, ask the agent to follow the guide's removal steps for the chosen scope, including checking for obsolete trigger instructions.
+Restart the agent afterward. Replacing the installed skills never changes `SSOT/` by itself. To uninstall, ask the agent to follow the guide's removal steps for the chosen scope, including checking for obsolete trigger instructions.
+
+### Upgrading from 2.x
+
+Version 3.0 keeps the memory and drops v2's certification machinery: area coverage labels, the `STATUS.md` and `HISTORY.md` ledgers, review archives, and catch-up audits after every release ([why](./DESIGN.md)). After upgrading, agents still read a v2 `SSOT/` but do not write to it until it is migrated. Repository scripts that call v2's `ssot-lint.sh` stop working until the migration repoints them. Migration is one agent-run commit with your agreement: ask "Migrate this repository's SSOT to v3." To stay on v2, install with `--ref v2-final`.
 
 <details>
 <summary>Manual update and removal commands</summary>
@@ -173,6 +171,8 @@ For a project-local Codex installation, run from the consuming repository:
 set -o pipefail
 curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.sh | bash -s -- --upgrade --agent codex --scope project
 ```
+
+To pin the frozen v2 protocol instead of the current release, add `--ref v2-final` to the install or upgrade command.
 
 To remove it:
 
@@ -190,8 +190,8 @@ Bare `--upgrade` updates all detected installations in the current project and g
 ## Documentation and contributing
 
 - [Install guide](./INSTALL.md) — agent-driven setup, instruction wiring, and network fallback.
+- [Design](./DESIGN.md) — why the bundle is shaped this way, and what version 3 removed.
 - [Changelog](./CHANGELOG.md) and [current protocol version](./VERSION) — what changed in the bundle.
-- [Protocol upgrade guide](./skills/ssot-audit/references/protocol-upgrades.md) — how existing repository documentation catches up.
 - [Contributing](./CONTRIBUTING.md) — how to propose changes and run local checks.
 - [AGENTS.md](./AGENTS.md) — instructions for agents maintaining **this bundle repository**.
 - [Security policy](./SECURITY.md) — how to report a vulnerability.

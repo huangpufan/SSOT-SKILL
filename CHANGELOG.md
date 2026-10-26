@@ -9,12 +9,119 @@ the bundle protocol. The single source of truth for the current version is
 file at the repository root is the physical mirror enforced by
 `tests/test-bundle-shape.sh`.
 
-Each entry below is derived from the protocol-upgrade ledger rooted at
-`skills/ssot-audit/references/protocol-upgrades.md`: that file routes to
-`current-upgrade.md` for current/recent entries and to `archive/` for older
-versions. This file only restates headline changes.
+Entries up to 2.86 were derived from the v2 protocol-upgrade ledger, which
+is preserved with the rest of v2 at the `v2-final` tag.
 
 ## [Unreleased]
+
+## [3.0] - 2026-10-26
+
+A redesign around one job: keep a repository memory that helps the next task.
+[DESIGN.md](./DESIGN.md) explains the evidence and the reasoning. v2 is frozen
+at the `v2-final` tag.
+
+### Changed (breaking)
+- The consumer `SSOT/` has one required file, `SSOT/README.md`, with
+  `ssot_format: 3` and `language` in its front matter. It holds the project
+  summary, a map, task routes, the invariants register, and open questions.
+  `product.md`, `architecture.md`, `process.md`, `decisions/`, `gotchas.md`,
+  `glossary.md`, and `research/` exist only when they have real content.
+  Existing v2 paths such as `01-product/` remain valid.
+- One shared memory model
+  (`skills/ssot-preflight/references/memory-model.md`) defines what to store,
+  what to leave out (restated code, single-task proofs, edit history, status
+  about the docs), current versus planned, invariants, and the writing rules.
+- Closeout writes nothing when no durable fact changed: no history rows,
+  timestamps, or markers.
+- Every invariant must be explained inside `SSOT/`, and the checker enforces
+  this.
+- Catch-up on past commits moved into `ssot-doctor`. It starts from the
+  optional `reviewed_through` front-matter field, and only a catch-up or a
+  setup moves that field.
+- `ssot-audit` and `ssot-skill` are compatibility names that route to the
+  four lifecycle skills.
+- A v2 `SSOT/` is read but not written until it is migrated with
+  `$ssot-bootstrap` (one commit, with the user's agreement). Until then,
+  closeout lists what should be recorded instead of writing it.
+- Repository scripts, hooks, CI, or tests that call v2 bundle files
+  (`ssot-lint.sh`, `ssot-migrate.py`, `run-tests.sh`) fail after the upgrade.
+  The migration repoints them to `ssot-check.py`.
+- The invariants register holds the lasting rules people set ("never X",
+  "always Y"). One-time choices are decision records. Both need the user's
+  agreement to change.
+
+### Removed
+- Per-area coverage states, completeness checklists, the Q01–Q21 matrix, and
+  `converged` certification.
+- `STATUS.md`, `HISTORY.md`, `.bootstrap/` review archives, `_manifest.md`
+  inventories, tracking baselines, and catch-up audits after each protocol
+  release.
+- The 400 KB `ssot-lint.sh`, its migration helpers, and their tests.
+- `skills/SKILL_STYLE.md`, which is now part of `CONTRIBUTING.md`. The
+  installer removes the copy it installed earlier.
+
+### Added
+- `ssot-check.py`: a read-only Python checker for the entry file, links and
+  GitHub heading anchors (including CJK), and the invariants register. It
+  counts reading budgets in characters. Its last line always states PASS,
+  FAIL, or INCOMPLETE; exit code 3 (INCOMPLETE) means it crashed or could
+  not examine part of the tree, and is never a pass.
+- `install.sh --ref <branch|tag>` (or `SSOT_REF`). `--ref v2-final` installs
+  the frozen v2 protocol.
+- CI budgets for everything agents load at runtime (8,000 words), the
+  entrypoints (3,000 words), templates, the checker, and `skills/`. Before 3.0
+  these were about 110,000 words and 1.9 MB.
+- `DESIGN.md`, and protocol change rules in `CONTRIBUTING.md`.
+
+### How 3.0 was checked
+Method, per-question scores, and limits are in `tests/trials-3.0.md`.
+
+- **Behavior trials, run on copies of one real consumer repository (a
+  desktop application):**
+  - Six real maintainer tasks were answered by fresh agents in three set-ups:
+    v2.86 with the original SSOT, v3 after an agent-run migration, and no
+    SSOT at all. The migration used an earlier draft of the migration
+    procedure. The final procedure added steps (keeping `GAP-` IDs, handling
+    `apex-maxim` rows, sorting before deletion, repointing tooling), and of
+    those only the tooling step was run against the trial copy. A blind judge scored every answer against an answer key
+    built from the code.
+  - Must-have points: v3 94%, v2 97%, no SSOT 84%.
+  - Answers that pushed unrelated documentation chores onto the user: v2
+    had 14 such items, mostly protocol catch-up and audits. v3 had 6, all
+    from one migration gap (tooling still calling `ssot-lint.sh`); that gap
+    is now covered by a migration step.
+  - After that migration step was applied, two of the tasks were re-run
+    and re-judged blind. v3 scored full marks with no noise and the highest
+    usefulness (9 and 9, against v2's 7 and 8). The other four tasks were
+    not re-run.
+  - Token use was the same in all three set-ups. 3.0 does not make reading
+    cheaper.
+- **Closeout trials:**
+  - An internal refactor wrote nothing to SSOT.
+  - A user decision (a shorter retention period) was recorded in the right
+    owner and a new decision record, with the old decision kept as history.
+- **Conflict trial:** asked to add a pop-up that a confirmed rule forbids,
+  both v2 and v3 agents stopped and asked. v3 used about a third fewer
+  tokens.
+- **Setup from scratch** on a second, smaller repository (a web application
+  with its own agent instruction file): 7 documents, about 50 KB. An
+  independent newcomer test answered 5 real tasks correctly, and the
+  procedure gaps the run reported were fixed. Its findings included two real
+  bugs in that application, which the documents now record as open
+  questions.
+- **Local suites:** checker regression tests, bundle shape with budgets,
+  installer end to end (including `--ref`), Mermaid parsing of the template
+  diagrams, and ShellCheck.
+- **Not verified:**
+  - The final migration procedure end to end. The trial used an earlier
+    draft, and only one of the later steps was run.
+  - Migration of a second consumer repository, including the larger ones.
+  - Long-term maintenance over many batches.
+  - Other agent harnesses.
+  - Diagram rendering.
+  - macOS or Windows runners beyond CI.
+
+## [2.56–2.86] - 2026-07 to 2026-10 (frozen as `v2-final`)
 
 ### Added
 - Adjudication boundary register (v2.64): `SSOT/README.md` gains a

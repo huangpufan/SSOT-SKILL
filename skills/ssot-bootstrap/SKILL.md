@@ -1,16 +1,32 @@
 ---
 name: ssot-bootstrap
-description: Bootstrap or continue repository SSOT creation. Use when SSOT/ is missing, SSOT/STATUS.md coverage_result is bootstrap, an active bootstrap manifest has unfinished phases, or the user asks to create a repository SSOT. Retained review artifacts under .bootstrap/ alone do not mean setup is unfinished. Do not use for normal code-task preflight or routine closeout in an already bootstrapped repo.
+description: Create, continue, or migrate a repository's SSOT. Use when the user agrees to create SSOT for a repository that has none, when SSOT/BOOTSTRAP.md shows setup is unfinished, or when the user agrees to migrate an SSOT whose README lacks ssot_format 3 (usually the v2 layout with SSOT/STATUS.md). Builds the memory from repository evidence and absorbs existing documentation into SSOT/. Do not use for normal task preflight or closeout.
 ---
 
 # SSOT Bootstrap
 
-Build SSOT only from observed repository evidence; a filled template is not
-proof. Follow [`bootstrap.md`](references/bootstrap.md) until every phase exit
-holds. Load source-material rules for supplied documents and
-[`reader-quality.md`](../ssot-preflight/references/reader-quality.md) for every
-reader-facing body. Stop only after the stop review that
-[`status-protocol.md §6`](../ssot-preflight/references/status-protocol.md)
-requires passes (independent for overall `passed`); if none is available, leave
-the claim unmade and report why. Never infer bootstrap completion from
-structure or lint alone.
+Build the repository's memory from what the repository shows: its code,
+configuration, tests, history, and existing documents. A filled template is
+not knowledge. What to store and how to write it is defined in
+[`memory-model.md`](../ssot-preflight/references/memory-model.md).
+
+Setup writes a documentation tree and may edit existing documents, so it
+needs the user's agreement first. Tell them what you will create and which
+existing files you expect to change.
+
+Follow [`references/bootstrap.md`](references/bootstrap.md):
+
+- Sections 1–6 cover a new SSOT, or continuing an unfinished one.
+- Section 7 covers migrating a v2 layout.
+
+You are done when all of these hold:
+
+- the README routes the repository's main kinds of task;
+- every document you wrote matches the code it describes;
+- the existing documents' durable facts live in `SSOT/`;
+- the candidate invariants and open questions have been put to the user;
+- the checker reports no errors;
+- `SSOT/BOOTSTRAP.md` has been removed.
+
+If you have to stop earlier, `BOOTSTRAP.md` must say what is done and what
+comes next.

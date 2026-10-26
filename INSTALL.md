@@ -12,7 +12,8 @@ Honor options the user already supplied. Otherwise use these defaults without as
 
 - **Agent:** the coding agent you are currently running as. Pass its canonical installer key explicitly; a machine may have several agents installed.
 - **Scope:** `project` by default; use `global` for an explicit global-only request. Install in both locations only when the user requests both. Run project commands from the target repository root.
-- **Template language:** preserve an existing `SSOT/STATUS.md` documentation-language lock or the installed template language on reinstall. For a new setup, use `zh` when the user is communicating in Chinese, otherwise `en`. A template choice does not change an existing SSOT language lock.
+- **Template language:** keep the repository's existing choice: the `language` in `SSOT/README.md` front matter, the `documentation_language` of an older `SSOT/STATUS.md`, or the installed template language on reinstall. For a new setup, use `zh` when the user is communicating in Chinese, otherwise `en`. A template choice never changes the language an existing SSOT is written in.
+- **Version:** the current release, from `main`. Add `--ref v2-final` only when the user wants to stay on the earlier v2 protocol (see [Update or remove](#update-or-remove-an-existing-installation)).
 
 If the target repository or agent identity cannot be determined from the current session, ask for that missing information. Routine defaults do not need a separate approval step.
 
@@ -66,7 +67,7 @@ https://gh-proxy.com/https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/mai
 
 Retry the download using that URL, then run the same installer command. Do not treat invalid arguments, missing prerequisites, or verification failures as network problems.
 
-If the user supplied a local SSOT-SKILL checkout, use its `install.sh` with `SOURCE_DIR` set to that checkout instead of downloading another copy. The installer normally fetches the current `main` bundle; `SOURCE_DIR` explicitly selects a local source.
+If the user supplied a local SSOT-SKILL checkout, use its `install.sh` with `SOURCE_DIR` set to that checkout instead of downloading another copy. The installer normally fetches the current `main` bundle; `--ref <branch-or-tag>` fetches another one, and `SOURCE_DIR` selects a local source. The two cannot be combined.
 
 If the user requested both scopes, run the installation once for each scope and verify both locations. Installation does not create or migrate the target repository's `SSOT/`.
 
@@ -80,13 +81,15 @@ for ssot_skill in ssot-preflight ssot-bootstrap ssot-closeout ssot-audit ssot-do
   test -f "$ssot_skills_dir/$ssot_skill/SKILL.md" || exit 1
   test -f "$ssot_skills_dir/$ssot_skill/agents/openai.yaml" || exit 1
 done
-SSOT_TEST_PACKAGE_SHAPE_ONLY=1 \
-  bash "$ssot_skills_dir/ssot-doctor/assets/scripts/test/run-tests.sh"
+# 3.x (the default): the checker must start.
+python3 "$ssot_skills_dir/ssot-doctor/assets/scripts/ssot-check.py" --help >/dev/null
+# v2 (installed with --ref v2-final) instead:
+#   SSOT_TEST_PACKAGE_SHAPE_ONLY=1 bash "$ssot_skills_dir/ssot-doctor/assets/scripts/test/run-tests.sh"
 ```
 
 Also inspect the installed bootstrap templates: they should use the selected language directly under `ssot-bootstrap/assets/templates/`, without `en/` and `zh/` subdirectories. Read the installed `ssot-preflight/SKILL.md` `metadata.protocol_version` and include it in the result.
 
-These checks verify the installation, not the health of the user's repository documentation. Do not run a full SSOT audit or bootstrap as part of installation unless the user requested that work.
+These checks verify the installation, not the health of the user's repository documentation. Do not run an SSOT review or bootstrap as part of installation unless the user requested that work.
 
 ## 4. Wire the skills into the repo's agent-instructions file
 
@@ -103,13 +106,14 @@ Make clear that these are instructions for the agent: apply the skills automatic
 | Gemini CLI | `GEMINI.md` |
 | Other agents | Their supported repository-instruction entry |
 
-Read existing instructions first. Follow any pointer or symlink to the repository's shared instruction owner, and update that one source. Keep one marked block in that owner so future updates can replace just this section. Reconcile older, unmarked SSOT instructions in place; preserve unrelated instructions and avoid duplicate blocks. Adapt the heading level if needed, preserving the routes and exceptions. Copy only the marked block from the template, not its whole-file `SSOT-generated` marker or project placeholders. When creating a tool-specific rules file, use that agent's supported activation format.
+Read existing instructions first. Follow any pointer or symlink to the repository's shared instruction owner, and update that one source. Keep one marked block in that owner so future updates can replace just this section. Reconcile older, unmarked SSOT instructions in place; preserve unrelated instructions and avoid duplicate blocks. Adapt the heading level if needed, preserving the routes and exceptions. Copy only the marked block from the template, not the template's surrounding explanation. When creating a tool-specific rules file, use that agent's supported activation format.
 
 Before finishing, reread the resulting file and confirm it covers:
 
-- automatic preflight and closeout for substantive work, with bootstrap, audit and doctor selected by their conditions;
+- automatic preflight and closeout for substantive work, with bootstrap (only with the user's agreement) and doctor selected by their conditions;
 - the skip cases for chat, pure command execution, and meaning-preserving typo/format edits, while explicit SSOT requests still route to a skill;
-- loading the selected skill's full instructions, preserving its review gates, and reporting a missing skill honestly;
+- loading the selected skill's full instructions, and reporting a missing skill honestly;
+- for a 3.x installation, no leftover instructions from an older SSOT setup, such as running `$ssot-audit` for protocol lag, advancing `tracked_*` fields, or reading `STATUS.md` first (a v2 installation keeps those, and uses the block from its own `adapter-thin.md`);
 - preserving existing project rules, user decisions, and commit/push authorization.
 
 Do not copy or apply SSOT-SKILL's own `AGENTS.md` to the user's repository. It governs maintenance of the bundle source, including its release and commit conventions.
@@ -123,7 +127,7 @@ Remove the temporary installer directory you created after verification. Report:
 - which installed-file checks passed;
 - that the user must restart the agent session to load the skills and repository instructions, then can describe tasks as usual.
 
-Explain that the agent handles the lifecycle: preflight before substantive work, bootstrap when `SSOT/` is missing or unfinished, and closeout before finishing a substantive batch, with audit and doctor used when their conditions apply. Do not hand routine skill invocation back to the user as a manual checklist. Do not claim the skills are active before restart and discovery are confirmed. Do not ask the user to choose a global installation again after a successful project-only setup.
+Explain that the agent handles the lifecycle: preflight before substantive work, an offer to bootstrap when `SSOT/` is missing or unfinished, and closeout before finishing a substantive batch, with doctor used for checks and catch-up. Do not hand routine skill invocation back to the user as a manual checklist. Do not claim the skills are active before restart and discovery are confirmed. Do not ask the user to choose a global installation again after a successful project-only setup.
 
 ## Update or remove an existing installation
 
@@ -143,6 +147,21 @@ bash "$ssot_install_dir/install.sh" --uninstall --agent "$ssot_agent" --scope "$
 
 A scoped upgrade honors both `--agent` and `--scope`. Bare `--upgrade` scans every supported location in the current project and globally; use it only when that broader update was requested. Shared directories are updated once, and agents sharing a directory share the same installation.
 
-After an update, repeat verification and reconcile the instruction block, then request a session restart. At the next substantive task, preflight checks the tracked protocol version and routes any required repository migration to `$ssot-audit`; installing new skill files alone does not migrate `SSOT/`.
-
 After removal, verify the bundle files are absent. Preserve generated `SSOT/` documentation and unrelated skills. Reconcile obsolete trigger instructions with any remaining SSOT installation; the installer itself does not edit instruction files. Remove the temporary installer directory afterward.
+
+After an update, repeat verification and reconcile the instruction block, then request a session restart. Installing new skill files never changes the repository's `SSOT/` by itself.
+
+### Upgrading from 2.x to 3.0
+
+Version 3.0 keeps the repository memory and drops the v2 certification machinery: area coverage labels, the `STATUS.md` and `HISTORY.md` ledgers, review records under `.bootstrap/`, and protocol catch-up audits. Tell the user what this means before upgrading:
+
+- After the upgrade, the agents still **read** a v2 `SSOT/`, but they **do not write** to it, because updated documents next to stale ledgers would contradict each other. Closeout lists what should be recorded instead.
+- The fix is a one-time migration with `$ssot-bootstrap`. With the user's agreement it moves everything still valid (invariants, decisions, open questions, limits) into the v3 layout, removes the ledgers, and replaces old SSOT instructions in `AGENTS.md` / `CLAUDE.md`. It is one commit, and git history keeps the old files.
+- If the repository's own scripts, hooks, CI, or tests call v2 bundle files such as `ssot-lint.sh`, those commands fail as soon as the v3 files replace them. The migration repoints them; until then, expect those checks to fail rather than bypassing them.
+- Moving to 3.0 is a decision for the whole repository. Every installation that works on it (other agents, global installs, teammates' machines, CI hooks) must be on 3.x before the migration, or a v2 agent will try to rebuild the v2 ledgers. Likewise, staying on v2 means keeping all of them on v2.
+- To stay on v2 instead, upgrade with `--ref v2-final`, which installs the frozen last v2 release (2.86):
+
+```bash
+bash "$ssot_install_dir/install.sh" --upgrade --agent "$ssot_agent" --scope "$ssot_scope" --ref v2-final
+```
+

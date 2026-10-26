@@ -18,5 +18,5 @@ labels: bug
 
 ## Checklist
 - [ ] I ran `bash tests/test-bundle-shape.sh` if shape might be affected
-- [ ] I attached relevant logs / `STATUS.md` excerpts
+- [ ] I attached relevant logs, `ssot-check.py` output, or `SSOT/README.md` excerpts
 - [ ] I checked existing issues

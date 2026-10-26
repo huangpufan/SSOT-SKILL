@@ -1,78 +1,112 @@
 # Contributing to SSOT Skill
 
-Thanks for your interest in improving the SSOT Skill bundle.
+Thanks for your interest in improving the SSOT Skill bundle. Read
+[DESIGN.md](./DESIGN.md) first: it explains why the bundle is small and what
+it deliberately does not do.
 
-## Protocol vs. Engineering
+## What lives where
 
-This repository hosts a **protocol** (the SSOT Skill bundle), not application
-code. Changes fall into two buckets:
-
-| Type | What it touches | Review weight |
+| Area | Files | Review weight |
 |---|---|---|
-| Engineering | `install.sh`, `tests/`, `.github/workflows/`, `skills/*/assets/scripts/` | Standard PR review |
-| Protocol | `skills/*/SKILL.md`, `skills/*/references/*.md`, `VERSION`, `CHANGELOG.md` | Protocol uplift review |
+| Protocol | `skills/*/SKILL.md`, `skills/*/references/*.md`, templates | Protocol review (below) |
+| Engineering | `install.sh`, `skills/ssot-doctor/assets/scripts/`, `tests/`, `.github/workflows/` | Standard review |
+| Docs | `README*`, `INSTALL.md`, `DESIGN.md`, `CHANGELOG.md` | Standard review |
 
-A protocol change MUST bump `VERSION` and add a `CHANGELOG.md` entry. The bump
-also requires updating `metadata.protocol_version` in
-`skills/ssot-preflight/SKILL.md` (single semantic owner; the `VERSION` file is
-the physical mirror enforced by `tests/test-bundle-shape.sh`).
+`skills/ssot-preflight/references/memory-model.md` owns what a consumer's
+`SSOT/` contains and how it is written. The `SKILL.md` files link to it rather
+than restating it.
+
+## Changing the protocol
+
+Every protocol change answers four questions in its pull request:
+
+1. **Does this belong in a general protocol?** A rule specific to one project
+   belongs in that project. A problem caused by a template is fixed in the
+   template, and a tool bug is fixed in the tool. Do not turn one mistake into
+   a new duty for every repository.
+2. **What does it replace?** Name the duty it adds, merges, or removes. Adding
+   is allowed when nothing existing can carry it. Explain why, and keep within
+   the budgets.
+3. **How was it verified, at the level of its impact?** A wording fix needs
+   the structural tests. A local rule needs a scenario where it should apply
+   and a nearby one where it should not. A change to what agents read or write
+   by default needs a baseline/candidate trial on real tasks that records
+   wrong decisions, false triggers, reading, and writing.
+4. **What is the net effect on whole tasks?** Fixing one case while making
+   every unrelated task read or write more is not an improvement.
+
+Do not claim more than you ran. A structural test does not show that agents
+behave better.
+
+### Writing a SKILL.md
+
+An entrypoint lets an agent pick the right branch, find its instructions,
+respect its boundaries, and know when it is done. Keep:
+
+- the purpose and the condition for being done;
+- routing, with links that say when to read them;
+- ordered steps where the order affects safety or correctness;
+- permission, ownership, and recovery rules the agent needs before choosing a
+  route.
+
+Detailed shared material belongs in a reference, read at the point of use.
+`SKILL.md` and `references/` are in English, the language skill routing is
+tuned for.
+
+### Protocol budgets
+
+`tests/test-bundle-shape.sh` enforces these limits in CI:
+
+| What | Limit |
+|---|---|
+| All `SKILL.md` files together | 3,000 words |
+| Everything an agent may read at runtime (`SKILL.md` + `references/`) | 8,000 words |
+| Templates, per language | 16 KiB |
+| `ssot-check.py` | 40 KiB |
+| All of `skills/` | 160 KiB |
+
+A budget is a reason to rethink responsibilities, never a reason to cut a
+recovery or authorization branch to fit. A v2 word cap once rejected a
+complete entrypoint for being complete. Raising a limit requires the same
+evidence as adding a rule. Record the reason in `CHANGELOG.md`.
+
+## Versions
+
+`VERSION` and `metadata.protocol_version` in `skills/ssot-preflight/SKILL.md`
+must match; CI checks this. Bump the minor version for protocol changes and
+add a `CHANGELOG.md` entry. The consumer data format (`ssot_format` in
+`SSOT/README.md`) changes only when existing SSOTs would otherwise be misread.
+That needs a major version and a migration path in `ssot-bootstrap`.
+
+## Templates
+
+Templates under `skills/ssot-bootstrap/assets/templates/{en,zh}/` are copied
+into consumer repositories. Keep both languages in file-name parity. They are
+prompts for prose, not forms: avoid tables that invite one-word cells, and in
+Mermaid diagrams use `%%` comments, never HTML comments.
 
 ## Local verification
 
-Before opening a PR:
-
 ```bash
-bash -n install.sh
-bash skills/ssot-doctor/assets/scripts/test/run-tests.sh
-bash tests/test-bundle-shape.sh
-bash tests/test-installer-e2e.sh
-bash tests/test-faceted-layout-migration.sh
-python3 tests/test-status-migration.py
-python3 tests/test-lint-protocol-boundaries.py
-bash tests/test-document-quality-contract.sh
-bash tests/test-document-quality-lint.sh
+bash tests/test-bundle-shape.sh        # shape, links, budgets
+python3 tests/test-ssot-check.py       # checker regression tests
+bash tests/test-installer-e2e.sh       # installer end to end
+shellcheck -S warning -e SC2034 install.sh tests/*.sh
 ```
 
-CI runs the same set plus `shellcheck` and real Mermaid parsing. For diagram
-changes, install `mermaid@11.12.0` and `jsdom@26.1.0` into an isolated npm
-prefix, then run `node tests/test-mermaid-templates.mjs <prefix>/node_modules`.
-The parser checks both template languages and deliberately invalid controls;
-it does not review diagram meaning or visual layout.
+For diagram changes, install `mermaid@11.12.0` and `jsdom@26.1.0` into an
+isolated npm prefix, then run
+`node tests/test-mermaid-templates.mjs <prefix>/node_modules`.
 
-## PR checklist
+## Pull request checklist
 
-- [ ] `bash -n` clean on all shell files
-- [ ] `shellcheck -e SC2034` clean
-- [ ] `run-tests.sh` passes
-- [ ] `test-bundle-shape.sh` passes
-- [ ] `test-installer-e2e.sh` passes
-- [ ] Both migration helpers pass their consumer-document regression tests
-- [ ] If protocol-bumping: `VERSION` updated and `CHANGELOG.md` entry added
-- [ ] If touching cross-skill references: every `[text](../path)` link verified
-- [ ] If touching templates: both `templates/en/` and `templates/zh/` updated
-- [ ] README.md and README.zh.md kept in sync for user-facing changes
-
-## Skill protocol language
-
-`SKILL.md` and `references/*.md` are read directly by the LLM and MUST stay in
-English. The English form aligns with mainstream skill ecosystems (Anthropic
-official skills, Claude Code built-ins) and maximises routing accuracy and
-instruction-following fidelity.
-
-Templates under `assets/templates/{en,zh}/` are user-facing (they get copied
-into the consumer repository's SSOT directory). Both languages must stay in
-parity: every file in `en/` has a counterpart in `zh/`.
+- [ ] The four protocol questions are answered (protocol changes only)
+- [ ] Local verification passes, including budgets
+- [ ] `VERSION` and `CHANGELOG.md` updated for protocol changes
+- [ ] `en/` and `zh/` templates updated together
+- [ ] `README.md` and `README.zh.md` kept in sync for user-facing changes
 
 ## Code of conduct
 
-Be kind. Surface disagreements via evidence and proposed alternatives, not
+Be kind. Surface disagreements with evidence and proposed alternatives, not
 broad rejection.
-
-## Upgrading an existing consumer SSOT to PLTL v3
-
-Consumer repositories already running on a pre-2.28 bundle do not need a one-shot rewrite. After upgrading the skill bundle:
-
-1. If `SSOT/STATUS.md` predates v2.28, manually paste the `## Pending Captures` block from the upgraded `skills/ssot-bootstrap/assets/templates/{en,zh}/status.md` template into the consumer's STATUS.md, between `## Open Adjudications` and `## Open Gaps`.
-2. Subsequent `$ssot-closeout` batches will opportunistically wrap touched rules with the `<!-- rule: -->` HTML comment as those rules are cited — not as a back-fill pass over the whole repository. Untouched rules stay un-wrapped and remain valid Authority-altitude content.
-
-The altitude-inference rule for pre-v2.28 rules (apex inferred from current location in AGENTS.md or a `SKILL.md`; everything else under `SSOT/` defaults to authority; inbox is empty until the first capture) lives in `skills/ssot-closeout/references/promotion-rationale.md ## Migration of pre-v2.28 rules`. `tracked_skill_version` may advance to `2.28` once `$ssot-audit` reports `no-more-required-changes`.

@@ -1,4 +1,4 @@
 interface:
-  display_name: "SSOT Audit"
-  short_description: "Bring SSOT tracking up to date"
-  default_prompt: "Use $ssot-audit to sync commits, sessions, or protocol versions."
+  display_name: "SSOT Audit (compatibility)"
+  short_description: "Old name for SSOT catch-up; routes to Doctor"
+  default_prompt: "Use $ssot-audit only when an older prompt asks for it; it routes to $ssot-doctor catch-up."
