@@ -123,7 +123,7 @@ A file that grows large becomes a folder of the same name. Existing READMEs and 
 
 **People's rules stay people's decisions.** Rules you confirm are listed in `SSOT/README.md`. An agent may work within them but never changes them; a task that conflicts with one stops and asks you.
 
-**Checks state their limits.** The [checker](./skills/ssot-doctor/assets/scripts/ssot-check.py) finds broken links, a malformed rules table, and oversized files. It cannot tell whether a document is true or readable; Doctor reviews that against the code and says how far it looked.
+**Checks state their limits.** The [checker](./skills/ssot-doctor/assets/scripts/ssot-check.py) finds broken links, a malformed rules table, oversized files, and mentions of code files that git says were deleted or moved. It cannot tell whether a document is true or readable; Doctor reviews that against the code and says how far it looked.
 
 **Maintenance follows the agent workflow.** Changes made outside that workflow are picked up when you ask for a catch-up.
 

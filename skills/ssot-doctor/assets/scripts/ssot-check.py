@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 """Mechanical checks for a repository SSOT/ directory (SSOT Skill v3).
 
-Usage: ssot-check.py [SSOT_DIR]      (default: ./SSOT)
+Usage: ssot-check.py [SSOT_DIR] [--since COMMIT]      (default: ./SSOT)
+
+--since COMMIT lists only mentions of files removed after COMMIT or in
+uncommitted changes, and counts the older ones in one line. Closeout uses it
+to see what its own batch removed.
 
 Checks only what a program can decide: the entry file and its format marker,
 local links and heading anchors, the invariants register shape, the
-reviewed_through commit, and size warnings. It never proves that a document is
+reviewed_through commit, size warnings, and file paths in inline code that git
+history says were removed or moved (outside decisions/ and research/). It never proves that a document is
 true, complete, or readable; that is the job of the agent review in
 ssot-doctor.
 
@@ -451,16 +456,272 @@ def check_invariants(report, readme, text, ssot_dir):
                            f"invariant {ident} needs a source (user directive, decision, or date)")
 
 
-# --- reviewed_through ----------------------------------------------------------
-
-def git(directory, *args):
-    result = subprocess.run(["git", "-C", directory, *args],
-                            stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, check=False)
-    return result.returncode, result.stderr
+# --- git -----------------------------------------------------------------------
+# The checker never writes. These settings stop git from writing or running
+# anything on its behalf: no optional index refresh, no filesystem-monitor hook,
+# and no fetching of missing objects in a partial clone.
+GIT_ENV = dict(os.environ, GIT_OPTIONAL_LOCKS="0", GIT_NO_LAZY_FETCH="1")
+GIT_SAFE = ("-c", "core.fsmonitor=false", "-c", "core.quotepath=off")
 
 
 GIT_NO = 1  # rev-parse --verify --quiet and merge-base --is-ancestor answer "no" with 1
 
+
+class GitError(Exception):
+    pass
+
+
+def git(directory, *args):
+    result = subprocess.run(["git", *GIT_SAFE, "-C", directory, *args], env=GIT_ENV,
+                            stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, check=False)
+    return result.returncode, result.stderr
+
+
+def git_output(directory, *args):
+    """Return git's stdout, decoded without losing any byte of a file name.
+    Raises GitError when git fails, FileNotFoundError when git is missing."""
+    result = subprocess.run(["git", *GIT_SAFE, "-C", directory, *args], env=GIT_ENV,
+                            capture_output=True, check=False)
+    if result.returncode != 0:
+        message = result.stderr.decode("utf-8", "replace").strip()
+        raise GitError(message or f"git {args[0]} exited with {result.returncode}")
+    return result.stdout.decode("utf-8", "surrogateescape")
+
+
+# --- mentions of files that no longer exist ------------------------------------
+# SSOT names the file that holds a detail instead of copying it, so a file path
+# is the main link between a document and the code. When a change deletes or
+# moves that file, the sentence around it usually becomes wrong. Git can tell
+# that a mentioned path existed and is gone; only a reader can tell whether the
+# sentence meant the past. Records of the past (decisions/, research/) are not
+# checked, and a line that names the removing commit counts as history.
+
+PATH_SPAN_RE = re.compile(r"^((?:\.{1,2}/)*\.?[\w@+-][\w@.+-]*(?:/[\w@.+-]+)+)/?(?::\d+(?:-\d+)?|::\S+)?$")
+REF_LABEL_RE = re.compile(r"!?\[(?:[^\[\]\\]|\\.)*\]\[[^\]]*\]")
+HEX_RE = re.compile(r"\b[0-9a-f]{7,40}\b")
+HISTORY_DIRS = {"decisions", "research"}
+SKIP_FILES = {"STATUS.md", "HISTORY.md", "_manifest.md"}  # v2 ledgers: never current guidance
+
+
+def path_mentions(ssot_dir, doc, text):
+    """Yield (line, path, line_text) for inline code spans that hold only a path.
+    A link's own label is skipped: the link target is what the link check tests."""
+    relative = os.path.relpath(doc, ssot_dir).split(os.sep)
+    if HISTORY_DIRS & {part.lower() for part in relative[:-1]} or ".bootstrap" in relative \
+            or relative[-1] in SKIP_FILES:
+        return
+    for number, line in markdown_lines(text):
+        labels = [m.span() for m in LABEL_RE.finditer(line)] + [m.span() for m in REF_LABEL_RE.finditer(line)]
+        definition = REFDEF_RE.match(line)
+        if definition:
+            labels.append((0, definition.end(1)))
+        for match in INLINE_CODE_RE.finditer(line):
+            found = PATH_SPAN_RE.match(match.group(2).strip())
+            if found and not any(a <= match.start() < b for a, b in labels):
+                yield number, found.group(1), line
+
+
+class PathIndex:
+    """Answers whether a mention names a path in a set, or a folder above one.
+    A mention written from the repository root must match from the first
+    segment; an abbreviated one (`web/routes.py` for `src/app/web/routes.py`)
+    may match any run of segments."""
+
+    def __init__(self, mentions):
+        self.exact = {path for path, is_exact in mentions if is_exact}
+        self.loose = {}
+        for path, is_exact in mentions:
+            if not is_exact:
+                self.loose.setdefault(path.rsplit("/", 1)[-1], set()).add(path)
+
+    def matching(self, path):
+        """Yield (mention, exact) for every mention that `path` falls under."""
+        parts = path.split("/")
+        for end in range(1, len(parts) + 1):
+            head = None
+            if self.exact:
+                head = "/".join(parts[:end])
+                if head in self.exact:
+                    yield head, True
+            for mention in self.loose.get(parts[end - 1], ()):
+                head = head or "/".join(parts[:end])
+                if head == mention or head.endswith("/" + mention):
+                    yield mention, False
+
+
+def present_paths(top):
+    """Tracked and untracked (not ignored) paths that exist in the working tree.
+    A sparse (skip-worktree) file counts as present: it was never removed."""
+    deleted = set(git_output(top, "ls-files", "-z", "--deleted").split("\0"))
+    present = set()
+    for entry in git_output(top, "ls-files", "-z", "-t", "--cached", "--others", "--exclude-standard").split("\0"):
+        tag, _, path = entry.partition(" ")
+        if path and (tag == "S" or path not in deleted):
+            present.add(path)
+    return present
+
+
+def removals(top, index, shallow):
+    """Find when the paths the index asks about were removed. Returns
+    {(mention, exact): [(old path, commit or None, date, new path or None)]},
+    newest first; commit is None for a removal that is not committed yet.
+
+    Only the index and the object store are read: comparing the working tree
+    with a commit would run the repository's clean filters, which may do
+    anything. A file deleted in the working tree but not staged is therefore
+    reported as removed, without a new place even if it was moved."""
+    found = {}
+
+    def record(old, commit, date, new):
+        for key in set(index.matching(old)):
+            found.setdefault(key, []).append((old, commit, date, new))
+
+    staged = iter(git_output(top, "diff", "-z", "--cached", "HEAD", "-M", "--name-status",
+                             "--diff-filter=DR", "--").split("\0"))
+    for status in staged:
+        if status:
+            old = next(staged)
+            record(old, None, None, next(staged) if status.startswith("R") else None)
+    for old in git_output(top, "ls-files", "-z", "--deleted").split("\0"):
+        if old:
+            record(old, None, None, None)
+    # Without rename detection one pass is fast even on long histories; moves are
+    # looked up afterwards, only in the commits that removed a mentioned path.
+    # Ordinary commits are read one by one. A merge counts only for files it
+    # removed itself while resolving (present in every parent); a removal it
+    # inherits from a merged branch belongs to that branch's commit. A header
+    # starts with "/", which no repository path can.
+    for options, lead in ((("--no-merges",), "\n"), (("--merges", "-c"), "")):
+        commit = date = None
+        expect_lead = False
+        log = git_output(top, "log", "HEAD", "-z", *options, "--no-renames", "--diff-filter=D",
+                         "--name-only", "--format=/%H %as")
+        for token in log.split("\0"):
+            if expect_lead and lead and token.startswith(lead):
+                token = token[len(lead):]
+            elif token.startswith("/"):
+                commit, date = token[1:].split(" ")
+                expect_lead = True
+                continue
+            expect_lead = False
+            if token:
+                record(token, commit, date, None)
+    moves = {}
+    for commit in {event[1] for events in found.values() for event in events} - {None}:
+        try:
+            moved = iter(git_output(top, "diff-tree", "-z", "-r", "-M", "--name-status", "--diff-filter=R",
+                                    "--root", "-m", "--first-parent", "--no-commit-id", commit).split("\0"))
+        except GitError:
+            if shallow:
+                continue  # its parent lies beyond the shallow boundary: report the removal without a new place
+            raise
+        for status in moved:
+            if status:
+                old = next(moved)
+                moves[(commit, old)] = next(moved)
+    # Newest first, by position in the history rather than by clock, which can
+    # tie or run backwards; uncommitted removals come before every commit.
+    order = {sha: at for at, sha in enumerate(git_output(top, "rev-list", "--topo-order", "HEAD").split())}
+    for key, events in found.items():
+        events.sort(key=lambda event: -1 if event[1] is None else order.get(event[1], len(order)))
+        found[key] = [(old, c, d, n or moves.get((c, old))) for old, c, d, n in events]
+    return found
+
+
+def check_removed_paths(report, ssot_dir, mentions, since):
+    if not mentions and not since:
+        return
+    try:
+        top = git_output(ssot_dir, "rev-parse", "--show-toplevel").rstrip("\n")
+    except FileNotFoundError:
+        report.add("INFO", None, None, "git is not available, so mentions of removed files were not checked")
+        return
+    except GitError as error:
+        if "not a git repository" in str(error):
+            report.add("INFO", None, None, "not in a git work tree, so mentions of removed files were not checked")
+        else:
+            report.unchecked.append(f"mentions of removed files: git failed ({error})")
+        return
+    head, stderr = git(top, "rev-parse", "--verify", "--quiet", "HEAD")
+    if head == GIT_NO:
+        return  # no commits yet, so nothing has been removed
+    if head != 0:
+        report.unchecked.append(f"mentions of removed files: git failed ({stderr.strip() or head})")
+        return
+    if since and git(top, "rev-parse", "--verify", "--quiet", f"{since}^{{commit}}")[0] != 0:
+        report.unchecked.append(f"--since {since} is not a commit in this repository")
+        return
+    if not mentions:
+        return
+    pending = {}  # (doc, (path, exact)) -> [(line, text)]
+    for doc, number, written, text in mentions:
+        if written.startswith(("./", "../")):
+            full = os.path.normpath(os.path.join(os.path.dirname(doc), written))
+            if os.path.lexists(full) or not inside(full, top):
+                continue
+            key = (os.path.relpath(full, top).replace(os.sep, "/"), True)
+        elif os.path.lexists(os.path.join(top, written)):
+            continue
+        else:
+            key = (written, False)
+        pending.setdefault((doc, key), []).append((number, text))
+    if not pending:
+        return
+    try:
+        present = present_paths(top)
+        exists = PathIndex({key for _, key in pending})
+        listed = {key for path in present for key in exists.matching(path)}
+        pending = {item: places for item, places in pending.items() if item[1] not in listed}
+        if not pending:
+            return
+        shallow = git_output(top, "rev-parse", "--is-shallow-repository").strip() == "true"
+        events = removals(top, PathIndex({key for _, key in pending}), shallow)
+        recent = set(git_output(top, "rev-list", f"{since}..HEAD").split()) if since else None
+    except (GitError, FileNotFoundError) as error:
+        report.unchecked.append(f"mentions of removed files: git failed ({error})")
+        return
+    found = older = unknown = 0
+    for (doc, key), places in sorted(pending.items(), key=lambda item: (item[0][0], item[1][0][0])):
+        matches = events.get(key)
+        if not matches:
+            unknown += 1  # never in the history we have: a runtime path, a planned file, or an abbreviation
+            continue
+        commits = {commit for _, commit, _, _ in matches} - {None}
+        places = [(n, t) for n, t in places if not any(c.startswith(h) for h in HEX_RE.findall(t) for c in commits)]
+        if not places:
+            continue  # the line names the commit that removed the file: a deliberate mention of the past
+        old, commit, date, new = matches[0]
+        if recent is not None and commit is not None and commit not in recent:
+            older += 1
+            continue
+        path = key[0]
+        itself = [event for event in matches if event[0] == path or event[0].endswith("/" + path)]
+        when = f"in {commit[:10]} ({date})" if commit else "in uncommitted changes"
+        if not itself:
+            name = f"`{path}` (a folder)"
+        elif len({event[0] for event in itself}) > 1:
+            name = f"`{path}` (matches {len({event[0] for event in itself})} removed files; the newest is `{old}`)"
+        else:
+            name = f"`{path}`" if old == path else f"`{path}` (`{old}`)"
+        moved = itself and new and new in present
+        what = f"was moved to `{new}` {when}" if moved else f"was removed {when}"
+        also = f" (also line {', '.join(str(n) for n, _ in places[1:])})" if len(places) > 1 else ""
+        report.add("WARN", doc, places[0][0], f"{name} {what}{also}")
+        found += 1
+    if found:
+        report.add("INFO", None, None,
+                   f"{found} mention(s) of files that no longer exist: correct the ones that describe current "
+                   "code; a deliberate mention of the past may stay, and naming the removing commit on its line "
+                   "silences this warning")
+    if older:
+        report.add("INFO", None, None, f"{older} mention(s) of files removed before {since} are not listed; "
+                                       "run without --since to see them")
+    if unknown and shallow:
+        report.add("INFO", None, None, "this clone has shallow history, so files removed before its oldest "
+                                       "commit are not recognised")
+
+
+# --- reviewed_through ----------------------------------------------------------
 
 def check_reviewed_through(report, readme, value):
     if not value:
@@ -512,13 +773,18 @@ def markdown_files(ssot_dir, report):
 
 
 def main(argv):
-    if len(argv) == 2 and argv[1] in ("-h", "--help"):
+    args, since = list(argv[1:]), None
+    if args in (["-h"], ["--help"]):
         print((__doc__ or "").strip())
         return 0
-    if len(argv) > 2:
+    if "--since" in args:
+        at = args.index("--since")
+        since = args[at + 1] if at + 1 < len(args) else ""
+        del args[at:at + 2]
+    if len(args) > 1 or since == "" or (since and since.startswith("-")) or any(a.startswith("-") for a in args):
         print((__doc__ or "").strip())
         return 2
-    ssot_dir = os.path.abspath(argv[1] if len(argv) == 2 else "SSOT")
+    ssot_dir = os.path.abspath(args[0] if args else "SSOT")
     if not os.path.isdir(ssot_dir):
         print(f"ERROR no SSOT directory at {ssot_dir}")
         return 2
@@ -554,8 +820,10 @@ def main(argv):
         report.add("INFO", os.path.join(ssot_dir, "BOOTSTRAP.md"), None,
                    "bootstrap is unfinished; continue it with ssot-bootstrap")
 
+    mentions = []
     for doc in markdown_files(ssot_dir, report):
         text = read_text(doc)
+        mentions.extend((doc, number, path, line) for number, path, line in path_mentions(ssot_dir, doc, text))
         limit = README_WARN_CHARS if doc == readme else DOC_WARN_CHARS
         measured = text
         if doc == readme:  # the invariants register is meant to grow; budget the prose around it
@@ -568,6 +836,7 @@ def main(argv):
                        "split it by topic or move detail out")
         for number, target in link_targets(text):
             check_link(report, doc, number, target)
+    check_removed_paths(report, ssot_dir, mentions, since)
     for path in sorted(UNDECODABLE):
         report.add("WARN", path, None, "not valid UTF-8; undecodable bytes were replaced while checking")
 

@@ -2,16 +2,16 @@
 name: ssot-preflight
 description: Read the repository's SSOT before substantive work. Use this before code, config, documentation, review, debugging, refactoring, or planning work in a repository, to find the invariants and documents that bear on the task and to surface open questions that affect it. Skip it for non-repository chat, pure command runs, and typo or formatting edits that cannot change meaning.
 metadata:
-  protocol_version: "3.0"
+  protocol_version: "3.1"
   bundle: "SSOT Skill"
 ---
 
 # SSOT Preflight
 
 Before substantive work, find out what the repository's memory says about the
-task. [`references/memory-model.md`](references/memory-model.md) explains what
-`SSOT/` holds and what the invariants register means. Read it the first time
-you use SSOT in a session.
+task. Read [`references/memory-model.md`](references/memory-model.md), which
+explains what `SSOT/` holds and what the invariants register means, the
+first time you use SSOT in a session.
 
 ## 1. Find the entry point
 
@@ -36,8 +36,10 @@ Read `SSOT/README.md`, then:
 
 1. **Invariants.** Find the rows whose rule this task could affect, and read
    the explanation each one links to. If the task would break a confirmed
-   invariant, stop and ask the user before acting. Follow candidate rows as
-   strong defaults, and mention them when the task bears on them.
+   invariant, stop and ask the user before acting. Follow candidate rows by
+   default. If the task needs to depart from one, or its meaning is unclear
+   in a way that matters here, ask the user to confirm or drop it and record
+   the answer; only the choice that depends on it waits.
 2. **Open questions.** If one blocks the path this task needs, say so. Only
    the work that depends on the answer waits; unrelated work goes ahead.
 3. **Known traps and limits.** Read the gotchas and the known gaps that
@@ -50,14 +52,21 @@ Read `SSOT/README.md`, then:
    the current behavior. Note the mismatch so closeout fixes the document, or
    so you can report the violation.
 
-## 3. While you work
+## 3. Before your first change, and while you work
 
-Watch for facts that will outlive the task: decisions, changed contracts or
-behavior that users rely on, traps you hit, changed commands, temporary
-workarounds, and lasting directives from the user ("never", "always", "from
-now on"). Note them as they come up. `$ssot-closeout` records them before you
-finish. If a fact is clear and its owner is obvious, you may update the owner
-right away.
+If the user has stated a lasting rule ("from now on", "never", "always"), or
+settled a decision whose reason exists only in the conversation, write it to
+its owner before you change anything else, and again whenever the user
+settles one later. Follow closeout's rules for where and whether SSOT may be
+written, and label what the code does not do yet as planned. These do not
+wait for closeout: an interrupted or compacted session loses them, and the
+code never shows them. An idea still under discussion is not settled.
+
+Watch for the other facts that will outlive the task: decisions, changed
+contracts or behavior that users rely on, traps you hit, changed commands,
+and temporary workarounds. Note them as they come up; `$ssot-closeout`
+records them before you finish, and you may update an obvious owner right
+away.
 
 ## Where to go next
 

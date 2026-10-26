@@ -83,22 +83,22 @@ Delete it when setup is complete.
    moving project facts out of that file is section 4's job, done with the
    user's agreement.
 2. Run `python3 ../ssot-doctor/assets/scripts/ssot-check.py SSOT`, with the
-   path taken relative to this skill's directory, and fix every error.
-3. Test it as a newcomer, as `ssot-doctor` section 3 describes: three to
-   five real tasks covering a normal path, a failure case, and a boundary
-   judgment; the helper starts from `SSOT/README.md`; and its key answers
-   are checked against the code. Fix the gaps and errors this exposes. If no
-   helper is available, do this check yourself and tell the user it was not
-   independent.
+   path taken relative to this skill's directory. Fix every error. Where it
+   warns that a mentioned file was removed or moved, correct each sentence
+   that still describes current code.
+3. Run the newcomer test from `ssot-doctor` section 3 and fix the gaps and
+   errors it exposes. If no helper is available, do it yourself and tell the
+   user it was not independent.
 4. Show the user every invariant you registered, the confirmed ones with
    their sources too (a rule found in an instruction file may have been
-   written by an agent), plus the candidates and the open questions. Ask
-   them to confirm, correct, or drop each one. Setup is complete once they have been
-   put to the user. Answers that come later are recorded through
-   `$ssot-closeout`; until then candidates stay candidates.
+   written by an agent), plus the candidates and the open questions, and
+   invite corrections. Setup is complete once they have been put to the user.
+   Answers that come later are recorded through `$ssot-closeout`. A
+   candidate nobody answers stays a candidate; preflight asks about it when
+   a task needs to depart from it.
 5. Set `reviewed_through` in the README front matter to the commit whose
-   code you explored. This says SSOT matched the repository at that commit,
-   not that you read every earlier commit. Then delete `BOOTSTRAP.md`.
+   code you explored. It marks where the next catch-up starts; it does not
+   claim that you read every earlier commit. Then delete `BOOTSTRAP.md`.
 
 ## 7. Migrating a v2 layout
 
@@ -114,6 +114,13 @@ teammates, CI hooks) must be on 3.x first, or a v2 agent will try to rebuild
 the v2 ledgers. Before you start, check the working tree: if `SSOT/` or
 the agent instruction files have uncommitted changes, ask the user to commit
 them or set them aside first, so that nothing unrecorded is lost.
+
+Before the first write, create `SSOT/BOOTSTRAP.md` (section 5), say that it
+is a migration, and note the commit you started from. Keep it until step 10
+passes, so that an interrupted migration reads as unfinished instead of as a
+finished v3 SSOT. A session that resumes it checks the uncommitted changes
+against what the file says was done, and asks the user about any it cannot
+account for.
 
 Judge every item by what it says, not by the section it sits in. v2 ledgers
 sometimes hold a user's instruction, a deployment limit, or an environment
@@ -167,7 +174,8 @@ difference that appears nowhere else.
 4. **Bring every invariant's explanation inside `SSOT/`.** If a row's
    explanation lives elsewhere, for example in `AGENTS.md`, copy it into the
    right SSOT owner and repoint the row. Ask the user before changing text
-   outside a managed block.
+   outside a managed block. Documents outside `SSOT/` that still hold durable
+   facts SSOT lacks are absorbed as section 4 describes.
 5. **Remove bookkeeping from the documents.** That means front matter that
    tracks the document's own v2 review state (such as `intent_recovery`,
    `scope`, `promotion_targets`); coverage and baseline notes;
@@ -214,12 +222,17 @@ difference that appears nowhere else.
    if the user prefers. Run the repointed commands once, and update any SSOT
    text that describes them. Never bypass a failing hook to get the
    migration committed.
-10. **Verify.**
-   - The checker reports no errors.
+10. **Verify and finish.**
+   - The checker reports no errors, and the sentences its removal warnings
+     point to no longer describe missing code as current.
    - Every invariant ID from v2 is still present with the same status, apart
      from `apex-maxim` rows, which are now `confirmed`.
    - Every item extracted in steps 1, 2, and 4 can be found in its new owner.
    - A fresh look finds nothing left to migrate: no ledgers, no v2 front
      matter or bookkeeping, and no old SSOT instructions.
+   - The newcomer test from section 6, step 3, passes.
 
-   Give the user a short list of where each extracted item went.
+   Then put the candidates, the `apex-maxim` rows, and the open questions to
+   the user (section 6, step 4), give them a short list of where each
+   extracted item went, and delete `BOOTSTRAP.md`. `reviewed_through` stays
+   as step 6 set it.

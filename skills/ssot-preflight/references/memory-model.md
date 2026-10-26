@@ -1,8 +1,7 @@
 # The SSOT Memory Model
 
-This file is the single owner of what a repository's `SSOT/` contains, where
-each kind of knowledge lives, and how it is written. The other SSOT skills link
-here instead of restating it.
+This file owns what a repository's `SSOT/` contains, where each kind of
+knowledge lives, and how it is written. The other SSOT skills link here.
 
 ## 1. What SSOT is for
 
@@ -122,17 +121,17 @@ around 8,000 characters. It starts with front matter:
 ---
 ssot_format: 3
 language: en        # the language SSOT prose is written in, e.g. en or zh-CN
-reviewed_through: 1a2b3c4   # optional: SSOT was last reconciled with this commit
+reviewed_through: 1a2b3c4   # optional: the next catch-up starts after this commit
 ---
 ```
 
-`reviewed_through` names the commit that SSOT was last reconciled with as a
-whole. Commits after it may hold facts nobody recorded. Setup sets it to the
-commit whose code it explored. Setup does not claim to have read every earlier
-commit; it only says that SSOT matched the repository at that point. A
-`$ssot-doctor` catch-up reviews the commits after it, then moves it forward.
-Ordinary closeouts leave it alone, because they cover only their own batch,
-and commits made outside that workflow may still hold unrecorded facts.
+`reviewed_through` marks where the next catch-up starts. Setup sets it to the
+commit whose code it explored, and a `$ssot-doctor` catch-up moves it to the
+end of the range it processed in full. It is a starting point, not a
+certificate: it does not say that every earlier fact was recorded or that
+SSOT is correct. Ordinary closeouts leave it alone, because they cover only
+their own batch, and commits made outside that workflow may still hold
+unrecorded facts.
 
 Then, in this order:
 
@@ -184,9 +183,7 @@ trigger revisiting it. "Later" on its own is not a record.
 ## 5. Invariants
 
 An invariant is a rule that people decided and that the implementation must
-preserve. Examples are "never charge twice on a retry", "tenant data never
-crosses tenants", and "no public release without the owner's approval". The
-register in the README lists them:
+preserve. The register in the README lists them:
 
 ```markdown
 | ID | Kind | Rule | Explained in | Status | Source |
@@ -212,9 +209,11 @@ the register is read before every task.
   rule, but never its meaning, scope, or status. If a task conflicts with it,
   stop and ask the user. If reality already violates it, report the violation
   instead of rewriting the rule to match the code.
-- **candidate.** An agent inferred the rule, for example during setup. Treat
-  it as a strong default and ask the user to confirm or drop it. That the code
-  already behaves this way does not make it confirmed.
+- **candidate.** An agent inferred the rule, for example during setup. Follow
+  it by default. When a task needs to depart from it, or its meaning is
+  unclear in a way that matters, ask the user to confirm or drop it and
+  record the answer; silence confirms nothing. That the code already behaves
+  this way does not make it confirmed.
 - **retired.** It no longer applies. Keep the row so the history stays
   readable, and link the decision that retired it.
 
@@ -270,9 +269,8 @@ own version number can change without changing the format, and a new bundle
 release never obliges a repository to "catch up".
 
 A repository whose `SSOT/README.md` lacks `ssot_format: 3` uses an earlier
-model, usually v2 with `SSOT/STATUS.md`. Its documents are still useful knowledge. Its coverage
-labels and review records are historical, but the decisions, user
-constraints, limits, and open questions it records still apply. Do not write
-to a v2 layout: mixing models leaves ledgers
-that contradict updated documents. Offer to migrate it with `$ssot-bootstrap`
-instead; the migration path is in that skill.
+model, usually v2 with `SSOT/STATUS.md`. Its coverage labels and review
+records are historical, but the decisions, user constraints, limits, and open
+questions it records still apply. Do not write to it, because mixing models
+leaves ledgers that contradict updated documents; offer to migrate it with
+`$ssot-bootstrap` instead.

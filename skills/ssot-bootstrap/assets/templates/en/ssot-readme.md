@@ -36,8 +36,8 @@ Replace the example row. -->
 These are rules people decided and the implementation must preserve. An agent
 never changes a rule's meaning, scope, or status on its own: a task that
 conflicts with a confirmed rule stops and asks the user. A candidate rule was
-inferred and still waits for the user; follow it as a strong default and
-mention it when a task bears on it.
+inferred and still waits for the user; follow it by default, and ask the user
+before departing from it.
 
 | ID | Kind | Rule | Explained in | Status | Source |
 |---|---|---|---|---|---|

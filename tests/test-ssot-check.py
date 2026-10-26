@@ -516,6 +516,331 @@ class CheckerTest(unittest.TestCase):
         self.assertEqual(code, 3, out)
         self.assertIn("ssot-check: INCOMPLETE - ", out)
 
+    # --- mentions of files that no longer exist ---------------------------
+    def git(self, *args):
+        return subprocess.run(["git", "-C", self.repo, "-c", "user.name=t", "-c", "user.email=t@t", *args],
+                              capture_output=True, text=True, check=True).stdout.strip()
+
+    def code_file(self, relative, content=None):
+        seed = hashlib.sha256(relative.encode()).hexdigest()
+        content = content or "".join(f"{relative} {seed[n:n + 8]} = {n}\n" for n in range(24))
+        path = os.path.join(self.repo, relative)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as handle:
+            handle.write(content)
+
+    def repo_with(self, *files):
+        """A git repository holding a valid SSOT and the given code files, committed."""
+        self.valid()
+        for relative in files:
+            self.code_file(relative)
+        self.git("init", "-q")
+        self.git("add", "-A")
+        self.git("commit", "-q", "-m", "start")
+
+    def commit(self, message="change"):
+        self.git("add", "-A")
+        self.git("commit", "-q", "-m", message)
+        return self.git("rev-parse", "HEAD")
+
+    def test_mention_of_a_removed_file_warns_with_the_commit(self):
+        self.repo_with("src/app/old.py", "src/app/live.py")
+        os.remove(os.path.join(self.repo, "src/app/old.py"))
+        sha = self.commit("remove old")
+        self.write("architecture.md", ARCHITECTURE + "\nThe worker lives in `src/app/old.py` and `src/app/live.py`.\n")
+        self.commit()
+        out = self.assert_clean()
+        self.assertIn(f"architecture.md:7  `src/app/old.py` was removed in {sha[:10]}", out)
+        self.assertNotIn("live.py", out)
+        self.assertIn("1 mention(s) of files that no longer exist", out)
+
+    def test_moved_file_names_its_new_place(self):
+        self.repo_with("src/a.py")
+        self.git("mv", "src/a.py", "src/b.py")
+        sha = self.commit("move")
+        self.write("architecture.md", ARCHITECTURE + "\nSee `src/a.py:12`.\n")
+        self.assertIn(f"`src/a.py` was moved to `src/b.py` in {sha[:10]}", self.assert_clean())
+
+    def test_uncommitted_removal_and_move_are_reported(self):
+        self.repo_with("src/gone.py", "src/staged.py", "src/moved.py")
+        self.write("architecture.md", ARCHITECTURE + "\n`src/gone.py`, `src/staged.py`, `src/moved.py`\n")
+        self.commit()
+        os.remove(os.path.join(self.repo, "src/gone.py"))
+        self.git("rm", "-q", "src/staged.py")
+        self.git("mv", "src/moved.py", "src/new.py")
+        out = self.assert_clean()
+        self.assertIn("`src/gone.py` was removed in uncommitted changes", out)
+        self.assertIn("`src/staged.py` was removed in uncommitted changes", out)
+        self.assertIn("`src/moved.py` was moved to `src/new.py` in uncommitted changes", out)
+
+    def test_abbreviated_paths_match_by_suffix(self):
+        self.repo_with("src/app/web/routes.py", "src/app/web/views.py")
+        os.remove(os.path.join(self.repo, "src/app/web/routes.py"))
+        self.commit()
+        self.write("architecture.md", ARCHITECTURE + "\n`web/routes.py` and `web/views.py`\n")
+        out = self.assert_clean()
+        self.assertIn("`web/routes.py` (`src/app/web/routes.py`) was removed", out)
+        self.assertNotIn("views.py", out)
+
+    def test_paths_git_never_knew_are_not_reported(self):
+        self.repo_with("src/app.py")
+        self.write("architecture.md", ARCHITECTURE + "\nPlanned: `src/billing/retry.py`. Runtime: `~/.app/config.json`, "
+                                                     "`userData/state.json`. Folder: `src/`.\n")
+        out = self.assert_clean()
+        self.assertNotIn("no longer exist", out)
+        self.assertNotIn("INFO", out)
+
+    def test_records_of_the_past_are_not_checked(self):
+        self.repo_with("src/old.py")
+        os.remove(os.path.join(self.repo, "src/old.py"))
+        self.commit()
+        self.write("decisions/0001-drop-old.md", "# 0001\n\nWe removed `src/old.py`.\n")
+        self.write("research/old-path.md", "# Research\n\n`src/old.py` was slow.\n")
+        self.assertNotIn("old.py", self.assert_clean())
+
+    def test_line_naming_the_removing_commit_is_history(self):
+        self.repo_with("src/old.py")
+        os.remove(os.path.join(self.repo, "src/old.py"))
+        sha = self.commit()
+        self.write("gotchas.md", f"# Gotchas\n\nDo not revive `src/old.py` (removed in {sha[:7]}).\n\n"
+                                 "Unrelated commit deadbeef12 does not excuse `src/old.py`.\n")
+        out = self.assert_clean()
+        self.assertIn("gotchas.md:5  `src/old.py` was removed", out)
+        self.assertNotIn("gotchas.md:3", out)
+
+    def test_readded_file_is_not_reported(self):
+        self.repo_with("src/back.py")
+        os.remove(os.path.join(self.repo, "src/back.py"))
+        self.commit()
+        self.code_file("src/back.py")
+        self.commit()
+        self.write("architecture.md", ARCHITECTURE + "\n`src/back.py`\n")
+        self.assertNotIn("back.py", self.assert_clean())
+
+    def test_relative_mentions_resolve_from_the_document(self):
+        self.repo_with("src/old.py")
+        os.remove(os.path.join(self.repo, "src/old.py"))
+        self.commit()
+        self.write("architecture.md", ARCHITECTURE + "\n`../src/old.py`\n")
+        self.assertIn("`src/old.py` was removed", self.assert_clean())
+
+    def test_sparse_checkout_is_not_a_removal(self):
+        self.repo_with("src/far.py")
+        self.write("architecture.md", ARCHITECTURE + "\n`src/far.py`\n")
+        self.commit()
+        self.git("update-index", "--skip-worktree", "src/far.py")
+        os.remove(os.path.join(self.repo, "src/far.py"))
+        self.assertNotIn("far.py", self.assert_clean())
+
+    def test_only_whole_path_spans_outside_code_blocks_are_checked(self):
+        self.repo_with("tests/test_old.py")
+        os.remove(os.path.join(self.repo, "tests/test_old.py"))
+        self.commit()
+        self.write("process.md", "# Process\n\nRun `pytest tests/test_old.py`.\n\n```\ntests/test_old.py\n```\n\n"
+                                 "Node: `tests/test_old.py::test_x`.\n")
+        out = self.assert_clean()
+        self.assertIn("process.md:9  `tests/test_old.py` was removed", out)
+        self.assertNotIn("process.md:3", out)
+
+    def test_dot_folders_and_non_ascii_names_are_checked(self):
+        self.repo_with(".github/workflows/old.yml", "文档/旧说明.md")
+        os.remove(os.path.join(self.repo, ".github/workflows/old.yml"))
+        os.remove(os.path.join(self.repo, "文档/旧说明.md"))
+        self.commit()
+        self.write("process.md", "# Process\n\nCI: `.github/workflows/old.yml`. Notes: `文档/旧说明.md`.\n")
+        out = self.assert_clean()
+        self.assertIn("`.github/workflows/old.yml` was removed", out)
+        self.assertIn("`文档/旧说明.md` was removed", out)
+
+    def test_link_labels_are_left_to_the_link_check(self):
+        self.repo_with("docs/old.md")
+        self.git("mv", "docs/old.md", "docs/new.md")
+        self.commit()
+        self.write("architecture.md", ARCHITECTURE + "\nSee [`docs/old.md`](../docs/new.md).\n")
+        self.assertNotIn("old.md", self.assert_clean())
+
+    def test_reference_style_labels_are_left_to_the_link_check(self):
+        self.repo_with("docs/old.md")
+        self.git("mv", "docs/old.md", "docs/new.md")
+        self.commit()
+        self.write("architecture.md", ARCHITECTURE + "\n[`docs/old.md`][new] and [`docs/old.md`][]\n\n"
+                                                     "[new]: ../docs/new.md\n[`docs/old.md`]: ../docs/new.md\n")
+        self.assertNotIn("old.md` was", self.assert_clean())
+
+    def test_explicit_relative_path_is_not_matched_by_suffix(self):
+        self.repo_with("poc/skeleton/plugin.js")
+        os.remove(os.path.join(self.repo, "poc/skeleton/plugin.js"))
+        self.commit()
+        self.write("architecture.md", ARCHITECTURE + "\n`../skeleton/plugin.js` and `skeleton/plugin.js`\n")
+        out = self.assert_clean()
+        self.assertNotIn("../skeleton", out)
+        self.assertIn("`skeleton/plugin.js` (`poc/skeleton/plugin.js`) was removed", out)
+
+    def test_removed_folder_is_reported(self):
+        self.repo_with("src/legacy/a.py", "src/legacy/b.py", "src/live/c.py")
+        self.git("rm", "-q", "-r", "src/legacy")
+        sha = self.commit()
+        self.write("architecture.md", ARCHITECTURE + "\n`src/legacy/` and `src/live` and `legacy/b.py`\n")
+        out = self.assert_clean()
+        self.assertIn(f"`src/legacy` (a folder) was removed in {sha[:10]}", out)
+        self.assertIn("`legacy/b.py` (`src/legacy/b.py`) was removed", out)
+        self.assertNotIn("src/live", out)
+
+    def test_removal_while_resolving_a_merge_is_found(self):
+        self.repo_with("src/keep.py", "src/drop.py")
+        main = self.git("rev-parse", "--abbrev-ref", "HEAD")
+        self.git("checkout", "-q", "-b", "side")
+        self.code_file("src/side.py")
+        self.commit("side")
+        self.git("checkout", "-q", main)
+        self.code_file("src/main.py")
+        self.commit("main")
+        self.git("merge", "-q", "--no-commit", "side")
+        self.git("rm", "-q", "src/drop.py")
+        merge = self.commit("merge and drop")
+        self.write("architecture.md", ARCHITECTURE + "\n`src/drop.py`\n")
+        self.assertIn(f"`src/drop.py` was removed in {merge[:10]}", self.assert_clean())
+
+    def test_removal_on_a_merged_branch_names_the_branch_commit(self):
+        self.repo_with("src/old.py")
+        main = self.git("rev-parse", "--abbrev-ref", "HEAD")
+        self.git("checkout", "-q", "-b", "side")
+        os.remove(os.path.join(self.repo, "src/old.py"))
+        removed = self.commit("remove on side")
+        self.git("checkout", "-q", main)
+        self.code_file("src/main.py")
+        self.commit("main")
+        self.git("merge", "-q", "--no-edit", "side")
+        self.write("architecture.md", ARCHITECTURE + "\n`src/old.py`\n")
+        self.assertIn(f"`src/old.py` was removed in {removed[:10]}", self.assert_clean())
+
+    def test_since_lists_only_later_removals(self):
+        self.repo_with("src/early.py", "src/late.py")
+        os.remove(os.path.join(self.repo, "src/early.py"))
+        start = self.commit("early")
+        os.remove(os.path.join(self.repo, "src/late.py"))
+        self.commit("late")
+        self.write("architecture.md", ARCHITECTURE + "\n`src/early.py` `src/late.py`\n")
+        code, out = self.run_checker(self.ssot, "--since", start[:8])
+        self.assertEqual(code, 0, out)
+        self.assertIn("`src/late.py` was removed", out)
+        self.assertNotIn("`src/early.py` was", out)
+        self.assertIn(f"1 mention(s) of files removed before {start[:8]} are not listed", out)
+        code, out = self.run_checker(self.ssot, "--since", "nosuchref")
+        self.assertEqual(code, 3, out)
+        self.assertIn("--since nosuchref is not a commit", out)
+        self.assertEqual(self.run_checker(self.ssot, "--since")[0], 2)
+
+    def test_git_hooks_and_monitors_never_run(self):
+        self.repo_with("src/old.py")
+        os.remove(os.path.join(self.repo, "src/old.py"))
+        self.commit()
+        self.write("architecture.md", ARCHITECTURE + "\n`src/old.py`\n")
+        marker = os.path.join(self.tmp.name + "-fsmonitor-ran")
+        hook = os.path.join(self.repo, ".git", "fsmonitor-hook")
+        with open(hook, "w") as handle:
+            handle.write(f"#!/bin/sh\ntouch '{marker}'\nexit 1\n")
+        os.chmod(hook, 0o755)
+        self.git("config", "core.fsmonitor", hook)
+        self.assertIn("`src/old.py` was removed", self.assert_clean())
+        self.assertFalse(os.path.exists(marker), "the checker must not run core.fsmonitor")
+
+    def test_clean_filters_never_run(self):
+        self.repo_with("src/old.py", "src/live.py", "src/gone.py")
+        os.remove(os.path.join(self.repo, "src/old.py"))
+        self.commit()
+        marker = self.tmp.name + "-clean-filter-ran"
+        with open(os.path.join(self.repo, ".gitattributes"), "w") as handle:
+            handle.write("*.py filter=spy\n")
+        self.commit("attributes")
+        self.git("config", "filter.spy.clean", f"sh -c 'touch {marker}; cat'")
+        self.code_file("src/live.py", "changed\n")
+        os.remove(os.path.join(self.repo, "src/gone.py"))
+        self.write("architecture.md", ARCHITECTURE + "\n`src/old.py` `src/live.py` `src/gone.py`\n")
+        out = self.assert_clean()
+        self.assertIn("`src/old.py` was removed", out)
+        self.assertIn("`src/gone.py` was removed in uncommitted changes", out)
+        self.assertFalse(os.path.exists(marker), "the checker must not run clean filters")
+
+    def test_removed_again_by_a_merge_after_being_restored(self):
+        self.repo_with("src/old.py")
+        main = self.git("rev-parse", "--abbrev-ref", "HEAD")
+        os.remove(os.path.join(self.repo, "src/old.py"))
+        self.commit("first removal")
+        self.code_file("src/old.py")
+        restored = self.commit("restore")
+        self.git("checkout", "-q", "-b", "side")
+        self.code_file("src/side.py")
+        self.commit("side")
+        self.git("checkout", "-q", main)
+        self.code_file("src/main.py")
+        self.commit("main")
+        self.git("merge", "-q", "--no-commit", "side")
+        self.git("rm", "-q", "src/old.py")
+        merge = self.commit("merge and remove again")
+        self.write("architecture.md", ARCHITECTURE + "\n`src/old.py`\n")
+        code, out = self.run_checker(self.ssot, "--since", restored)
+        self.assertIn(f"`src/old.py` was removed in {merge[:10]}", out)
+
+    def test_since_is_validated_even_without_mentions(self):
+        self.repo_with()
+        code, out = self.run_checker(self.ssot, "--since", "nosuchref")
+        self.assertEqual(code, 3, out)
+
+    def test_file_names_that_look_like_headers(self):
+        self.repo_with("\x01a", "\x01b", "src/old.py")
+        for name in ("\x01a", "\x01b", "src/old.py"):
+            os.remove(os.path.join(self.repo, name))
+        self.commit()
+        self.write("architecture.md", ARCHITECTURE + "\n`src/old.py`\n")
+        self.assertIn("`src/old.py` was removed", self.assert_clean())
+
+    def test_git_failure_while_reading_history_is_incomplete(self):
+        self.repo_with("src/old.py")
+        os.remove(os.path.join(self.repo, "src/old.py"))
+        self.commit()
+        self.write("architecture.md", ARCHITECTURE + "\n`src/old.py`\n")
+        fake = os.path.join(self.tmp.name + "-bin")
+        os.makedirs(fake, exist_ok=True)
+        real = subprocess.run(["sh", "-c", "command -v git"], capture_output=True, text=True).stdout.strip()
+        for failing in ("log", "diff-tree"):
+            with open(os.path.join(fake, "git"), "w") as handle:
+                handle.write(f'#!/bin/sh\nfor a in "$@"; do [ "$a" = {failing} ] && exit 7; done\n'
+                             f'exec {real} "$@"\n')
+            os.chmod(os.path.join(fake, "git"), 0o755)
+            result = subprocess.run([sys.executable, CHECKER, self.ssot], capture_output=True, text=True,
+                                    env=dict(os.environ, PATH=fake + os.pathsep + os.environ["PATH"]))
+            self.assertEqual(result.returncode, 3, f"{failing}: {result.stdout}")
+            self.assertIn("mentions of removed files: git failed", result.stdout)
+
+    def test_unusual_file_names_do_not_crash(self):
+        self.repo_with("src/a\u2028b.py", "src/tab\there.py", "src/old.py")
+        for name in ("src/a\u2028b.py", "src/tab\there.py", "src/old.py"):
+            os.remove(os.path.join(self.repo, name))
+        self.commit()
+        self.write("architecture.md", ARCHITECTURE + "\n`src/old.py`\n")
+        self.assertIn("`src/old.py` was removed", self.assert_clean())
+
+    def test_outside_git_or_before_the_first_commit(self):
+        self.valid()
+        self.write("architecture.md", ARCHITECTURE + "\n`src/old.py`\n")
+        self.assertIn("not in a git work tree, so mentions of removed files were not checked", self.assert_clean())
+        self.git("init", "-q")
+        self.assertNotIn("INFO", self.assert_clean())
+
+    def test_shallow_history_is_disclosed(self):
+        self.repo_with("src/old.py")
+        os.remove(os.path.join(self.repo, "src/old.py"))
+        self.commit()
+        self.write("architecture.md", ARCHITECTURE + "\n`src/old.py`\n")
+        self.commit()
+        clone = os.path.join(self.repo, "shallow")
+        subprocess.run(["git", "clone", "-q", "--depth", "1", f"file://{self.repo}", clone], check=True)
+        result = subprocess.run([sys.executable, CHECKER, os.path.join(clone, "SSOT")], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("shallow history", result.stdout)
+        self.assertNotIn("was removed", result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=1)

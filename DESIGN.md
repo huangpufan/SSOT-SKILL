@@ -58,8 +58,9 @@ whether the whole still paid for itself.
    (`ssot_format`) changes only when old SSOTs would be misread. A new bundle
    version alone never asks a repository to catch up.
 6. **Machines check only what machines can decide.** Links, anchors, the
-   register's shape, and sizes. Truth and readability are reviewed by an
-   agent, and the review says how far it went.
+   register's shape, sizes, and file paths that git says were deleted or
+   moved. Truth and readability are reviewed by an agent, and the review
+   says how far it went.
 
 ## What was removed, and what it would take to bring it back
 

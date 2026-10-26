@@ -14,6 +14,57 @@ is preserved with the rest of v2 at the `v2-final` tag.
 
 ## [Unreleased]
 
+## [3.1] - 2026-10-27
+
+Two gaps found by looking at three repositories that have used SSOT for
+months, and at what an interrupted session loses. The consumer data format is
+unchanged (`ssot_format: 3`); nothing needs to catch up. Evidence and limits:
+`tests/trials-3.1.md`.
+
+### Added
+- `ssot-check.py` warns when a document mentions, in inline code, a file or
+  folder that git says was deleted or moved, naming the commit and, for a
+  move, the new path. `decisions/` and `research/` are records of the past
+  and are not checked, and a line that names the removing commit counts as
+  deliberate history. On three real SSOTs it found 0, 158, and 36 such
+  mentions. In a blind sample, about 44% were current guidance pointing at
+  code that no longer exists; the rest were deliberate history or records.
+  The check reads only git's index and object store, so it does not run a
+  repository's clean filters or filesystem monitor. A git failure makes the
+  run INCOMPLETE rather than a pass. Tests cover both.
+- `ssot-check.py --since <commit>` lists only removals after that commit.
+  Closeout uses it to see what its own batch removed.
+
+### Changed
+- Preflight: a lasting rule the user states, or a settled decision whose
+  reason exists only in the conversation, is written to its owner before
+  the first code change, with anything not built yet labeled as planned.
+  In a trial that interrupted the session at its first code edit, 3.0 lost
+  such a rule in 2 of 2 runs. 3.1 had written it down, marked as planned,
+  in 2 of 2.
+- Candidate invariants are followed by default. The user is asked only when
+  a task needs to depart from one or its meaning matters here. Setup shows
+  the rules once and invites corrections, instead of asking for a verdict
+  on each.
+- Closeout runs the checker only when the batch changed `SSOT/` or added,
+  moved, renamed, or deleted files or headings.
+- Migration keeps `SSOT/BOOTSTRAP.md` from its first write until it is
+  verified, so an interrupted migration reads as unfinished. A resumed
+  migration accounts for each uncommitted change before continuing. The
+  migration also absorbs outside documents (section 4) and runs the newcomer
+  test, as setup does.
+- `reviewed_through` is described as where the next catch-up starts, not as
+  proof that SSOT matched the repository.
+- Runtime protocol text: 6,990 to about 7,300 words, with some redundant
+  passages removed to offset the additions.
+
+### Not verified
+- The 3.1 migration procedure end to end.
+- Whether the checker changes closeout behaviour: in the two trial tasks
+  that moved files, agents on 3.0 and 3.1 both fixed every mention without
+  it.
+- Native Windows, submodules, and grafted histories in the checker.
+
 ## [3.0] - 2026-10-26
 
 A redesign around one job: keep a repository memory that helps the next task.

@@ -17,7 +17,8 @@ existing files you expect to change.
 Follow [`references/bootstrap.md`](references/bootstrap.md):
 
 - Sections 1–6 cover a new SSOT, or continuing an unfinished one.
-- Section 7 covers migrating a v2 layout.
+- Section 7 covers migrating a v2 layout, including resuming a migration
+  that `SSOT/BOOTSTRAP.md` says is under way.
 
 You are done when all of these hold:
 

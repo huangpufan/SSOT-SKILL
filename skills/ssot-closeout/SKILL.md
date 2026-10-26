@@ -69,12 +69,17 @@ catch-up.
    counts, and so does an earlier one that is already recorded and applies.
    Record it with its date. Without one, pause only the work that depends on
    the change, and ask.
-5. **Check.** Run the checker that ships with `ssot-doctor`:
-   `python3 <ssot-doctor skill directory>/assets/scripts/ssot-check.py SSOT`.
+5. **Check.** Unless this batch only edited the contents of files outside
+   `SSOT/` (no file or heading added, moved, renamed, or deleted), run the
+   checker that ships with `ssot-doctor`, passing the commit the batch started
+   from (`HEAD` if nothing is committed yet):
+   `python3 <ssot-doctor skill directory>/assets/scripts/ssot-check.py SSOT --since <commit>`.
    Fix the errors this batch introduced, plus any that affect what you wrote.
-   Report other errors without fixing them, and do not present a scoped check
-   as a clean bill for the whole SSOT. Then reread each changed passage as a
-   newcomer would.
+   A warning that a file this batch removed or moved is still mentioned
+   points at a sentence that may now describe code that is gone: correct it
+   if it does. Report other errors without fixing them, and do not present a
+   scoped check as a clean bill for the whole SSOT. Then reread each changed
+   passage as a newcomer would.
 6. **Report.** In your final response, name the SSOT files you changed and
    why. If you changed nothing, name the owners you compared and say why
    nothing in them became wrong or missing.
@@ -84,5 +89,5 @@ project's commit rules allow it. Committing and pushing follow the project's
 existing rules; this skill grants no extra authority.
 
 You are done when every candidate is written to its owner or explicitly
-judged not durable, and the checker reports no errors in what this batch
-wrote. Errors elsewhere are reported, not fixed.
+judged not durable, and, if step 5 ran the checker, it reports no errors in
+what this batch wrote. Errors elsewhere are reported, not fixed.
