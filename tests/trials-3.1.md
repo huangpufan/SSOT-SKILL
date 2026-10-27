@@ -101,10 +101,55 @@ extra questions. Cost per task was similar between arms. The two most costly
 the tool (for example, clock drift on WSL2 that blocked every signal). So
 these runs do not show whether 3.1 changes cost.
 
+## 3. Migration, end to end
+
+**Set-up.** A fresh copy of the same small repository was set up with the
+frozen v2 (2.86) by a fresh agent. That took 68 minutes and produced 68
+files, 427,000 characters including the ledgers. Then known answers were
+added the way real v2 repositories hold them, and v2's own lint passed with
+no failures:
+
+- a user directive recorded only in `STATUS.md`'s pending captures;
+- a directive the user reversed two days later, plus its replacement;
+- a limit recorded only as an open gap, whose ID a code comment cites;
+- a pre-commit script that calls v2's `ssot-lint.sh`.
+
+The skills were upgraded to 3.1 and a fresh agent was asked to migrate. It
+was killed right after its first write to `SSOT/README.md`. A second fresh
+session was told only that the previous session had been cut off.
+
+**Result**, checked by hand against the answer key:
+
+- `BOOTSTRAP.md` was written before the README. It said "migration" and
+  gave the start commit, and it was deleted at the end. Before continuing,
+  the second session matched every uncommitted change against it.
+- All 7 invariants kept their IDs and status. The pending directive became
+  confirmed rule INV-08, explained on the guard page. The reversed directive
+  did not become a rule: a decision record keeps the final choice and says
+  the earlier request was reversed.
+- Every open gap and adjudication kept its ID, and the ID in the code comment
+  still resolves.
+- The pre-commit script now runs `ssot-check.py` and still never blocks.
+  `AGENTS.md` changed only between the markers. The migration landed as one
+  commit, and the checker reports no errors.
+- `reviewed_through` is v2's tracked commit.
+
+The resumed session took 28 minutes and cost $8. The interrupted session did
+not report its cost.
+
+**What the migration did not change: size.** It removed the ledgers but kept
+the documents almost whole: 338,000 characters in 55 files. That is 2.3
+times the size of the source code it describes (147,000 characters). A fresh
+3.0 setup of the same repository wrote 62,000 characters in 11 files. Its
+product page has 8,850 characters; the migrated product folder has 73,000.
+This follows from the procedure: migration step 5 says to keep every
+sentence of real knowledge, and nothing applies the memory model's "leave
+out restated code" to migrated text. Nobody measured whether the extra size
+holds knowledge the fresh setup lacks.
+
 ## What this does not show
 
-- Migration of a v2 SSOT with the 3.1 procedure (persistent `BOOTSTRAP.md`,
-  absorbing other documents, the newcomer test) has not been run end to end.
+- Migration ran once, on one small repository, not on a large one.
 - One run per cell, one model, one harness, one small repository for the
   behaviour trial.
 - Whether people find the generated documents readable.

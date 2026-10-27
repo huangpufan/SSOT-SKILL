@@ -59,7 +59,9 @@ unchanged (`ssot_format: 3`); nothing needs to catch up. Evidence and limits:
   passages removed to offset the additions.
 
 ### Not verified
-- The 3.1 migration procedure end to end.
+- Migration beyond one small repository. One run there was interrupted and
+  resumed, and it passed every item in its answer key (`tests/trials-3.1.md`
+  section 3). The migrated SSOT kept nearly all of its v2 size.
 - Whether the checker changes closeout behaviour: in the two trial tasks
   that moved files, agents on 3.0 and 3.1 both fixed every mention without
   it.
