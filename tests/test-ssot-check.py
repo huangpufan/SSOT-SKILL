@@ -15,6 +15,16 @@ import textwrap
 import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# Fixture repositories must not change on their own while a test compares their
+# contents before and after a checker run. `git commit` can start background
+# maintenance (seen on macOS runners), which creates and deletes lock files
+# under .git; turn it off for every git process the tests start.
+_GIT_FIXTURE_CONFIG = (("maintenance.auto", "false"), ("gc.auto", "0"), ("gc.autoDetach", "false"))
+os.environ["GIT_CONFIG_COUNT"] = str(len(_GIT_FIXTURE_CONFIG))
+for _index, (_key, _value) in enumerate(_GIT_FIXTURE_CONFIG):
+    os.environ[f"GIT_CONFIG_KEY_{_index}"] = _key
+    os.environ[f"GIT_CONFIG_VALUE_{_index}"] = _value
 CHECKER = os.path.join(ROOT, "skills", "ssot-doctor", "assets", "scripts", "ssot-check.py")
 
 README = """\
