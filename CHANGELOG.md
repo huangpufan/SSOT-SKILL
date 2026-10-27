@@ -8,6 +8,21 @@ Entries up to 2.86 were derived from the v2 protocol-upgrade ledger, which is pr
 
 ## [Unreleased]
 
+## [3.3] - 2026-10-28
+
+Tested on two large repositories, n8n (about 2.5 million lines of TypeScript, 26,000 commits) and zed (about 1.8 million lines of Rust, 40,000 commits), with a cheap model (`deepseek-v4.1-flash`) doing the work. Setup and everyday reading held up at this size: SSOT grew by splitting files into folders, and a task read 3 to 9 of its files, never the whole tree. Two things broke: a catch-up after a long gap could not resume, and setup could stay unfinished for good. The consumer data format is unchanged (`ssot_format: 3`); nothing needs to catch up. Evidence and limits: `tests/trials-3.3.md`.
+
+### Changed
+- Doctor catch-up works oldest first along the main line of history, a few dozen commits per segment, and says what reviewing a commit means: read every commit message, and the diff where the message or the files it touches suggest a durable fact. `reviewed_through` moves to the end of each segment once that segment's facts are written, so an interrupted catch-up resumes instead of starting over. Before, it moved only after the whole range; on a 2,007-commit gap, a 60-minute session left no progress behind. With 3.3, sessions capped at 8 minutes carried the marker to commit 500, 843, and 1,300 of 2,001.
+- The marker moves last. Both 3.2 catch-ups that moved it did so before writing anything, so a session interrupted at that point would have made the next one skip facts never written.
+- A catch-up keeps its working files (commit lists, scripts) outside the repository. An interrupted session had left 3.3 MB of them at the repository root.
+- Setup is complete once the invariants, the open questions, and the planned changes to documents outside `SSOT/` have been put to the user; it no longer stays open waiting for the answers. Documents that still repeat SSOT's facts become one open question in the README. From a setup state that 3.2 kept unfinished for three sessions, 3.3 finished setup in 3 of 4 completed runs (2 of 2 with the final wording), 3.2 in 0 of 2.
+
+### Not verified
+- Whether SSOT makes tasks in these repositories better or cheaper. Both already ship long agent instruction files; plans with and without SSOT were similar, and token use was not lower with it.
+- Whether a person finds the generated documents readable.
+- Migration of a large v2 SSOT, and several people or agents writing SSOT at once.
+
 ## [3.2] - 2026-10-27
 
 The user found that SSOT documents broke lines early: every paragraph was cut into short lines of about 70 characters. In an editor that reads as ragged text, and in Chinese a line break inside a sentence can show up as a stray space. The cause was the bundle itself. Its templates and skill files were hard-wrapped, agents copied that shape, and nothing said otherwise. All three real consumer SSOTs show it.

@@ -75,7 +75,7 @@ reviewed_through: 1a2b3c4   # optional: the next catch-up starts after this comm
 ---
 ```
 
-`reviewed_through` marks where the next catch-up starts. Setup sets it to the commit whose code it explored, and a `$ssot-doctor` catch-up moves it to the end of the range it processed in full. It is a starting point, not a certificate: it does not say that every earlier fact was recorded or that SSOT is correct. Ordinary closeouts leave it alone, because they cover only their own batch, and commits made outside that workflow may still hold unrecorded facts.
+`reviewed_through` marks where the next catch-up starts. Setup sets it to the commit whose code it explored, and a `$ssot-doctor` catch-up moves it forward, segment by segment, to the last commit it has processed in full. It is a starting point, not a certificate: it does not say that every earlier fact was recorded or that SSOT is correct. Ordinary closeouts leave it alone, because they cover only their own batch, and commits made outside that workflow may still hold unrecorded facts.
 
 Then, in this order:
 

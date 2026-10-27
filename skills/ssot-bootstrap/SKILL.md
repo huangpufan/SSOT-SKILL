@@ -19,7 +19,7 @@ You are done when all of these hold:
 - the README routes the repository's main kinds of task;
 - every document you wrote matches the code it describes;
 - the existing documents' durable facts live in `SSOT/`;
-- the candidate invariants and open questions have been put to the user;
+- the candidate invariants, the open questions, and the planned changes outside `SSOT/` have been put to the user;
 - the checker reports no errors;
 - `SSOT/BOOTSTRAP.md` has been removed.
 

@@ -123,7 +123,7 @@ A file that grows large becomes a folder of the same name. Existing READMEs and 
 
 **Checks state their limits.** The [checker](./skills/ssot-doctor/assets/scripts/ssot-check.py) finds broken links, a malformed rules table, oversized files, and mentions of code files that git says were deleted or moved. It cannot tell whether a document is true or readable; Doctor reviews that against the code and says how far it looked.
 
-**Maintenance follows the agent workflow.** Changes made outside that workflow are picked up when you ask for a catch-up.
+**Maintenance follows the agent workflow.** Changes made outside that workflow are picked up when you ask for a catch-up. A long catch-up can take several sessions; each one continues from the last commit the previous one finished.
 
 ## Supported agents
 
