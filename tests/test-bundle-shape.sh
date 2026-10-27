@@ -142,6 +142,26 @@ while IFS= read -r -d '' f; do
 done < <(git -C "$PROJECT_ROOT" ls-files -co --exclude-standard -z -- '*.md' '*.sh' '*.py' '*.yaml' '*.yml' '*.mjs' ':!:CHANGELOG.md')
 [[ ${#HYGIENE_FILES[@]} -eq 0 ]] && pass "no local or consumer-project leakage" || fail "hygiene leakage in: ${HYGIENE_FILES[*]}"
 
+# 8b. Paragraphs are one line each. Editors wrap text; a paragraph broken
+# across short lines reads as ragged text, and agents copy the shape of the
+# templates and skills into consumer documents. Uses the checker's own rule.
+WRAPPED="$(python3 - "$PROJECT_ROOT" <<'PY'
+import importlib.util, subprocess, sys
+root = sys.argv[1]
+spec = importlib.util.spec_from_file_location("check", f"{root}/skills/ssot-doctor/assets/scripts/ssot-check.py")
+check = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(check)
+files = subprocess.run(["git", "-C", root, "ls-files", "-co", "--exclude-standard", "*.md", ":!:research/"],
+                       capture_output=True, text=True, check=True).stdout.split()
+for name in files:
+    with open(f"{root}/{name}", encoding="utf-8") as handle:
+        lines = list(check.hard_wrapped_paragraphs(handle.read()))
+    if lines:
+        print(f"{name}:{lines[0]}")
+PY
+)"
+[[ -z "$WRAPPED" ]] && pass "Markdown paragraphs are one line each" || fail "paragraphs broken across short lines: $(echo $WRAPPED)"
+
 # 9. Budgets. These are hard limits on what agents load and what this
 # repository maintains; see CONTRIBUTING.md "Protocol budgets" before raising
 # one. Every file an agent may read at runtime counts.

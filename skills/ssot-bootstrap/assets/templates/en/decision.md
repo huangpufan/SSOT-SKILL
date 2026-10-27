@@ -1,8 +1,8 @@
 # NNNN: <the decision in a few words>
 
-Status: accepted <!-- or: superseded by NNNN / retired -->
-Date: YYYY-MM-DD
-Decided by: <a user directive, a team review, or an agent proposal the user accepted>
+- Status: accepted <!-- or: superseded by NNNN / retired -->
+- Date: YYYY-MM-DD
+- Decided by: <a user directive, a team review, or an agent proposal the user accepted>
 
 ## Situation
 

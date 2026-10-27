@@ -2,172 +2,95 @@
 
 All notable changes to the SSOT Skill bundle protocol.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and the project adheres to a simple `MAJOR.MINOR` versioning scheme tied to
-the bundle protocol. The single source of truth for the current version is
-`metadata.protocol_version` in `skills/ssot-preflight/SKILL.md`; the `VERSION`
-file at the repository root is the physical mirror enforced by
-`tests/test-bundle-shape.sh`.
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project adheres to a simple `MAJOR.MINOR` versioning scheme tied to the bundle protocol. The single source of truth for the current version is `metadata.protocol_version` in `skills/ssot-preflight/SKILL.md`; the `VERSION` file at the repository root is the physical mirror enforced by `tests/test-bundle-shape.sh`.
 
-Entries up to 2.86 were derived from the v2 protocol-upgrade ledger, which
-is preserved with the rest of v2 at the `v2-final` tag.
+Entries up to 2.86 were derived from the v2 protocol-upgrade ledger, which is preserved with the rest of v2 at the `v2-final` tag.
 
 ## [Unreleased]
 
-## [3.1] - 2026-10-27
+## [3.2] - 2026-10-27
 
-Two gaps found by looking at three repositories that have used SSOT for
-months, and at what an interrupted session loses. The consumer data format is
-unchanged (`ssot_format: 3`); nothing needs to catch up. Evidence and limits:
-`tests/trials-3.1.md`.
-
-### Added
-- `ssot-check.py` warns when a document mentions, in inline code, a file or
-  folder that git says was deleted or moved, naming the commit and, for a
-  move, the new path. `decisions/` and `research/` are records of the past
-  and are not checked, and a line that names the removing commit counts as
-  deliberate history. On three real SSOTs it found 0, 158, and 36 such
-  mentions. In a blind sample, about 44% were current guidance pointing at
-  code that no longer exists; the rest were deliberate history or records.
-  The check reads only git's index and object store, so it does not run a
-  repository's clean filters or filesystem monitor. A git failure makes the
-  run INCOMPLETE rather than a pass. Tests cover both.
-- `ssot-check.py --since <commit>` lists only removals after that commit.
-  Closeout uses it to see what its own batch removed.
+The user found that SSOT documents broke lines early: every paragraph was cut into short lines of about 70 characters. In an editor that reads as ragged text, and in Chinese a line break inside a sentence can show up as a stray space. The cause was the bundle itself. Its templates and skill files were hard-wrapped, agents copied that shape, and nothing said otherwise. All three real consumer SSOTs show it.
 
 ### Changed
-- Preflight: a lasting rule the user states, or a settled decision whose
-  reason exists only in the conversation, is written to its owner before
-  the first code change, with anything not built yet labeled as planned.
-  In a trial that interrupted the session at its first code edit, 3.0 lost
-  such a rule in 2 of 2 runs. 3.1 had written it down, marked as planned,
-  in 2 of 2.
-- Candidate invariants are followed by default. The user is asked only when
-  a task needs to depart from one or its meaning matters here. Setup shows
-  the rules once and invites corrections, instead of asking for a verdict
-  on each.
-- Closeout runs the checker only when the batch changed `SSOT/` or added,
-  moved, renamed, or deleted files or headings.
-- Migration keeps `SSOT/BOOTSTRAP.md` from its first write until it is
-  verified, so an interrupted migration reads as unfinished. A resumed
-  migration accounts for each uncommitted change before continuing. The
-  migration also absorbs outside documents (section 4) and runs the newcomer
-  test, as setup does.
-- `reviewed_through` is described as where the next catch-up starts, not as
-  proof that SSOT matched the repository.
-- Runtime protocol text: 6,990 to about 7,300 words, with some redundant
-  passages removed to offset the additions.
+- Memory model §6: write each paragraph and list item as one line, and let the editor wrap it.
+- All templates (`en`, `zh`) and all of this repository's own Markdown are rewritten with one line per paragraph. The text is unchanged apart from line breaks; this was checked file by file.
+- Decision and research templates list their fields (status, date, decided by) as a bulleted list, so each field stays on its own line.
+
+### Added
+- `ssot-check.py` warns when a paragraph or list item runs over three or more short lines (100 characters or fewer each), naming the lines. Lists, tables, code, comments, and deliberate line breaks (two trailing spaces) are not affected.
+- `tests/test-bundle-shape.sh` fails if any Markdown file in this repository has such a paragraph, so the bundle cannot teach the old shape again.
+
+### How 3.2 was checked
+- A fresh agent set up a Chinese SSOT with 3.2 on a copy of a small repository (a 4,500-line Rust tool). Every paragraph came out as one line (prose lines average 118 characters), and the checker reported no errors and no warnings. The setup took 12 minutes.
+- On two earlier SSOTs of the same repository, the new warning found 11 and 55 broken paragraphs. Joining their lines cleared every warning and changed no text.
+- Checker regression tests and bundle shape tests pass; a probe file with a broken paragraph makes the bundle test fail.
+
+## [3.1] - 2026-10-27
+
+Two gaps found by looking at three repositories that have used SSOT for months, and at what an interrupted session loses. The consumer data format is unchanged (`ssot_format: 3`); nothing needs to catch up. Evidence and limits: `tests/trials-3.1.md`.
+
+### Added
+- `ssot-check.py` warns when a document mentions, in inline code, a file or folder that git says was deleted or moved, naming the commit and, for a move, the new path. `decisions/` and `research/` are records of the past and are not checked, and a line that names the removing commit counts as deliberate history. On three real SSOTs it found 0, 158, and 36 such mentions. In a blind sample, about 44% were current guidance pointing at code that no longer exists; the rest were deliberate history or records. The check reads only git's index and object store, so it does not run a repository's clean filters or filesystem monitor. A git failure makes the run INCOMPLETE rather than a pass. Tests cover both.
+- `ssot-check.py --since <commit>` lists only removals after that commit. Closeout uses it to see what its own batch removed.
+
+### Changed
+- Preflight: a lasting rule the user states, or a settled decision whose reason exists only in the conversation, is written to its owner before the first code change, with anything not built yet labeled as planned. In a trial that interrupted the session at its first code edit, 3.0 lost such a rule in 2 of 2 runs. 3.1 had written it down, marked as planned, in 2 of 2.
+- Candidate invariants are followed by default. The user is asked only when a task needs to depart from one or its meaning matters here. Setup shows the rules once and invites corrections, instead of asking for a verdict on each.
+- Closeout runs the checker only when the batch changed `SSOT/` or added, moved, renamed, or deleted files or headings.
+- Migration keeps `SSOT/BOOTSTRAP.md` from its first write until it is verified, so an interrupted migration reads as unfinished. A resumed migration accounts for each uncommitted change before continuing. The migration also absorbs outside documents (section 4) and runs the newcomer test, as setup does.
+- `reviewed_through` is described as where the next catch-up starts, not as proof that SSOT matched the repository.
+- Runtime protocol text: 6,990 to about 7,300 words, with some redundant passages removed to offset the additions.
 
 ### Not verified
-- Migration beyond one small repository. One run there was interrupted and
-  resumed, and it passed every item in its answer key (`tests/trials-3.1.md`
-  section 3). The migrated SSOT kept nearly all of its v2 size.
-- Whether the checker changes closeout behaviour: in the two trial tasks
-  that moved files, agents on 3.0 and 3.1 both fixed every mention without
-  it.
+- Migration beyond one small repository. One run there was interrupted and resumed, and it passed every item in its answer key (`tests/trials-3.1.md` section 3). The migrated SSOT kept nearly all of its v2 size.
+- Whether the checker changes closeout behaviour: in the two trial tasks that moved files, agents on 3.0 and 3.1 both fixed every mention without it.
 - Native Windows, submodules, and grafted histories in the checker.
 
 ## [3.0] - 2026-10-26
 
-A redesign around one job: keep a repository memory that helps the next task.
-[DESIGN.md](./DESIGN.md) explains the evidence and the reasoning. v2 is frozen
-at the `v2-final` tag.
+A redesign around one job: keep a repository memory that helps the next task. [DESIGN.md](./DESIGN.md) explains the evidence and the reasoning. v2 is frozen at the `v2-final` tag.
 
 ### Changed (breaking)
-- The consumer `SSOT/` has one required file, `SSOT/README.md`, with
-  `ssot_format: 3` and `language` in its front matter. It holds the project
-  summary, a map, task routes, the invariants register, and open questions.
-  `product.md`, `architecture.md`, `process.md`, `decisions/`, `gotchas.md`,
-  `glossary.md`, and `research/` exist only when they have real content.
-  Existing v2 paths such as `01-product/` remain valid.
-- One shared memory model
-  (`skills/ssot-preflight/references/memory-model.md`) defines what to store,
-  what to leave out (restated code, single-task proofs, edit history, status
-  about the docs), current versus planned, invariants, and the writing rules.
-- Closeout writes nothing when no durable fact changed: no history rows,
-  timestamps, or markers.
-- Every invariant must be explained inside `SSOT/`, and the checker enforces
-  this.
-- Catch-up on past commits moved into `ssot-doctor`. It starts from the
-  optional `reviewed_through` front-matter field, and only a catch-up or a
-  setup moves that field.
-- `ssot-audit` and `ssot-skill` are compatibility names that route to the
-  four lifecycle skills.
-- A v2 `SSOT/` is read but not written until it is migrated with
-  `$ssot-bootstrap` (one commit, with the user's agreement). Until then,
-  closeout lists what should be recorded instead of writing it.
-- Repository scripts, hooks, CI, or tests that call v2 bundle files
-  (`ssot-lint.sh`, `ssot-migrate.py`, `run-tests.sh`) fail after the upgrade.
-  The migration repoints them to `ssot-check.py`.
-- The invariants register holds the lasting rules people set ("never X",
-  "always Y"). One-time choices are decision records. Both need the user's
-  agreement to change.
+- The consumer `SSOT/` has one required file, `SSOT/README.md`, with `ssot_format: 3` and `language` in its front matter. It holds the project summary, a map, task routes, the invariants register, and open questions. `product.md`, `architecture.md`, `process.md`, `decisions/`, `gotchas.md`, `glossary.md`, and `research/` exist only when they have real content. Existing v2 paths such as `01-product/` remain valid.
+- One shared memory model (`skills/ssot-preflight/references/memory-model.md`) defines what to store, what to leave out (restated code, single-task proofs, edit history, status about the docs), current versus planned, invariants, and the writing rules.
+- Closeout writes nothing when no durable fact changed: no history rows, timestamps, or markers.
+- Every invariant must be explained inside `SSOT/`, and the checker enforces this.
+- Catch-up on past commits moved into `ssot-doctor`. It starts from the optional `reviewed_through` front-matter field, and only a catch-up or a setup moves that field.
+- `ssot-audit` and `ssot-skill` are compatibility names that route to the four lifecycle skills.
+- A v2 `SSOT/` is read but not written until it is migrated with `$ssot-bootstrap` (one commit, with the user's agreement). Until then, closeout lists what should be recorded instead of writing it.
+- Repository scripts, hooks, CI, or tests that call v2 bundle files (`ssot-lint.sh`, `ssot-migrate.py`, `run-tests.sh`) fail after the upgrade. The migration repoints them to `ssot-check.py`.
+- The invariants register holds the lasting rules people set ("never X", "always Y"). One-time choices are decision records. Both need the user's agreement to change.
 
 ### Removed
-- Per-area coverage states, completeness checklists, the Q01–Q21 matrix, and
-  `converged` certification.
-- `STATUS.md`, `HISTORY.md`, `.bootstrap/` review archives, `_manifest.md`
-  inventories, tracking baselines, and catch-up audits after each protocol
-  release.
+- Per-area coverage states, completeness checklists, the Q01–Q21 matrix, and `converged` certification.
+- `STATUS.md`, `HISTORY.md`, `.bootstrap/` review archives, `_manifest.md` inventories, tracking baselines, and catch-up audits after each protocol release.
 - The 400 KB `ssot-lint.sh`, its migration helpers, and their tests.
-- `skills/SKILL_STYLE.md`, which is now part of `CONTRIBUTING.md`. The
-  installer removes the copy it installed earlier.
+- `skills/SKILL_STYLE.md`, which is now part of `CONTRIBUTING.md`. The installer removes the copy it installed earlier.
 
 ### Added
-- `ssot-check.py`: a read-only Python checker for the entry file, links and
-  GitHub heading anchors (including CJK), and the invariants register. It
-  counts reading budgets in characters. Its last line always states PASS,
-  FAIL, or INCOMPLETE; exit code 3 (INCOMPLETE) means it crashed or could
-  not examine part of the tree, and is never a pass.
-- `install.sh --ref <branch|tag>` (or `SSOT_REF`). `--ref v2-final` installs
-  the frozen v2 protocol.
-- CI budgets for everything agents load at runtime (8,000 words), the
-  entrypoints (3,000 words), templates, the checker, and `skills/`. Before 3.0
-  these were about 110,000 words and 1.9 MB.
+- `ssot-check.py`: a read-only Python checker for the entry file, links and GitHub heading anchors (including CJK), and the invariants register. It counts reading budgets in characters. Its last line always states PASS, FAIL, or INCOMPLETE; exit code 3 (INCOMPLETE) means it crashed or could not examine part of the tree, and is never a pass.
+- `install.sh --ref <branch|tag>` (or `SSOT_REF`). `--ref v2-final` installs the frozen v2 protocol.
+- CI budgets for everything agents load at runtime (8,000 words), the entrypoints (3,000 words), templates, the checker, and `skills/`. Before 3.0 these were about 110,000 words and 1.9 MB.
 - `DESIGN.md`, and protocol change rules in `CONTRIBUTING.md`.
 
 ### How 3.0 was checked
 Method, per-question scores, and limits are in `tests/trials-3.0.md`.
 
-- **Behavior trials, run on copies of one real consumer repository (a
-  desktop application):**
-  - Six real maintainer tasks were answered by fresh agents in three set-ups:
-    v2.86 with the original SSOT, v3 after an agent-run migration, and no
-    SSOT at all. The migration used an earlier draft of the migration
-    procedure. The final procedure added steps (keeping `GAP-` IDs, handling
-    `apex-maxim` rows, sorting before deletion, repointing tooling), and of
-    those only the tooling step was run against the trial copy. A blind judge scored every answer against an answer key
-    built from the code.
+- **Behavior trials, run on copies of one real consumer repository (a desktop application):**
+  - Six real maintainer tasks were answered by fresh agents in three set-ups: v2.86 with the original SSOT, v3 after an agent-run migration, and no SSOT at all. The migration used an earlier draft of the migration procedure. The final procedure added steps (keeping `GAP-` IDs, handling `apex-maxim` rows, sorting before deletion, repointing tooling), and of those only the tooling step was run against the trial copy. A blind judge scored every answer against an answer key built from the code.
   - Must-have points: v3 94%, v2 97%, no SSOT 84%.
-  - Answers that pushed unrelated documentation chores onto the user: v2
-    had 14 such items, mostly protocol catch-up and audits. v3 had 6, all
-    from one migration gap (tooling still calling `ssot-lint.sh`); that gap
-    is now covered by a migration step.
-  - After that migration step was applied, two of the tasks were re-run
-    and re-judged blind. v3 scored full marks with no noise and the highest
-    usefulness (9 and 9, against v2's 7 and 8). The other four tasks were
-    not re-run.
-  - Token use was the same in all three set-ups. 3.0 does not make reading
-    cheaper.
+  - Answers that pushed unrelated documentation chores onto the user: v2 had 14 such items, mostly protocol catch-up and audits. v3 had 6, all from one migration gap (tooling still calling `ssot-lint.sh`); that gap is now covered by a migration step.
+  - After that migration step was applied, two of the tasks were re-run and re-judged blind. v3 scored full marks with no noise and the highest usefulness (9 and 9, against v2's 7 and 8). The other four tasks were not re-run.
+  - Token use was the same in all three set-ups. 3.0 does not make reading cheaper.
 - **Closeout trials:**
   - An internal refactor wrote nothing to SSOT.
-  - A user decision (a shorter retention period) was recorded in the right
-    owner and a new decision record, with the old decision kept as history.
-- **Conflict trial:** asked to add a pop-up that a confirmed rule forbids,
-  both v2 and v3 agents stopped and asked. v3 used about a third fewer
-  tokens.
-- **Setup from scratch** on a second, smaller repository (a web application
-  with its own agent instruction file): 7 documents, about 50 KB. An
-  independent newcomer test answered 5 real tasks correctly, and the
-  procedure gaps the run reported were fixed. Its findings included two real
-  bugs in that application, which the documents now record as open
-  questions.
-- **Local suites:** checker regression tests, bundle shape with budgets,
-  installer end to end (including `--ref`), Mermaid parsing of the template
-  diagrams, and ShellCheck.
+  - A user decision (a shorter retention period) was recorded in the right owner and a new decision record, with the old decision kept as history.
+- **Conflict trial:** asked to add a pop-up that a confirmed rule forbids, both v2 and v3 agents stopped and asked. v3 used about a third fewer tokens.
+- **Setup from scratch** on a second, smaller repository (a web application with its own agent instruction file): 7 documents, about 50 KB. An independent newcomer test answered 5 real tasks correctly, and the procedure gaps the run reported were fixed. Its findings included two real bugs in that application, which the documents now record as open questions.
+- **Local suites:** checker regression tests, bundle shape with budgets, installer end to end (including `--ref`), Mermaid parsing of the template diagrams, and ShellCheck.
 - **Not verified:**
-  - The final migration procedure end to end. The trial used an earlier
-    draft, and only one of the later steps was run.
+  - The final migration procedure end to end. The trial used an earlier draft, and only one of the later steps was run.
   - Migration of a second consumer repository, including the larger ones.
   - Long-term maintenance over many batches.
   - Other agent harnesses.
@@ -177,72 +100,14 @@ Method, per-question scores, and limits are in `tests/trials-3.0.md`.
 ## [2.56–2.86] - 2026-07 to 2026-10 (frozen as `v2-final`)
 
 ### Added
-- Adjudication boundary register (v2.64): `SSOT/README.md` gains a
-  canonical `## 裁决边界` / `## Adjudication boundary` section registering
-  the rules whose meaning an agent must not change unaided —
-  `arch-invariant` / `product-promise` / `process-rule` rows (`INV-NN`)
-  and `apex-maxim` rows (`CLAUDE-MAXIM-N` / `CORE-RULE-N`). Rows are
-  pointer-sized (one-line name, one resolving owner anchor,
-  `Established by`, closed `State` enum); agents may change what a rule
-  governs but not the rule itself — meaning/scope/state changes require a
-  `decisions/` entry or explicit user directive, and reality-vs-rule
-  conflicts file `ADJ-` instead of silently rewriting. Agents register
-  `candidate` rows; only human authority confirms. Confirmed/core-ref
-  owner bodies carry the registry ID at the rule anchor; the standalone
-  apex-maxim registry (`intent-ownership.md §1.1`) folds into the unified
-  table at ≥2.64. Enforced by preflight's boundary gate, closeout's
-  promotion duty (`update-routing.md §1.7`), and doctor rows
-  `[INV-REGISTRY]` (16E) / `[INV-BODY]` (16F); bootstrap seeds the
-  register from the root constraint file, binding decisions, and
-  user-confirmed product promises.
-- Append-only batch write log (v2.63): `SSOT/HISTORY.md` is a sibling
-  register of `STATUS.md` — STATUS owns coverage claims, HISTORY owns
-  write provenance. Every substantive batch that runs a writing skill
-  (bootstrap/closeout/audit/doctor) appends exactly one row
-  `| Date | Commit | Actor | Result | Touched | Note |`; a substantive
-  `no-op` still logs, distinguishing "checked, nothing durable" from
-  "never checked". Rows are append-only (correct by appending), carry
-  pointers only (never restated facts), and are schema-checked by the
-  version-gated `[HISTORY-LOG]` lint. Bootstrap creates the file
-  header-only and appends its first `wrote: skeleton` row on completion;
-  audit reads rows as reconciliation evidence and logs one row per
-  completed segment; `ssot-migrate.py` creates the header for upgrading
-  consumers.
-- Bound claims (v2.62): the two coverage ledgers can no longer contradict —
-  `[LEDGER-CONSISTENCY]` fails a file stamped `intent_recovery: covered` under
-  a `gap`/`stale`/`unknown`/`conflict` area row (partial under a weak area
-  warns), and `[GAP-BLOCK]` turns an Open Gaps Blocking/retrigger cell into a
-  machine-readable contract so an open row blocking `converged`/`covered`/
-  `tracked_*` forbids that claim while open.
-- Reviewed baselines and artifacts (v2.62): `[BASELINE-REVIEW]` warns when a
-  live `tracked_commit`/`tracked_session`/`tracked_skill_version` has no Stop
-  Review Gate row naming it; `[SKILL-VERSION-BINDING]` fails a
-  `tracked_skill_version` that outruns every installed/pinned artifact a fresh
-  checkout would see; `[RECONFIRM-TOKEN]` requires dated, on-branch
-  `re-confirmed at` tokens.
-- Reference, evidence, and lifecycle integrity (v2.62): `[REF-RESOLVE]` warns
-  on unresolvable inline-code repo paths and `path::symbol` pins
-  (`retired:`/`historical:`/`deleted:` markers exempt real history);
-  `[EPHEMERAL-EVIDENCE]` warns on `/tmp`/cache evidence pointers;
-  `[GIT-TRACKED]` warns on git-ignored or untracked SSOT files (canonical
-  `release/` collides with common ignore rules); `[SUPERSEDE-LINK]` warns on
-  superseded records naming no successor. Large failure/warning sets now end
-  with a per-check `[DIGEST]` count.
-- Verification layer and worktree boundary (v2.62, closeout):
-  `update-routing.md §1.5` requires classifying each user-visible claim as
-  `user-path`/`proxy`/`unexercised` and routing unexercised paths to a durable
-  owner — install + unit tests + screenshot is not a user-journey proof — and
-  requires ending a substantive batch committed or with a visible named
-  reason, since a dirty worktree is the next batch's contamination.
-- `ssot-migrate.py` (v2.62): migrates legacy lean STATUS tables to the
-  canonical Appendix-A schemas in place (keyword column remap, generated
-  `GAP-`/`ADJ-`/`CAP-` stable IDs, owner↔route dual-fill) and backfills missing
-  record frontmatter keys; `--dry-run` previews the rewrite.
-- Source references must resolve (v2.62): reader-quality.md §2 floor item 6
-  requires inline-code source pins to resolve in the current tree or carry an
-  explicit `historical:`/`retired:`/`deleted:` marker, preferring
-  `path::symbol` over drifting line numbers — a page teaching a deleted
-  runtime is worse than an honest gap.
+- Adjudication boundary register (v2.64): `SSOT/README.md` gains a canonical `## 裁决边界` / `## Adjudication boundary` section registering the rules whose meaning an agent must not change unaided —`arch-invariant` / `product-promise` / `process-rule` rows (`INV-NN`) and `apex-maxim` rows (`CLAUDE-MAXIM-N` / `CORE-RULE-N`). Rows are pointer-sized (one-line name, one resolving owner anchor, `Established by`, closed `State` enum); agents may change what a rule governs but not the rule itself — meaning/scope/state changes require a `decisions/` entry or explicit user directive, and reality-vs-rule conflicts file `ADJ-` instead of silently rewriting. Agents register `candidate` rows; only human authority confirms. Confirmed/core-ref owner bodies carry the registry ID at the rule anchor; the standalone apex-maxim registry (`intent-ownership.md §1.1`) folds into the unified table at ≥2.64. Enforced by preflight's boundary gate, closeout's promotion duty (`update-routing.md §1.7`), and doctor rows `[INV-REGISTRY]` (16E) / `[INV-BODY]` (16F); bootstrap seeds the register from the root constraint file, binding decisions, and user-confirmed product promises.
+- Append-only batch write log (v2.63): `SSOT/HISTORY.md` is a sibling register of `STATUS.md` — STATUS owns coverage claims, HISTORY owns write provenance. Every substantive batch that runs a writing skill (bootstrap/closeout/audit/doctor) appends exactly one row `| Date | Commit | Actor | Result | Touched | Note |`; a substantive `no-op` still logs, distinguishing "checked, nothing durable" from "never checked". Rows are append-only (correct by appending), carry pointers only (never restated facts), and are schema-checked by the version-gated `[HISTORY-LOG]` lint. Bootstrap creates the file header-only and appends its first `wrote: skeleton` row on completion; audit reads rows as reconciliation evidence and logs one row per completed segment; `ssot-migrate.py` creates the header for upgrading consumers.
+- Bound claims (v2.62): the two coverage ledgers can no longer contradict —`[LEDGER-CONSISTENCY]` fails a file stamped `intent_recovery: covered` under a `gap`/`stale`/`unknown`/`conflict` area row (partial under a weak area warns), and `[GAP-BLOCK]` turns an Open Gaps Blocking/retrigger cell into a machine-readable contract so an open row blocking `converged`/`covered`/ `tracked_*` forbids that claim while open.
+- Reviewed baselines and artifacts (v2.62): `[BASELINE-REVIEW]` warns when a live `tracked_commit`/`tracked_session`/`tracked_skill_version` has no Stop Review Gate row naming it; `[SKILL-VERSION-BINDING]` fails a `tracked_skill_version` that outruns every installed/pinned artifact a fresh checkout would see; `[RECONFIRM-TOKEN]` requires dated, on-branch `re-confirmed at` tokens.
+- Reference, evidence, and lifecycle integrity (v2.62): `[REF-RESOLVE]` warns on unresolvable inline-code repo paths and `path::symbol` pins (`retired:`/`historical:`/`deleted:` markers exempt real history); `[EPHEMERAL-EVIDENCE]` warns on `/tmp`/cache evidence pointers; `[GIT-TRACKED]` warns on git-ignored or untracked SSOT files (canonical `release/` collides with common ignore rules); `[SUPERSEDE-LINK]` warns on superseded records naming no successor. Large failure/warning sets now end with a per-check `[DIGEST]` count.
+- Verification layer and worktree boundary (v2.62, closeout): `update-routing.md §1.5` requires classifying each user-visible claim as `user-path`/`proxy`/`unexercised` and routing unexercised paths to a durable owner — install + unit tests + screenshot is not a user-journey proof — and requires ending a substantive batch committed or with a visible named reason, since a dirty worktree is the next batch's contamination.
+- `ssot-migrate.py` (v2.62): migrates legacy lean STATUS tables to the canonical Appendix-A schemas in place (keyword column remap, generated `GAP-`/`ADJ-`/`CAP-` stable IDs, owner↔route dual-fill) and backfills missing record frontmatter keys; `--dry-run` previews the rewrite.
+- Source references must resolve (v2.62): reader-quality.md §2 floor item 6 requires inline-code source pins to resolve in the current tree or carry an explicit `historical:`/`retired:`/`deleted:` marker, preferring `path::symbol` over drifting line numbers — a page teaching a deleted runtime is worse than an honest gap.
 
 ### Fixed
 - v2.86: Scope the protocol-version gate to SSOT writes instead of stopping all work, and give closeout its own entry check (missing SSOT, active bootstrap, protocol behind) so it never writes into a vacuum or an unaudited STATUS.
@@ -267,741 +132,273 @@ Method, per-question scores, and limits are in `tests/trials-3.0.md`.
 - v2.67: Match knowledge confidence to authorized intent, static structure, observed execution, and external contracts instead of a code-only evidence hierarchy.
 - v2.66: Scope adjudication blockers to decision-dependent actions, preserving independent work, existing human decisions, and confirmed constraints.
 - v2.65: Unify audit reviewer selection with the scoped review policy; ordinary catch-up no longer imposes a second independent-review requirement.
-- Faceted-layout migration checks destinations that become occupied after a
-  parent directory moves, preventing existing owner documents or domain indexes
-  from being overwritten. Domain numbering reserves prefixes in both layouts.
-- Legacy STATUS migration preserves column meanings, escaped pipes, and existing
-  stable IDs; rewrites table separators; avoids duplicate generated IDs; and
-  leaves other sections and fenced examples untouched. Named capture IDs no
-  longer crash migration, and exhausted ID space fails before writing.
-- Bundle link checks now return failure for missing files instead of printing
-  an error followed by a passing summary, including script links and links with
-  fragments or queries. Migration regressions run in CI.
-- Consumer agent instructions now share one marked routing block between the
-  installer and bilingual bootstrap templates. The entry distinguishes
-  substantive work from trivial tasks, preserves conditional audit/Doctor
-  routing and review requirements, and reports unavailable skills explicitly.
-  Installation rejects a missing or malformed block before replacing files.
-- Open Gaps actionability now reads the canonical columns — Responsible owner
-  from column 6, Blocking/retrigger from 7, Resolving route from 8 — and emits
-  real file line numbers. The previous mapping read the Question column as the
-  owner and the Blocking column as the route, failing every real row (55 false
-  FAILs observed across two consumers).
-- Schema migration is a first-class route: per-row Open Gaps actionability
-  runs only against the canonical 8-column table; a legacy lean table produces
-  one migration WARN pointing at `ssot-migrate.py` instead of dozens of
-  misleading per-row FAILs restating one schema debt.
-- `COVERED-PLACEHOLDER` no longer strips inline code before judging table-cell
-  emptiness: code-only cells and legitimate reader-substitution notation
-  (`` `path/<segment>` ``) are content, not placeholder residue.
-- `META-LEAKAGE` no longer treats protocol machinery as leakage when the
-  machinery is the subject — records directories get the base token set only,
-  and inline-code operational mentions (`$ssot-preflight` invocations) are
-  stripped before matching.
-- `tracked_*` baseline fields are extracted from their own STATUS rows instead
-  of the first backtick-hex in the file, so an earlier table's hex value can
-  no longer be mistaken for the commit baseline.
-- Lint test assertions can no longer pass vacuously: `assert_no_fail_tag` /
-  `assert_has_fail_tag` scope to the `[FAIL] N` section instead of grepping
-  for the impossible adjacent string `[FAIL] [TAG]` — the hole that let the
-  column-mapping bug ship. Fifteen assertions across both test files fixed.
+- Faceted-layout migration checks destinations that become occupied after a parent directory moves, preventing existing owner documents or domain indexes from being overwritten. Domain numbering reserves prefixes in both layouts.
+- Legacy STATUS migration preserves column meanings, escaped pipes, and existing stable IDs; rewrites table separators; avoids duplicate generated IDs; and leaves other sections and fenced examples untouched. Named capture IDs no longer crash migration, and exhausted ID space fails before writing.
+- Bundle link checks now return failure for missing files instead of printing an error followed by a passing summary, including script links and links with fragments or queries. Migration regressions run in CI.
+- Consumer agent instructions now share one marked routing block between the installer and bilingual bootstrap templates. The entry distinguishes substantive work from trivial tasks, preserves conditional audit/Doctor routing and review requirements, and reports unavailable skills explicitly. Installation rejects a missing or malformed block before replacing files.
+- Open Gaps actionability now reads the canonical columns — Responsible owner from column 6, Blocking/retrigger from 7, Resolving route from 8 — and emits real file line numbers. The previous mapping read the Question column as the owner and the Blocking column as the route, failing every real row (55 false FAILs observed across two consumers).
+- Schema migration is a first-class route: per-row Open Gaps actionability runs only against the canonical 8-column table; a legacy lean table produces one migration WARN pointing at `ssot-migrate.py` instead of dozens of misleading per-row FAILs restating one schema debt.
+- `COVERED-PLACEHOLDER` no longer strips inline code before judging table-cell emptiness: code-only cells and legitimate reader-substitution notation (`` `path/<segment>` ``) are content, not placeholder residue.
+- `META-LEAKAGE` no longer treats protocol machinery as leakage when the machinery is the subject — records directories get the base token set only, and inline-code operational mentions (`$ssot-preflight` invocations) are stripped before matching.
+- `tracked_*` baseline fields are extracted from their own STATUS rows instead of the first backtick-hex in the file, so an earlier table's hex value can no longer be mistaken for the commit baseline.
+- Lint test assertions can no longer pass vacuously: `assert_no_fail_tag` / `assert_has_fail_tag` scope to the `[FAIL] N` section instead of grepping for the impossible adjacent string `[FAIL] [TAG]` — the hole that let the column-mapping bug ship. Fifteen assertions across both test files fixed.
 - Removed a gawk regex-escape warning emitted on every lint invocation.
-- Project upgrades now recognize the pre-marker `SKILL_STYLE.md` shipped by
-  older complete SSOT bundles, adopt it safely, and still refuse unrelated
-  shared-root files with the same name. The installed Doctor self-test now
-  recognizes the selected-language flattened template layout instead of
-  reporting the absent source-only `en/` and `zh/` directories as failures.
+- Project upgrades now recognize the pre-marker `SKILL_STYLE.md` shipped by older complete SSOT bundles, adopt it safely, and still refuse unrelated shared-root files with the same name. The installed Doctor self-test now recognizes the selected-language flattened template layout instead of reporting the absent source-only `en/` and `zh/` directories as failures.
 
 ### Added
-- Graduated coverage: `partial` is now a first-class Area Status value — honest
-  partial credit between `gap` and `covered` (owner README + writing floor +
-  Doctor L1 clean + a scoped self-review), requiring no cold review. The v2.60
-  review blockers now gate `covered` only, so consumers with strong content can
-  bank incremental wins instead of stalling at all-`gap`.
-- Freshness floor: a conditional gate binds `covered`/`partial`/`converged`
-  claims to a fresh `tracked_commit` baseline; a stale claim without a same-task
-  scoped re-confirmation demotes to `stale`, and lint FAILs a `converged` STATUS
-  whose baseline is behind `HEAD` (WARN below). The re-confirmation exemption is
-  machine-checkable: a Stop Review Gate row noting `re-confirmed at
-  <HEAD-sha|worktree>` exempts a below-`converged` claim (worktree counts
-  uncommitted content as fresh), closing the "infinitely-renewed `partial`"
-  loophole; the check parses the gate tolerantly so a leaner consumer table
-  still qualifies.
-- Large-repo coverage (opt-in): the Area Status table accepts scoped
-  `<area>/<scope>` rows and an optional `Coverage depth` column, with the
-  17-row baseline kept as the honest computed roll-up (weak child blocks the
-  parent; `[STATUS-AGGREGATE]` on over-claim). Single-tenant repos are unchanged.
+- Graduated coverage: `partial` is now a first-class Area Status value — honest partial credit between `gap` and `covered` (owner README + writing floor + Doctor L1 clean + a scoped self-review), requiring no cold review. The v2.60 review blockers now gate `covered` only, so consumers with strong content can bank incremental wins instead of stalling at all-`gap`.
+- Freshness floor: a conditional gate binds `covered`/`partial`/`converged` claims to a fresh `tracked_commit` baseline; a stale claim without a same-task scoped re-confirmation demotes to `stale`, and lint FAILs a `converged` STATUS whose baseline is behind `HEAD` (WARN below). The re-confirmation exemption is machine-checkable: a Stop Review Gate row noting `re-confirmed at <HEAD-sha|worktree>` exempts a below-`converged` claim (worktree counts uncommitted content as fresh), closing the "infinitely-renewed `partial`" loophole; the check parses the gate tolerantly so a leaner consumer table still qualifies.
+- Large-repo coverage (opt-in): the Area Status table accepts scoped `<area>/<scope>` rows and an optional `Coverage depth` column, with the 17-row baseline kept as the honest computed roll-up (weak child blocks the parent; `[STATUS-AGGREGATE]` on over-claim). Single-tenant repos are unchanged.
 
 ### Changed
-- Single-owner applied to the protocol itself: the CAP-row 8-column schema is
-  owned solely by `status-protocol.md §8 Appendix A` (`promotion-rationale.md`
-  keeps only move semantics); `architecture.md §3` is the sole normative owner
-  of "what a domain owns", with `reader-quality.md §4` and `area-model.md §2.2`
-  deriving instead of restating. Doctor's stop condition is now self-evaluable
-  and non-circular.
+- Single-owner applied to the protocol itself: the CAP-row 8-column schema is owned solely by `status-protocol.md §8 Appendix A` (`promotion-rationale.md` keeps only move semantics); `architecture.md §3` is the sole normative owner of "what a domain owns", with `reader-quality.md §4` and `area-model.md §2.2` deriving instead of restating. Doctor's stop condition is now self-evaluable and non-circular.
 
 ### Changed
-- Lifecycle `SKILL.md` bodies are distilled back to activation prompts (60
-  words or fewer outside the preflight router), while the detailed v2.60
-  procedures remain in on-demand references. The active bundle and generated
-  reader surfaces now use one STATUS term, `tracking baseline` / `追踪基线`,
-  instead of forking that concept across coverage and waterline synonyms.
-- A cross-layer `Q01`-`Q21` quality, risk, and governance profile now prevents
-  silent omissions across accessibility, locale, usability, performance/cost,
-  concurrency/consistency, continuity, compatibility/migration, data recovery,
-  isolation, threats/abuse, supply chain, offline delivery, compliance,
-  privacy/data governance, safety/harm, human oversight, fairness/transparency,
-  maintainability, environmental impact, output validity, and
-  commercial/financial/entitlement integrity.
-  `STATUS.md` keeps the pointer-sized disposition register; product,
-  architecture, process/evidence, and record owners keep the facts. Doctor
-  rejects missing rows, unresolved applicable layers, and misuse of
-  `not_applicable` for unimplemented behaviour.
-- The reader contract now explicitly serves an implementation delegator who
-  may not read source code. Common, process, record, glossary, root, STATUS,
-  and product profiles gain the missing plain-language scene, delegated action,
-  retry/concurrency, affected-scope, exposure, naming, acceptance-route,
-  disposition, and non-page-surface questions. The `LA` family is renamed
-  `Plain-language clarity` to avoid confusing prose readability with product
-  accessibility.
-- Process, records, glossary, the SSOT root, and STATUS now have exact
-  lightweight review profiles of 46, 46, 38, 37, and 32 items. A passing
-  artifact gives every exact row a plain answer and preserves a finite target
-  matrix for every real process child, record collection and entry/anchor,
-  glossary term owner, root, or STATUS target. Current scope, Area Status, and
-  Q fingerprints, complete target coverage, fitting evidence, and stated limits
-  prevent row counts or resolving links from creating a false-green `covered`
-  claim.
-- Durable records now keep two independent state axes: whether the knowledge
-  record itself is current, and whether the decision, research adoption, bug,
-  hazard, or debt it describes is still active. Collection indexes mirror both
-  axes and route every ID exactly once to its unique entry owner, including
-  stable anchors for topic-aggregated gotchas.
-- Bug failure truth now includes `open` beside `fixed` and `recurred`, so a
-  confirmed unresolved defect keeps an honest failure owner instead of being
-  mislabeled as technical debt.
-- Process owners now explain the method, nearest rejected alternative,
-  invariants, rationale, and accepted trade-offs before commands. They also
-  keep a finite eight-field inventory of stable assets they create, read,
-  change, verify, hand off, or retire. The glossary uses one six-family
-  inventory with exact entry routing instead of overlapping hard-coded lists.
-- The seventh architecture view is now wired through preflight structure,
-  bootstrap creation/fill order, template inventory, and Doctor rather than
-  existing only in the view template and covered-scope lint.
-- A real consumer cold read exposed a STATUS false-green: a gap could be named
-  without telling a non-coding reader whether their task was affected, when it
-  became blocking, or where ownership lived. The STATUS profile now includes
-  `S08`; the exact bilingual Open Gaps schema records affected scope/task,
-  blocking or retrigger condition, responsible owner, and resolving route; and
-  Doctor enforces `[STATUS-GAP-ACTIONABILITY]` for real v2.60 gap rows while
-  preserving empty starter rows. Owner and route must be clickable Markdown
-  links or explicit `$ssot-*` routes; a bare record ID is not actionable.
-- `STATUS.md` now follows one exact `S01`-`S11` register contract. It records
-  the tracking baseline, all 17 area states, source absorption, reviewed startup
-  references, stop authorisations, actionable adjudications and gaps,
-  `Q01`-`Q21`, pending captures, and deliberate source exclusions. Cells remain
-  pointer-sized; passing process, records, and glossary rows link exactly one
-  current scope artifact, while convergence additionally requires matching
-  root and STATUS artifacts.
-- The same consumer run exposed four over-broad generic heuristics. STATUS
-  Notes-ledger detection now reads only the `Notes/备注` cell, not an explicit
-  Date column; aggregate contradictions read only declared stop/summary
-  surfaces, not Open Gaps rows; and README derived-state detection distinguishes
-  explicit latest-verification mirrors from narrative use of a literal image
-  tag such as `latest`. Generic KISS table-density warnings now exclude
-  protocol-owned `_manifest.md` registers, which remain governed by their
-  dedicated completeness and inventory checks.
-- Reader-quality protocol v2.60 closes the false-`covered` path exposed by real
-  consumer regeneration: product maturity/evidence semantics now have one live
-  owner, cold review uses six exact tasks, 16 scored leaves, five cold proofs,
-  and exact completeness profiles (>=29/32 plus family and
-  implementation-delegator floors). A failed reader surface must be repaired
-  bottom-up and re-reviewed until source, installed bundle, manifests, prose,
-  and consumer tracking baseline agree.
-  Protocol version `2.59` -> `2.60`.
-- Covered product roots now carry a finite, stable-ID inventory across twelve
-  classes: pages, navigation, entry modes, controls, settings, diagnostics,
-  external channels, commands, public interfaces, output artifacts,
-  notifications, and help/onboarding. Covered architecture roots classify every direct owner, register
-  unique technical surfaces, bridge product surfaces to runtime owners, and
-  include deployment/observability in the default cross-owner route.
-- Document-quality lint no longer accepts a linked file merely because it
-  contains `no-more-required-changes`. When `tracked_skill_version` is `2.60`, it validates the
-  review scope/version/probes/score/verdict and body evidence, plus product
-  `[SURFACE-INVENTORY]` and architecture `[OWNER-INVENTORY]` completeness.
-  Review artifacts now carry a separate normalized STATUS-Q fingerprint, so a
-  Q disposition change expires both product and architecture reviews while an
-  unrelated STATUS tracking-baseline edit does not. Architecture kind dispositions
-  must name the exact registered surfaces of that kind; unknown, wrong-kind,
-  duplicate, and omitted IDs are rejected.
-- Product/architecture review evidence is now path-bound and authority-bound:
-  exact frontmatter identifies the reviewer and authorised area, every target
-  and evidence link stays inside consumer SSOT and outside review artifacts,
-  visible verdict and required changes agree, and one matching STATUS stop row
-  closes a passing covered claim. Absolute, missing, symlinked, self-referential,
-  comment-only, or fenced-code evidence cannot produce a pass.
-- Product and architecture documentation now follow a v2.59 reader-quality
-  contract: KISS means the shortest reliable path to understanding, narrative
-  explanation precedes reference tables, product intent precedes architecture,
-  and exact scaffold-heading checklists are replaced by semantic cold-reader
-  questions. Protocol version `2.58` -> `2.59`.
-- The universal product/architecture manifest template is replaced by five
-  location-specific archetypes (`product-root`, `product-collection`,
-  `architecture-root`, `architecture-views`, `architecture-domain`). Covered
-  claims now fail on placeholder/empty manifests, heading-only narrative,
-  missing default reader surfaces, or missing first-screen domain diagrams.
-- Product completeness now includes real surface inventory, user/object
-  lifecycle, choice/control/recovery/diagnosis journeys, trust/privacy posture,
-  and separate product-maturity versus evidence-fidelity axes. Architecture
-  completeness now includes state/data, contracts/trust, and failure/recovery
-  views in addition to operating model, critical journeys, and current-target-gap.
-- The v2.57 faceted-layout contract is now end-to-end: bootstrap templates and
-  current references use numbered physical paths, Doctor resolves and enforces
-  canonical facets at the v2.57 waterline, and the migration helper is
-  idempotent and path-boundary-safe on real canonical trees.
-- Research-record lint now accepts valid YAML block-list `promotion_targets`
-  while preserving empty-value failures; Bootstrap and Doctor also share the
-  four independent-review exceptions owned by `status-protocol.md`.
-- `ssot-closeout` / `ssot-audit` now force a durable disposition for user-visible
-  bug-fix, hotfix, regression-fix, and caveat-heavy batches: closeout must
-  adjudicate bug packetization, fix-commit disposition, caveat extraction, and
-  overdue waterlines instead of leaving the outcome only in closeout prose,
-  walkthroughs, plans, or git history. Protocol version `2.57` -> `2.58`.
-- `ssot-doctor` guidance and `ssot-lint.sh` now flag placeholder debt /
-  follow-up wording more aggressively, especially when owner files or STATUS
-  summaries still say `TODO debt`, `Pending action`, or equivalent without a
-  durable owner / trigger / guard.
-- `install.sh` now installs ownership-marked bundle-level companion files such
-  as `skills/SKILL_STYLE.md` into the target skills root, refuses to overwrite
-  unowned collisions, and removes only bundle-owned copies.
-- `ssot-preflight` area model now makes the v2.57 numbered faceted layout the
-  canonical physical SSOT layout: `01-product/`, `02-architecture/`,
-  `03-process/*`, and `04-records/*`. Legacy unnumbered paths remain readable
-  compatibility input, but concrete protocol paths, links, template targets,
-  CORE-REF examples, and upgrade targets use numbered paths. Protocol version
-  `2.56` -> `2.57`.
-- `ssot-preflight` gate floor narrowed (v2.56): the mandatory read is now
-  `SSOT/STATUS.md` plus `SSOT/README.md` as the project-specific router.
-  `product/README.md` and `architecture/README.md` are read only when the
-  task-entry map routes the task to them, with a thin-router fallback to
-  both trunks when the map is missing or does not route the task. The
-  open-risk scan narrows to routed owners plus `STATUS.md ## Open Gaps`;
-  full `tech-debt/` / `bugs/` / `gotchas/` directory scans become agent
-  self-decision. `area-model.md §4` becomes the single owner of trunk-read
-  routing. Protocol version `2.55` -> `2.56`.
-- Scrubbed origin-project references from shipped skill assets: replaced
-  cold-agent-sim cycle transcripts with one synthetic example using a
-  fictional project; replaced origin-project implementation paths in
-  `ssot-preflight/references/` and `ssot-audit/references/` with synthetic
-  placeholders; replaced real commit SHAs in audit history with `<commit>`.
-- AGENTS.md commit discipline now explicitly scopes to maintainers and
-  points external contributors at `CONTRIBUTING.md`.
-- SKILL_STYLE.md now records the `ssot-preflight` gate/router exception
-  alongside the bundle-wide anti-patterns.
+- Lifecycle `SKILL.md` bodies are distilled back to activation prompts (60 words or fewer outside the preflight router), while the detailed v2.60 procedures remain in on-demand references. The active bundle and generated reader surfaces now use one STATUS term, `tracking baseline` / `追踪基线`, instead of forking that concept across coverage and waterline synonyms.
+- A cross-layer `Q01`-`Q21` quality, risk, and governance profile now prevents silent omissions across accessibility, locale, usability, performance/cost, concurrency/consistency, continuity, compatibility/migration, data recovery, isolation, threats/abuse, supply chain, offline delivery, compliance, privacy/data governance, safety/harm, human oversight, fairness/transparency, maintainability, environmental impact, output validity, and commercial/financial/entitlement integrity. `STATUS.md` keeps the pointer-sized disposition register; product, architecture, process/evidence, and record owners keep the facts. Doctor rejects missing rows, unresolved applicable layers, and misuse of `not_applicable` for unimplemented behaviour.
+- The reader contract now explicitly serves an implementation delegator who may not read source code. Common, process, record, glossary, root, STATUS, and product profiles gain the missing plain-language scene, delegated action, retry/concurrency, affected-scope, exposure, naming, acceptance-route, disposition, and non-page-surface questions. The `LA` family is renamed `Plain-language clarity` to avoid confusing prose readability with product accessibility.
+- Process, records, glossary, the SSOT root, and STATUS now have exact lightweight review profiles of 46, 46, 38, 37, and 32 items. A passing artifact gives every exact row a plain answer and preserves a finite target matrix for every real process child, record collection and entry/anchor, glossary term owner, root, or STATUS target. Current scope, Area Status, and Q fingerprints, complete target coverage, fitting evidence, and stated limits prevent row counts or resolving links from creating a false-green `covered` claim.
+- Durable records now keep two independent state axes: whether the knowledge record itself is current, and whether the decision, research adoption, bug, hazard, or debt it describes is still active. Collection indexes mirror both axes and route every ID exactly once to its unique entry owner, including stable anchors for topic-aggregated gotchas.
+- Bug failure truth now includes `open` beside `fixed` and `recurred`, so a confirmed unresolved defect keeps an honest failure owner instead of being mislabeled as technical debt.
+- Process owners now explain the method, nearest rejected alternative, invariants, rationale, and accepted trade-offs before commands. They also keep a finite eight-field inventory of stable assets they create, read, change, verify, hand off, or retire. The glossary uses one six-family inventory with exact entry routing instead of overlapping hard-coded lists.
+- The seventh architecture view is now wired through preflight structure, bootstrap creation/fill order, template inventory, and Doctor rather than existing only in the view template and covered-scope lint.
+- A real consumer cold read exposed a STATUS false-green: a gap could be named without telling a non-coding reader whether their task was affected, when it became blocking, or where ownership lived. The STATUS profile now includes `S08`; the exact bilingual Open Gaps schema records affected scope/task, blocking or retrigger condition, responsible owner, and resolving route; and Doctor enforces `[STATUS-GAP-ACTIONABILITY]` for real v2.60 gap rows while preserving empty starter rows. Owner and route must be clickable Markdown links or explicit `$ssot-*` routes; a bare record ID is not actionable.
+- `STATUS.md` now follows one exact `S01`-`S11` register contract. It records the tracking baseline, all 17 area states, source absorption, reviewed startup references, stop authorisations, actionable adjudications and gaps, `Q01`-`Q21`, pending captures, and deliberate source exclusions. Cells remain pointer-sized; passing process, records, and glossary rows link exactly one current scope artifact, while convergence additionally requires matching root and STATUS artifacts.
+- The same consumer run exposed four over-broad generic heuristics. STATUS Notes-ledger detection now reads only the `Notes/备注` cell, not an explicit Date column; aggregate contradictions read only declared stop/summary surfaces, not Open Gaps rows; and README derived-state detection distinguishes explicit latest-verification mirrors from narrative use of a literal image tag such as `latest`. Generic KISS table-density warnings now exclude protocol-owned `_manifest.md` registers, which remain governed by their dedicated completeness and inventory checks.
+- Reader-quality protocol v2.60 closes the false-`covered` path exposed by real consumer regeneration: product maturity/evidence semantics now have one live owner, cold review uses six exact tasks, 16 scored leaves, five cold proofs, and exact completeness profiles (>=29/32 plus family and implementation-delegator floors). A failed reader surface must be repaired bottom-up and re-reviewed until source, installed bundle, manifests, prose, and consumer tracking baseline agree. Protocol version `2.59` -> `2.60`.
+- Covered product roots now carry a finite, stable-ID inventory across twelve classes: pages, navigation, entry modes, controls, settings, diagnostics, external channels, commands, public interfaces, output artifacts, notifications, and help/onboarding. Covered architecture roots classify every direct owner, register unique technical surfaces, bridge product surfaces to runtime owners, and include deployment/observability in the default cross-owner route.
+- Document-quality lint no longer accepts a linked file merely because it contains `no-more-required-changes`. When `tracked_skill_version` is `2.60`, it validates the review scope/version/probes/score/verdict and body evidence, plus product `[SURFACE-INVENTORY]` and architecture `[OWNER-INVENTORY]` completeness. Review artifacts now carry a separate normalized STATUS-Q fingerprint, so a Q disposition change expires both product and architecture reviews while an unrelated STATUS tracking-baseline edit does not. Architecture kind dispositions must name the exact registered surfaces of that kind; unknown, wrong-kind, duplicate, and omitted IDs are rejected.
+- Product/architecture review evidence is now path-bound and authority-bound: exact frontmatter identifies the reviewer and authorised area, every target and evidence link stays inside consumer SSOT and outside review artifacts, visible verdict and required changes agree, and one matching STATUS stop row closes a passing covered claim. Absolute, missing, symlinked, self-referential, comment-only, or fenced-code evidence cannot produce a pass.
+- Product and architecture documentation now follow a v2.59 reader-quality contract: KISS means the shortest reliable path to understanding, narrative explanation precedes reference tables, product intent precedes architecture, and exact scaffold-heading checklists are replaced by semantic cold-reader questions. Protocol version `2.58` -> `2.59`.
+- The universal product/architecture manifest template is replaced by five location-specific archetypes (`product-root`, `product-collection`, `architecture-root`, `architecture-views`, `architecture-domain`). Covered claims now fail on placeholder/empty manifests, heading-only narrative, missing default reader surfaces, or missing first-screen domain diagrams.
+- Product completeness now includes real surface inventory, user/object lifecycle, choice/control/recovery/diagnosis journeys, trust/privacy posture, and separate product-maturity versus evidence-fidelity axes. Architecture completeness now includes state/data, contracts/trust, and failure/recovery views in addition to operating model, critical journeys, and current-target-gap.
+- The v2.57 faceted-layout contract is now end-to-end: bootstrap templates and current references use numbered physical paths, Doctor resolves and enforces canonical facets at the v2.57 waterline, and the migration helper is idempotent and path-boundary-safe on real canonical trees.
+- Research-record lint now accepts valid YAML block-list `promotion_targets` while preserving empty-value failures; Bootstrap and Doctor also share the four independent-review exceptions owned by `status-protocol.md`.
+- `ssot-closeout` / `ssot-audit` now force a durable disposition for user-visible bug-fix, hotfix, regression-fix, and caveat-heavy batches: closeout must adjudicate bug packetization, fix-commit disposition, caveat extraction, and overdue waterlines instead of leaving the outcome only in closeout prose, walkthroughs, plans, or git history. Protocol version `2.57` -> `2.58`.
+- `ssot-doctor` guidance and `ssot-lint.sh` now flag placeholder debt / follow-up wording more aggressively, especially when owner files or STATUS summaries still say `TODO debt`, `Pending action`, or equivalent without a durable owner / trigger / guard.
+- `install.sh` now installs ownership-marked bundle-level companion files such as `skills/SKILL_STYLE.md` into the target skills root, refuses to overwrite unowned collisions, and removes only bundle-owned copies.
+- `ssot-preflight` area model now makes the v2.57 numbered faceted layout the canonical physical SSOT layout: `01-product/`, `02-architecture/`, `03-process/*`, and `04-records/*`. Legacy unnumbered paths remain readable compatibility input, but concrete protocol paths, links, template targets, CORE-REF examples, and upgrade targets use numbered paths. Protocol version `2.56` -> `2.57`.
+- `ssot-preflight` gate floor narrowed (v2.56): the mandatory read is now `SSOT/STATUS.md` plus `SSOT/README.md` as the project-specific router. `product/README.md` and `architecture/README.md` are read only when the task-entry map routes the task to them, with a thin-router fallback to both trunks when the map is missing or does not route the task. The open-risk scan narrows to routed owners plus `STATUS.md ## Open Gaps`; full `tech-debt/` / `bugs/` / `gotchas/` directory scans become agent self-decision. `area-model.md §4` becomes the single owner of trunk-read routing. Protocol version `2.55` -> `2.56`.
+- Scrubbed origin-project references from shipped skill assets: replaced cold-agent-sim cycle transcripts with one synthetic example using a fictional project; replaced origin-project implementation paths in `ssot-preflight/references/` and `ssot-audit/references/` with synthetic placeholders; replaced real commit SHAs in audit history with `<commit>`.
+- AGENTS.md commit discipline now explicitly scopes to maintainers and points external contributors at `CONTRIBUTING.md`.
+- SKILL_STYLE.md now records the `ssot-preflight` gate/router exception alongside the bundle-wide anti-patterns.
 
 ### Added
-- Conditional bilingual `03-process/operations/` and
-  `03-process/security-and-compliance/` templates separate day-two service
-  operation and recurring security/compliance evidence from deployment and
-  architecture mechanism owners. Small repositories must record a named
-  non-applicability disposition instead of silently omitting either concern.
-- Ten dedicated English/Chinese process, deployment, records, glossary,
-  gotcha, bug, and technical-debt templates. They lead with the
-  implementation-delegator's decision and next action, keep protocol guidance
-  in author-only comments, preserve table-independent narrative, and route
-  indexes to unique entry owners. Phase 1 now creates the complete
-  `03-process/`, `04-records/`, and `glossary/` root/index skeleton while
-  deferring record and term entries until concrete evidence exists.
-- Paired English/Chinese deployment-and-observability view and structured
-  cold-reader review templates, with regression fixtures for forged verdicts,
-  scope drift, below-threshold scores, and missing owner/surface inventories.
-- Paired English/Chinese exact-scope review templates for process, records,
-  glossary, root, and STATUS, including current-content fingerprints, exact
-  completeness rows, semantic truth samples, required-change accounting, and
-  claim-specific STATUS authorisation.
-- `ssot-preflight/references/reader-quality.md`, document-quality lint mode,
-  source/rendered template contract tests, and task-based product/architecture
-  comprehension gates: six exact tasks, sixteen scored leaves, five hard
-  proofs, a score of at least 29/32, family and implementation-delegator floors,
-  no critical truth error, and no unresolved required change.
-- `ssot-audit/assets/scripts/migrate-faceted-layout.py`, installed with the
-  audit skill, migrates legacy consumer `SSOT/` trees to the v2.57 faceted
-  layout, rewrites Markdown links/literal paths, preserves legacy domain
-  indexes, and exits explicitly on source/target conflicts.
-- `tests/test-faceted-layout-migration.sh` plus CI wiring cover dry-run,
-  successful migration, conflict handling, and helper syntax.
-- `What is SSOT?` section in `README.md` / `README.zh.md` that explicitly
-  defines "Single Source of Truth", explains how the principle maps to
-  `SSOT/` in this skill, and reiterates that code/schema/tests remain the
-  truth for current implementation (bilingual parity preserved).
-- `Requirements` and `Uninstall` sections in `README.md` / `README.zh.md`
-  (bilingual parity preserved).
-- OSS hygiene files: `SECURITY.md`, `CODE_OF_CONDUCT.md`,
-  `.github/ISSUE_TEMPLATE/bug_report.md`,
-  `.github/ISSUE_TEMPLATE/feature_request.md`,
-  `.github/PULL_REQUEST_TEMPLATE.md`.
-- `install.sh` bash-4+ guard with a macOS-specific `brew install bash`
-  hint, plus `SSOT_SKILL_REPO_URL` env override for forks.
-- `tests/test-bundle-shape.sh` now resolves links via portable
-  `python3 os.path.realpath` instead of GNU `readlink -f`.
-- `.github/workflows/ci.yml` runs `bash-syntax`, `bundle-shape`, and
-  `installer-e2e` jobs on `ubuntu-latest` and `macos-latest`.
+- Conditional bilingual `03-process/operations/` and `03-process/security-and-compliance/` templates separate day-two service operation and recurring security/compliance evidence from deployment and architecture mechanism owners. Small repositories must record a named non-applicability disposition instead of silently omitting either concern.
+- Ten dedicated English/Chinese process, deployment, records, glossary, gotcha, bug, and technical-debt templates. They lead with the implementation-delegator's decision and next action, keep protocol guidance in author-only comments, preserve table-independent narrative, and route indexes to unique entry owners. Phase 1 now creates the complete `03-process/`, `04-records/`, and `glossary/` root/index skeleton while deferring record and term entries until concrete evidence exists.
+- Paired English/Chinese deployment-and-observability view and structured cold-reader review templates, with regression fixtures for forged verdicts, scope drift, below-threshold scores, and missing owner/surface inventories.
+- Paired English/Chinese exact-scope review templates for process, records, glossary, root, and STATUS, including current-content fingerprints, exact completeness rows, semantic truth samples, required-change accounting, and claim-specific STATUS authorisation.
+- `ssot-preflight/references/reader-quality.md`, document-quality lint mode, source/rendered template contract tests, and task-based product/architecture comprehension gates: six exact tasks, sixteen scored leaves, five hard proofs, a score of at least 29/32, family and implementation-delegator floors, no critical truth error, and no unresolved required change.
+- `ssot-audit/assets/scripts/migrate-faceted-layout.py`, installed with the audit skill, migrates legacy consumer `SSOT/` trees to the v2.57 faceted layout, rewrites Markdown links/literal paths, preserves legacy domain indexes, and exits explicitly on source/target conflicts.
+- `tests/test-faceted-layout-migration.sh` plus CI wiring cover dry-run, successful migration, conflict handling, and helper syntax.
+- `What is SSOT?` section in `README.md` / `README.zh.md` that explicitly defines "Single Source of Truth", explains how the principle maps to `SSOT/` in this skill, and reiterates that code/schema/tests remain the truth for current implementation (bilingual parity preserved).
+- `Requirements` and `Uninstall` sections in `README.md` / `README.zh.md` (bilingual parity preserved).
+- OSS hygiene files: `SECURITY.md`, `CODE_OF_CONDUCT.md`, `.github/ISSUE_TEMPLATE/bug_report.md`, `.github/ISSUE_TEMPLATE/feature_request.md`, `.github/PULL_REQUEST_TEMPLATE.md`.
+- `install.sh` bash-4+ guard with a macOS-specific `brew install bash` hint, plus `SSOT_SKILL_REPO_URL` env override for forks.
+- `tests/test-bundle-shape.sh` now resolves links via portable `python3 os.path.realpath` instead of GNU `readlink -f`.
+- `.github/workflows/ci.yml` runs `bash-syntax`, `bundle-shape`, and `installer-e2e` jobs on `ubuntu-latest` and `macos-latest`.
 
 ### Removed
-- Obsolete `workflows/intent-recoverability-loop.workflow.js` (and the
-  now-empty `workflows/` directory).
+- Obsolete `workflows/intent-recoverability-loop.workflow.js` (and the now-empty `workflows/` directory).
 
 ## [2.55] - 2026-07-03
 
-`semantic_impact: medium` -- adds **benchmark** as an independent engineering
-process owner under `03-process/benchmark/`. Benchmark now owns current suites,
-canonical workloads, metrics, environments, runner commands, floors, comparison
-rules, trend interpretation, known gaps, and links to product / architecture /
-release decisions. `testing/` stays focused on correctness checks and gates;
-`04-records/research/` keeps one-off benchmark studies until stable rules are
-promoted.
+`semantic_impact: medium` -- adds **benchmark** as an independent engineering process owner under `03-process/benchmark/`. Benchmark now owns current suites, canonical workloads, metrics, environments, runner commands, floors, comparison rules, trend interpretation, known gaps, and links to product / architecture / release decisions. `testing/` stays focused on correctness checks and gates; `04-records/research/` keeps one-off benchmark studies until stable rules are promoted.
 
 ### Changed
 - **`VERSION`** -> `2.55`.
 - **`skills/ssot-preflight/SKILL.md`** `metadata.protocol_version` -> `2.55`.
-- **`area-model.md`**, source-material routing, closeout, commit-audit, and
-  conversation-audit now distinguish correctness testing, stable benchmark
-  policy, and research evidence packets.
-- **`ssot-doctor`** documents `[BENCHMARK-OWNER]` and `[BENCHMARK-LEDGER]`
-  semantics so benchmark facts are not hidden in `testing/` and benchmark
-  owners do not become chronological run logs.
+- **`area-model.md`**, source-material routing, closeout, commit-audit, and conversation-audit now distinguish correctness testing, stable benchmark policy, and research evidence packets.
+- **`ssot-doctor`** documents `[BENCHMARK-OWNER]` and `[BENCHMARK-LEDGER]` semantics so benchmark facts are not hidden in `testing/` and benchmark owners do not become chronological run logs.
 
 ### Added
 - `benchmark-readme.md` bootstrap template in both `en/` and `zh/`.
-- Root `SSOT/README.md`, `STATUS.md`, bootstrap manifest, recon, and template
-  index support for the benchmark process area.
-- `ssot-lint.sh` `[BENCHMARK-OWNER]` checks for missing faceted benchmark
-  owner and obvious benchmark floor / trend facts hidden in `testing/`, plus
-  `[BENCHMARK-LEDGER]` WARN heuristics for dated benchmark run logs.
-- Lint smoke tests for missing benchmark owner, valid benchmark owner,
-  benchmark facts hidden in `testing/`, and benchmark run-log warnings.
+- Root `SSOT/README.md`, `STATUS.md`, bootstrap manifest, recon, and template index support for the benchmark process area.
+- `ssot-lint.sh` `[BENCHMARK-OWNER]` checks for missing faceted benchmark owner and obvious benchmark floor / trend facts hidden in `testing/`, plus `[BENCHMARK-LEDGER]` WARN heuristics for dated benchmark run logs.
+- Lint smoke tests for missing benchmark owner, valid benchmark owner, benchmark facts hidden in `testing/`, and benchmark run-log warnings.
 
 ## [2.54] - 2026-06-30
 
-`semantic_impact: medium` — adds **research / POC records** as a first-class
-records area under `04-records/research/`. Research records preserve questions,
-methods, environment, evidence, negative findings, boundaries, reusable claim
-rows, and promotion targets as structured evidence packets. Product,
-architecture, decisions, and other owners only absorb claims after promotion;
-raw source material remains governed by the source-material lifecycle rules.
+`semantic_impact: medium` — adds **research / POC records** as a first-class records area under `04-records/research/`. Research records preserve questions, methods, environment, evidence, negative findings, boundaries, reusable claim rows, and promotion targets as structured evidence packets. Product, architecture, decisions, and other owners only absorb claims after promotion; raw source material remains governed by the source-material lifecycle rules.
 
 ### Changed
 - **`VERSION`** -> `2.54`.
 - **`skills/ssot-preflight/SKILL.md`** `metadata.protocol_version` -> `2.54`.
-- **`ssot-preflight` / `ssot-closeout`** now distinguish research records from
-  authority mirrors and require explicit disposition when a task produces
-  research or POC evidence.
-- **`ssot-doctor`** documents mechanical research-record checks rather than
-  semantic judgement of research quality.
+- **`ssot-preflight` / `ssot-closeout`** now distinguish research records from authority mirrors and require explicit disposition when a task produces research or POC evidence.
+- **`ssot-doctor`** documents mechanical research-record checks rather than semantic judgement of research quality.
 
 ### Added
-- `research-readme.md` and `research-entry.md` bootstrap templates in both
-  `en/` and `zh/`.
-- Bootstrap skeleton support for `SSOT/04-records/research/README.md` without
-  creating sample research entries.
-- `ssot-lint.sh` `[RESEARCH-RECORD]` checks for canonical location,
-  `NNNN-<slug>.md` numbering, required frontmatter, promotion/recheck fields,
-  and mechanical boundary / `do_not_use_for` signals.
-- Lint smoke tests for valid research records, missing required fields,
-  top-level `SSOT/research/`, and unnumbered entry names.
+- `research-readme.md` and `research-entry.md` bootstrap templates in both `en/` and `zh/`.
+- Bootstrap skeleton support for `SSOT/04-records/research/README.md` without creating sample research entries.
+- `ssot-lint.sh` `[RESEARCH-RECORD]` checks for canonical location, `NNNN-<slug>.md` numbering, required frontmatter, promotion/recheck fields, and mechanical boundary / `do_not_use_for` signals.
+- Lint smoke tests for valid research records, missing required fields, top-level `SSOT/research/`, and unnumbered entry names.
 
 ## [2.53] - 2026-06-30
 
-`semantic_impact: medium` — adds the **active recommendation / non-silent
-deferral floor**. Preflight now classifies task-overlapping open risks as
-`fix-now`, `recommend-now`, `defer-visible`, or `ignore-for-scope`; closeout
-must carry each recommendation to a visible disposition. Deferrals must keep an
-owner or owner record, reason, closure condition, revisit signal, verification
-guard, and next concrete action. Lint adds `[SILENT-DEFERRAL]` for obvious
-future-work wording without owner/reference or retrigger signals.
+`semantic_impact: medium` — adds the **active recommendation / non-silent deferral floor**. Preflight now classifies task-overlapping open risks as `fix-now`, `recommend-now`, `defer-visible`, or `ignore-for-scope`; closeout must carry each recommendation to a visible disposition. Deferrals must keep an owner or owner record, reason, closure condition, revisit signal, verification guard, and next concrete action. Lint adds `[SILENT-DEFERRAL]` for obvious future-work wording without owner/reference or retrigger signals.
 
 ### Changed
 - **`VERSION`** -> `2.53`.
 - **`skills/ssot-preflight/SKILL.md`** `metadata.protocol_version` -> `2.53`.
-- **`ssot-preflight` / `ssot-closeout`** now require classification and
-  closeout disposition of task-relevant risk recommendations.
-- **`area-model.md`** `tech-debt/` rules now state active debt is not passive
-  backlog and active entries should expose next action / must-handle triggers
-  on the first screen.
-- **`doctor.md`** documents the new `[SILENT-DEFERRAL]` tag and extends the
-  open-risk deterministic summary.
+- **`ssot-preflight` / `ssot-closeout`** now require classification and closeout disposition of task-relevant risk recommendations.
+- **`area-model.md`** `tech-debt/` rules now state active debt is not passive backlog and active entries should expose next action / must-handle triggers on the first screen.
+- **`doctor.md`** documents the new `[SILENT-DEFERRAL]` tag and extends the open-risk deterministic summary.
 
 ### Added
-- `ssot-lint.sh` check for `[SILENT-DEFERRAL]`, scoped to obvious "later /
-  someday / future work" wording and locked-language equivalents that lack
-  owner/reference or retrigger signals.
+- `ssot-lint.sh` check for `[SILENT-DEFERRAL]`, scoped to obvious "later / someday / future work" wording and locked-language equivalents that lack owner/reference or retrigger signals.
 - Lint smoke tests for silent deferral failure and owner-backed deferral pass.
 
 ## [2.52] - 2026-06-30
 
-`semantic_impact: medium` — adds the **open-risk and temporary-surface floor**.
-Preflight now surfaces task-relevant active debt and gotchas, open or recurred
-bugs, and open gaps;
-closeout must either close, defer with owner/trigger/guard, or create a next
-action. Temporary fallback, compat shim, later-remove, TODO/FIXME/HACK, and
-waiver surfaces must be registered with owner, reason, closure condition,
-revisit signal, and verification guard. Lint adds deterministic checks for
-markdown fence balance, ADR/debt closure fields, covered-area placeholder
-residue, STATUS aggregate contradictions, unowned gap rows, and pending-action
-text hidden inside resolved capture sections. Bundle-shape adds public hygiene
-guards for local paths, origin-project names, real commit SHAs, and unclosed
-Markdown fences.
+`semantic_impact: medium` — adds the **open-risk and temporary-surface floor**. Preflight now surfaces task-relevant active debt and gotchas, open or recurred bugs, and open gaps; closeout must either close, defer with owner/trigger/guard, or create a next action. Temporary fallback, compat shim, later-remove, TODO/FIXME/HACK, and waiver surfaces must be registered with owner, reason, closure condition, revisit signal, and verification guard. Lint adds deterministic checks for markdown fence balance, ADR/debt closure fields, covered-area placeholder residue, STATUS aggregate contradictions, unowned gap rows, and pending-action text hidden inside resolved capture sections. Bundle-shape adds public hygiene guards for local paths, origin-project names, real commit SHAs, and unclosed Markdown fences.
 
 ### Changed
 - **`VERSION`** -> `2.52`.
 - **`skills/ssot-preflight/SKILL.md`** `metadata.protocol_version` -> `2.52`.
-- **`ssot-preflight` / `ssot-closeout`** now require task-relevant open-risk
-  recommendations and closeout disposition.
-- **`area-model.md`** `tech-debt/` rules now define temporary-surface
-  registration fields.
-- **`architecture.md` §16** now uses one owner per Capability -> Surface
-  registry row plus link-only mirrors instead of duplicate product /
-  architecture registry rows.
+- **`ssot-preflight` / `ssot-closeout`** now require task-relevant open-risk recommendations and closeout disposition.
+- **`area-model.md`** `tech-debt/` rules now define temporary-surface registration fields.
+- **`architecture.md` §16** now uses one owner per Capability -> Surface registry row plus link-only mirrors instead of duplicate product / architecture registry rows.
 
 ### Added
-- `ssot-lint.sh` checks for `[MARKDOWN-FENCE]`, `[ADR-CLOSURE]`,
-  `[DEBT-CLOSURE]`, `[TEMP-SURFACE]`, `[COVERED-PLACEHOLDER]`,
-  `[STATUS-AGGREGATE]`, `[GAP-OWNER]`, and `[CAPTURE-LIFECYCLE]`.
+- `ssot-lint.sh` checks for `[MARKDOWN-FENCE]`, `[ADR-CLOSURE]`, `[DEBT-CLOSURE]`, `[TEMP-SURFACE]`, `[COVERED-PLACEHOLDER]`, `[STATUS-AGGREGATE]`, `[GAP-OWNER]`, and `[CAPTURE-LIFECYCLE]`.
 - Lint smoke tests for the new deterministic checks.
-- Bundle-shape checks for unclosed Markdown fences and public OSS leakage
-  patterns.
+- Bundle-shape checks for unclosed Markdown fences and public OSS leakage patterns.
 
 ## [2.51] - 2026-06-23
 
-`semantic_impact: medium` — adds the **reader-scaffolds floor**. The v2.47–v2.50
-floors all subtracted (cut shadow ledgers, table-only intent, language-drift
-H1s, missing directory maps); v2.51 adds the additive complement: four
-owner-template structural slots a cold agent uses to orient itself after
-routing — `## Walkthrough`, `## Easily confused with`, `## Out of scope`,
-`## See also` — plus a new `glossary-entry.md` per-term template,
-diagram-typing comments in architecture Mermaid blocks, and a KISS mini-card
-permitted form for first-mention canonical vocabulary that does not violate
-`15F [VOCAB-PROSE-FORK]`. Self-reviewable per `status-protocol.md §7.1`; no
-doctor stop-review required.
+`semantic_impact: medium` — adds the **reader-scaffolds floor**. The v2.47–v2.50 floors all subtracted (cut shadow ledgers, table-only intent, language-drift H1s, missing directory maps); v2.51 adds the additive complement: four owner-template structural slots a cold agent uses to orient itself after routing — `## Walkthrough`, `## Easily confused with`, `## Out of scope`, `## See also` — plus a new `glossary-entry.md` per-term template, diagram-typing comments in architecture Mermaid blocks, and a KISS mini-card permitted form for first-mention canonical vocabulary that does not violate `15F [VOCAB-PROSE-FORK]`. Self-reviewable per `status-protocol.md §7.1`; no doctor stop-review required.
 
 ### Added
-- **Owner-template structural slots** — every owner-archetype template in
-  `skills/ssot-bootstrap/assets/templates/{en,zh}/` (`ssot-readme.md`,
-  `architecture-readme.md`, `architecture-domain-readme.md`,
-  `product-readme.md`, `dir-readme-map.md`) now carries `## Walkthrough`,
-  `## Easily confused with`, `## Out of scope`, `## See also` H2 slots.
-- **`glossary-entry.md` template** (en + zh) — per-term glossary entry skeleton:
-  one-sentence positive definition, `Used in` inverse index,
-  `Not to be confused with` boundary list, source pin.
-- **`architecture-domain-readme.md`** gains a `### Walkthrough (canonical flow)`
-  H3 above the Runtime Flows table (required when the table is non-empty).
-- **`product-readme.md`** gains a `## Capabilities ↔ Journeys diagram`
-  mermaid block.
-- **Diagram-typing comments** — first mermaid block in each architecture
-  template carries `<!-- diagram_type: component -->`; templates surface the
-  one-type-per-block rule via an inline notice.
-- **KISS mini-card permitted form** (`SKILL_STYLE.md` reader-scaffolds section):
-  first-mention canonical vocabulary may appear inline as
-  `**Term** (def: <≤ 15-word clause> → [CORE-REF: glossary/<term>.md])`
-  without violating `15F [VOCAB-PROSE-FORK]`.
-- **Doctor rows** `15R [WALKTHROUGH]`, `15S [BOUNDARY-DISAMBIG]`,
-  `15T [OUT-OF-SCOPE-LINK]`, `15U [DIAGRAM-TYPE-TAG]`, `15V [DIAGRAM-FIRST]`
-  appended to `skills/ssot-doctor/references/doctor.md` §2.2. All five ship
-  WARN-only; `15R` graduates to FAIL next cycle.
-- **`ssot-lint.sh` checks 18–22** mirror the five new doctor rows
-  (structural grep only — heading presence, mermaid fence inspection,
-  first-screen line-count check). No NLP.
-- **Audit ledger entry** `### v2.51` added to
-  `skills/ssot-audit/references/current-upgrade.md` with the
-  semantic-impact-medium checklist.
+- **Owner-template structural slots** — every owner-archetype template in `skills/ssot-bootstrap/assets/templates/{en,zh}/` (`ssot-readme.md`, `architecture-readme.md`, `architecture-domain-readme.md`, `product-readme.md`, `dir-readme-map.md`) now carries `## Walkthrough`, `## Easily confused with`, `## Out of scope`, `## See also` H2 slots.
+- **`glossary-entry.md` template** (en + zh) — per-term glossary entry skeleton: one-sentence positive definition, `Used in` inverse index, `Not to be confused with` boundary list, source pin.
+- **`architecture-domain-readme.md`** gains a `### Walkthrough (canonical flow)` H3 above the Runtime Flows table (required when the table is non-empty).
+- **`product-readme.md`** gains a `## Capabilities ↔ Journeys diagram` mermaid block.
+- **Diagram-typing comments** — first mermaid block in each architecture template carries `<!-- diagram_type: component -->`; templates surface the one-type-per-block rule via an inline notice.
+- **KISS mini-card permitted form** (`SKILL_STYLE.md` reader-scaffolds section): first-mention canonical vocabulary may appear inline as `**Term** (def: <≤ 15-word clause> → [CORE-REF: glossary/<term>.md])` without violating `15F [VOCAB-PROSE-FORK]`.
+- **Doctor rows** `15R [WALKTHROUGH]`, `15S [BOUNDARY-DISAMBIG]`, `15T [OUT-OF-SCOPE-LINK]`, `15U [DIAGRAM-TYPE-TAG]`, `15V [DIAGRAM-FIRST]` appended to `skills/ssot-doctor/references/doctor.md` §2.2. All five ship WARN-only; `15R` graduates to FAIL next cycle.
+- **`ssot-lint.sh` checks 18–22** mirror the five new doctor rows (structural grep only — heading presence, mermaid fence inspection, first-screen line-count check). No NLP.
+- **Audit ledger entry** `### v2.51` added to `skills/ssot-audit/references/current-upgrade.md` with the semantic-impact-medium checklist.
 
 ### Changed
 - **`VERSION`** -> `2.51`.
 - **`skills/ssot-preflight/SKILL.md`** `metadata.protocol_version` -> `2.51`.
-- **`skills/ssot-bootstrap/references/bootstrap.md`** §3.7: added
-  `**Reader scaffolds (v2.51).**` subsection (four slots, per-archetype
-  minimum scaffold set, additive-vs-subtractive framing).
-- **`skills/SKILL_STYLE.md`**: added `## Reader scaffolds (v2.51)` section
-  (six-slot summary, why no `archetype:` frontmatter, diagram typing,
-  KISS mini-card permitted form).
-- **`skills/ssot-preflight/references/area-model.md`** §2.0: required-answer
-  list extended from five questions to six (added "Where can I go next, and
-  what does this owner explicitly NOT answer").
-- **`skills/ssot-preflight/references/area-model.md`** §2.3: added
-  `**v2.51 entry template.**` note pointing new glossary entries at
-  `glossary-entry.md`; pre-v2.51 entries grandfather in until next touched.
-- **All five owner-archetype templates**: writing-style banner upgraded
-  from one-line `> Writing style: ...` to multi-line form that names the
-  reader-scaffold slots and links both `bootstrap.md §3.7` and
-  `SKILL_STYLE.md` reader-scaffolds section.
-- **`skills/ssot-bootstrap/references/templates-index.md`**: added
-  `glossary-entry.md` row.
+- **`skills/ssot-bootstrap/references/bootstrap.md`** §3.7: added `**Reader scaffolds (v2.51).**` subsection (four slots, per-archetype minimum scaffold set, additive-vs-subtractive framing).
+- **`skills/SKILL_STYLE.md`**: added `## Reader scaffolds (v2.51)` section (six-slot summary, why no `archetype:` frontmatter, diagram typing, KISS mini-card permitted form).
+- **`skills/ssot-preflight/references/area-model.md`** §2.0: required-answer list extended from five questions to six (added "Where can I go next, and what does this owner explicitly NOT answer").
+- **`skills/ssot-preflight/references/area-model.md`** §2.3: added `**v2.51 entry template.**` note pointing new glossary entries at `glossary-entry.md`; pre-v2.51 entries grandfather in until next touched.
+- **All five owner-archetype templates**: writing-style banner upgraded from one-line `> Writing style: ...` to multi-line form that names the reader-scaffold slots and links both `bootstrap.md §3.7` and `SKILL_STYLE.md` reader-scaffolds section.
+- **`skills/ssot-bootstrap/references/templates-index.md`**: added `glossary-entry.md` row.
 
 ### Compatibility
-- `semantic_impact: medium` — self-reviewable; consumers bump
-  `tracked_skill_version` to `2.51` without an external reviewer.
-- All five new lint checks ship as WARN-only in this cycle so existing
-  converged SSOTs do not regress on the upgrade itself.
-- `15R [WALKTHROUGH]` graduates to FAIL in the next cycle's protocol entry;
-  the other four stay WARN until consumer-adoption signal justifies
-  promotion.
-- The KISS mini-card permitted form is opt-in; existing
-  `[CORE-REF: ...]` links remain valid.
+- `semantic_impact: medium` — self-reviewable; consumers bump `tracked_skill_version` to `2.51` without an external reviewer.
+- All five new lint checks ship as WARN-only in this cycle so existing converged SSOTs do not regress on the upgrade itself.
+- `15R [WALKTHROUGH]` graduates to FAIL in the next cycle's protocol entry; the other four stay WARN until consumer-adoption signal justifies promotion.
+- The KISS mini-card permitted form is opt-in; existing `[CORE-REF: ...]` links remain valid.
 
 ## [2.50] - 2026-06
 
-`semantic_impact: medium` — adds the **information-architecture (IA)
-self-display floor**: a cold reader's first touch is `ls` / `tree`, not
-`cat`. Directory names, file-name prefixes, and the README directory-map
-annotations must carry routing weight; prose is the fallback when the name
-alone cannot disambiguate. New `bootstrap.md` §3.7 sub-rules A1.1–A1.4,
-new Doctor rows `15N` / `15O` / `15P` / `15Q`, new `ssot-lint.sh`
-`[DIR-MAP-MISSING]` check, new `cold-agent-sim.md §1.8 dir-tree-only`
-probe, and a new `dir-readme-map.md` template (en/zh).
+`semantic_impact: medium` — adds the **information-architecture (IA) self-display floor**: a cold reader's first touch is `ls` / `tree`, not `cat`. Directory names, file-name prefixes, and the README directory-map annotations must carry routing weight; prose is the fallback when the name alone cannot disambiguate. New `bootstrap.md` §3.7 sub-rules A1.1–A1.4, new Doctor rows `15N` / `15O` / `15P` / `15Q`, new `ssot-lint.sh` `[DIR-MAP-MISSING]` check, new `cold-agent-sim.md §1.8 dir-tree-only` probe, and a new `dir-readme-map.md` template (en/zh).
 
 ### Changed
 - **`VERSION`** -> `2.50`.
 - **`skills/ssot-preflight/SKILL.md`** `metadata.protocol_version` -> `2.50`.
-- **`skills/ssot-bootstrap/references/bootstrap.md`** §3.7: added
-  "Information-architecture self-display (v2.50)" block introducing
-  sub-rules A1.1 (directory README = directory map), A1.2 (numeric
-  prefix for read-ordered directories), A1.3 (file names spoken in plain
-  words), A1.4 (meta files routed explicitly).
-- **`skills/ssot-doctor/references/doctor.md`** §2.1 L1 checklist and §4
-  output-tag list: added rows `15N [DIR-MAP]`, `15O [READ-ORDER]`,
-  `15P [META-FILE-ROUTING]`, `15Q [JARGON-MAP-NOTE]` plus §3 coverage
-  hard-blocker entries for each.
-- **`skills/ssot-doctor/references/cold-agent-sim.md`** §1.8:
-  added the `dir-tree-only` routing probe with mandatory question pool
-  and `navigation-gap` / `boundary-gap` / `meta-routing-gap` /
-  `read-order-gap` miss classes.
-- **`skills/ssot-doctor/assets/scripts/ssot-lint.sh`**: added check 17
-  `[DIR-MAP-MISSING]` (15N) verifying that every directory README's
-  first 60 lines carries an ASCII tree (├── / └── glyphs). Made checks
-  9 and 10 (intent-truth-narrative + product skeleton) resolve the
-  product / architecture trunk path at runtime so consumers can facet
-  the top level (e.g. `SSOT/01-product/`, `SSOT/02-architecture/`)
-  without breaking the skeleton check.
-- **`skills/ssot-bootstrap/assets/templates/{en,zh}/dir-readme-map.md`**:
-  new template — H1 + one-sentence purpose + ASCII tree with
-  plain-language annotation rows + recommended-reading-order line +
-  one-paragraph "why this split".
+- **`skills/ssot-bootstrap/references/bootstrap.md`** §3.7: added "Information-architecture self-display (v2.50)" block introducing sub-rules A1.1 (directory README = directory map), A1.2 (numeric prefix for read-ordered directories), A1.3 (file names spoken in plain words), A1.4 (meta files routed explicitly).
+- **`skills/ssot-doctor/references/doctor.md`** §2.1 L1 checklist and §4 output-tag list: added rows `15N [DIR-MAP]`, `15O [READ-ORDER]`, `15P [META-FILE-ROUTING]`, `15Q [JARGON-MAP-NOTE]` plus §3 coverage hard-blocker entries for each.
+- **`skills/ssot-doctor/references/cold-agent-sim.md`** §1.8: added the `dir-tree-only` routing probe with mandatory question pool and `navigation-gap` / `boundary-gap` / `meta-routing-gap` / `read-order-gap` miss classes.
+- **`skills/ssot-doctor/assets/scripts/ssot-lint.sh`**: added check 17 `[DIR-MAP-MISSING]` (15N) verifying that every directory README's first 60 lines carries an ASCII tree (├── / └── glyphs). Made checks 9 and 10 (intent-truth-narrative + product skeleton) resolve the product / architecture trunk path at runtime so consumers can facet the top level (e.g. `SSOT/01-product/`, `SSOT/02-architecture/`) without breaking the skeleton check.
+- **`skills/ssot-bootstrap/assets/templates/{en,zh}/dir-readme-map.md`**: new template — H1 + one-sentence purpose + ASCII tree with plain-language annotation rows + recommended-reading-order line + one-paragraph "why this split".
 
 ### Compatibility
-- Existing consumers that use the canonical un-faceted shape
-  (`SSOT/product/`, `SSOT/architecture/`) continue to pass the v2.50
-  lint unchanged.
-- Consumers that previously had directory READMEs without an ASCII tree
-  must add one. The `[DIR-MAP-MISSING]` check is a FAIL.
-- The `[PRODUCT]` skeleton check now also accepts `SSOT/01-product/`
-  when that directory exists; the canonical `SSOT/product/` is still
-  the default fall-through.
+- Existing consumers that use the canonical un-faceted shape (`SSOT/product/`, `SSOT/architecture/`) continue to pass the v2.50 lint unchanged.
+- Consumers that previously had directory READMEs without an ASCII tree must add one. The `[DIR-MAP-MISSING]` check is a FAIL.
+- The `[PRODUCT]` skeleton check now also accepts `SSOT/01-product/` when that directory exists; the canonical `SSOT/product/` is still the default fall-through.
 
 ## [2.49] - 2026-06
 
-`semantic_impact: low` — codifies SSOT document naming, frontmatter
-uniformity, and H1 language conventions in a single reference
-(`skills/ssot-bootstrap/references/formatting-conventions.md`) and gives
-`ssot-lint.sh` four new deterministic checks plus matching Doctor L2 rows
-so the conventions can be enforced mechanically.
+`semantic_impact: low` — codifies SSOT document naming, frontmatter uniformity, and H1 language conventions in a single reference (`skills/ssot-bootstrap/references/formatting-conventions.md`) and gives `ssot-lint.sh` four new deterministic checks plus matching Doctor L2 rows so the conventions can be enforced mechanically.
 
 ### Changed
 - **`VERSION`** -> `2.49`.
 - **`skills/ssot-preflight/SKILL.md`** `metadata.protocol_version` -> `2.49`.
-- **`skills/ssot-bootstrap/references/formatting-conventions.md`**: new file
-  — naming (`NN-` ordered prefix vs `NNNN-` ledger prefix vs unordered
-  kebab-case), same-directory frontmatter uniformity, the
-  `intent_recovery:` propagation rule under `product/` and `architecture/`,
-  and the H1-leads-with-locked-language rule.
-- **`skills/ssot-bootstrap/references/bootstrap.md`**: adds §3.8 pointing at
-  the new formatting-conventions reference.
-- **`skills/ssot-doctor/references/doctor.md`**: adds rows
-  `15J [PEER-FRONTMATTER]`, `15K [NUMBERED-PREFIX]`, `15L [H1-LANGUAGE]`,
-  `15M [INTENT-RECOVERY-UNIFORM]`; adds matching hard-blocker bullets
-  (15J / 15K / 15M block `covered`, 15L WARN-only) and output tag entries.
-- **`skills/ssot-doctor/assets/scripts/ssot-lint.sh`**: adds checks 13–16
-  (15J–15M) — sibling frontmatter key-set uniformity, ordered-directory
-  numbering, pure-English H1 detection under `documentation_language: zh`,
-  and `intent_recovery:` presence on `product/` and `architecture/` prose.
+- **`skills/ssot-bootstrap/references/formatting-conventions.md`**: new file— naming (`NN-` ordered prefix vs `NNNN-` ledger prefix vs unordered kebab-case), same-directory frontmatter uniformity, the `intent_recovery:` propagation rule under `product/` and `architecture/`, and the H1-leads-with-locked-language rule.
+- **`skills/ssot-bootstrap/references/bootstrap.md`**: adds §3.8 pointing at the new formatting-conventions reference.
+- **`skills/ssot-doctor/references/doctor.md`**: adds rows `15J [PEER-FRONTMATTER]`, `15K [NUMBERED-PREFIX]`, `15L [H1-LANGUAGE]`, `15M [INTENT-RECOVERY-UNIFORM]`; adds matching hard-blocker bullets (15J / 15K / 15M block `covered`, 15L WARN-only) and output tag entries.
+- **`skills/ssot-doctor/assets/scripts/ssot-lint.sh`**: adds checks 13–16 (15J–15M) — sibling frontmatter key-set uniformity, ordered-directory numbering, pure-English H1 detection under `documentation_language: zh`, and `intent_recovery:` presence on `product/` and `architecture/` prose.
 
 ## [2.48] - 2026-06
 
-`semantic_impact: medium` — separates SSOT self-maintenance machinery from
-product / architecture prose. Doctor / lint / cold-agent-sim machinery
-introduced by v2.43–v2.47 (Core recovery manifest, Core completeness argument,
-Apex / Maxim → Owner index, Capability → Surface registry mirror rows,
-intent-recovery pillar matrix, `intent_recovery_evidence` strings, README-self
-failure-mode sections, adoption-cycle version labels) now lives in a sibling
-`_manifest.md` per covered area. Prose owners (`product/*.md`,
-`product/{capabilities,journeys}/*.md`, `architecture/*.md`,
-`architecture/*/*.md`, `architecture/views/*.md` — excluding `_manifest.md`)
-carry only the product / design narrative plus inline `[CORE-REF: ...]`
-anchors. Doctor gains hard row `15I [META-LEAKAGE]`; `ssot-lint.sh` gains a
-deterministic grep check (always run as part of normal lint) plus a standalone
-`--check-meta-leakage` flag.
+`semantic_impact: medium` — separates SSOT self-maintenance machinery from product / architecture prose. Doctor / lint / cold-agent-sim machinery introduced by v2.43–v2.47 (Core recovery manifest, Core completeness argument, Apex / Maxim → Owner index, Capability → Surface registry mirror rows, intent-recovery pillar matrix, `intent_recovery_evidence` strings, README-self failure-mode sections, adoption-cycle version labels) now lives in a sibling `_manifest.md` per covered area. Prose owners (`product/*.md`, `product/{capabilities,journeys}/*.md`, `architecture/*.md`, `architecture/*/*.md`, `architecture/views/*.md` — excluding `_manifest.md`) carry only the product / design narrative plus inline `[CORE-REF: ...]` anchors. Doctor gains hard row `15I [META-LEAKAGE]`; `ssot-lint.sh` gains a deterministic grep check (always run as part of normal lint) plus a standalone `--check-meta-leakage` flag.
 
 ### Changed
 - **`VERSION`** -> `2.48`.
 - **`skills/ssot-preflight/SKILL.md`** `metadata.protocol_version` -> `2.48`.
-- **`skills/ssot-preflight/references/area-model.md`**: adds §2.0.5 Manifest
-  separation defining the prose/manifest split and the v2.48 forbidden-token
-  list for covered prose files.
-- **`skills/ssot-doctor/references/doctor.md`**: adds `15I [META-LEAKAGE]`
-  row, tag entry, and hard-blocker bullet; extends the L1 automation prefix.
-- **`skills/ssot-doctor/assets/scripts/ssot-lint.sh`**: adds always-on `15I`
-  grep (FAIL on hit) plus standalone `--check-meta-leakage [DIR ...]` mode
-  for targeted invocation against `SSOT/01-product/` and `SSOT/02-architecture/`.
-- **`skills/ssot-bootstrap/assets/templates/{en,zh}/_manifest.md`**: new
-  template for area-level `_manifest.md` (Core recovery manifest + Apex /
-  Maxim mirror + Capability surface registry + README-self failure modes +
-  intent-recovery evidence + adoption-cycle log).
-- **`skills/ssot-audit/references/current-upgrade.md`**: adds v2.48 ledger
-  entry with impact checklist and no-op criteria.
+- **`skills/ssot-preflight/references/area-model.md`**: adds §2.0.5 Manifest separation defining the prose/manifest split and the v2.48 forbidden-token list for covered prose files.
+- **`skills/ssot-doctor/references/doctor.md`**: adds `15I [META-LEAKAGE]` row, tag entry, and hard-blocker bullet; extends the L1 automation prefix.
+- **`skills/ssot-doctor/assets/scripts/ssot-lint.sh`**: adds always-on `15I` grep (FAIL on hit) plus standalone `--check-meta-leakage [DIR ...]` mode for targeted invocation against `SSOT/01-product/` and `SSOT/02-architecture/`.
+- **`skills/ssot-bootstrap/assets/templates/{en,zh}/_manifest.md`**: new template for area-level `_manifest.md` (Core recovery manifest + Apex / Maxim mirror + Capability surface registry + README-self failure modes + intent-recovery evidence + adoption-cycle log).
+- **`skills/ssot-audit/references/current-upgrade.md`**: adds v2.48 ledger entry with impact checklist and no-op criteria.
 
 ### Migration
-- Run `ssot-lint.sh --check-meta-leakage SSOT/01-product/ SSOT/02-architecture/`
-  to enumerate current `15I` hits.
-- For each covered area, create `<area>/_manifest.md` from the new template
-  and move Core recovery manifest, Apex / Maxim mirror, Capability surface
-  registry rows, intent-recovery evidence, README-self failure-mode sections,
-  and adoption-cycle labels into it. Frontmatter on prose files reduces to
-  `intent_recovery: covered|partial|gap`.
+- Run `ssot-lint.sh --check-meta-leakage SSOT/01-product/ SSOT/02-architecture/` to enumerate current `15I` hits.
+- For each covered area, create `<area>/_manifest.md` from the new template and move Core recovery manifest, Apex / Maxim mirror, Capability surface registry rows, intent-recovery evidence, README-self failure-mode sections, and adoption-cycle labels into it. Frontmatter on prose files reduces to `intent_recovery: covered|partial|gap`.
 - Re-run the targeted lint; `FAIL=0` is the v2.48 acceptance bar.
 
 ## [2.47] - 2026-06
 
-`semantic_impact: medium` — adds an intent/truth narrative gate for product and
-architecture trunks. Covered product / architecture areas must explain product
-intent + product truth or design intent + design truth in compact prose before
-Core recovery manifests or dense owner maps; the manifest remains a narrow
-recovery index. Doctor gains `15H [INTENT-TRUTH-NARRATIVE]`, and `ssot-lint.sh`
-adds a WARN-only heuristic for covered trunks that have a Core recovery manifest
-but no obvious intent/truth narrative heading.
+`semantic_impact: medium` — adds an intent/truth narrative gate for product and architecture trunks. Covered product / architecture areas must explain product intent + product truth or design intent + design truth in compact prose before Core recovery manifests or dense owner maps; the manifest remains a narrow recovery index. Doctor gains `15H [INTENT-TRUTH-NARRATIVE]`, and `ssot-lint.sh` adds a WARN-only heuristic for covered trunks that have a Core recovery manifest but no obvious intent/truth narrative heading.
 
 ### Changed
 - **`VERSION`** -> `2.47`.
 - **`skills/ssot-preflight/SKILL.md`** `metadata.protocol_version` -> `2.47`.
-- **`skills/ssot-preflight/references/area-model.md`**: adds §2.0.3
-  intent/truth narrative before manifests.
-- **`skills/ssot-preflight/references/architecture.md`** and
-  **`skills/ssot-bootstrap/references/bootstrap.md`**: require prose-first
-  product/design intent and truth before dense tables.
-- **`skills/ssot-bootstrap/assets/templates/{en,zh}/{product-readme.md,architecture-readme.md}`**:
-  add product/design intent-truth sections.
-- **`skills/ssot-doctor/references/doctor.md`**: adds
-  `15H [INTENT-TRUTH-NARRATIVE]`.
-- **`skills/ssot-doctor/assets/scripts/ssot-lint.sh`** and its test runner:
-  add the WARN-only intent/truth narrative heuristic.
-- **`skills/ssot-audit/references/current-upgrade.md`**: prepends the v2.47
-  medium-impact upgrade entry.
+- **`skills/ssot-preflight/references/area-model.md`**: adds §2.0.3 intent/truth narrative before manifests.
+- **`skills/ssot-preflight/references/architecture.md`** and **`skills/ssot-bootstrap/references/bootstrap.md`**: require prose-first product/design intent and truth before dense tables.
+- **`skills/ssot-bootstrap/assets/templates/{en,zh}/{product-readme.md,architecture-readme.md}`**: add product/design intent-truth sections.
+- **`skills/ssot-doctor/references/doctor.md`**: adds `15H [INTENT-TRUTH-NARRATIVE]`.
+- **`skills/ssot-doctor/assets/scripts/ssot-lint.sh`** and its test runner: add the WARN-only intent/truth narrative heuristic.
+- **`skills/ssot-audit/references/current-upgrade.md`**: prepends the v2.47 medium-impact upgrade entry.
 
 ## [2.46] - 2026-06
 
-`semantic_impact: medium` — tightens the Core recovery manifest into a
-first-principles completeness check. Product and architecture trunks that claim
-`covered` must now explain why their finite core set is complete, which
-product-model / operating-model classes are included, which near-miss items are
-excluded, and what wrong conclusion an omitted class would cause. Doctor
-`15G [CORE-COVERAGE-MAP]` now covers missing completeness arguments, omitted
-product posture/model or architecture operating-model/CTG rows, unmapped state
-labels such as `current`, and spine-owned rows that lack a same-granularity
-anchor.
+`semantic_impact: medium` — tightens the Core recovery manifest into a first-principles completeness check. Product and architecture trunks that claim `covered` must now explain why their finite core set is complete, which product-model / operating-model classes are included, which near-miss items are excluded, and what wrong conclusion an omitted class would cause. Doctor `15G [CORE-COVERAGE-MAP]` now covers missing completeness arguments, omitted product posture/model or architecture operating-model/CTG rows, unmapped state labels such as `current`, and spine-owned rows that lack a same-granularity anchor.
 
 ### Changed
 - **`VERSION`** -> `2.46`.
 - **`skills/ssot-preflight/SKILL.md`** `metadata.protocol_version` -> `2.46`.
-- **`skills/ssot-preflight/references/area-model.md`**: extends the Core
-  recovery manifest with the Core completeness argument and spine-row anchor
-  rule.
-- **`skills/ssot-preflight/references/knowledge-integrity.md`**: binds
-  `intent_recovery: covered` to the completeness argument as well as manifest
-  row coverage.
-- **`skills/ssot-doctor/references/cold-agent-sim.md`**: adds the
-  completeness probe and omission-risk prompt dimension to manifest sweeps.
-- **`skills/ssot-doctor/references/doctor.md`**: broadens
-  `15G [CORE-COVERAGE-MAP]`.
-- **`skills/ssot-audit/references/current-upgrade.md`**: prepends the
-  standalone v2.46 medium-impact upgrade entry.
+- **`skills/ssot-preflight/references/area-model.md`**: extends the Core recovery manifest with the Core completeness argument and spine-row anchor rule.
+- **`skills/ssot-preflight/references/knowledge-integrity.md`**: binds `intent_recovery: covered` to the completeness argument as well as manifest row coverage.
+- **`skills/ssot-doctor/references/cold-agent-sim.md`**: adds the completeness probe and omission-risk prompt dimension to manifest sweeps.
+- **`skills/ssot-doctor/references/doctor.md`**: broadens `15G [CORE-COVERAGE-MAP]`.
+- **`skills/ssot-audit/references/current-upgrade.md`**: prepends the standalone v2.46 medium-impact upgrade entry.
 
 ## [2.45] - 2026-06
 
-`semantic_impact: medium` — adds a finite Core recovery manifest requirement
-for product and architecture recoverability. Consumers that mark `product` or
-`architecture` as `covered` must enumerate the core capabilities, journeys,
-runtime owners, and cross-owner views whose product/design intent and truth must
-be recoverable; each row names required pillars, current truth state, owner, and
-closure/evidence owner. `mixed` is the explicit state for a row that combines
-shipped contract truth with unresolved design/debt/out truth. Cold-agent-sim now
-performs owner-directed manifest trials for core rows not touched by recent commits, and Doctor gains
-`15G [CORE-COVERAGE-MAP]`.
+`semantic_impact: medium` — adds a finite Core recovery manifest requirement for product and architecture recoverability. Consumers that mark `product` or `architecture` as `covered` must enumerate the core capabilities, journeys, runtime owners, and cross-owner views whose product/design intent and truth must be recoverable; each row names required pillars, current truth state, owner, and closure/evidence owner. `mixed` is the explicit state for a row that combines shipped contract truth with unresolved design/debt/out truth. Cold-agent-sim now performs owner-directed manifest trials for core rows not touched by recent commits, and Doctor gains `15G [CORE-COVERAGE-MAP]`.
 
 ### Changed
 - **`VERSION`** -> `2.45`.
-- **`skills/ssot-preflight/SKILL.md`** `metadata.protocol_version` -> `2.45`
-  and explicitly reports stale runtime-installed skill copies when a project
-  source checkout is newer.
-- **`skills/ssot-preflight/references/area-model.md`**: adds the Core recovery
-  manifest rule for product and architecture trunks.
-- **`skills/ssot-preflight/references/knowledge-integrity.md`**: binds
-  `intent_recovery: covered` to complete manifest coverage.
-- **`skills/ssot-doctor/references/cold-agent-sim.md`**: adds manifest sweep
-  scheduling, synthetic owner-directed trials, result reporting, and cycle-gate
-  criteria.
-- **`skills/ssot-doctor/references/doctor.md`**: adds
-  `15G [CORE-COVERAGE-MAP]`.
-- **`skills/ssot-audit/references/current-upgrade.md`**: prepend the standalone
-  v2.45 medium-impact upgrade entry.
+- **`skills/ssot-preflight/SKILL.md`** `metadata.protocol_version` -> `2.45` and explicitly reports stale runtime-installed skill copies when a project source checkout is newer.
+- **`skills/ssot-preflight/references/area-model.md`**: adds the Core recovery manifest rule for product and architecture trunks.
+- **`skills/ssot-preflight/references/knowledge-integrity.md`**: binds `intent_recovery: covered` to complete manifest coverage.
+- **`skills/ssot-doctor/references/cold-agent-sim.md`**: adds manifest sweep scheduling, synthetic owner-directed trials, result reporting, and cycle-gate criteria.
+- **`skills/ssot-doctor/references/doctor.md`**: adds `15G [CORE-COVERAGE-MAP]`.
+- **`skills/ssot-audit/references/current-upgrade.md`**: prepend the standalone v2.45 medium-impact upgrade entry.
 
 ## [2.44] - 2026-06
 
-`semantic_impact: medium` — tightens the intent-recoverability model for
-current product truth. A product `product_truth` trial no longer treats
-"no contract-level browser surface exists yet" as automatically equivalent to
-unrecoverable truth when the product owner explicitly marks the row as
-`state: design`, `state: debt`, `Out`, or `not_applicable` and gives the
-current user-visible behavior plus a falsifiable gap / decision / debt anchor.
-This prevents the harness from forcing product files to pretend a planned or
-negative surface is a shipped contract just to satisfy `[SURFACE-PIN]`.
+`semantic_impact: medium` — tightens the intent-recoverability model for current product truth. A product `product_truth` trial no longer treats "no contract-level browser surface exists yet" as automatically equivalent to unrecoverable truth when the product owner explicitly marks the row as `state: design`, `state: debt`, `Out`, or `not_applicable` and gives the current user-visible behavior plus a falsifiable gap / decision / debt anchor. This prevents the harness from forcing product files to pretend a planned or negative surface is a shipped contract just to satisfy `[SURFACE-PIN]`.
 
 ### Changed
 - **`VERSION`** -> `2.44`.
 - **`skills/ssot-preflight/SKILL.md`** `metadata.protocol_version` -> `2.44`.
-- **`skills/ssot-preflight/references/area-model.md`**: `product/`
-  capability owners must carry current-truth anchors for contract,
-  design/debt, Out, and not-applicable rows.
-- **`skills/ssot-preflight/references/knowledge-integrity.md`**:
-  `product_truth` intent recovery explicitly accepts state-tagged negative /
-  design current-truth anchors when the current behavior and closure owner are
-  recoverable.
-- **`skills/ssot-doctor/references/cold-agent-sim.md`**: `product_truth`
-  pillar, output schema, grading rubric, and miss-class taxonomy gain
-  `truth-state-gap`.
-- **`skills/ssot-doctor/references/doctor.md`**: `[SURFACE-PIN]` (14T) and
-  `[INTENT-RECOVERY]` (14Y) distinguish contract surface anchors from
-  state-tagged current-truth anchors.
-- **`skills/ssot-audit/references/current-upgrade.md`**: prepend the
-  standalone v2.44 medium-impact upgrade entry.
+- **`skills/ssot-preflight/references/area-model.md`**: `product/` capability owners must carry current-truth anchors for contract, design/debt, Out, and not-applicable rows.
+- **`skills/ssot-preflight/references/knowledge-integrity.md`**: `product_truth` intent recovery explicitly accepts state-tagged negative / design current-truth anchors when the current behavior and closure owner are recoverable.
+- **`skills/ssot-doctor/references/cold-agent-sim.md`**: `product_truth` pillar, output schema, grading rubric, and miss-class taxonomy gain `truth-state-gap`.
+- **`skills/ssot-doctor/references/doctor.md`**: `[SURFACE-PIN]` (14T) and `[INTENT-RECOVERY]` (14Y) distinguish contract surface anchors from state-tagged current-truth anchors.
+- **`skills/ssot-audit/references/current-upgrade.md`**: prepend the standalone v2.44 medium-impact upgrade entry.
 
 ## [2.43] - 2026-06
 
-`semantic_impact: medium` — opens the intent-recoverability cycle. Adds an
-apex-maxim → SSOT-owner mapping protocol (new
-`skills/ssot-preflight/references/intent-ownership.md`), an architecture
-domain README intent triad (`## Why` / `## 失败模式` / `## 关闭条件`), a
-canonical-vocabulary hard list for `glossary/`, falsifiable
-`closure_condition` + `revisit_signal` fields for ADRs and tech-debt
-entries, and an `intent_recovery: covered | partial | gap` axis on
-`knowledge-integrity.md` that binds `STATUS.md` `covered` to passing
-cold-agent-sim trials. The cold-agent simulation harness now scores per
-4 pillars (`design_intent` / `product_intent` / `design_truth` /
-`product_truth`) with a `≥ 5/8` floor per pillar plus `≥ 24/32` aggregate
-gate, and every FAIL trial records a closed-set `miss_class` of
-`missing-owner` / `prose-fork` / `broken-ref` / `glossary-gap`. Doctor
-gains seven new rows: `14W [INTENT-OWNER]`, `14X [MAXIM-OWNER]`,
-`14Y [INTENT-RECOVERY]`, `14Z [CORE-REF-PROSE]`,
-`15A [WORKFLOW-STATE-VOCAB]`, `15B [ADR-CLOSURE]`,
-`15C [DEBT-CLOSURE]`; the legacy `[FORK]` and `[FIRST-DAY]` rows are
-renumbered to `15D` and `15E` respectively to free the 14W/14X slots.
+`semantic_impact: medium` — opens the intent-recoverability cycle. Adds an apex-maxim → SSOT-owner mapping protocol (new `skills/ssot-preflight/references/intent-ownership.md`), an architecture domain README intent triad (`## Why` / `## 失败模式` / `## 关闭条件`), a canonical-vocabulary hard list for `glossary/`, falsifiable `closure_condition` + `revisit_signal` fields for ADRs and tech-debt entries, and an `intent_recovery: covered | partial | gap` axis on `knowledge-integrity.md` that binds `STATUS.md` `covered` to passing cold-agent-sim trials. The cold-agent simulation harness now scores per 4 pillars (`design_intent` / `product_intent` / `design_truth` / `product_truth`) with a `≥ 5/8` floor per pillar plus `≥ 24/32` aggregate gate, and every FAIL trial records a closed-set `miss_class` of `missing-owner` / `prose-fork` / `broken-ref` / `glossary-gap`. Doctor gains seven new rows: `14W [INTENT-OWNER]`, `14X [MAXIM-OWNER]`, `14Y [INTENT-RECOVERY]`, `14Z [CORE-REF-PROSE]`, `15A [WORKFLOW-STATE-VOCAB]`, `15B [ADR-CLOSURE]`, `15C [DEBT-CLOSURE]`; the legacy `[FORK]` and `[FIRST-DAY]` rows are renumbered to `15D` and `15E` respectively to free the 14W/14X slots.
 
 ### Changed
 - **`VERSION`** -> `2.43`.
@@ -1033,14 +430,7 @@ renumbered to `15D` and `15E` respectively to free the 14W/14X slots.
 
 ## [2.38] - 2026-06
 
-`semantic_impact: medium` - adds source-document lifecycle governance and the
-Runtime Owner Map architecture IA. Root public Markdown and `docs/**/*.md` now
-need lifecycle inventory, an in-file header, or an audited exclusion once a
-consumer advances to v2.38. Working, historical, external, and public-thin docs
-carry authority/downgrade fields so thick docs can exist without pretending to
-be current SSOT. Product owns intent; architecture owns implementation
-response. Architecture templates default to runtime owners rather than a
-universal section checklist.
+`semantic_impact: medium` - adds source-document lifecycle governance and the Runtime Owner Map architecture IA. Root public Markdown and `docs/**/*.md` now need lifecycle inventory, an in-file header, or an audited exclusion once a consumer advances to v2.38. Working, historical, external, and public-thin docs carry authority/downgrade fields so thick docs can exist without pretending to be current SSOT. Product owns intent; architecture owns implementation response. Architecture templates default to runtime owners rather than a universal section checklist.
 
 ### Changed
 - **`VERSION`** -> `2.38`.
@@ -1054,13 +444,7 @@ universal section checklist.
 
 ## [2.37] - 2026-06
 
-`semantic_impact: medium` - applies the v2.36 KISS principle to SSOT-SKILL's
-own protocol surfaces. STATUS and closeout routing now lead with prose decision
-paths and keep wide tables as appendices; bootstrap STATUS/manifest/recon
-templates default to thin registers; architecture protocol requires a mental
-model, owner boundary, and evidence direction before optional matrices; protocol
-upgrade history is split into a small router, `current-upgrade.md`, and archive
-range files so ordinary audits no longer load the whole historical ledger.
+`semantic_impact: medium` - applies the v2.36 KISS principle to SSOT-SKILL's own protocol surfaces. STATUS and closeout routing now lead with prose decision paths and keep wide tables as appendices; bootstrap STATUS/manifest/recon templates default to thin registers; architecture protocol requires a mental model, owner boundary, and evidence direction before optional matrices; protocol upgrade history is split into a small router, `current-upgrade.md`, and archive range files so ordinary audits no longer load the whole historical ledger.
 
 ### Changed
 - **`VERSION`** -> `2.37`.
@@ -1074,15 +458,7 @@ range files so ordinary audits no longer load the whole historical ledger.
 
 ## [2.36] - 2026-06
 
-`semantic_impact: medium` - makes KISS the permanent SSOT design principle.
-SSOT owners must give the mental model in prose and use tables only for
-routing, comparison, state registers, or evidence lookup. `STATUS.md`,
-bootstrap manifests, promotion metadata, and protocol ledgers remain allowed
-registers, but their cells must stay pointer-sized; paragraph reasoning,
-command output, copied checklists, and proof-of-work transcripts move to the
-authoritative owner or evidence artifact. Doctor gains semantic tag `[KISS]`;
-`ssot-lint.sh` adds a WARN-only `[KISS-TABLE-DENSITY]` heuristic; STATUS and
-architecture-domain templates now make the register/prose boundary explicit.
+`semantic_impact: medium` - makes KISS the permanent SSOT design principle. SSOT owners must give the mental model in prose and use tables only for routing, comparison, state registers, or evidence lookup. `STATUS.md`, bootstrap manifests, promotion metadata, and protocol ledgers remain allowed registers, but their cells must stay pointer-sized; paragraph reasoning, command output, copied checklists, and proof-of-work transcripts move to the authoritative owner or evidence artifact. Doctor gains semantic tag `[KISS]`; `ssot-lint.sh` adds a WARN-only `[KISS-TABLE-DENSITY]` heuristic; STATUS and architecture-domain templates now make the register/prose boundary explicit.
 
 ### Changed
 - **`VERSION`** -> `2.36`.
@@ -1333,211 +709,99 @@ architecture-domain templates now make the register/prose boundary explicit.
 ## [2.21] - 2026-06
 
 ### Added
-- **Agent operation discipline routing**: `area-model.md §2.5` now defines
-  `development/` discipline as the owner of cross-task imperative rules
-  (`Rule / Trigger / Why / Evidence / Failure mode`), with a recommended
-  `development/discipline.md` sub-file carrying `DISC-NNNN` entries. Discipline
-  is task-pattern-scoped; `gotchas/` remains file/module-scoped.
-- `area-model.md §4.1 Default fallback for unrouted durable knowledge`:
-  imperative rule → `development/`; file-scoped trap → `gotchas/`; trade-off →
-  `decisions/`; bug instance takeaway → `bugs/<entry>.md`. Explicitly forbids
-  creating new top-level areas to absorb unrouted knowledge.
-- `update-routing.md §2` new file-type row for external SDK / third-party API
-  integration code (`*sdk*`, `*adapter*`, `integrations/`, manifest version
-  bumps of an external SDK / LLM client / remote-service client) routed to
-  architecture/, `development/` discipline, and bugs/ when applicable.
-- `update-routing.md §3` four new conversation-signal rows for: long-term
-  lesson / "from now on always X", mock-only-passed-real-service-differed,
-  hotfix-of-hotfix on the same external behaviour, and the meta-question
-  "where should this lesson live?" (which dispatches to §4.1 fallback).
-- `update-routing.md §4` cascade row for discovery of long-term agent-operation
-  discipline, requiring sync to `development/`, originating bug/decision and
-  optionally `testing/` for the enforcement test.
-- `ssot-preflight/SKILL.md §3` in-task write trigger for user-confirmed
-  cross-task agent operation discipline.
+- **Agent operation discipline routing**: `area-model.md §2.5` now defines `development/` discipline as the owner of cross-task imperative rules (`Rule / Trigger / Why / Evidence / Failure mode`), with a recommended `development/discipline.md` sub-file carrying `DISC-NNNN` entries. Discipline is task-pattern-scoped; `gotchas/` remains file/module-scoped.
+- `area-model.md §4.1 Default fallback for unrouted durable knowledge`: imperative rule → `development/`; file-scoped trap → `gotchas/`; trade-off → `decisions/`; bug instance takeaway → `bugs/<entry>.md`. Explicitly forbids creating new top-level areas to absorb unrouted knowledge.
+- `update-routing.md §2` new file-type row for external SDK / third-party API integration code (`*sdk*`, `*adapter*`, `integrations/`, manifest version bumps of an external SDK / LLM client / remote-service client) routed to architecture/, `development/` discipline, and bugs/ when applicable.
+- `update-routing.md §3` four new conversation-signal rows for: long-term lesson / "from now on always X", mock-only-passed-real-service-differed, hotfix-of-hotfix on the same external behaviour, and the meta-question "where should this lesson live?" (which dispatches to §4.1 fallback).
+- `update-routing.md §4` cascade row for discovery of long-term agent-operation discipline, requiring sync to `development/`, originating bug/decision and optionally `testing/` for the enforcement test.
+- `ssot-preflight/SKILL.md §3` in-task write trigger for user-confirmed cross-task agent operation discipline.
 
 ### Changed
-- `area-model.md §2.10 gotchas/` upgrades the `Trigger` field from
-  `(recommended)` to `[SHOULD]` and adds an explicit boundary note: cross-task
-  procedural rules belong in `development/` discipline, not in `gotchas/`.
+- `area-model.md §2.10 gotchas/` upgrades the `Trigger` field from `(recommended)` to `[SHOULD]` and adds an explicit boundary note: cross-task procedural rules belong in `development/` discipline, not in `gotchas/`.
 
 ### Not required
-- No new SSOT top-level area, STATUS field, JSON/YAML state file, schema,
-  command or skill.
-- No new Doctor label; reuse `[CONSUMPTION]` and `[OWNER-ANCHOR]` when
-  discipline entries are unreferenced or duplicate a bug takeaway without a
-  clear owner.
-- No `ssot-lint.sh` or `test-bundle-shape.sh` changes; v2.21 is a semantic
-  protocol extension (same posture as v2.18).
-- No mechanical migration of historical `gotchas/` entries; only the trigger
-  field convention is reaffirmed.
+- No new SSOT top-level area, STATUS field, JSON/YAML state file, schema, command or skill.
+- No new Doctor label; reuse `[CONSUMPTION]` and `[OWNER-ANCHOR]` when discipline entries are unreferenced or duplicate a bug takeaway without a clear owner.
+- No `ssot-lint.sh` or `test-bundle-shape.sh` changes; v2.21 is a semantic protocol extension (same posture as v2.18).
+- No mechanical migration of historical `gotchas/` entries; only the trigger field convention is reaffirmed.
 
 ## [2.20] - 2026-06
 
 ### Added
-- **Installer agent registry expanded from 4 to 70 agents** to align with the
-  Vercel `vercel-labs/skills` (skills.sh) ecosystem. Newly supported agents
-  include Gemini CLI, GitHub Copilot, OpenCode, Cline, Roo Code, Continue,
-  Augment, Zed, Goose, Aider, Junie, Trae (+CN), Crush, Warp, OpenHands,
-  Replit, Devin, Droid, Qwen Code, Lingma, Kilo, ForgeCode, Tabnine CLI,
-  Amp, Antigravity (+CLI), AstrBot, Autohand, IBM Bob, CodeArts, CodeBuddy,
-  Codemaker, Code Studio, Command Code, Cortex, Deep Agents, Dexto,
-  Firebender, Hermes, iFlow, inference.sh, Jazz, Kimi Code CLI, Kiro CLI,
-  Kode, Loaf, MCPJam, Mistral Vibe, Moxby, Mux, Neovate, OpenClaw, Ona,
-  Pi, Pochi, PromptScript, Qoder (+CN), Reasonix, Rovo Dev, Terramind,
-  Tinycloud, Zencoder, Zenflow, AdaL, and a `universal` target writing to
-  `.agents/skills`.
-- `--list-agents` flag prints `KEY / NAME / DETECT / GLOBAL PATH` for every
-  registered agent plus a detection summary for the current system.
-- Legacy short keys (`claude`, `codeium`, `copilot`, `gemini`, `aider`,
-  `tabnine`, `iflow`, `kimi`, `kiro`, `autohand`, `hermes`, `codearts`) are
-  preserved as aliases that resolve to canonical Vercel keys (`claude-code`,
-  `windsurf`, `github-copilot`, `gemini-cli`, `aider-desk`, `tabnine-cli`,
-  `iflow-cli`, `kimi-code-cli`, `kiro-cli`, `autohand-code`, `hermes-agent`,
-  `codearts-agent`). Existing CLI invocations and CI scripts keep working
-  unchanged.
+- **Installer agent registry expanded from 4 to 70 agents** to align with the Vercel `vercel-labs/skills` (skills.sh) ecosystem. Newly supported agents include Gemini CLI, GitHub Copilot, OpenCode, Cline, Roo Code, Continue, Augment, Zed, Goose, Aider, Junie, Trae (+CN), Crush, Warp, OpenHands, Replit, Devin, Droid, Qwen Code, Lingma, Kilo, ForgeCode, Tabnine CLI, Amp, Antigravity (+CLI), AstrBot, Autohand, IBM Bob, CodeArts, CodeBuddy, Codemaker, Code Studio, Command Code, Cortex, Deep Agents, Dexto, Firebender, Hermes, iFlow, inference.sh, Jazz, Kimi Code CLI, Kiro CLI, Kode, Loaf, MCPJam, Mistral Vibe, Moxby, Mux, Neovate, OpenClaw, Ona, Pi, Pochi, PromptScript, Qoder (+CN), Reasonix, Rovo Dev, Terramind, Tinycloud, Zencoder, Zenflow, AdaL, and a `universal` target writing to `.agents/skills`.
+- `--list-agents` flag prints `KEY / NAME / DETECT / GLOBAL PATH` for every registered agent plus a detection summary for the current system.
+- Legacy short keys (`claude`, `codeium`, `copilot`, `gemini`, `aider`, `tabnine`, `iflow`, `kimi`, `kiro`, `autohand`, `hermes`, `codearts`) are preserved as aliases that resolve to canonical Vercel keys (`claude-code`, `windsurf`, `github-copilot`, `gemini-cli`, `aider-desk`, `tabnine-cli`, `iflow-cli`, `kimi-code-cli`, `kiro-cli`, `autohand-code`, `hermes-agent`, `codearts-agent`). Existing CLI invocations and CI scripts keep working unchanged.
 
 ### Changed
-- The interactive multi-select widget is now paginated and searchable. With
-  70 supported agents the previous full-list redraw would overflow most
-  terminals; the new widget shows a scrolling viewport with `/` filter,
-  PageUp/PageDown, toggle-all-visible (`a`), and deselect-all (`q`) keys.
-  Detected agents are still pre-selected.
-- Multiple agents sharing the same physical install path (for example
-  `cline`, `dexto`, and `loaf` all writing to `.agents/skills`) are now
-  deduplicated with a single warning; the bundle is copied once.
-- Project-only agents (currently `promptscript`) with no global install
-  location now fail loudly under `--scope global` instead of silently
-  installing to an empty path.
-- Installer detection respects `$XDG_CONFIG_HOME`, `$CLAUDE_CONFIG_DIR`,
-  `$CODEX_HOME`, `$VIBE_HOME`, `$HERMES_HOME`, `$AUTOHAND_HOME`,
-  `$APPDATA`, and `$FLATPAK_XDG_CONFIG_HOME` where the corresponding agent
-  uses them, matching `vercel-labs/skills` behaviour.
+- The interactive multi-select widget is now paginated and searchable. With 70 supported agents the previous full-list redraw would overflow most terminals; the new widget shows a scrolling viewport with `/` filter, PageUp/PageDown, toggle-all-visible (`a`), and deselect-all (`q`) keys. Detected agents are still pre-selected.
+- Multiple agents sharing the same physical install path (for example `cline`, `dexto`, and `loaf` all writing to `.agents/skills`) are now deduplicated with a single warning; the bundle is copied once.
+- Project-only agents (currently `promptscript`) with no global install location now fail loudly under `--scope global` instead of silently installing to an empty path.
+- Installer detection respects `$XDG_CONFIG_HOME`, `$CLAUDE_CONFIG_DIR`, `$CODEX_HOME`, `$VIBE_HOME`, `$HERMES_HOME`, `$AUTOHAND_HOME`, `$APPDATA`, and `$FLATPAK_XDG_CONFIG_HOME` where the corresponding agent uses them, matching `vercel-labs/skills` behaviour.
 
 ### Notes
-- The SSOT protocol semantics, lifecycle skills, references, and templates
-  are unchanged from 2.19 — only the installer's packaging surface and
-  agent coverage move. The `VERSION` bump exists because
-  `tests/test-bundle-shape.sh` enforces VERSION == `metadata.protocol_version`
-  and because the installer surface is part of the publicly observed bundle.
+- The SSOT protocol semantics, lifecycle skills, references, and templates are unchanged from 2.19 — only the installer's packaging surface and agent coverage move. The `VERSION` bump exists because `tests/test-bundle-shape.sh` enforces VERSION == `metadata.protocol_version` and because the installer surface is part of the publicly observed bundle.
 
 ## [2.19] - 2026-06
 
 ### Added
-- **`SSOT/01-product/` as a mandatory top-level area** — the product trunk now owns
-  the PRD, product promise, users / operators, product boundary, capabilities,
-  journeys, roadmap, and product acceptance. Architecture only records
-  technical implementation, runtime execution, failure / recovery,
-  observability, and implementation gap, and links back to the product owner.
-- Product bootstrap templates: `product-readme.md`, `product-prd.md`,
-  `product-model.md`, `product-roadmap-and-acceptance.md`,
-  `product-capabilities-readme.md`, `product-capability-entry.md`,
-  `product-journeys-readme.md`, `product-journey-entry.md`.
-- Doctor semantic labels: `[PRODUCT]`, `[PRODUCT-OWNER]`,
-  `[PRODUCT-ARCH-DRIFT]`.
-- `ssot-lint.sh` deterministic checks for the required product skeleton and
-  for the `product` row in the `STATUS.md` coverage table.
+- **`SSOT/01-product/` as a mandatory top-level area** — the product trunk now owns the PRD, product promise, users / operators, product boundary, capabilities, journeys, roadmap, and product acceptance. Architecture only records technical implementation, runtime execution, failure / recovery, observability, and implementation gap, and links back to the product owner.
+- Product bootstrap templates: `product-readme.md`, `product-prd.md`, `product-model.md`, `product-roadmap-and-acceptance.md`, `product-capabilities-readme.md`, `product-capability-entry.md`, `product-journeys-readme.md`, `product-journey-entry.md`.
+- Doctor semantic labels: `[PRODUCT]`, `[PRODUCT-OWNER]`, `[PRODUCT-ARCH-DRIFT]`.
+- `ssot-lint.sh` deterministic checks for the required product skeleton and for the `product` row in the `STATUS.md` coverage table.
 
 ### Changed
-- Source material routing: PRD, product promise, users / operators,
-  capability, journey, roadmap, and product acceptance now default to the
-  product owner. This supersedes the v2.8 / v2.9 routing that absorbed PRD
-  content into `architecture/views/`.
+- Source material routing: PRD, product promise, users / operators, capability, journey, roadmap, and product acceptance now default to the product owner. This supersedes the v2.8 / v2.9 routing that absorbed PRD content into `architecture/views/`.
 - `STATUS.md` coverage table MUST include a `product` row.
-- Architecture views and domains MUST link to the product owner instead of
-  re-defining product promise, product non-goals, user journeys, or product
-  acceptance. Implementation gap links back to the product owner.
+- Architecture views and domains MUST link to the product owner instead of re-defining product promise, product non-goals, user journeys, or product acceptance. Implementation gap links back to the product owner.
 
 ## [2.18] - 2026-06
 
 ### Added
-- Architecture evidence-guided decomposition: `decomposition_basis` must record
-  entrypoints, call/dependency edges, shared state, runtime flow, failure
-  boundaries, contract surface, tests, configs, scripts and ADR material,
-  including rejected axes and false friends.
-- Bottom-up writing order for architecture: `domain evidence -> view synthesis
-  -> root Reader Map`. Root/view claims must trace back to domain evidence or
-  be marked `gap` / `unknown`.
-- Reader Map as a reader route (intent, first stop, authoritative owner,
-  evidence direction, stop condition, risk); it must not host independent
-  long-lived facts.
-- Authoritative owner anchor: each long-lived claim has exactly one owner
-  (domain, view, engineering area, decision or other existing authority);
-  non-owner sites only link.
-- Architecture rubric in Doctor output: 1-minute mental model, view raison
-  d'etre, domain why-separate, owner/evidence/why/risk/constraint, required
-  diagrams, and current/target/gap separation.
-- Doctor labels `[DECOMPOSITION]`, `[SYNTHESIS]`, `[OWNER-ANCHOR]`; existing
-  `[READER-MAP]`, `[READABILITY]`, `[DIAGRAM]`, `[ARCH-ROOT]`, `[ARCH-VIEWS]`,
-  `[ARCH-DOMAINS]` continue to apply.
+- Architecture evidence-guided decomposition: `decomposition_basis` must record entrypoints, call/dependency edges, shared state, runtime flow, failure boundaries, contract surface, tests, configs, scripts and ADR material, including rejected axes and false friends.
+- Bottom-up writing order for architecture: `domain evidence -> view synthesis -> root Reader Map`. Root/view claims must trace back to domain evidence or be marked `gap` / `unknown`.
+- Reader Map as a reader route (intent, first stop, authoritative owner, evidence direction, stop condition, risk); it must not host independent long-lived facts.
+- Authoritative owner anchor: each long-lived claim has exactly one owner (domain, view, engineering area, decision or other existing authority); non-owner sites only link.
+- Architecture rubric in Doctor output: 1-minute mental model, view raison d'etre, domain why-separate, owner/evidence/why/risk/constraint, required diagrams, and current/target/gap separation.
+- Doctor labels `[DECOMPOSITION]`, `[SYNTHESIS]`, `[OWNER-ANCHOR]`; existing `[READER-MAP]`, `[READABILITY]`, `[DIAGRAM]`, `[ARCH-ROOT]`, `[ARCH-VIEWS]`, `[ARCH-DOMAINS]` continue to apply.
 
 ### Changed
-- Architecture rubric tightened; root README must not carry independent
-  long-lived facts and must not pre-write global conclusions without
-  domain-level evidence.
+- Architecture rubric tightened; root README must not carry independent long-lived facts and must not pre-write global conclusions without domain-level evidence.
 
 ### Not required
-- No new SSOT top-level area, STATUS field, JSON/YAML state file, schema,
-  command or skill.
-- No mechanical migration of legacy projects to the latest `views/ + domains/`
-  template; only authority, evidence and reader-routing scope is touched.
+- No new SSOT top-level area, STATUS field, JSON/YAML state file, schema, command or skill.
+- No mechanical migration of legacy projects to the latest `views/ + domains/` template; only authority, evidence and reader-routing scope is touched.
 - No Tree-sitter, LSP, automatic dependency graph, code indexer or generator.
 - No `ssot-lint.sh` changes; these are L2 semantic checks.
 
 ## [2.17] - 2026
 
 ### Added
-- SSOT Skill bundle: formal entry skill `ssot-preflight`; process skills
-  `ssot-bootstrap`, `ssot-closeout`, `ssot-audit`, `ssot-doctor`; legacy
-  `ssot-skill` retained only as a lightweight compatibility shim.
-- Open adjudication parser: canonical heading `## 开放裁决项`, with backward
-  compatibility for `## 待裁决项`.
-- Doctor label `[SKILL-SPLIT]` for bundles missing the formal entry, a process
-  skill, the shim, the protocol owner or process trigger descriptions.
+- SSOT Skill bundle: formal entry skill `ssot-preflight`; process skills `ssot-bootstrap`, `ssot-closeout`, `ssot-audit`, `ssot-doctor`; legacy `ssot-skill` retained only as a lightweight compatibility shim.
+- Open adjudication parser: canonical heading `## 开放裁决项`, with backward compatibility for `## 待裁决项`.
+- Doctor label `[SKILL-SPLIT]` for bundles missing the formal entry, a process skill, the shim, the protocol owner or process trigger descriptions.
 
 ### Changed
-- Entry skill renamed: task start now triggers `$ssot-preflight` instead of
-  `$ssot-skill`.
-- Protocol-version owner migrated to `skills/ssot-preflight/SKILL.md`
-  (`metadata.protocol_version`); `tracked_skill_version` now refers to the
-  bundle protocol version rather than the old `ssot-skill/SKILL.md`.
-- Adapter / core-ref boundary clarified: the 50-line size cap and SSOT-source
-  hash apply only to files carrying the SSOT-generated marker. Handwritten or
-  mixed startup files are no longer flagged `[ADAPTER]` for missing the
-  marker; missing SSOT routing reports as `[CONSUMPTION]`, factual drift as
-  `[CORE-REF]`.
+- Entry skill renamed: task start now triggers `$ssot-preflight` instead of `$ssot-skill`.
+- Protocol-version owner migrated to `skills/ssot-preflight/SKILL.md` (`metadata.protocol_version`); `tracked_skill_version` now refers to the bundle protocol version rather than the old `ssot-skill/SKILL.md`.
+- Adapter / core-ref boundary clarified: the 50-line size cap and SSOT-source hash apply only to files carrying the SSOT-generated marker. Handwritten or mixed startup files are no longer flagged `[ADAPTER]` for missing the marker; missing SSOT routing reports as `[CONSUMPTION]`, factual drift as `[CORE-REF]`.
 
 ### Not required
-- No new SSOT top-level area, JSON/YAML state file or product-grade Web/API
-  truth.
+- No new SSOT top-level area, JSON/YAML state file or product-grade Web/API truth.
 - No per-skill separate installation; phase 1 installs the bundle together.
-- No mechanical renaming of historical text; only triggers, protocol watermark
-  and runtime prompts in authoritative positions are updated.
+- No mechanical renaming of historical text; only triggers, protocol watermark and runtime prompts in authoritative positions are updated.
 
 ## [2.16] - 2026
 
 ### Removed
-- All naming entries, source-material classifications and special routes for
-  legacy externally generated repository-knowledge surfaces. Reader Map,
-  claim-to-evidence, script/tool inventories and diagram-candidate governance
-  are now native protocol capabilities, not external imports.
+- All naming entries, source-material classifications and special routes for legacy externally generated repository-knowledge surfaces. Reader Map, claim-to-evidence, script/tool inventories and diagram-candidate governance are now native protocol capabilities, not external imports.
 
 ### Changed
-- Source material scope limited to README / docs / ADR / PRD / runbook /
-  design docs / subsystem README / user-provided external material; external
-  auto-summaries are accepted only as ordinary candidate material.
-- Reader Map provenance: generated from `decomposition_basis`, reader
-  questions, authoritative positions and evidence; never borrowed from
-  external topic trees.
-- External generated diagrams, screenshots, IDE dependency graphs and auto
-  dependency graphs are candidates only; they must be rewritten as
-  maintainable Mermaid with Diagram ID, Status, Covers, evidence and owner
-  before counting as authoritative.
+- Source material scope limited to README / docs / ADR / PRD / runbook / design docs / subsystem README / user-provided external material; external auto-summaries are accepted only as ordinary candidate material.
+- Reader Map provenance: generated from `decomposition_basis`, reader questions, authoritative positions and evidence; never borrowed from external topic trees.
+- External generated diagrams, screenshots, IDE dependency graphs and auto dependency graphs are candidates only; they must be rewritten as maintainable Mermaid with Diagram ID, Status, Covers, evidence and owner before counting as authoritative.
 
 ### Added
-- Doctor label `[LEGACY-SURFACE]` for residual parallel generated knowledge
-  surfaces, legacy-named entries, dedicated source-material categories, or
-  external topic trees being treated as authority.
+- Doctor label `[LEGACY-SURFACE]` for residual parallel generated knowledge surfaces, legacy-named entries, dedicated source-material categories, or external topic trees being treated as authority.
 
 ### Not required
 - No migration scripts; the protocol-upgrade audit is sufficient.
@@ -1548,116 +812,71 @@ architecture-domain templates now make the register/prose boundary explicit.
 ## [2.15] - 2026
 
 ### Added
-- `[CORE-REF]` review slice: `AGENTS.md`, `CLAUDE.md`, `.cursor/rules/*`,
-  `.windsurf/rules/*`, `GEMINI.md` and equivalent startup-time / agent-rules
-  files are now first-class source material. New `STATUS.md` 核心参考文档审查
-  table; new Doctor `[CORE-REF]` L1/L2 checks.
-- Reader Map / 快速理解地图 protocol for entry routing: entries only link to
-  authoritative positions and must not host independent long-lived facts.
-- Readable Authority / 可读权威正文: prose body must establish a mental model
-  via short narrative, claim, evidence, why, risk and constraint; tables and
-  lists alone are insufficient.
-- Claim-to-evidence writing as standard for key assertions in architecture
-  views/domains and engineering operating areas.
-- Engineering script/tool inventory fields under `development/`, `testing/`,
-  `release/` and deployment areas.
-- Diagram-candidate governance: external generated diagrams, screenshots and
-  dependency graphs accepted only as candidates; authoritative diagrams must
-  be Mermaid fenced blocks with metadata, evidence, status and
-  current/target separation.
-- Doctor labels `[CORE-REF]`, `[READER-MAP]`, `[READABILITY]`; extended
-  `[DIAGRAM]` for misuse of external generated diagrams as authoritative.
+- `[CORE-REF]` review slice: `AGENTS.md`, `CLAUDE.md`, `.cursor/rules/*`, `.windsurf/rules/*`, `GEMINI.md` and equivalent startup-time / agent-rules files are now first-class source material. New `STATUS.md` 核心参考文档审查 table; new Doctor `[CORE-REF]` L1/L2 checks.
+- Reader Map / 快速理解地图 protocol for entry routing: entries only link to authoritative positions and must not host independent long-lived facts.
+- Readable Authority / 可读权威正文: prose body must establish a mental model via short narrative, claim, evidence, why, risk and constraint; tables and lists alone are insufficient.
+- Claim-to-evidence writing as standard for key assertions in architecture views/domains and engineering operating areas.
+- Engineering script/tool inventory fields under `development/`, `testing/`, `release/` and deployment areas.
+- Diagram-candidate governance: external generated diagrams, screenshots and dependency graphs accepted only as candidates; authoritative diagrams must be Mermaid fenced blocks with metadata, evidence, status and current/target separation.
+- Doctor labels `[CORE-REF]`, `[READER-MAP]`, `[READABILITY]`; extended `[DIAGRAM]` for misuse of external generated diagrams as authoritative.
 
 ### Changed
-- L2 semantic checks scoped: `ssot-lint.sh` remains deterministic and is not
-  asked to judge command, workflow or architecture-fact semantics; those
-  remain with the Doctor reviewer.
-- `[ADAPTER]` continues to cover thin-adapter file shape only;
-  `[CONSUMPTION]` continues to cover SSOT trigger linkage; `[CORE-REF]`
-  covers factual correctness of startup-time references.
+- L2 semantic checks scoped: `ssot-lint.sh` remains deterministic and is not asked to judge command, workflow or architecture-fact semantics; those remain with the Doctor reviewer.
+- `[ADAPTER]` continues to cover thin-adapter file shape only; `[CONSUMPTION]` continues to cover SSOT trigger linkage; `[CORE-REF]` covers factual correctness of startup-time references.
 
 ### Not required
 - No new `SSOT/core-reference/` or other top-level area.
-- No mechanical replacement of user-authored `AGENTS.md` / `CLAUDE.md`;
-  default output is specific recommendations only.
+- No mechanical replacement of user-authored `AGENTS.md` / `CLAUDE.md`; default output is specific recommendations only.
 - No `[CORE-REF]` automation inside `ssot-lint.sh`.
 - No new top-level parallel knowledge area, schema, STATUS field or generator.
 
 ## [2.14] - 2026
 
 ### Added
-- L4 behaviour-layer trigger / consumption-side audit: new
-  `skills/ssot-doctor/references/consumption-audit.md` as the semantic owner
-  for verifying whether SSOT was actually triggered and consumed in real
-  transcripts. Honours the L4 probe promise outstanding since v2.13.
+- L4 behaviour-layer trigger / consumption-side audit: new `skills/ssot-doctor/references/consumption-audit.md` as the semantic owner for verifying whether SSOT was actually triggered and consumed in real transcripts. Honours the L4 probe promise outstanding since v2.13.
 - Near-field trigger probe during session self-check (zero-cost, always on).
-- Far-field consumption audit available on demand (`[MAY]`) when the user
-  names it or near-field signals are insufficient.
+- Far-field consumption audit available on demand (`[MAY]`) when the user names it or near-field signals are insufficient.
 
 ### Changed
-- `[CONSUMPTION]` Doctor label scope extended: L1 static link breaks continue
-  to use it; L4 behaviour-layer attribution and trigger-side optimisation
-  flow through the consumption audit without a new label.
+- `[CONSUMPTION]` Doctor label scope extended: L1 static link breaks continue to use it; L4 behaviour-layer attribution and trigger-side optimisation flow through the consumption audit without a new label.
 
 ### Not required
 - No mandatory far-field transcript analysis every session.
-- No automatic rewriting of trigger-side files; recommendations only by
-  default.
+- No automatic rewriting of trigger-side files; recommendations only by default.
 - No new SSOT area, STATUS field or required-to-create files.
 
 ## [2.13] - 2026
 
 ### Added
 - Pre-write conflict / negation scan in SKILL.md §3.1.
-- Evidence pointer symbol anchor (`path#symbol`) preferred over `path:line`
-  to survive code movement; legacy line pointers are not mechanically
-  migrated.
-- Gotcha executable contract: high-risk active gotchas must give a
-  "don't do / do instead" pair.
-- Optional SSOT-source hash line on SSOT-generated thin adapters for drift
-  detection (`SSOT-source: <path>@<hash>`).
-- SSOT consumption link check (`[CONSUMPTION]` Doctor label): adapter must
-  carry SSOT read instruction and route to SSOT; `SSOT/README.md` navigation
-  entry must exist.
-- `ssot-lint.sh` L1 automation extended to checks #6 (confidence: hypothesis
-  in `architecture/`), #7 (SSOT-generated thin adapter <=50 lines and
-  optional source hash) and the consumption link check.
+- Evidence pointer symbol anchor (`path#symbol`) preferred over `path:line` to survive code movement; legacy line pointers are not mechanically migrated.
+- Gotcha executable contract: high-risk active gotchas must give a "don't do / do instead" pair.
+- Optional SSOT-source hash line on SSOT-generated thin adapters for drift detection (`SSOT-source: <path>@<hash>`).
+- SSOT consumption link check (`[CONSUMPTION]` Doctor label): adapter must carry SSOT read instruction and route to SSOT; `SSOT/README.md` navigation entry must exist.
+- `ssot-lint.sh` L1 automation extended to checks #6 (confidence: hypothesis in `architecture/`), #7 (SSOT-generated thin adapter <=50 lines and optional source hash) and the consumption link check.
 
 ### Not required
 - No mechanical migration of existing `path:line` evidence pointers.
-- No requirement to fill executable contracts for all gotchas (high-risk
-  first).
+- No requirement to fill executable contracts for all gotchas (high-risk first).
 - Source hash on thin adapters is `[MAY]`, not required.
 - No new SSOT area, STATUS field or required-to-create files.
 
 ## [2.12] - 2026
 
 ### Added
-- Protocol layering with `[MUST]` / `[SHOULD]` / `[MAY]` markers in SKILL.md
-  to lower Agent execution friction under high task load.
-- `self-reviewed` downgrade path in the STATUS independent stop-review gate:
-  medium-impact updaters may self-review with explicit recording.
-- Legacy direct-child-domain compensation: when no `architecture/views/`
-  exists, root `architecture/README.md` MUST carry `设计简报`, `核心不变量`,
-  `Current / Target / Gap 摘要` sections.
+- Protocol layering with `[MUST]` / `[SHOULD]` / `[MAY]` markers in SKILL.md to lower Agent execution friction under high task load.
+- `self-reviewed` downgrade path in the STATUS independent stop-review gate: medium-impact updaters may self-review with explicit recording.
+- Legacy direct-child-domain compensation: when no `architecture/views/` exists, root `architecture/README.md` MUST carry `设计简报`, `核心不变量`, `Current / Target / Gap 摘要` sections.
 - `decomposition_basis` template for architecture splits.
-- Architecture migration trigger when the domain count is >= 4 or a journey
-  crosses >= 3 domains (see `architecture.md`).
-- Bootstrap recon archive path: `recon.md` is archived as
-  `decisions/0000-bootstrap-recon.md` rather than deleted during Phase 4
-  cleanup; manifest and session logs are still cleaned up.
-- `ssot-lint.sh` script available as `[MAY]` CI / Doctor pre-gate; can be
-  invoked directly from the skill path without copying into the project.
+- Architecture migration trigger when the domain count is >= 4 or a journey crosses >= 3 domains (see `architecture.md`).
+- Bootstrap recon archive path: `recon.md` is archived as `decisions/0000-bootstrap-recon.md` rather than deleted during Phase 4 cleanup; manifest and session logs are still cleaned up.
+- `ssot-lint.sh` script available as `[MAY]` CI / Doctor pre-gate; can be invoked directly from the skill path without copying into the project.
 
 ### Changed
-- `STATUS.md` coverage tables (`区域 / 状态 / 备注`) must not maintain
-  derivable information (entry counts, sub-directory entry status, recent
-  test results); the 备注 column becomes a pointer to sub-directory README,
-  carrying only unique semantics.
+- `STATUS.md` coverage tables (`区域 / 状态 / 备注`) must not maintain derivable information (entry counts, sub-directory entry status, recent test results); the 备注 column becomes a pointer to sub-directory README, carrying only unique semantics.
 
 ### Not required
-- No traversal of historical stop-review entries to back-fill
-  `self-reviewed`.
+- No traversal of historical stop-review entries to back-fill `self-reviewed`.
 - No new SSOT files or directories.
 - No new required-to-create file or area.
 

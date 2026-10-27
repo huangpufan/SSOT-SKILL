@@ -1,8 +1,6 @@
 # Contributing to SSOT Skill
 
-Thanks for your interest in improving the SSOT Skill bundle. Read
-[DESIGN.md](./DESIGN.md) first: it explains why the bundle is small and what
-it deliberately does not do.
+Thanks for your interest in improving the SSOT Skill bundle. Read [DESIGN.md](./DESIGN.md) first: it explains why the bundle is small and what it deliberately does not do.
 
 ## What lives where
 
@@ -12,46 +10,29 @@ it deliberately does not do.
 | Engineering | `install.sh`, `skills/ssot-doctor/assets/scripts/`, `tests/`, `.github/workflows/` | Standard review |
 | Docs | `README*`, `INSTALL.md`, `DESIGN.md`, `CHANGELOG.md` | Standard review |
 
-`skills/ssot-preflight/references/memory-model.md` owns what a consumer's
-`SSOT/` contains and how it is written. The `SKILL.md` files link to it rather
-than restating it.
+`skills/ssot-preflight/references/memory-model.md` owns what a consumer's `SSOT/` contains and how it is written. The `SKILL.md` files link to it rather than restating it.
 
 ## Changing the protocol
 
 Every protocol change answers four questions in its pull request:
 
-1. **Does this belong in a general protocol?** A rule specific to one project
-   belongs in that project. A problem caused by a template is fixed in the
-   template, and a tool bug is fixed in the tool. Do not turn one mistake into
-   a new duty for every repository.
-2. **What does it replace?** Name the duty it adds, merges, or removes. Adding
-   is allowed when nothing existing can carry it. Explain why, and keep within
-   the budgets.
-3. **How was it verified, at the level of its impact?** A wording fix needs
-   the structural tests. A local rule needs a scenario where it should apply
-   and a nearby one where it should not. A change to what agents read or write
-   by default needs a baseline/candidate trial on real tasks that records
-   wrong decisions, false triggers, reading, and writing.
-4. **What is the net effect on whole tasks?** Fixing one case while making
-   every unrelated task read or write more is not an improvement.
+1. **Does this belong in a general protocol?** A rule specific to one project belongs in that project. A problem caused by a template is fixed in the template, and a tool bug is fixed in the tool. Do not turn one mistake into a new duty for every repository.
+2. **What does it replace?** Name the duty it adds, merges, or removes. Adding is allowed when nothing existing can carry it. Explain why, and keep within the budgets.
+3. **How was it verified, at the level of its impact?** A wording fix needs the structural tests. A local rule needs a scenario where it should apply and a nearby one where it should not. A change to what agents read or write by default needs a baseline/candidate trial on real tasks that records wrong decisions, false triggers, reading, and writing.
+4. **What is the net effect on whole tasks?** Fixing one case while making every unrelated task read or write more is not an improvement.
 
-Do not claim more than you ran. A structural test does not show that agents
-behave better.
+Do not claim more than you ran. A structural test does not show that agents behave better.
 
 ### Writing a SKILL.md
 
-An entrypoint lets an agent pick the right branch, find its instructions,
-respect its boundaries, and know when it is done. Keep:
+An entrypoint lets an agent pick the right branch, find its instructions, respect its boundaries, and know when it is done. Keep:
 
 - the purpose and the condition for being done;
 - routing, with links that say when to read them;
 - ordered steps where the order affects safety or correctness;
-- permission, ownership, and recovery rules the agent needs before choosing a
-  route.
+- permission, ownership, and recovery rules the agent needs before choosing a route.
 
-Detailed shared material belongs in a reference, read at the point of use.
-`SKILL.md` and `references/` are in English, the language skill routing is
-tuned for.
+Detailed shared material belongs in a reference, read at the point of use. `SKILL.md` and `references/` are in English, the language skill routing is tuned for.
 
 ### Protocol budgets
 
@@ -65,25 +46,15 @@ tuned for.
 | `ssot-check.py` | 40 KiB |
 | All of `skills/` | 160 KiB |
 
-A budget is a reason to rethink responsibilities, never a reason to cut a
-recovery or authorization branch to fit. A v2 word cap once rejected a
-complete entrypoint for being complete. Raising a limit requires the same
-evidence as adding a rule. Record the reason in `CHANGELOG.md`.
+A budget is a reason to rethink responsibilities, never a reason to cut a recovery or authorization branch to fit. A v2 word cap once rejected a complete entrypoint for being complete. Raising a limit requires the same evidence as adding a rule. Record the reason in `CHANGELOG.md`.
 
 ## Versions
 
-`VERSION` and `metadata.protocol_version` in `skills/ssot-preflight/SKILL.md`
-must match; CI checks this. Bump the minor version for protocol changes and
-add a `CHANGELOG.md` entry. The consumer data format (`ssot_format` in
-`SSOT/README.md`) changes only when existing SSOTs would otherwise be misread.
-That needs a major version and a migration path in `ssot-bootstrap`.
+`VERSION` and `metadata.protocol_version` in `skills/ssot-preflight/SKILL.md` must match; CI checks this. Bump the minor version for protocol changes and add a `CHANGELOG.md` entry. The consumer data format (`ssot_format` in `SSOT/README.md`) changes only when existing SSOTs would otherwise be misread. That needs a major version and a migration path in `ssot-bootstrap`.
 
 ## Templates
 
-Templates under `skills/ssot-bootstrap/assets/templates/{en,zh}/` are copied
-into consumer repositories. Keep both languages in file-name parity. They are
-prompts for prose, not forms: avoid tables that invite one-word cells, and in
-Mermaid diagrams use `%%` comments, never HTML comments.
+Templates under `skills/ssot-bootstrap/assets/templates/{en,zh}/` are copied into consumer repositories. Keep both languages in file-name parity. They are prompts for prose, not forms: avoid tables that invite one-word cells, and in Mermaid diagrams use `%%` comments, never HTML comments.
 
 ## Local verification
 
@@ -94,9 +65,7 @@ bash tests/test-installer-e2e.sh       # installer end to end
 shellcheck -S warning -e SC2034 install.sh tests/*.sh
 ```
 
-For diagram changes, install `mermaid@11.12.0` and `jsdom@26.1.0` into an
-isolated npm prefix, then run
-`node tests/test-mermaid-templates.mjs <prefix>/node_modules`.
+For diagram changes, install `mermaid@11.12.0` and `jsdom@26.1.0` into an isolated npm prefix, then run `node tests/test-mermaid-templates.mjs <prefix>/node_modules`.
 
 ## Pull request checklist
 
@@ -108,5 +77,4 @@ isolated npm prefix, then run
 
 ## Code of conduct
 
-Be kind. Surface disagreements with evidence and proposed alternatives, not
-broad rejection.
+Be kind. Surface disagreements with evidence and proposed alternatives, not broad rejection.

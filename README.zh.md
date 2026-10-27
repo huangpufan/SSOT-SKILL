@@ -30,8 +30,7 @@
 
 Agent 会按[安装指南](./INSTALL.md)识别安装位置，安装并验证全部六个 Skill，再把日常触发指令合并到项目的 `AGENTS.md`、`CLAUDE.md` 等文件中。默认**只安装到当前项目**，沿用已有模板语言；首次安装时根据对话语言选择 `en` 或 `zh`。你也可以在同一句话里指定其他语言，或明确要求全局安装。
 
-<details>
-<summary>希望在终端里手动安装？</summary>
+<details> <summary>希望在终端里手动安装？</summary>
 
 环境需要 **Bash 4+**、`git`、`curl` 和 `python3`。macOS 用户先运行 `brew install bash`，再把下面命令里的 `bash` 换成 `"$(brew --prefix)/bin/bash"`；系统自带的 Bash 版本过旧。
 
@@ -64,8 +63,7 @@ curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.
 
 你不需要在每一步手动选择或调用 Skill。大型项目的初次建立可能需要不止一次会话，进度保存在 `SSOT/BOOTSTRAP.md` 里，完成后删除。建好之后，从 `SSOT/README.md` 开始阅读。
 
-<details>
-<summary>可选：直接要求建立或检查</summary>
+<details> <summary>可选：直接要求建立或检查</summary>
 
 也可以用日常语言直接提出：
 
@@ -162,8 +160,7 @@ curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.
 
 3.0 保留记忆本身，去掉了 v2 的认证机制：分区覆盖状态、`STATUS.md` 和 `HISTORY.md` 账本、评审存档，以及每次发版后的追平审查（[原因](./DESIGN.md)）。升级后，Agent 仍会读 v2 的 `SSOT/`，但在迁移之前不会往里写；项目里调用 v2 `ssot-lint.sh` 的脚本也会失效，直到迁移把它们改接到新检查器。迁移由 Agent 一次完成、作为一个提交，并且需要你同意：对它说"把这个项目的 SSOT 迁移到 v3"即可。想继续用 v2，安装时加 `--ref v2-final`。
 
-<details>
-<summary>手动更新与卸载命令</summary>
+<details> <summary>手动更新与卸载命令</summary>
 
 例如，在使用 SSOT Skill 的项目根目录更新项目级 Codex 安装：
 
@@ -198,13 +195,9 @@ curl -fsSL https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/install.
 
 ## Star 趋势
 
-<a href="https://www.star-history.com/#huangpufan/SSOT-SKILL&Date">
-  <picture>
+<a href="https://www.star-history.com/#huangpufan/SSOT-SKILL&Date"> <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=huangpufan/SSOT-SKILL&type=Date&theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=huangpufan/SSOT-SKILL&type=Date" />
-    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=huangpufan/SSOT-SKILL&type=Date" />
-  </picture>
-</a>
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=huangpufan/SSOT-SKILL&type=Date" /> <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=huangpufan/SSOT-SKILL&type=Date" /> </picture> </a>
 
 ## 许可证
 

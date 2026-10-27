@@ -821,6 +821,21 @@ class CheckerTest(unittest.TestCase):
         self.write("architecture.md", ARCHITECTURE + "\n`src/old.py`\n")
         self.assertIn("`src/old.py` was removed", self.assert_clean())
 
+    def test_hard_wrapped_paragraphs_warn(self):
+        self.valid()
+        self.write("product.md", "# Product\n\nThis paragraph was written for a\nnarrow terminal and broken by\nhand every few words.\n\n"
+                                 "- a list item that was also\n  wrapped across three short\n  source lines\n")
+        out = self.assert_clean()
+        self.assertIn("product.md:3  2 paragraph(s) are broken across short lines (lines 3, 7)", out)
+
+    def test_one_line_paragraphs_lists_tables_and_code_do_not_warn(self):
+        self.valid()
+        long_line = "这一段写成一行。" * 30
+        self.write("product.md", f"# 产品\n\n{long_line}\n\n- 一\n- 二\n- 三\n- 四\n\n| a | b |\n|---|---|\n| 1 | 2 |\n| 3 | 4 |\n\n"
+                                 "```\nline one\nline two\nline three\n```\n\n<!-- a comment\nover three\nlines -->\n\n"
+                                 "Two short\nlines only.\n\nLine break kept on purpose  \nwith two spaces  \nat each end.\n")
+        self.assertNotIn("broken across", self.assert_clean())
+
     def test_outside_git_or_before_the_first_commit(self):
         self.valid()
         self.write("architecture.md", ARCHITECTURE + "\n`src/old.py`\n")

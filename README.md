@@ -30,8 +30,7 @@ Read https://raw.githubusercontent.com/huangpufan/SSOT-SKILL/main/INSTALL.md and
 
 The agent follows the [install guide](./INSTALL.md) to identify its installation target, install and verify all six skills, and merge lifecycle instructions into the repository's `AGENTS.md`, `CLAUDE.md`, or equivalent file. The default is **the current project only**, preserving an existing template language or choosing `en` / `zh` from your conversation. You can specify a different language or explicitly request a global installation in the same message.
 
-<details>
-<summary>Prefer to install from a terminal?</summary>
+<details> <summary>Prefer to install from a terminal?</summary>
 
 You need **Bash 4+**, `git`, `curl`, and `python3`. On macOS, run `brew install bash` first and use `"$(brew --prefix)/bin/bash"` in place of `bash` below; the system Bash is too old.
 
@@ -64,8 +63,7 @@ The repository instructions tell the agent when to act:
 
 You do not need to select or invoke a skill at every step. Creating the memory for a large repository may take more than one session; progress is saved in `SSOT/BOOTSTRAP.md` until setup is done. Then read the result at `SSOT/README.md`.
 
-<details>
-<summary>Optional: request setup or a focused check directly</summary>
+<details> <summary>Optional: request setup or a focused check directly</summary>
 
 You can ask in ordinary language:
 
@@ -162,8 +160,7 @@ Restart the agent afterward. Replacing the installed skills never changes `SSOT/
 
 Version 3.0 keeps the memory and drops v2's certification machinery: area coverage labels, the `STATUS.md` and `HISTORY.md` ledgers, review archives, and catch-up audits after every release ([why](./DESIGN.md)). After upgrading, agents still read a v2 `SSOT/` but do not write to it until it is migrated. Repository scripts that call v2's `ssot-lint.sh` stop working until the migration repoints them. Migration is one agent-run commit with your agreement: ask "Migrate this repository's SSOT to v3." To stay on v2, install with `--ref v2-final`.
 
-<details>
-<summary>Manual update and removal commands</summary>
+<details> <summary>Manual update and removal commands</summary>
 
 For a project-local Codex installation, run from the consuming repository:
 
@@ -198,13 +195,9 @@ Bare `--upgrade` updates all detected installations in the current project and g
 
 ## Star History
 
-<a href="https://www.star-history.com/#huangpufan/SSOT-SKILL&Date">
-  <picture>
+<a href="https://www.star-history.com/#huangpufan/SSOT-SKILL&Date"> <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=huangpufan/SSOT-SKILL&type=Date&theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=huangpufan/SSOT-SKILL&type=Date" />
-    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=huangpufan/SSOT-SKILL&type=Date" />
-  </picture>
-</a>
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=huangpufan/SSOT-SKILL&type=Date" /> <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=huangpufan/SSOT-SKILL&type=Date" /> </picture> </a>
 
 ## License
 

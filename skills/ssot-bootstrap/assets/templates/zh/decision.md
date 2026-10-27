@@ -1,8 +1,8 @@
 # NNNN：<用几个字概括这项决定>
 
-状态：accepted <!-- 或者：superseded by NNNN / retired（状态值保持英文） -->
-日期：YYYY-MM-DD
-决定者：<用户指令、团队评审，或经用户认可的 agent 提议>
+- 状态：accepted <!-- 或者：superseded by NNNN / retired（状态值保持英文） -->
+- 日期：YYYY-MM-DD
+- 决定者：<用户指令、团队评审，或经用户认可的 agent 提议>
 
 ## 背景
 

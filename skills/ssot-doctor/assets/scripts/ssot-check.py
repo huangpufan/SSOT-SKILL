@@ -343,6 +343,38 @@ def check_link(report, doc, number, target):
         report.add("ERROR", doc, number, f"missing heading anchor: {target}")
 
 
+# --- hard-wrapped paragraphs --------------------------------------------------
+# A paragraph written as several short lines reads as ragged text in an editor,
+# and in Chinese or Japanese a line break inside a sentence can render as a
+# stray space. Each paragraph and list item should be one line.
+
+WRAP_MIN_RUN = 3        # consecutive lines of one paragraph
+WRAP_MAX_WIDTH = 100    # every line of the run at most this wide (in characters)
+BLOCK_START_RE = re.compile(r"^\s{0,3}(#|>|\||[-*+]\s|\d+[.)]\s|<|\[[^\]]+\]:|```|~~~)")
+
+
+def hard_wrapped_paragraphs(text):
+    """Yield the first line number of each paragraph or list item that runs
+    over WRAP_MIN_RUN or more short source lines."""
+    run_start, run_length, in_item = None, 0, False
+    for number, line in markdown_lines(text):
+        stripped = line.strip()
+        starts_item = bool(re.match(r"^\s*([-*+]|\d+[.)])\s", line))
+        ends_run = not stripped or len(stripped) > WRAP_MAX_WIDTH or line.endswith(("  ", "\\")) \
+            or (BLOCK_START_RE.match(line) and not starts_item) or line.startswith(("    ", "\t")) and not in_item
+        if ends_run or starts_item:
+            if run_length >= WRAP_MIN_RUN:
+                yield run_start
+            run_start, run_length, in_item = (number, 1, True) if starts_item and not ends_run else (None, 0, False)
+            continue
+        if run_start is None:
+            run_start, run_length = number, 1
+        else:
+            run_length += 1
+    if run_length >= WRAP_MIN_RUN:
+        yield run_start
+
+
 # --- the invariants register -------------------------------------------------
 
 def table_cells(line):
@@ -836,6 +868,12 @@ def main(argv):
                        "split it by topic or move detail out")
         for number, target in link_targets(text):
             check_link(report, doc, number, target)
+        wrapped = list(hard_wrapped_paragraphs(text))
+        if wrapped and not legacy:
+            lines = ", ".join(str(n) for n in wrapped[:5]) + (", ..." if len(wrapped) > 5 else "")
+            report.add("WARN", doc, wrapped[0],
+                       f"{len(wrapped)} paragraph(s) are broken across short lines (lines {lines}); "
+                       "write each paragraph or list item as one line and let the editor wrap it")
     check_removed_paths(report, ssot_dir, mentions, since)
     for path in sorted(UNDECODABLE):
         report.add("WARN", path, None, "not valid UTF-8; undecodable bytes were replaced while checking")
