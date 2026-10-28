@@ -8,6 +8,23 @@ Entries up to 2.86 were derived from the v2 protocol-upgrade ledger, which is pr
 
 ## [Unreleased]
 
+## [3.4] - 2026-10-28
+
+Setup and catch-up now check what they write against the code. An audit of finished SSOTs on large repositories found that about 5% of the statements a task would act on were wrong and about 40% were right only in part, mostly because a statement was made too broad or a design intention was written as if it were built. The consumer data format is unchanged (`ssot_format: 3`); nothing needs to catch up. Evidence and limits: `tests/trials-3.3.md` section 6.
+
+### Changed
+- Bootstrap step 6.3: check what you wrote against the code (Doctor's Truth review) as well as running the newcomer test, and fix what they expose.
+- Doctor's Truth review covers each document and names the two kinds of statement most often wrong: those with "all", "only", "every", "never", or "always", and those taken from a design document, an ADR, or a code comment. Unbuilt intent is labeled as planned.
+- Doctor catch-up checks each statement it writes or changes against the code at the end of its range.
+- Memory model §6: use "all", "only", "every", "never", and "always" only when the code enforces them; otherwise state the condition or the exception.
+
+### Evidence
+- On jellyfin and 1Panel, four setups per arm from the same commit, audited by a different cheap model: wrong statements fell from 7% to 2% of 272; statements with absolute words that were not correct fell from 60% to 44%. The share of fully correct statements rose from 51% to 56%, which is within the judge's own variation.
+
+### Not verified
+- Whether the documents are more complete: partly-right statements stayed at about 40%.
+- More repositories, more runs, and other models.
+
 ## [3.3] - 2026-10-28
 
 Tested on two large repositories, n8n (about 2.5 million lines of TypeScript, 26,000 commits) and zed (about 1.8 million lines of Rust, 40,000 commits), with a cheap model (`deepseek-v4.1-flash`) doing the work. Setup and everyday reading held up at this size: SSOT grew by splitting files into folders, and a task read 3 to 9 of its files, never the whole tree. Two things broke: a catch-up after a long gap could not resume, and setup could stay unfinished for good. The consumer data format is unchanged (`ssot_format: 3`); nothing needs to catch up. Evidence and limits: `tests/trials-3.3.md`.

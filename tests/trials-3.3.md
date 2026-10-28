@@ -73,3 +73,25 @@ Part of the cause was the harness: the first prompt told the agent to park quest
 - Migration of a large v2 SSOT: none of these repositories had one.
 - Repositories without long agent instruction files, where SSOT might matter more to task quality than it did here.
 - Multiple people or agents writing SSOT at the same time.
+
+## 6. Fact-checking what setup writes (added after 3.3 shipped; part of 3.4)
+
+**The question.** Is the SSOT that setup and catch-up leave behind true? A different cheap model (`gpt-6.1-terra` through codex, read-only) audited each finished document: it picked eight statements a task would act on, checked each against the code and history, and graded it correct, partly right (a detail wrong or missing in a way that would mislead a task), or wrong. Two of its verdicts were checked by hand and held.
+
+**Before the change.** Across the three SSOTs that had been set up and then caught up (n8n after 400 and after 2,001 commits, zed after 200), 58% of 320 statements were correct, 37% partly right, and 5% wrong. The usual fault was a statement made too broad ("every node runs once", "all host operations live in the agent") or an intention taken from a design document and presented as built ("the stored body is redacted, then encrypted"). Catch-ups fixed stale statements but did not raise these rates. Setup itself never checked its statements against the code: the newcomer test asks whether a reader can find an answer, not whether the answer is true.
+
+**The change.** Setup and catch-up now check what they wrote against the code, using Doctor's Truth review, which names the two kinds to look at hardest: statements with "all", "only", "every", "never", or "always", and statements taken from a design document, an ADR, or a code comment. The memory model adds the matching writing rule: use those words only when the code enforces them.
+
+**The trial.** Two repositories with almost no developer documentation, so setup had to read code: jellyfin (about 320,000 lines of C#) and 1Panel (about 400,000 lines of Go and Vue, SSOT written in Chinese). Each was set up four times from the same commit, twice with 3.3 and twice with the change, one session each; every run finished setup.
+
+| | 3.3 | with the change |
+|---|---|---|
+| Statements audited | 272 | 272 |
+| Correct | 51% | 56% |
+| Partly right | 40% | 42% |
+| Wrong | 7% (20) | 2% (6) |
+| Statements with "all/only/every/never/always" that were not correct | 60% of 53 | 44% of 43 |
+
+Re-auditing two of the SSOTs with the same judge moved their correct share by 5 and 7 points, so the judge's own noise is about as large as the difference in correct statements; that difference is not shown. The drop in wrong statements is larger than the noise and appeared in all four comparisons; resampling the 68 documents never removed it. Reading cost and setup time did not change noticeably (one session of 12 to 20 minutes in every run).
+
+**What this does not show.** Two repositories, two runs per arm, one model doing the work and one judging. Partly-right statements stayed at about 40% in both arms: the change mostly turns wrong statements into qualified ones, and does not make the documents complete.

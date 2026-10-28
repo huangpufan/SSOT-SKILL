@@ -19,7 +19,7 @@ From the repository root, run `python3 <this skill's directory>/assets/scripts/s
 
 ## 3. Review the scope
 
-- **Truth.** Pick the statements a future task would act on, such as contracts, state ownership, commands, and "planned" labels, and check them against the code, configuration, and tests. Start with areas that changed recently in `git log`.
+- **Truth.** In each document, pick the statements a future task would act on, such as contracts, state ownership, commands, defaults, and "planned" labels, and check each against the code, configuration, and tests; a fresh helper that did not write them checks best. Look hardest at two kinds: statements with "all", "only", "every", "never", or "always", which often miss an exception; and statements taken from a design document, an ADR, or a code comment, which may describe intent the code does not implement. Fix or qualify each one that does not hold, and label unbuilt intent as planned. Start with areas that changed recently in `git log`.
 - **Consistency.** Look for one fact stated two different ways, and for superseded decisions still presented as current.
 - **Invariants.** Every row links to an explanation inside `SSOT/`. No rule changed meaning or status without a recorded user decision. List the candidates that are still waiting for the user to confirm them.
 - **What does not belong.** Flag restated code, proof of a single task, edit history, and status about the documents themselves.
@@ -31,7 +31,7 @@ Use this when commits landed without SSOT updates, or when the user asks for a c
 
 1. **Fix the range before you start.** The start is `reviewed_through` in the README's front matter, or a commit the user names. If the user asks for earlier history, the field does not limit you. If there is no start, ask the user, and suggest the commit that created `SSOT/`. Resolve the start and `HEAD` to full commit SHAs and use those two SHAs throughout, even if `HEAD` moves while you work. If the start is missing from the history or is not an ancestor of the end, the range is not empty. Stop and ask the user.
 2. Work through the range oldest first, along the main line of history (`git log --first-parent --reverse <start>..<end>`), in segments of a few dozen commits; a long range may take several sessions. For each commit, read its message, and read its diff when the message or the files it touches suggest a durable fact. List the durable facts the segment introduced that SSOT does not hold yet. The categories are the same as in `$ssot-closeout` step 1. Keep working files, such as commit lists, outside the repository, so an interrupted session leaves nothing behind.
-3. Write them by the closeout rules: single owner, remove superseded statements, protect invariants.
+3. Write them by the closeout rules: single owner, remove superseded statements, protect invariants. Check each new or changed statement against the code at the end of the range, as in section 3 (Truth).
 4. Move `reviewed_through` last. Only when every fact a segment introduced is written, set it to the segment's last commit; a session interrupted after an earlier move would skip the facts not yet written. The next catch-up resumes there instead of starting over. A segment is not done if you skipped some of its commits, sampled them by kind, or found facts you did not write: leave the field before it. A review limited to some paths or owners moves nothing. Report how far the field moved and what remains.
 
 ## 5. Report
