@@ -8,6 +8,27 @@ Entries up to 2.86 were derived from the v2 protocol-upgrade ledger, which is pr
 
 ## [Unreleased]
 
+## [3.5] - 2026-10-30
+
+An agent now keeps the architecture boundaries and product behaviors a repository protects, even when the user's request would break one, unless the user gives that protection up. Before, an agent that found the guarding test or the fix that established a behavior usually treated the request as permission and went ahead. The owner ruled on 2026-10-29 that a request which names the new behavior is not approval, because the requester may not know the protection exists: the agent points out the protection, its evidence, who relies on it, and the consequence, and asks. The consumer data format is unchanged (`ssot_format: 3`); nothing needs to catch up. Repositories wired before 3.5 keep working. The measured result used the new startup block as well as the new skills, and upgrading the skills does not edit instruction files, so to get the full effect replace the text between the `SSOT-SKILL` markers in the repository's agent instruction file with the 3.5 block (the installer prints it). Evidence and limits: `tests/trials-3.5.md`.
+
+### Changed
+- Preflight section 3 (new): before settling on an implementation, find the behaviors and boundaries the change could affect, in SSOT and in the tests, guards, and fix history of the code involved; state each affected rule ("Must preserve: ..."); for a conflict, propose a design that keeps it or ask, naming who relies on it. The former section 3 is now section 4.
+- Memory model §5: what an invariant is (an architecture boundary, or a product behavior users, clients, or integrations rely on; changing one takes a person, other work needs nobody's approval); how to recover a rule from the code as a candidate (the protected outcome, its conditions, evidence that people protect it on purpose, a change that would break it); when to ask, including the approval rule above. Candidates are settled when a task needs to depart from one, not put to the user one by one.
+- Closeout records protected rules found during the work as candidates, and records a departure from a protected rule as decided only when the approval rule is met, citing the user's words; otherwise it reports the conflict. Doctor checks candidates against the admission rule instead of listing them for confirmation.
+- The startup block (`adapter-thin.md`, both languages) tells every agent to identify protected outcomes before changing behavior or architecture and to keep them unless the user approves the specific departure.
+- Word limits rise from 3,000 to 3,300 for all `SKILL.md` files and from 8,000 to 9,500 for everything read at runtime, by the owner's decision on 2026-10-30. A trial branch had tightened about forty unrelated sentences to fit new rules into the old limits; those edits were reverted, and `CONTRIBUTING.md` now forbids rewriting unrelated rule text to make room.
+
+### Evidence
+- Held-out test on jellyfin, 1Panel, and n8n, 36 protected rules not used during design, same SSOT copies in every arm: plans that silently broke the rule fell from 58% with 3.4 skills to 33% with 3.5 (−25 points, 95% interval −42 to −8), and from 58% without SSOT. Cost per plan did not rise (1,259k input tokens against 1,337k with 3.4).
+- Ordinary work in the same areas drew 3 needless questions in 36 with 3.5, against 2 with 3.4 and 0 without SSOT. That missed the 5-point limit set before the test; the owner accepted the trade.
+
+### Not verified
+- That the agent proceeds without asking again when the user's words do give up the protection, under the 3.5 wording.
+- That closeout catches a crossing in a finished diff; an earlier test found no gain, and its redesign was not rerun.
+- What the "Must preserve" line adds by itself, other models, more runs, and SSOTs built by a 3.5 setup.
+- Mining protected rules at setup with several agents raised coverage in early runs but wrote too many overbroad rules; it is not in 3.5.
+
 ## [3.4] - 2026-10-28
 
 Setup and catch-up now check what they write against the code. An audit of finished SSOTs on large repositories found that about 5% of the statements a task would act on were wrong and about 40% were right only in part, mostly because a statement was made too broad or a design intention was written as if it were built. The consumer data format is unchanged (`ssot_format: 3`); nothing needs to catch up. Evidence and limits: `tests/trials-3.3.md` section 6.

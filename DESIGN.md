@@ -25,7 +25,7 @@ The cause was in how the protocol changed, not in any one rule. Each observed ag
 1. **Memory, not verification.** SSOT keeps what helps the next task. Proof that one task works stays in its commit, pull request, or test run.
 2. **Store only what the code cannot tell you.** Don't restate fields, versions, or configuration values. Explain intent, system relationships, decisions, rejected options, and traps.
 3. **One required file.** `SSOT/README.md` is the entry point; every other file exists only when it has real content.
-4. **People's rules are the one strongly governed thing.** Confirmed invariants cannot be changed by an agent, and every invariant is explained inside `SSOT/`.
+4. **People's rules are the one strongly governed thing.** Confirmed invariants cannot be changed by an agent, and every invariant is explained inside `SSOT/`. Since 3.5 this also covers rules an agent recovers from evidence that people protect them (a guarding test, a restoring fix): they bind until a person settles them, and a request that merely names the new behavior is not that person's approval, because the requester may not know the protection exists.
 5. **Releases never create work for consumers.** The data format (`ssot_format`) changes only when old SSOTs would be misread. A new bundle version alone never asks a repository to catch up.
 6. **Machines check only what machines can decide.** Links, anchors, the register's shape, sizes, and file paths that git says were deleted or moved. Truth and readability are reviewed by an agent, and the review says how far it went.
 

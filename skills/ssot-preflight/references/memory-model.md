@@ -4,7 +4,7 @@ This file owns what a repository's `SSOT/` contains, where each kind of knowledg
 
 ## 1. What SSOT is for
 
-`SSOT/` is the repository's long-term memory. A new agent, or a person who delegates work to agents, should be able to read it and know what the project is for, how it works, which rules must not be broken, why things are the way they are, and where the traps are. With that, they can plan a change without first reconstructing the whole codebase.
+`SSOT/` is the repository's long-term memory. A new agent, or a person who delegates work to agents, should be able to read it and know what the project is for, how it works, which rules must not be broken, why things are the way they are, and where the traps are. With that, they can plan a change without first reconstructing the whole codebase. Its most important job is the rules: the architecture boundaries and product behaviors that only a person may change. Everything else an agent may change on its own.
 
 SSOT is memory, not a verification system. The code, configuration, schemas, tests, and observed runtime behavior remain the evidence for what the system does today. Proof that one task works belongs in that task's commit, pull request, or test run, not in SSOT.
 
@@ -101,7 +101,7 @@ When a change adds a temporary workaround, a compatibility shim, or a `TODO`/`HA
 
 ## 5. Invariants
 
-An invariant is a rule that people decided and that the implementation must preserve. The register in the README lists them:
+An invariant is a rule that people decided and that the implementation must preserve: an architecture boundary, or a product behavior that users, clients, or integrations rely on. Changing one takes a person; work that keeps every invariant needs nobody's approval. The register in the README lists them:
 
 ```markdown
 | ID | Kind | Rule | Explained in | Status | Source |
@@ -112,13 +112,17 @@ An invariant is a rule that people decided and that the implementation must pres
 
 **Kind** says what the rule protects. A *product promise* is something users rely on, an *architecture invariant* is a property the system must keep, and a *process rule* governs how people and agents work in the repository.
 
-A rule belongs here when a person set it as a lasting constraint on future work: "never add pop-up notifications", "a retry never charges twice", "no public release without approval", "every UI change gets a native screenshot". A one-time choice, such as a retention period or which library to use, is a decision: record it in `decisions/` or its owner, where it still binds and still needs the person to change it. Keep each row to one line; the register is read before every task.
+A rule belongs here when it is a lasting constraint on future work, set by a person ("never add pop-up notifications", "a retry never charges twice", "no public release without approval", "every UI change gets a native screenshot") or recovered from evidence that people protect it (below). A one-time choice, such as a retention period or which library to use, is a decision: record it in `decisions/` or its owner, where it still binds and still needs the person to change it. Keep each row to one line; the register is read before every task.
 
 - **confirmed.** A person established it, either by a direct instruction or by accepting a decision. Agents may change code, tests, and docs within the rule, but never its meaning, scope, or status. If a task conflicts with it, stop and ask the user. If reality already violates it, report the violation instead of rewriting the rule to match the code.
-- **candidate.** An agent inferred the rule, for example during setup. Follow it by default. When a task needs to depart from it, or its meaning is unclear in a way that matters, ask the user to confirm or drop it and record the answer; silence confirms nothing. That the code already behaves this way does not make it confirmed.
+- **candidate.** An agent inferred the rule from evidence that people protect it. Follow it by default. When a task needs to depart from it, or its meaning is unclear in a way that matters, ask the user to confirm or drop it and record the answer; silence confirms nothing. That the code already behaves this way does not make it confirmed, and candidates are not put to the user one by one: each is settled when a task needs to depart from it.
 - **retired.** It no longer applies. Keep the row so the history stays readable, and link the decision that retired it.
 
 When a user states a lasting rule ("never X", "always Y", "from now on"), record it as a confirmed invariant with the user and date as its source. The explanation lives in the owner the row links to, inside `SSOT/`.
+
+**Recovering a rule from the code.** Many protected rules were never written down. Admit one as a candidate only when you can name the outcome it protects, its conditions, evidence that people protect it on purpose, and a plausible change that would break it. Evidence of intent: a test that asserts the outcome for its own sake, a fix or revert that restored it, a guard whose comment or history says why, a shim or migration that exists to keep it. A test's existence alone is not enough; it may pin an incidental detail, which a change may update. A rule people stated stays protected even where the code violates it; report the violation.
+
+**When to ask.** A protection you admit binds at once, like a registered candidate: preserve its outcome and scope. A new setting or mitigation does not authorize an exception. If departure is needed, name the protection and consequence and ask, unless the user's words accept giving up that protection, previously or in this request; a request naming the new behavior is not that. A new helper, moved guard, rewritten test, or change outside the rule's conditions is no reason to ask.
 
 An open question blocks only the work that depends on its answer. Unrelated work continues.
 
