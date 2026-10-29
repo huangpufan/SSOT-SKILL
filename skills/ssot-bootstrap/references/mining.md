@@ -38,11 +38,13 @@ Send the challenger's findings back to the miners for one more round, then decid
 
 Then give the rows you wrote, with their explanations, to a fresh helper that did not write them. It checks each against the code at HEAD and gives one verdict: protected as written; too broad (a condition or exception is missing); not protected on purpose; wrong; or not a rule. It hunts for exceptions first: other platforms, empty or default inputs, error and early-return paths, options that override, and old formats kept for compatibility; and it treats "always", "never", "every", and "only" as claims to disprove. A row it could not check is not admitted until it is checked. Fix every row it flags, by narrowing, moving it to its owner as plain description, or dropping it, and have the fixed rows checked again.
 
+Then close the checklist: next to every item that supports an outcome, write where `SSOT/` now states it, a row ID or a section. An item without a location is unfinished: write its outcome into `SSOT/`, or record why it stays out (refuted, or deferred and why).
+
 ## 5. Check the result with a fresh reader
 
 Give a fresh helper that reads only `SSOT/` a sample of the challenger's requests: some that cross an admitted rule, some nearby that do not, and some where the user explicitly accepts giving up the protection. It must keep or ask about the first, just do the second, and do the third without asking again. Fix what fails.
 
-Once every area has had its first pass, give another fresh helper a random sample of checklist items from each area; for each, it says whether the outcome the item protects is in `SSOT/`. Where it finds outcomes missing, mine that part of the checklist again, once; then report what the sample found rather than sampling again.
+Once every area has had its first pass, give another fresh helper a random sample of checklist items from each area, including some marked as supporting no outcome; for each, it says whether the outcome the item protects is stated at the recorded location in `SSOT/`. Where it finds outcomes missing, mine that part of the checklist again, once; then report what the sample found rather than sampling again.
 
 ## 6. Report
 
