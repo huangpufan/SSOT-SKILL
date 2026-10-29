@@ -8,6 +8,29 @@ Entries up to 2.86 were derived from the v2 protocol-upgrade ledger, which is pr
 
 ## [Unreleased]
 
+## [3.6] - 2026-10-30
+
+Setup and Doctor can now find the architecture and product rules a repository protects but never wrote down, so that 3.5's rule (keep a protected rule unless the user gives it up) has rules to protect. Before, setup registered almost none of them: about 1% of the protected rules sampled from three areas per repository. The procedure is never one agent in one pass: helper agents with fresh contexts mine from tests, history, and guards, a fresh challenger looks for exceptions and missed rules, the miners revise, the lead admits each rule by the admission rule, and a fresh reader checks the result. The owner released it on 2026-10-30 after the first results, with the next goal of raising coverage and precision toward complete. The consumer data format is unchanged (`ssot_format: 3`); nothing needs to catch up; a Doctor area scope mines an existing SSOT. Evidence and limits: `tests/trials-3.6.md`.
+
+### Added
+- `ssot-bootstrap/references/mining.md`: declare the scope; at least two miners per area from different sources; a challenger; a revision round; admission; a fresh-reader check; a per-area report. If helpers cannot be started, stop and tell the user instead of mining alone. After a helper's rate-limit error, retry with fewer at a time rather than a narrower task.
+- Bootstrap: a question about which outcomes users, clients, and integrations rely on staying the same, and setup is done only when the rules were mined this way and the report was given to the user.
+- Doctor: a scope for mining one area's protected rules.
+
+### Changed
+- Memory model §5: admitting a rule now also states its supported exceptions, one change that would violate it and one nearby change it permits, and a search for evidence against its scope; "no known exception" is allowed but proves nothing.
+- Mining and Doctor's catch-up keep working files in `.ssot-work/` at the repository root, with its own `.gitignore`, instead of outside the repository, where sandboxed agents often cannot write.
+
+### Evidence
+- Coverage of 134 protected rules in nine areas declared in advance: 3.4 setup 1 of 134; mined with the cheap model 43% to 57% per repository (three builds on jellyfin and n8n), with `gpt-6.1-terra` 28% to 39% (three repositories).
+- Precision of added rows: cheap model 44% to 67%, terra 82% to 88%; most other rows were right in substance but missed a condition or exception.
+- jellyfin, 12 change requests that break a sampled rule: plans protected 2 against the unmined SSOT and 9 against a mined one.
+
+### Not verified
+- Whether overbroad mined rules make agents ask about ordinary work; that test was still running at release.
+- 1Panel with the cheap model, more builds, and other models; precision near 90% with the cheap model.
+- Doctor's catch-up with working files in `.ssot-work/`, beyond a sandbox check that the directory is writable and stays out of git.
+
 ## [3.5] - 2026-10-30
 
 An agent now keeps the architecture boundaries and product behaviors a repository protects, even when the user's request would break one, unless the user gives that protection up. Before, an agent that found the guarding test or the fix that established a behavior usually treated the request as permission and went ahead. The owner ruled on 2026-10-29 that a request which names the new behavior is not approval, because the requester may not know the protection exists: the agent points out the protection, its evidence, who relies on it, and the consequence, and asks. The consumer data format is unchanged (`ssot_format: 3`); nothing needs to catch up. Repositories wired before 3.5 keep working. The measured result used the new startup block as well as the new skills, and upgrading the skills does not edit instruction files, so to get the full effect replace the text between the `SSOT-SKILL` markers in the repository's agent instruction file with the 3.5 block (the installer prints it). Evidence and limits: `tests/trials-3.5.md`.

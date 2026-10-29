@@ -9,7 +9,7 @@ Build the repository's memory from what the repository shows: its code, configur
 
 Setup writes a documentation tree and may edit existing documents, so it needs the user's agreement first. Tell them what you will create and which existing files you expect to change.
 
-Follow [`references/bootstrap.md`](references/bootstrap.md):
+Follow [`references/bootstrap.md`](references/bootstrap.md), and [`references/mining.md`](references/mining.md) for the protected rules:
 
 - Sections 1–6 cover a new SSOT, or continuing an unfinished one.
 - Section 7 covers migrating a v2 layout, including resuming a migration that `SSOT/BOOTSTRAP.md` says is under way.
@@ -17,6 +17,7 @@ Follow [`references/bootstrap.md`](references/bootstrap.md):
 You are done when all of these hold:
 
 - the README routes the repository's main kinds of task;
+- protected rules were mined in rounds by separate agents as `references/mining.md` describes, and its report (areas and sources read, how each proposal was decided, what remains for Doctor) has been given to the user;
 - every document you wrote matches the code it describes;
 - the existing documents' durable facts live in `SSOT/`;
 - the candidate invariants, the open questions, and the planned changes outside `SSOT/` have been put to the user;

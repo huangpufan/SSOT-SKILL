@@ -10,7 +10,10 @@ Read enough to answer, from evidence:
 - how it is built, tested, released, and deployed: build files, CI configuration, scripts, Dockerfiles, release notes;
 - its main parts, where state lives, and how a typical request or command flows: entry points, directory structure, data stores, external services;
 - the rules people already set: `AGENTS.md`, `CLAUDE.md`, contributing guides, ADRs, code review conventions;
-- what history says: `git log` themes, large refactors, reverted changes, bug-fix commits that reveal traps.
+- what history says: `git log` themes, large refactors, reverted changes, bug-fix commits that reveal traps;
+- which outcomes users, clients, and integrations rely on staying the same: public promises, APIs, CLI behavior, saved data, import and export formats, and upgrades.
+
+The protected architecture and product rules are found separately, in rounds, by several agents: follow [`mining.md`](mining.md) after the README is written.
 
 Note where the evidence is thin. That becomes an open question, not a guess. For a large repository, explore one part at a time and write as you go, so nothing depends on holding the whole repository in mind.
 
@@ -19,7 +22,7 @@ Note where the evidence is thin. That becomes an open question, not a guess. For
 Start from `ssot-readme.md`. Set `ssot_format: 3` and the documentation language: the language the user asked for, or else the language of the repository's existing documentation. Write the project summary, the map, and task routes for the main kinds of work you saw in the history. Seed the invariants register like this:
 
 - A rule a person wrote down, such as an `AGENTS.md` requirement or an accepted ADR, is `confirmed`. Its source is that document, and its explanation moves into `SSOT/` (section 4).
-- A rule you inferred from the code or the history is `candidate`.
+- A rule you inferred from the code or the history is `candidate`, admitted through [`mining.md`](mining.md).
 
 ## 3. Fill only what has real content
 
@@ -45,7 +48,7 @@ If setup will not finish in one session, keep `SSOT/BOOTSTRAP.md` from the `boot
 
 1. Add the block from `adapter-thin.md`, everything between `<!-- SSOT-SKILL:BEGIN -->` and `<!-- SSOT-SKILL:END -->`, to the repository's agent instruction file (`AGENTS.md`, `CLAUDE.md`, or the repository's equivalent). If the markers already exist, replace only the text between them. This wiring step never edits outside the markers; moving project facts out of that file is section 4's job, done with the user's agreement.
 2. Run `python3 ../ssot-doctor/assets/scripts/ssot-check.py SSOT`, with the path taken relative to this skill's directory. Fix every error. Where it warns that a mentioned file was removed or moved, correct each sentence that still describes current code.
-3. Check what you wrote against the code, and run the newcomer test; both are in `ssot-doctor` section 3 (Truth, and Usefulness to a newcomer). Fix the errors and gaps they expose. If no helper is available, do them yourself and tell the user they were not independent.
+3. Check what you wrote against the code, and run the newcomer test; both are in `ssot-doctor` section 3 (Truth, and Usefulness to a newcomer). Fix the errors and gaps they expose. If no helper is available, do them yourself and tell the user they were not independent. The rule mining in `mining.md` always uses separate helpers; it is never done by one agent alone.
 4. Show the user every invariant you registered, the confirmed ones with their sources too (a rule found in an instruction file may have been written by an agent), plus the candidates and the open questions, and invite corrections. Do the same with the planned changes to documents outside `SSOT/` (section 4). Setup is complete once all of these have been put to the user; it does not stay open waiting for the answers. If some documents still repeat facts that SSOT now owns, add one open question to the README that names them; that question, not `BOOTSTRAP.md`, carries the pending work, and the exact edits are worked out once the user agrees. Answers that come later are recorded through `$ssot-closeout`. A candidate nobody answers stays a candidate; preflight asks about it when a task needs to depart from it.
 5. Set `reviewed_through` in the README front matter to the commit whose code you explored. It marks where the next catch-up starts; it does not claim that you read every earlier commit. Then delete `BOOTSTRAP.md`.
 
