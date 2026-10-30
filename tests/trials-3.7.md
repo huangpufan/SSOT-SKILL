@@ -39,7 +39,7 @@ On click, with the same starting arrangement (the SSOT 3.6 setup produced with t
 |---|---|---|
 | 3.6 | 34%, 36% | 27/28, 33/35 |
 | C | 49%, 58% | 91/93, 256/273 |
-| Shipped | still running at release | |
+| Shipped | 44% (finished after release) | 85/98 |
 
 ## 3. Review, and a finding from the cheap model
 
@@ -57,7 +57,7 @@ Full setups of fd with flash under 3.6 reached 85% and 73% coverage, with precis
 
 ## What this does not show
 
-- Coverage near complete. The best terra mining reached two thirds of fd's claims and about half of click's; most of what remains is detail of documented options.
+- Coverage near complete. The best terra mining reached two thirds of fd's claims and about half of click's; most of what remains is detail of documented options. The one click run of the shipped text (44%, finished after release) was the lowest of the three 3.7 click runs, mostly in completion and testing (9 of 35 claims, against 24 and 26); one run cannot separate the review fixes from run-to-run spread.
 - Precision near complete with the cheap model.
 - Large repositories, other models, and repeated full setups with terra, which often ended a session with setup still unfinished.
 - Whether more rows change what agents do. The 3.6 end-to-end check on jellyfin (agents kept 9 of 12 sampled rules against a mined SSOT, 2 of 12 against an unmined one) was not repeated, and the size of the SSOT agents must read grows with coverage.

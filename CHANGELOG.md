@@ -10,7 +10,7 @@ Entries up to 2.86 were derived from the v2 protocol-upgrade ledger, which is pr
 
 ## [3.7] - 2026-10-30
 
-Mining now finds most of the protected rules of a small or medium repository, not about a third. On fd, a Rust command-line tool, the share of protected behaviors that SSOT states after one mining round with `gpt-6.1-terra` rose from 33% to 64% on average over five runs, with 90% to 100% of the added rows correct; on click, a Python library held out while the text was written, from 35% to 54%. The largest gain came from removing a bottleneck: in 3.6 the lead agent decided and rechecked every proposal itself and stopped with most of them undecided; now one helper per area writes every outcome the challenge left standing into `SSOT/`, and the lead decides only disputes. The owner raised the runtime word budget from 9,500 to 10,000 for these changes. The consumer data format is unchanged (`ssot_format: 3`); nothing needs to catch up. Evidence and limits: `tests/trials-3.7.md`.
+Mining now finds most of the protected rules of a small or medium repository, not about a third. On fd, a Rust command-line tool, the share of protected behaviors that SSOT states after one mining round with `gpt-6.1-terra` rose from 33% to 64% on average over five runs, with 90% to 100% of the added rows correct; on click, a Python library held out while the text was written, from 35% to 50% over three runs. The largest gain came from removing a bottleneck: in 3.6 the lead agent decided and rechecked every proposal itself and stopped with most of them undecided; now one helper per area writes every outcome the challenge left standing into `SSOT/`, and the lead decides only disputes. The owner raised the runtime word budget from 9,500 to 10,000 for these changes. The consumer data format is unchanged (`ssot_format: 3`); nothing needs to catch up. Evidence and limits: `tests/trials-3.7.md`.
 
 ### Changed
 - `mining.md` §1: setup mines every main area; a small or medium repository is mined whole in one round, every area getting a first pass before any gets a second. Each area's sources are listed item by item (tests, fix and revert commits, changelog fixes, documented behaviors, guards) and split among the miners.
@@ -22,7 +22,7 @@ Mining now finds most of the protected rules of a small or medium repository, no
 
 ### Evidence
 - fd, claims SSOT states (202 claims split from 53 rules derived and checked by terra), one terra mining round from the same starting SSOT: 3.6 36%, 30%, 32%; 3.7 text 65%, 64%, 66%, 55%, 70%. Precision of added rows: 3.6 88% to 100%, 3.7 90% to 100%.
-- click, held out (169 claims): 3.6 34%, 36%; 3.7 before the review fixes 49%, 58%; precision 94% to 98%.
+- click, held out (169 claims): 3.6 34%, 36%; 3.7 before the review fixes 49%, 58%, and the shipped text 44% (one run, finished after release); precision 87% to 98%.
 - A second mining round on a finished copy added at most 2 points: what remained was missing detail, which the explanation list now names.
 - 3.6's open question: on jellyfin, mined SSOTs drew 2 needless questions in 24 ordinary requests, the unmined one 1 in 12.
 
