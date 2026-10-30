@@ -8,6 +8,29 @@ Entries up to 2.86 were derived from the v2 protocol-upgrade ledger, which is pr
 
 ## [Unreleased]
 
+## [3.7] - 2026-10-30
+
+Mining now finds most of the protected rules of a small or medium repository, not about a third. On fd, a Rust command-line tool, the share of protected behaviors that SSOT states after one mining round with `gpt-6.1-terra` rose from 33% to 64% on average over five runs, with 90% to 100% of the added rows correct; on click, a Python library held out while the text was written, from 35% to 54%. The largest gain came from removing a bottleneck: in 3.6 the lead agent decided and rechecked every proposal itself and stopped with most of them undecided; now one helper per area writes every outcome the challenge left standing into `SSOT/`, and the lead decides only disputes. The owner raised the runtime word budget from 9,500 to 10,000 for these changes. The consumer data format is unchanged (`ssot_format: 3`); nothing needs to catch up. Evidence and limits: `tests/trials-3.7.md`.
+
+### Changed
+- `mining.md` §1: setup mines every main area; a small or medium repository is mined whole in one round, every area getting a first pass before any gets a second. Each area's sources are listed item by item (tests, fix and revert commits, changelog fixes, documented behaviors, guards) and split among the miners.
+- `mining.md` §2: user documentation (manual, README, help text, API reference) is a mining source; a documented behavior the code still has is a candidate, never `confirmed`. Each miner marks every checklist item, with no target count.
+- `mining.md` §4: miners apply the challenger's findings; the lead decides only disputes; one helper per area, each owning its files, writes every standing outcome into its owner and drafts its rows. Rules state the behavior a user or caller sees (or, for architecture, the property and boundary), not a test fixture, one outcome per row, and the explanation names triggers with aliases, the default, the exact outcome, precedence, and exclusions. A fresh helper checks the new rows, hunting exceptions first; a violated protection stays and is reported; a row still disputed after one recheck stays out of the register and goes in the report.
+- `mining.md` §5: after every area's first pass, a fresh helper samples checklist items for outcomes missing from `SSOT/`; misses are mined once more, then reported.
+- Memory model §5 and bootstrap §2: a promise in the user documentation is evidence for a candidate.
+- `CONTRIBUTING.md` and `tests/test-bundle-shape.sh`: runtime budget 10,000 words.
+
+### Evidence
+- fd, claims SSOT states (202 claims split from 53 rules derived and checked by terra), one terra mining round from the same starting SSOT: 3.6 36%, 30%, 32%; 3.7 text 65%, 64%, 66%, 55%, 70%. Precision of added rows: 3.6 88% to 100%, 3.7 90% to 100%.
+- click, held out (169 claims): 3.6 34%, 36%; 3.7 before the review fixes 49%, 58%; precision 94% to 98%.
+- A second mining round on a finished copy added at most 2 points: what remained was missing detail, which the explanation list now names.
+- 3.6's open question: on jellyfin, mined SSOTs drew 2 needless questions in 24 ordinary requests, the unmined one 1 in 12.
+
+### Not verified
+- Coverage near complete; the best runs state about two thirds of fd's claims and about half of click's.
+- Precision with `deepseek-v4.1-flash`: its fd setups state 73% to 87% of the claims, but its candidate rows were judged correct 80% and 67% of the time with 3.6 and 58% in the one setup with the 3.7 text.
+- Large repositories; full setups with terra, which often ended sessions with setup unfinished; whether more rows change what agents do.
+
 ## [3.6] - 2026-10-30
 
 Setup and Doctor can now find the architecture and product rules a repository protects but never wrote down, so that 3.5's rule (keep a protected rule unless the user gives it up) has rules to protect. Before, setup registered almost none of them: about 1% of the protected rules sampled from three areas per repository. The procedure is never one agent in one pass: helper agents with fresh contexts mine from tests, history, and guards, a fresh challenger looks for exceptions and missed rules, the miners revise, the lead admits each rule by the admission rule, and a fresh reader checks the result. The owner released it on 2026-10-30 after the first results, with the next goal of raising coverage and precision toward complete. The consumer data format is unchanged (`ssot_format: 3`); nothing needs to catch up; a Doctor area scope mines an existing SSOT. Evidence and limits: `tests/trials-3.6.md`.
