@@ -30,6 +30,7 @@ Mining now finds most of the protected rules of a small or medium repository, no
 - Coverage near complete; the best runs state about two thirds of fd's claims and about half of click's.
 - Precision with `deepseek-v4.1-flash`: its fd setups state 73% to 87% of the claims, but its candidate rows were judged correct 80% and 67% of the time with 3.6 and 58% in the one setup with the 3.7 text.
 - Large repositories; full setups with terra, which often ended sessions with setup unfinished; whether more rows change what agents do.
+- A clean environment: every terra run, builders and judges, loaded the maintainer's personal codex instructions, skills, and memories (found after release; `tests/trials-3.7.md` section 6).
 
 ## [3.6] - 2026-10-30
 
