@@ -10,7 +10,7 @@ Never let one agent in one pass decide what is protected. Different agents with 
 
 ## 1. Declare the scope before mining
 
-List the main areas. For this round, choose the areas to mine, the sources in each (test directories, history range), and a budget in time or commits, and write this plan to a working file. Setup mines every main area. A small or medium repository is mined whole in this round, with every area given its first pass before any area gets a second; in a large one, areas not mined this round go to a later `$ssot-doctor` area scope.
+List the main areas. For this round, choose the areas to mine, the sources in each (test directories, history range), and a budget in time or commits, and write this plan to a working file. Setup mines every main area. A small or medium repository is mined whole in this round; in a large one, areas not mined this round go to a later `$ssot-doctor` area scope. Start the miners of every area in this round together. Leads that call for more digging in one area, such as further inventories, follow-up challenges, or runtime checks, go in the working file and wait until every area's rows are written; a session that ends early must leave every area mined once rather than one area mined deeply.
 
 Then list each area's sources item by item in a working file: every test file with its test names, every fix or revert commit that touches the area, the bug-fix entries of its changelog, each behavior its user documentation describes, and the guards whose comments say why they exist. It makes the round complete rather than a sample: split it among the miners so every item has one.
 
