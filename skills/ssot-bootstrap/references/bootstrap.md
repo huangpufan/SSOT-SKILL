@@ -22,7 +22,7 @@ Note where the evidence is thin. That becomes an open question, not a guess. For
 Start from `ssot-readme.md`. Set `ssot_format: 3` and the documentation language: the language the user asked for, or else the language of the repository's existing documentation. Write the project summary, the map, and task routes for the main kinds of work you saw in the history. Seed the invariants register like this:
 
 - A rule a person wrote down, such as an `AGENTS.md` requirement or an accepted ADR, is `confirmed`. Its source is that document, and its explanation moves into `SSOT/` (section 4).
-- A rule you inferred from the code or the history is `candidate`, admitted through [`mining.md`](mining.md).
+- A rule you inferred from the code, the history, or a description of behavior in the user documentation is `candidate`, admitted through [`mining.md`](mining.md).
 
 ## 3. Fill only what has real content
 
