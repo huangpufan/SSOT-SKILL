@@ -55,6 +55,12 @@ Full setups of fd with flash under 3.6 reached 85% and 73% coverage, with precis
 
 3.6 shipped before it was known whether mined, partly overbroad rules make agents ask about ordinary work. The jellyfin near-boundary requests have since finished (12 per SSOT, terra judge, rubric of `tests/trials-3.5.md`): the unmined SSOT drew 1 needless question, the flash-mined one 0, the terra-mined one 2, and no plan broke anything. Mined SSOTs together asked needlessly 2 times in 24, the unmined one 1 in 12.
 
+## 6. Found after release: the trial environment
+
+After release the maintainer found that every terra run in this trial, the builders and the judges alike, ran with the maintainer's personal codex configuration: a global instruction file about work discipline, 32 personal skills (one of them is applied before any completion claim and asks for evidence that the work is done), and codex memories. Several setups read that skill just before stopping and reported setup as unfinished. The setup prompt also said "This session may end before setup is finished", which invites an early stop. Some runs met network interruptions with reconnects lasting minutes. The flash runs loaded no global instruction file; they saw only a list of personal skill names.
+
+Both arms of every comparison ran under the same configuration, so sections 1 and 2 compare versions under equal conditions. The absolute numbers, and above all the full setups with terra (2% to 64% on fd and click), may not hold in a clean environment. The harness now runs codex with an isolated home, and a check confirmed that such a run sees none of the personal skills or instructions. Repeating the trial in the clean environment was blocked by the terra account's usage limit.
+
 ## What this does not show
 
 - Coverage near complete. The best terra mining reached two thirds of fd's claims and about half of click's; most of what remains is detail of documented options. The one click run of the shipped text (44%, finished after release) was the lowest of the three 3.7 click runs, mostly in completion and testing (9 of 35 claims, against 24 and 26); one run cannot separate the review fixes from run-to-run spread.
